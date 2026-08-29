@@ -155,3 +155,14 @@ Stated plainly rather than left to be discovered.
    deliberately open — the system is built to accept them.
 5. **GSAP plugin licensing needs confirming before launch** — see
    `PROVENANCE.md` §2.
+6. **One end-to-end test is flaky against the dev server, and only there.**
+   `e2e/not-found.e2e.ts` asserts the 404 page logs no console errors. Under
+   `bun run dev`, Next's on-demand route compilation sometimes races its
+   `instant` prefetch validation for the homepage, logging
+   `Route "/[...slug]": Could not validate 'instant'…`. Against a production
+   build — which is how `playwright.config.ts` runs the suite when `CI` is set,
+   and how it was verified here — the full suite passes 17/17 with zero console
+   errors, repeatedly. Reproduce the CI path locally with
+   `CI=true bun run test:e2e`. This is a dev-server artifact, not a defect in
+   the page; it is recorded rather than papered over, and the test was left
+   asserting exactly what it should.

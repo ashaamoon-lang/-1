@@ -88,10 +88,40 @@ export function subscribeRootCanvas(listener: () => void): () => void {
 let primaryClaimId: string | undefined
 const primaryClaimListeners = new Set<() => void>()
 
-function emitPrimaryClaimChange() {
+function notifyPrimaryClaimListeners() {
   for (const listener of primaryClaimListeners) {
     listener()
   }
+}
+
+/**
+ * Notify subscribers that the claim changed, but never during the render
+ * phase.
+ *
+ * `claimPrimary` is called from `<Canvas>`'s render body by design (see its
+ * doc below) — that is what lets the first commit already know which instance
+ * is primary. Notifying synchronously from there, however, runs
+ * `useSyncExternalStore`'s listeners while React is rendering, which sets
+ * state on *other* mounted `<Canvas>` instances mid-render. React reports it
+ * as:
+ *
+ *   Cannot update a component (`Canvas`) while rendering a different
+ *   component (`Canvas`).
+ *
+ * It surfaces whenever two `<Canvas>` instances render in the same commit —
+ * most easily during a background prefetch render of another route — and it
+ * failed `e2e/not-found.e2e.ts`'s console-error assertion intermittently,
+ * on a page that mounts no canvas of its own.
+ *
+ * Deferring to a microtask keeps the claim itself synchronous (the property
+ * the design depends on) and moves only the notification out of the render
+ * phase. Subscribers re-render a tick later, which is all they ever needed:
+ * the notification exists to let a non-primary instance react to a claim it
+ * did not make, never to decide its own claim — that is `claimPrimary`'s
+ * synchronous return value.
+ */
+function emitPrimaryClaimChange() {
+  queueMicrotask(notifyPrimaryClaimListeners)
 }
 
 /**
