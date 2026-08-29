@@ -1,0 +1,1403 @@
+{
+  "Lusion": {
+    "url": "https://lusion.co",
+    "ok": true,
+    "title": "Lusion - Award Winning 3D and Interactive Web Studio",
+    "htmlBytes": 59580,
+    "cssFiles": [
+      {
+        "url": "https://lusion.co/_astro/about.CNa9RfUh.css",
+        "bytes": 90367
+      }
+    ],
+    "cssBytes": 90368,
+    "customProps": [
+      ["--active: before", 2],
+      ["--color-error: #e90000", 1],
+      ["--color-off-white: #f0f1fa", 1],
+      ["--color-white: #fff", 1],
+      ["--color-dark-white: #e4e6ef", 1],
+      ["--color-off-white-semi: rgba(240, 241, 250, .7)", 1],
+      ["--color-black: #000000", 1],
+      ["--color-green: #c1ff00", 1],
+      ["--color-blue: #1a2ffb", 1],
+      ["--color-red: #ff4c41", 1],
+      ["--color-grey-blue: #2b2e3a", 1],
+      ["--color-dark-blue: #071bdf", 1],
+      ["--color-purple: #8832f7", 1],
+      ["--color-project-details-logo-color: #f0f", 1],
+      ["--grid-space: calc((100% - 11 * var(--grid-gap)) / 12)", 1],
+      ["--grid-gap: 2vw", 1],
+      ["--global-border-radius: 20px", 1],
+      ["--base-padding-x: max(5vw, 40px)", 1],
+      ["--base-padding-y: clamp(30px, 4vw, 50px)", 1],
+      ["--header-color: #0016ec", 1],
+      ["--header-text-color: #000000", 1],
+      ["--project-details-bg: #000", 1],
+      ["--project-details-highlight: #000", 1],
+      ["--project-details-btn-bg: #000", 1],
+      ["--project-details-btn-text: #000", 1],
+      ["--project-details-icon-bg: #000", 1],
+      ["--project-details-icon-color: #000", 1],
+      ["--project-details-text: #000", 1],
+      ["--project-details-btn-bg-hover: #000", 1],
+      ["--project-details-btn-text-hover: #fff", 1],
+      ["--header-size: clamp(1rem, 1vw, 2rem)", 1],
+      ["--cross-size: clamp(.875rem, 1vw, 2rem)", 1],
+      ["--grid-gap: 4vw", 1],
+      ["--global-border-radius: 15px", 1],
+      ["--base-padding-x: max(6vw, 60px)", 1],
+      ["--header-size: clamp(.75rem, 1vw, 2rem)", 1],
+      ["--global-border-radius: 10px", 1],
+      ["--base-padding-x: 25px", 1],
+      ["--base-padding-y: 25px", 1],
+      ["--base-padding-x: 15px", 1]
+    ],
+    "customPropCount": 52,
+    "cubicBeziers": [
+      [".4,0,.1,1", 32],
+      [".35,0,0,1", 32],
+      [".1,0,.1,1", 3],
+      [".4,0,0,1", 2],
+      [".16,1,.3,1", 2],
+      [".4,.1,0,1", 1]
+    ],
+    "durationsMs": [
+      [400, 40],
+      [500, 25],
+      [300, 24],
+      [100, 6],
+      [200, 6],
+      [3000, 3],
+      [600, 2],
+      [250, 1]
+    ],
+    "clamps": [
+      [".875rem,1vw,2rem", 5],
+      [".75rem,1vw,2rem", 4],
+      [".875rem,1vw,1.75rem", 4],
+      ["1rem,1.5vw,3rem", 3],
+      ["7em,8vw,20em", 2],
+      ["1rem,1vw,1.5rem", 2],
+      ["1rem,1vw,1.75rem", 2],
+      [".75rem,1vw,1.75rem", 2],
+      ["30px, 4vw, 50px", 1],
+      ["1rem, 1vw, 2rem", 1]
+    ],
+    "fontFamilies": [
+      ["Aeonik", 11],
+      ["IBMPlexMono", 7],
+      ["LusionMono", 4],
+      ["system-ui", 1],
+      ["ui-monospace", 1],
+      ["inherit", 1]
+    ],
+    "fontFaces": [
+      ["Aeonik", 3],
+      ["IBMPlexMono", 2],
+      ["LusionMono", 1]
+    ],
+    "fontWeights": [
+      ["500", 12],
+      ["400", 8]
+    ],
+    "topHexColors": [
+      ["fff", 16],
+      ["000", 10],
+      ["0ff", 3],
+      ["000000", 2],
+      ["2b2e3a", 2],
+      ["0016ec", 2],
+      ["e90000", 1],
+      ["f0f1fa", 1],
+      ["e4e6ef", 1],
+      ["c1ff00", 1],
+      ["1a2ffb", 1],
+      ["ff4c41", 1],
+      ["071bdf", 1],
+      ["8832f7", 1]
+    ],
+    "mixBlendModes": [],
+    "willChange": [["transform", 39]],
+    "prefersReducedMotionHits": 0,
+    "breakpointsPx": [
+      ["812", 130],
+      ["1000", 18],
+      ["560", 15],
+      ["380", 7],
+      ["480", 6],
+      ["400", 1],
+      ["1600", 1],
+      ["1200", 1]
+    ],
+    "gridTemplates": [
+      ["repeat(6,minmax(0,1fr))", 7],
+      ["repeat(12,minmax(0,1fr))", 6],
+      ["1fr 1fr", 1]
+    ],
+    "libs": {
+      "astro": true,
+      "motion": true
+    },
+    "scriptCount": 2,
+    "canvasTags": 3,
+    "videoTags": 0,
+    "imgTags": 0
+  },
+  "basement.studio": {
+    "url": "https://basement.studio",
+    "ok": true,
+    "title": "basement.studio | We make cool shit that performs.",
+    "htmlBytes": 219439,
+    "cssFiles": [
+      {
+        "url": "https://basement.studio/_next/static/immutable/chunks/2mvnmdw7fgg4_.css",
+        "bytes": 68197
+      },
+      {
+        "url": "https://basement.studio/_next/static/immutable/chunks/2v_oqpqzy6za3.css",
+        "bytes": 46211
+      }
+    ],
+    "cssBytes": 114410,
+    "customProps": [
+      ["--tw-text-opacity: 1", 31],
+      ["--tw-bg-opacity: 1", 17],
+      ["--tw-border-opacity: 1", 5],
+      ["--opacity-hover-value: 100", 5],
+      ["--tw-shadow-colored: inset 0 0 0 9999px var(--tw-shadow-color)", 4],
+      ["--opacity-hover-value: var(--opacity-hover-anim-target)", 4],
+      [
+        "--tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-colo",
+        4
+      ],
+      [
+        "--tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring",
+        3
+      ],
+      ["--tw-ring-opacity: 1", 3],
+      ["--tw-ring-color: rgb(255 77 0/var(--tw-ring-opacity))", 3],
+      ["--tw-shadow: inset 0 0 0 9999px #23232395", 3],
+      ["--tw-scale-x: 1", 2],
+      ["--tw-scale-y: 1", 2],
+      ["--tw-translate-y: -100%", 2],
+      ["--tw-translate-y: 100%", 2],
+      ["--tw-space-x-reverse: 0", 2],
+      ["--anim-duration: .3s", 2],
+      ["--anim-delay: calc(var(--anim-duration) / 5)", 2],
+      ["--opacity-hover-anim-target: 50", 2],
+      ["--underline-height: max(.06em, 1px)", 2],
+      ["--tw-ring-offset-width: 2px", 2],
+      ["--tw-ring-offset-color: #000", 2],
+      ["--tw-ring-offset-width: 0px!important", 2],
+      ["--position: 100%", 2],
+      ["--tw-content: \"\"", 1],
+      ["--tw-border-spacing-x: 0", 1],
+      ["--tw-border-spacing-y: 0", 1],
+      ["--tw-translate-x: 0", 1],
+      ["--tw-translate-y: 0", 1],
+      ["--tw-rotate: 0", 1],
+      ["--tw-skew-x: 0", 1],
+      ["--tw-skew-y: 0", 1],
+      ["--tw-pan-x: ", 1],
+      ["--tw-pan-y: ", 1],
+      ["--tw-pinch-zoom: ", 1],
+      ["--tw-scroll-snap-strictness: proximity", 1],
+      ["--tw-gradient-from-position: ", 1],
+      ["--tw-gradient-via-position: ", 1],
+      ["--tw-gradient-to-position: ", 1],
+      ["--tw-ordinal: ", 1]
+    ],
+    "customPropCount": 137,
+    "cubicBeziers": [
+      [".4,0,.2,1", 14],
+      [".4,0,.6,1", 1]
+    ],
+    "durationsMs": [
+      [150, 13],
+      [300, 3],
+      [200, 3],
+      [3000, 2],
+      [1000, 2],
+      [6000, 2],
+      [2000, 1],
+      [100, 1],
+      [500, 1],
+      [1500, 1],
+      [1400, 1]
+    ],
+    "clamps": [],
+    "fontFamilies": [
+      ["Geist Mono", 7],
+      ["Geist", 6],
+      ["flauta", 2],
+      ["inherit", 1],
+      ["Geist Fallback", 1],
+      ["Geist Mono Fallback", 1],
+      ["flauta Fallback", 1]
+    ],
+    "fontFaces": [
+      ["Geist Mono", 6],
+      ["Geist", 5],
+      ["Geist Fallback", 1],
+      ["Geist Mono Fallback", 1],
+      ["flauta", 1],
+      ["flauta Fallback", 1]
+    ],
+    "fontWeights": [
+      ["600", 40],
+      ["100", 11],
+      ["500", 3],
+      ["700", 3],
+      ["400", 1]
+    ],
+    "topHexColors": [
+      ["ff4d00", 21],
+      ["fff", 12],
+      ["000", 9],
+      ["757575", 6],
+      ["e6e6e6", 5],
+      ["e5e7eb", 1],
+      ["9ca3af", 1],
+      ["1a1a1a", 1],
+      ["171717", 1],
+      ["ff4d4d", 1],
+      ["ff0000", 1],
+      ["2e2e2e", 1],
+      ["212121", 1]
+    ],
+    "mixBlendModes": [["multiply", 1]],
+    "willChange": [
+      ["opacity,transform", 1],
+      ["auto", 1]
+    ],
+    "prefersReducedMotionHits": 1,
+    "breakpointsPx": [
+      ["1024", 6],
+      ["640", 2],
+      ["768", 2],
+      ["1280", 2],
+      ["1536", 2],
+      ["1920", 2],
+      ["400", 1]
+    ],
+    "gridTemplates": [
+      ["repeat(12,minmax(0,1fr))", 4],
+      ["repeat(8,minmax(0,1fr))", 4],
+      ["repeat(4,minmax(0,1fr))", 3],
+      ["repeat(2,minmax(0,1fr))", 2],
+      ["repeat(7,minmax(0,1fr))", 2],
+      ["repeat(12,minmax(0,1fr))!important", 1]
+    ],
+    "libs": {
+      "gsap": true,
+      "next/static": true,
+      "_next": true,
+      "webgl": true,
+      "motion": true,
+      "sanity": true,
+      "mux": true,
+      "vercel": true
+    },
+    "scriptCount": 31,
+    "canvasTags": 0,
+    "videoTags": 0,
+    "imgTags": 64
+  },
+  "By-Kin": {
+    "url": "https://by-kin.com",
+    "ok": true,
+    "title": "Home | &#x27;kin Commercial Interior Design &amp; Branding Studio",
+    "htmlBytes": 135686,
+    "cssFiles": [
+      {
+        "url": "https://by-kin.com/_next/static/css/19a1d46778dd3199.css",
+        "bytes": 19206
+      },
+      {
+        "url": "https://by-kin.com/_next/static/css/7712d15d8ce0b561.css",
+        "bytes": 71321
+      },
+      {
+        "url": "https://by-kin.com/_next/static/css/536b448817d1ec9f.css",
+        "bytes": 24326
+      },
+      {
+        "url": "https://by-kin.com/_next/static/css/ef39a6c6c8d314cb.css",
+        "bytes": 3454
+      },
+      {
+        "url": "https://by-kin.com/_next/static/css/c850f70af1227591.css",
+        "bytes": 5956
+      }
+    ],
+    "cssBytes": 124268,
+    "customProps": [
+      ["--tw-bg-opacity: 1", 4],
+      ["--color: var(--dark)", 3],
+      ["--size: 1px", 2],
+      ["--line-color: var(--white)", 2],
+      ["--tw-border-spacing-x: 0", 2],
+      ["--tw-border-spacing-y: 0", 2],
+      ["--tw-translate-x: 0", 2],
+      ["--tw-translate-y: 0", 2],
+      ["--tw-rotate: 0", 2],
+      ["--tw-skew-x: 0", 2],
+      ["--tw-skew-y: 0", 2],
+      ["--tw-scale-x: 1", 2],
+      ["--tw-scale-y: 1", 2],
+      ["--tw-pan-x: ", 2],
+      ["--tw-pan-y: ", 2],
+      ["--tw-pinch-zoom: ", 2],
+      ["--tw-scroll-snap-strictness: proximity", 2],
+      ["--tw-gradient-from-position: ", 2],
+      ["--tw-gradient-via-position: ", 2],
+      ["--tw-gradient-to-position: ", 2],
+      ["--tw-ordinal: ", 2],
+      ["--tw-slashed-zero: ", 2],
+      ["--tw-numeric-figure: ", 2],
+      ["--tw-numeric-spacing: ", 2],
+      ["--tw-numeric-fraction: ", 2],
+      ["--tw-ring-inset: ", 2],
+      ["--tw-ring-offset-width: 0px", 2],
+      ["--tw-ring-offset-color: #fff", 2],
+      ["--tw-ring-color: rgba(59,130,246,.5)", 2],
+      ["--tw-ring-offset-shadow: 0 0 #0000", 2],
+      ["--tw-ring-shadow: 0 0 #0000", 2],
+      ["--tw-shadow: 0 0 #0000", 2],
+      ["--tw-shadow-colored: 0 0 #0000", 2],
+      ["--tw-blur: ", 2],
+      ["--tw-brightness: ", 2],
+      ["--tw-contrast: ", 2],
+      ["--tw-grayscale: ", 2],
+      ["--tw-hue-rotate: ", 2],
+      ["--tw-invert: ", 2],
+      ["--tw-saturate: ", 2]
+    ],
+    "customPropCount": 176,
+    "cubicBeziers": [
+      [".76,0,.24,1", 2],
+      ["0.165,0.84,0.44,1", 1],
+      ["0.76,0,0.24,1", 1],
+      ["0.65,0,0.35,1", 1],
+      ["0.45,0,0.55,1", 1],
+      [".4,0,.2,1", 1],
+      [".165,.84,.44,1", 1]
+    ],
+    "durationsMs": [
+      [1200, 32],
+      [1000, 10],
+      [600, 10],
+      [400, 9],
+      [200, 7],
+      [800, 3],
+      [500, 2],
+      [300, 1],
+      [150, 1],
+      [3000, 1]
+    ],
+    "clamps": [],
+    "fontFamilies": [
+      ["Apercu Pro", 6],
+      ["__apercupro_24e68c", 4],
+      ["__apercumonopro_3be811", 2],
+      ["swiper-icons", 2],
+      ["inherit", 2],
+      ["__apercupro_Fallback_24e68c", 1],
+      ["__apercumonopro_Fallback_3be811", 1],
+      ["ui-sans-serif", 1],
+      ["ui-monospace", 1],
+      ["Apercu Mono Pro", 1]
+    ],
+    "fontFaces": [
+      ["Apercu Pro", 6],
+      ["__apercupro_24e68c", 3],
+      ["__apercupro_Fallback_24e68c", 1],
+      ["__apercumonopro_3be811", 1],
+      ["__apercumonopro_Fallback_3be811", 1],
+      ["swiper-icons", 1],
+      ["Apercu Mono Pro", 1]
+    ],
+    "fontWeights": [
+      ["500", 37],
+      ["400", 17],
+      ["600", 5],
+      ["700", 3]
+    ],
+    "topHexColors": [
+      ["fff", 7],
+      ["000", 6],
+      ["242527", 6],
+      ["f4f2ed", 3],
+      ["b84930", 2],
+      ["111214", 2],
+      ["9ca3af", 2],
+      ["007aff", 1],
+      ["222325", 1],
+      ["ff6542", 1],
+      ["999896", 1],
+      ["4f4a3b", 1],
+      ["8499ca", 1]
+    ],
+    "mixBlendModes": [
+      ["difference", 3],
+      ["unset", 2],
+      ["normal", 2],
+      ["color-dodge", 1]
+    ],
+    "willChange": [
+      ["transform", 11],
+      ["opacity", 8],
+      ["opacity,pointer-events", 1],
+      ["opacity,transform", 1],
+      ["top,left,transform", 1],
+      ["transform,opacity", 1]
+    ],
+    "prefersReducedMotionHits": 0,
+    "breakpointsPx": [
+      ["1200", 141],
+      ["768", 91],
+      ["767", 22],
+      ["1600", 8],
+      ["1199", 7],
+      ["1024", 3],
+      ["0", 2],
+      ["1920", 1]
+    ],
+    "gridTemplates": [
+      ["repeat(6,minmax(0,1fr))", 9],
+      ["repeat(4,minmax(0,1fr))", 3],
+      ["repeat(16,minmax(0,1fr))", 3],
+      ["repeat(11,minmax(0,1fr))", 2],
+      ["repeat(auto-fill,minmax(32rem,1fr))", 2],
+      ["repeat(2,minmax(0,1fr))", 1]
+    ],
+    "libs": {
+      "next/static": true,
+      "_next": true
+    },
+    "scriptCount": 14,
+    "canvasTags": 0,
+    "videoTags": 0,
+    "imgTags": 22
+  },
+  "Uncommon Studio": {
+    "url": "https://uncommon.studio",
+    "ok": true,
+    "title": "Uncommon Creative Studio",
+    "htmlBytes": 17708,
+    "cssFiles": [
+      {
+        "url": "https://cdn.prod.website-files.com/64a962b119122be80882184f/css/uncommon-3c99d8-9e29098e78be815d637b3bd.webflow.shared.57c345059.min.css",
+        "bytes": 106871
+      }
+    ],
+    "cssBytes": 106872,
+    "customProps": [
+      ["--large: before", 1],
+      ["--large: after", 1],
+      ["--vertical: before,.w-widget-twitter-count-shim.w--vertical:after", 1],
+      ["--vertical: before", 1],
+      ["--vertical: after", 1],
+      ["--white: white", 1],
+      ["--black: black", 1]
+    ],
+    "customPropCount": 7,
+    "cubicBeziers": [],
+    "durationsMs": [
+      [100, 2],
+      [300, 1],
+      [800, 1]
+    ],
+    "clamps": [],
+    "fontFamilies": [
+      ["Maisonneue demi", 7],
+      ["Maisonneue", 3],
+      ["Maisonneue book", 3],
+      ["sans-serif", 1],
+      ["monospace", 1],
+      ["webflow-icons", 1],
+      ["webflow-icons!important", 1],
+      ["Arial", 1],
+      ["unset", 1],
+      ["serif", 1]
+    ],
+    "fontFaces": [
+      ["Maisonneue", 3],
+      ["webflow-icons", 1],
+      ["Maisonneue book", 1],
+      ["Maisonneue demi", 1]
+    ],
+    "fontWeights": [
+      ["400", 20],
+      ["700", 14],
+      ["300", 2],
+      ["500", 1]
+    ],
+    "topHexColors": [
+      ["000", 89],
+      ["fff", 71],
+      ["3898ec", 32],
+      ["ddd", 29],
+      ["fafafa", 24],
+      ["e6e6e6", 23],
+      ["999", 22],
+      ["333", 10],
+      ["ccc", 7],
+      ["222", 6],
+      ["ffdede", 5],
+      ["f5f5f5", 5],
+      ["c8c8c8", 3],
+      ["666", 3]
+    ],
+    "mixBlendModes": [],
+    "willChange": [],
+    "prefersReducedMotionHits": 0,
+    "breakpointsPx": [
+      ["479", 6],
+      ["767", 5],
+      ["991", 4],
+      ["1280", 2],
+      ["768", 1],
+      ["1440", 1],
+      ["1920", 1]
+    ],
+    "gridTemplates": [
+      ["1fr 1fr", 11],
+      ["1fr", 9],
+      ["6.25em", 4],
+      ["1fr 6.25em", 3],
+      ["auto auto", 2],
+      ["1fr 1fr 1fr", 2]
+    ],
+    "libs": {},
+    "scriptCount": 7,
+    "canvasTags": 0,
+    "videoTags": 1,
+    "imgTags": 10
+  },
+  "Mat Voyce": {
+    "url": "https://matvoyce.tv",
+    "ok": true,
+    "title": "Mat Voyce",
+    "htmlBytes": 113485,
+    "cssFiles": [
+      {
+        "url": "https://matvoyce.tv/_next/static/css/961fade6fc225fa0.css",
+        "bytes": 4296
+      },
+      {
+        "url": "https://matvoyce.tv/_next/static/css/58092d606220dde8.css",
+        "bytes": 58190
+      },
+      {
+        "url": "https://matvoyce.tv/_next/static/css/9dba404f7ab81df1.css",
+        "bytes": 864
+      },
+      {
+        "url": "https://matvoyce.tv/_next/static/css/d567f24edaccd56f.css",
+        "bytes": 444
+      },
+      {
+        "url": "https://matvoyce.tv/_next/static/css/a5c2dab447cf8cf5.css",
+        "bytes": 787
+      },
+      {
+        "url": "https://matvoyce.tv/_next/static/css/a6bd75884c2af344.css",
+        "bytes": 1402
+      },
+      {
+        "url": "https://matvoyce.tv/_next/static/css/396190842fbba0c3.css",
+        "bytes": 822
+      },
+      {
+        "url": "https://matvoyce.tv/_next/static/css/89b27e24534d8957.css",
+        "bytes": 7423
+      }
+    ],
+    "cssBytes": 74236,
+    "customProps": [
+      ["--size: 20rem", 8],
+      ["--slnt: 500", 2],
+      ["--slnt: 0", 2],
+      ["--size: 7.53rem", 2],
+      ["--size: 15.06rem", 2],
+      ["--paddingNextWork: var(--paddingTop)", 2],
+      ["--x: 0px", 1],
+      ["--y: 0px", 1],
+      ["--size: 1", 1],
+      ["--z: 9", 1],
+      ["--rotate: 0", 1],
+      ["--delay: 0", 1],
+      ["--w: 2.8rem", 1],
+      ["--h: 2.8rem", 1],
+      ["--w: 4.8rem", 1],
+      ["--h: 4.8rem", 1],
+      ["--w: 7.2rem", 1],
+      ["--h: 7.2rem", 1],
+      ["--h: 100dvh", 1],
+      ["--top: 0%", 1],
+      ["--bottom: 0%", 1],
+      ["--sizeMobileVh: 37.2611464968vh", 1],
+      ["--sizeMobileVw: 62.4vw", 1],
+      ["--sizeMobileVh: 41.0824108241vh", 1],
+      ["--sizeMobileVw: 89.0666666667vw", 1],
+      ["--duration: 6s", 1],
+      ["--line-height-variable-masking: 72%", 1],
+      ["--size: 5.6rem", 1],
+      ["--cursor-progress-x: 0", 1],
+      ["--wght: 700", 1],
+      ["--wdth: 100", 1],
+      ["--spacing-mobile: 101.3333333333vw", 1],
+      ["--po: 0", 1],
+      ["--size: 6.66rem", 1],
+      ["--size: 13.33rem", 1],
+      ["--size: 5.73rem", 1],
+      ["--size: 11.46rem", 1],
+      ["--size: 5.33rem", 1],
+      ["--size: 10.66rem", 1],
+      ["--size: 6.13rem", 1]
+    ],
+    "customPropCount": 52,
+    "cubicBeziers": [],
+    "durationsMs": [
+      [600, 8],
+      [1200, 6],
+      [800, 5],
+      [250, 5],
+      [400, 4],
+      [1000, 2],
+      [300, 2],
+      [500, 1]
+    ],
+    "clamps": [["15rem,28.6458333333vw,55rem", 1]],
+    "fontFamilies": [],
+    "fontFaces": [],
+    "fontWeights": [
+      ["700", 8],
+      ["500", 8],
+      ["400", 3],
+      ["600", 1]
+    ],
+    "topHexColors": [
+      ["000", 6],
+      ["533d4a", 6],
+      ["062835", 4],
+      ["fff", 4],
+      ["00d4ff", 4],
+      ["fffef8", 2],
+      ["bcf3ff", 1],
+      ["fff6e3", 1]
+    ],
+    "mixBlendModes": [],
+    "willChange": [
+      ["transform", 16],
+      ["opacity", 9],
+      ["opacity,transform", 2]
+    ],
+    "prefersReducedMotionHits": 0,
+    "breakpointsPx": [
+      ["1200", 138],
+      ["768", 70]
+    ],
+    "gridTemplates": [
+      ["repeat(4,minmax(0,1fr))", 1],
+      ["repeat(1,1fr)!important", 1],
+      ["repeat(6,minmax(0,1fr))", 1]
+    ],
+    "libs": {
+      "next/static": true,
+      "_next": true,
+      "motion": true
+    },
+    "scriptCount": 21,
+    "canvasTags": 0,
+    "videoTags": 0,
+    "imgTags": 70
+  },
+  "Minh Pham": {
+    "url": "https://minhpham.design",
+    "ok": true,
+    "title": "Minh Pham - Multidisciplinary Designer",
+    "htmlBytes": 59115,
+    "cssFiles": [
+      {
+        "url": "https://minhpham.design/app.css?v=1.0.0.3",
+        "bytes": 146504
+      }
+    ],
+    "cssBytes": 147041,
+    "customProps": [
+      ["--bs-gutter-y: 0", 22],
+      ["--bs-gutter-x: 0.625rem", 22],
+      ["--bs-gutter-x: 0", 21],
+      ["--bs-gutter-y: 0.625rem", 21],
+      ["--bs-gutter-x: 1.875rem", 21],
+      ["--bs-gutter-y: 1.875rem", 21],
+      ["--bs-gutter-x: 2.5rem", 21],
+      ["--bs-gutter-y: 2.5rem", 21],
+      ["--bs-gutter-x: 3.125rem", 21],
+      ["--bs-gutter-y: 3.125rem", 21],
+      ["--bs-gutter-x: 3.75rem", 21],
+      ["--bs-gutter-y: 3.75rem", 21],
+      ["--bs-gutter-x: 5rem", 21],
+      ["--bs-gutter-y: 5rem", 21],
+      ["--bs-gutter-x: 7.5rem", 21],
+      ["--bs-gutter-y: 7.5rem", 21],
+      ["--bs-gutter-x: 10rem", 21],
+      ["--bs-gutter-y: 10rem", 21],
+      ["--bs-gutter-x: 18.75rem", 21],
+      ["--bs-gutter-y: 18.75rem", 21],
+      ["--bs-text-opacity: 1", 10],
+      ["--bs-bg-opacity: 1", 7],
+      ["--color: #0d0d0d", 3],
+      ["--color: #eb5939", 2],
+      ["--mode: difference", 2],
+      ["--mode: normal", 2],
+      ["--size-canvas: 21.875rem", 2],
+      ["--sapce-size: 0.625rem", 2],
+      ["--size: 100%", 2],
+      ["--bs-gutter-x: 1.25rem", 1],
+      ["--screen-x: 1.25rem", 1],
+      ["--break-line: 1.2em", 1],
+      ["--border-size-large: 1px", 1],
+      ["--viewSizeX: 375px", 1],
+      ["--viewSizeY: 682px", 1],
+      ["--spacing-supper: 10rem", 1],
+      ["--spacing-xl: 10rem", 1],
+      ["--spacing-xlx: 10rem", 1],
+      ["--spacing-lg: 5rem", 1],
+      ["--spacing-md: 5rem", 1]
+    ],
+    "customPropCount": 104,
+    "cubicBeziers": [[".165,.84,.44,1", 60]],
+    "durationsMs": [
+      [400, 39],
+      [600, 14],
+      [300, 7]
+    ],
+    "clamps": [],
+    "fontFamilies": [
+      ["Avant Garde", 3],
+      ["inherit", 1],
+      ["Nunito Sans", 1]
+    ],
+    "fontFaces": [["Avant Garde", 1]],
+    "fontWeights": [
+      ["700", 7],
+      ["400", 5],
+      ["500", 3],
+      ["600", 2]
+    ],
+    "topHexColors": [
+      ["0d0d0d", 25],
+      ["fff", 19],
+      ["b7ab98", 17],
+      ["eb5939", 10],
+      ["000", 7],
+      ["0c0c0c", 4],
+      ["4d4d4d", 3],
+      ["6c757d", 1],
+      ["f8f8f8", 1],
+      ["c59b64", 1],
+      ["2a2a2a", 1]
+    ],
+    "mixBlendModes": [["var", 2]],
+    "willChange": [
+      ["transform", 2],
+      ["opacity", 1]
+    ],
+    "prefersReducedMotionHits": 1,
+    "breakpointsPx": [
+      ["768", 75],
+      ["1200", 59],
+      ["767", 6],
+      ["1024", 2],
+      ["1400", 2],
+      ["1600", 2],
+      ["1728", 2]
+    ],
+    "gridTemplates": [],
+    "libs": {
+      "lenis": true,
+      "motion": true
+    },
+    "scriptCount": 5,
+    "canvasTags": 0,
+    "videoTags": 3,
+    "imgTags": 21
+  },
+  "Iventions": {
+    "url": "https://iventions.com",
+    "ok": true,
+    "title": "International Event Agency | Events, Exhibits &amp; Sports | Iventions",
+    "htmlBytes": 250235,
+    "cssFiles": [
+      {
+        "url": "https://iventions.com/_next/static/css/0b1817b6e009d360.css",
+        "bytes": 49263
+      },
+      {
+        "url": "https://iventions.com/_next/static/css/8fb42a0177568e49.css",
+        "bytes": 16919
+      },
+      {
+        "url": "https://iventions.com/_next/static/css/0fca40a3ac297906.css",
+        "bytes": 1282
+      },
+      {
+        "url": "https://www.cssdesignawards.com/wotm/iventions/48253/",
+        "bytes": 196
+      }
+    ],
+    "cssBytes": 126846,
+    "customProps": [
+      ["--border-radius: 0.8rem", 6],
+      ["--bg-currentcolor: white", 5],
+      ["--wrapper-width: 4.8rem", 5],
+      ["--wrapper-height: 4.8rem", 5],
+      ["--icon-height: 1.4rem", 5],
+      ["--bg-currentcolor: var(--primary-yellow)", 4],
+      ["--progress: 0", 4],
+      ["--image-border-radius: 0", 4],
+      ["--bg-currentcolor: var(--primary-black)", 3],
+      ["--size: 0px", 3],
+      ["--y: 0px", 3],
+      ["--x: 100vw", 3],
+      ["--icon-width: 1.4rem", 3],
+      ["--bg-currentcolor: #9C93E8", 2],
+      ["--bg-currentcolor: transparent", 2],
+      ["--is-odd: 1", 2],
+      ["--is-odd: -1", 2],
+      ["--x: 0vw", 2],
+      ["--wrapper-width: 3.2rem", 2],
+      ["--wrapper-height: 3.2rem", 2],
+      ["--cp-full-h: 0%", 2],
+      ["--icon-width: 1.9rem", 2],
+      ["--wrapper-width: 8rem", 2],
+      ["--wrapper-height: 8rem", 2],
+      ["--icon-width: 2.9rem", 2],
+      ["--icon-height: 2.1rem", 2],
+      ["--initial-top-percent__left: var(--stTop)", 2],
+      ["--initial-bottom-percent__left: var(--stBottom)", 2],
+      ["--initial-top-percent__right: 100%", 2],
+      ["--initial-bottom-percent__right: 100%", 2],
+      ["--ck-breakpoints-sm: 768px", 1],
+      ["--ck-breakpoints-md: 1200px", 1],
+      ["--ck-breakpoints-lg: 1440px", 1],
+      ["--ck-breakpoints-xl: 1920px", 1],
+      ["--ck-breakpoints-2xl: 2400px", 1],
+      ["--ck-sizes-breakpoint-sm: 768px", 1],
+      ["--ck-sizes-breakpoint-md: 1200px", 1],
+      ["--ck-sizes-breakpoint-lg: 1440px", 1],
+      ["--ck-sizes-breakpoint-xl: 1920px", 1],
+      ["--ck-sizes-breakpoint-2xl: 2400px", 1]
+    ],
+    "customPropCount": 137,
+    "cubicBeziers": [
+      ["0.165,0.84,0.44,1", 1],
+      ["0.76,0,0.24,1", 1],
+      ["0.895,0.03,0.685,0.22", 1],
+      ["0.5,1,0.89,1", 1],
+      ["0.45,0,0.55,1", 1],
+      ["0.33,1,0.68,1", 1],
+      ["0.65,0,0.35,1", 1]
+    ],
+    "durationsMs": [
+      [400, 21],
+      [800, 12],
+      [600, 12],
+      [1500, 3],
+      [1200, 3],
+      [300, 3],
+      [700, 3],
+      [200, 2],
+      [500, 2],
+      [100, 1],
+      [1000, 1]
+    ],
+    "clamps": [],
+    "fontFamilies": [
+      ["Soehne", 3],
+      ["inherit", 2],
+      ["ABCArizonaMix", 2],
+      ["ABCArizonaMix Fallback", 1],
+      ["Soehne Fallback", 1]
+    ],
+    "fontFaces": [
+      ["Soehne", 2],
+      ["ABCArizonaMix", 1],
+      ["ABCArizonaMix Fallback", 1],
+      ["Soehne Fallback", 1]
+    ],
+    "fontWeights": [
+      ["500", 27],
+      ["300", 24],
+      ["400", 3],
+      ["600", 2]
+    ],
+    "topHexColors": [
+      ["1e1e1e", 8],
+      ["9c93e8", 6],
+      ["f3efeb", 4],
+      ["000", 4],
+      ["f7ffdc", 3],
+      ["d1f3f5", 3],
+      ["ffddc4", 3],
+      ["141414", 2],
+      ["ddd9ff", 2],
+      ["000000", 2],
+      ["f3efe9", 2],
+      ["fff", 2],
+      ["101417", 1],
+      ["eae3dc", 1]
+    ],
+    "mixBlendModes": [
+      ["overlay", 1],
+      ["unset", 1],
+      ["difference", 1]
+    ],
+    "willChange": [
+      ["transform", 39],
+      ["opacity", 15],
+      ["transform,opacity", 6],
+      ["opacity,transform", 2]
+    ],
+    "prefersReducedMotionHits": 0,
+    "breakpointsPx": [
+      ["1200", 122],
+      ["768", 48],
+      ["1440", 1]
+    ],
+    "gridTemplates": [
+      ["1fr", 21],
+      ["repeat(6, 1fr)", 9],
+      ["repeat(8, 1fr)", 9],
+      ["repeat(12, 1fr)", 9],
+      ["repeat(6,1fr)", 2],
+      ["repeat(12,1fr)", 1]
+    ],
+    "libs": {
+      "next/static": true,
+      "_next": true,
+      "motion": true
+    },
+    "scriptCount": 36,
+    "canvasTags": 0,
+    "videoTags": 0,
+    "imgTags": 111
+  },
+  "Lando Norris": {
+    "url": "https://landonorris.com",
+    "ok": true,
+    "title": "McLaren Formula 1 Driver \u2014 Lando Norris",
+    "htmlBytes": 218869,
+    "cssFiles": [
+      {
+        "url": "https://cdn.prod.website-files.com/67b5a02dc5d338960b17a7e9/css/lando-offbrand.shared.5b4e934f7.css",
+        "bytes": 188306
+      },
+      {
+        "url": "https://cdn.prod.website-files.com/67b5a02dc5d338960b17a7e9/css/lando-offbrand.shared.4f53262f0.css",
+        "bytes": 186715
+      }
+    ],
+    "cssBytes": 399170,
+    "customProps": [
+      ["--color--dark-green: #282c20", 10],
+      ["--color--white: #f4f4ed", 10],
+      ["--gap: 1.25rem", 10],
+      ["--color--black: #111112", 10],
+      ["--text--h1: 4rem", 10],
+      ["--padding--xlarge: 5rem", 10],
+      ["--padding--med: 3rem", 10],
+      ["--color--lime-off: #b2c73a", 10],
+      ["--color--lime: #d2ff00", 10],
+      ["--color--green-off-white-1: #dde1d2", 10],
+      ["--color--lime-zero: #d2ff0000", 10],
+      ["--text--btn-primary: 1rem", 10],
+      ["--color--green-off-white-2: #b4b8a5", 10],
+      ["--color--dark-green-tint-2: #535450", 10],
+      ["--color--grey-on-track: #b9bbad", 10],
+      ["--text--impact: 7.9375rem", 10],
+      ["--grid-spacer: 31.51vh", 10],
+      ["--color--dark-green-tint-1: #3b3c38", 10],
+      ["--padding--small: 2rem", 10],
+      ["--color--grey-1: #ebeee0", 10],
+      ["--color--green-light: #ebeee0", 10],
+      ["--text--h2: 4.5rem", 10],
+      ["--text--h3: 2rem", 10],
+      ["--text--h4: 1.5rem", 10],
+      ["--text--h5: 1.2rem", 10],
+      ["--text--h6: 1rem", 10],
+      ["--padding--mini: 1rem", 10],
+      ["--padding--large: 4rem", 10],
+      ["--radius--small: 1rem", 10],
+      ["--radius--med: 3rem", 10],
+      ["--radius--large: 6.25rem", 10],
+      ["--vh: 1vh", 10],
+      ["--max-vh: 100vh", 10],
+      ["--grid-col: 25.4375rem", 10],
+      ["--oval-side-offset: 3rem", 10],
+      ["--text--btn-tertiary: .875px", 10],
+      ["--text--eyebrow: .578125rem", 10],
+      ["--color--grey-2: #c8cbbd", 10],
+      ["--color--orange: #ff6b00", 10],
+      ["--padding--container: 1rem", 6]
+    ],
+    "customPropCount": 91,
+    "cubicBeziers": [
+      [".19, 1, .22, 1", 2],
+      ["0.65, 0.05, 0, 1", 1]
+    ],
+    "durationsMs": [
+      [100, 4],
+      [300, 2],
+      [800, 2],
+      [200, 2],
+      [600, 2]
+    ],
+    "clamps": [["var(--min-width", 1]],
+    "fontFamilies": [
+      ["Brier", 36],
+      ["Mona Sans Variable", 14],
+      ["sans-serif", 2],
+      ["monospace", 2],
+      ["webflow-icons", 2],
+      ["webflow-icons !important", 2],
+      ["Arial", 2],
+      ["unset", 2],
+      ["serif", 2],
+      ["Helvetica Neue", 2]
+    ],
+    "fontFaces": [
+      ["webflow-icons", 2],
+      ["Brier", 2],
+      ["Mona Sans Variable", 2]
+    ],
+    "fontWeights": [
+      ["700", 18],
+      ["500", 7],
+      ["400", 6],
+      ["600", 4],
+      ["800", 4],
+      ["300", 2],
+      ["200", 2]
+    ],
+    "topHexColors": [
+      ["fff", 30],
+      ["ebeee0", 20],
+      ["ddd", 12],
+      ["222", 12],
+      ["282c20", 12],
+      ["f4f4ed", 10],
+      ["111112", 10],
+      ["b2c73a", 10],
+      ["d2ff00", 10],
+      ["dde1d2", 10],
+      ["b4b8a5", 10],
+      ["535450", 10],
+      ["b9bbad", 10],
+      ["3b3c38", 10]
+    ],
+    "mixBlendModes": [
+      ["difference", 2],
+      ["normal", 2],
+      ["plus-lighter", 2],
+      ["saturation", 2]
+    ],
+    "willChange": [["transform", 10]],
+    "prefersReducedMotionHits": 0,
+    "breakpointsPx": [
+      ["479", 14],
+      ["991", 11],
+      ["767", 9],
+      ["992", 4],
+      ["1920", 2],
+      ["497", 2],
+      ["768", 2]
+    ],
+    "gridTemplates": [
+      ["1fr 1fr", 39],
+      ["1fr 1fr 1fr 1fr", 14],
+      ["minmax(0, .5fr) minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr)", 8],
+      ["minmax(0, .4fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, .6fr", 6],
+      ["11.775% 35.325% 23.55% 1fr 1fr", 4],
+      ["minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)", 4]
+    ],
+    "libs": {
+      "lenis": true,
+      "motion": true
+    },
+    "scriptCount": 12,
+    "canvasTags": 21,
+    "videoTags": 0,
+    "imgTags": 133
+  },
+  "darkroom.engineering": {
+    "url": "https://darkroom.engineering",
+    "ok": true,
+    "title": "where things get developed - darkroom.engineering",
+    "htmlBytes": 481183,
+    "cssFiles": [
+      {
+        "url": "https://darkroom.engineering/_next/static/immutable/chunks/1qlf-7l8edf8h.css",
+        "bytes": 82248
+      },
+      {
+        "url": "https://darkroom.engineering/_next/static/immutable/chunks/2zlpkz7lx5tcy.css",
+        "bytes": 457
+      }
+    ],
+    "cssBytes": 82707,
+    "customProps": [
+      [
+        "--color-hover: color-mix(in oklab, var(--color-secondary) 83%, transparent)",
+        6
+      ],
+      ["--color-primary: #fff", 3],
+      ["--color-secondary: #000", 3],
+      ["--color-contrast: #e5e5e5", 3],
+      ["--color-primary: lab(100% 0 0)", 3],
+      ["--color-secondary: lab(0% 0 0)", 3],
+      ["--color-contrast: lab(90.9404% 0 -.0000119209)", 3],
+      ["--glyphs-visibility: visible", 3],
+      ["--color-primary: #000", 2],
+      ["--color-primary: lab(0% 0 0)", 2],
+      ["--color-secondary: #e71419", 2],
+      ["--color-secondary: lab(49.9009% 73.4337 56.9833)", 2],
+      ["--activity-date-x: 0", 2],
+      ["--button-inner-display: inline", 2],
+      ["--button-inner-x: 0vw", 2],
+      ["--contact-cta-inner-display: inline", 2],
+      ["--contact-cta-inner-x: 0vw", 2],
+      ["--glyphs-visibility: hidden", 2],
+      ["--list-title-x: 0px", 2],
+      ["--font-therma: \"therma\", \"therma Fallback\"", 1],
+      ["--font-sauce: \"sauce\", \"sauce Fallback\"", 1],
+      [
+        "--font-mono: \"mono\", \"mono Fallback\", ui-monospace, SFMono-Regular, Consolas, monospace",
+        1
+      ],
+      ["--lightningcss-light: initial", 1],
+      ["--lightningcss-dark: ", 1],
+      ["--lightningcss-light: ", 1],
+      ["--lightningcss-dark: initial", 1],
+      ["--device-width: 375", 1],
+      ["--device-height: 852", 1],
+      ["--columns: 4", 1],
+      ["--gap: calc(((8 * 100) / var(--device-width)) * 1vw)", 1],
+      ["--safe: calc(((8 * 100) / var(--device-width)) * 1vw)", 1],
+      ["--header-height: calc(((28 * 100) / var(--device-width)) * 1vw)", 1],
+      ["--layout-width: calc(100vw - (2 * var(--safe)))", 1],
+      [
+        "--column-width: calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns))",
+        1
+      ],
+      ["--ease-in-quad: cubic-bezier(.55, .085, .68, .53)", 1],
+      ["--ease-in-cubic: cubic-bezier(.55, .055, .675, .19)", 1],
+      ["--ease-in-quart: cubic-bezier(.895, .03, .685, .22)", 1],
+      ["--ease-in-quint: cubic-bezier(.755, .05, .855, .06)", 1],
+      ["--ease-in-expo: cubic-bezier(.95, .05, .795, .035)", 1],
+      ["--ease-in-circ: cubic-bezier(.6, .04, .98, .335)", 1]
+    ],
+    "customPropCount": 101,
+    "cubicBeziers": [
+      [".55, .085, .68, .53", 1],
+      [".55, .055, .675, .19", 1],
+      [".895, .03, .685, .22", 1],
+      [".755, .05, .855, .06", 1],
+      [".95, .05, .795, .035", 1],
+      [".6, .04, .98, .335", 1],
+      [".25, .46, .45, .94", 1],
+      [".215, .61, .355, 1", 1],
+      [".165, .84, .44, 1", 1],
+      [".23, 1, .32, 1", 1],
+      [".19, 1, .22, 1", 1],
+      [".075, .82, .165, 1", 1]
+    ],
+    "durationsMs": [
+      [0, 2],
+      [1000, 2],
+      [300, 2],
+      [500, 2],
+      [600, 2],
+      [1200, 1],
+      [150, 1],
+      [200, 1],
+      [400, 1],
+      [1, 1]
+    ],
+    "clamps": [],
+    "fontFamilies": [
+      ["therma", 2],
+      ["sauce", 2],
+      ["mono", 2],
+      ["therma Fallback", 1],
+      ["sauce Fallback", 1],
+      ["mono Fallback", 1],
+      ["inherit", 1],
+      ["monospace", 1]
+    ],
+    "fontFaces": [
+      ["therma", 1],
+      ["therma Fallback", 1],
+      ["sauce", 1],
+      ["sauce Fallback", 1],
+      ["mono", 1],
+      ["mono Fallback", 1]
+    ],
+    "fontWeights": [
+      ["700", 2],
+      ["400", 2],
+      ["200", 2],
+      ["500", 1],
+      ["600", 1]
+    ],
+    "topHexColors": [
+      ["000", 7],
+      ["fff", 5],
+      ["e5e5e5", 4],
+      ["e71419", 4],
+      ["262626", 2],
+      ["c20510", 2],
+      ["390205", 2],
+      ["00d9ff", 2],
+      ["dc2626", 1],
+      ["666", 1],
+      ["111827", 1],
+      ["888", 1],
+      ["e5e7eb", 1]
+    ],
+    "mixBlendModes": [
+      ["difference", 1],
+      ["overlay", 1]
+    ],
+    "willChange": [
+      ["transform,opacity", 1],
+      ["transform", 1]
+    ],
+    "prefersReducedMotionHits": 2,
+    "breakpointsPx": [["800", 26]],
+    "gridTemplates": [
+      ["1fr", 2],
+      ["repeat(2,1fr)", 2],
+      [".75rem 1fr", 1],
+      ["repeat(2,minmax(0,1fr))", 1],
+      ["repeat(3,1fr)", 1],
+      ["repeat(4,1fr)", 1]
+    ],
+    "libs": {
+      "lenis": true,
+      "gsap": true,
+      "three": true,
+      "r3f": true,
+      "next/static": true,
+      "_next": true,
+      "webgl": true,
+      "framer": true,
+      "motion": true,
+      "sanity": true,
+      "mux": true,
+      "vercel": true
+    },
+    "scriptCount": 15,
+    "canvasTags": 0,
+    "videoTags": 4,
+    "imgTags": 0
+  },
+  "Bruno Simon folio-2019": {
+    "url": "https://bruno-simon.com",
+    "ok": true,
+    "title": "Bruno's",
+    "htmlBytes": 58784,
+    "cssFiles": [
+      {
+        "url": "https://bruno-simon.com/assets/index-Di03QkGT.css",
+        "bytes": 40256
+      }
+    ],
+    "cssBytes": 40257,
+    "customProps": [
+      ["--hover-translate: 4px", 5],
+      ["--width: 130px", 1],
+      ["--max-width: min(350px, calc(100% - 40px) )", 1],
+      ["--max-width: min(350px, calc(100% - 88px) )", 1],
+      ["--width: 200px", 1],
+      ["--size: 40px", 1],
+      ["--size: 20px", 1],
+      ["--size: 12px", 1]
+    ],
+    "customPropCount": 8,
+    "cubicBeziers": [
+      [".4,1.6,.65,1", 1],
+      [".42,0,.47,-.55", 1],
+      [".49,2.2,.53,.75", 1],
+      [".65,-1,.45,1", 1]
+    ],
+    "durationsMs": [
+      [150, 15],
+      [300, 7],
+      [600, 1],
+      [450, 1],
+      [100, 1],
+      [1000, 1],
+      [500, 1]
+    ],
+    "clamps": [],
+    "fontFamilies": [
+      ["Amatic SC", 3],
+      ["Pally-Medium", 2],
+      ["Nunito", 2],
+      ["Pally-Regular", 1],
+      ["Pally-Bold", 1]
+    ],
+    "fontFaces": [
+      ["Pally-Regular", 1],
+      ["Pally-Medium", 1],
+      ["Pally-Bold", 1]
+    ],
+    "fontWeights": [
+      ["700", 15],
+      ["400", 4],
+      ["500", 2],
+      ["900", 1]
+    ],
+    "topHexColors": [
+      ["fff", 27],
+      ["ffceca", 17],
+      ["251f2b", 14],
+      ["1d1721", 10],
+      ["d5ff95", 10],
+      ["555", 7],
+      ["c21515", 4],
+      ["46123b", 4],
+      ["ff6a7c", 3],
+      ["ffc67b", 2],
+      ["141414", 2],
+      ["ff87a2", 1],
+      ["ccc", 1],
+      ["767676", 1]
+    ],
+    "mixBlendModes": [],
+    "willChange": [["transform", 1]],
+    "prefersReducedMotionHits": 0,
+    "breakpointsPx": [
+      ["520", 16],
+      ["440", 12],
+      ["870", 2],
+      ["360", 2],
+      ["1100", 2],
+      ["800", 2]
+    ],
+    "gridTemplates": [],
+    "libs": {
+      "three": true,
+      "webgl": true
+    },
+    "scriptCount": 2,
+    "canvasTags": 1,
+    "videoTags": 0,
+    "imgTags": 44
+  }
+}
