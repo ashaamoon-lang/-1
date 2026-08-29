@@ -1,0 +1,89 @@
+.hero {
+  /*
+   * Reveal knobs for the subline and CTA. The headline is animated separately
+   * by TextReveal; these two follow it. 120ms stagger against a 400ms
+   * duration reads as sequence rather than as two things fading together.
+   */
+  --reveal-transform: translateY(16px);
+  --reveal-stagger: 120ms;
+  --reveal-duration: var(--duration);
+
+  position: relative;
+  display: grid;
+  align-items: center;
+  /*
+   * svh, not vh: on mobile browsers vh includes the collapsing address bar, so
+   * a 100vh hero is taller than the visible viewport on first paint and the
+   * CTA sits below the fold. svh is the smallest viewport state and is always
+   * visible.
+   */
+  min-height: 100svh;
+  padding: 0 16px;
+  overflow: clip;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  /* Behind the content, and never interactive. */
+  z-index: 0;
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  /* Generous, not tight. Whitespace is the cheapest expensive-looking asset
+     there is — see DESIGN-SYSTEM.md §3. */
+  gap: 32px;
+  max-width: 20ch;
+}
+
+.headline {
+  /*
+   * Fluid display type with a small viewport coefficient. Lusion's measured
+   * pattern is clamp(7em, 8vw, 20em) for display; aggressive vw scaling makes
+   * text lurch during resize and is a reliable amateur tell.
+   */
+  font-size: clamp(2.5rem, 8vw, 7.5rem);
+  font-weight: 700;
+  /*
+   * Sub-100% leading on large type — the signature of considered typography.
+   * Satūs's own h1 token uses 80%.
+   */
+  line-height: 85%;
+  /* Large type needs tightening; the scale of the negative tracking follows
+     the size, matching lib/styles/typography.ts. */
+  letter-spacing: -0.04em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.subline {
+  font-family: var(--font-mono, monospace);
+  font-size: clamp(0.875rem, 1vw, 1.125rem);
+  line-height: 140%;
+  letter-spacing: -0.01em;
+  margin: 0;
+  max-width: 42ch;
+  opacity: 0.7;
+}
+
+.action {
+  /* Shrink-wrap so the magnetic wrapper matches the control, not the column —
+     otherwise the magnet's hit area is the full width of the hero. */
+  align-self: start;
+}
+
+@media (width >= 800px) {
+  .hero {
+    padding: 0 32px;
+  }
+
+  .content {
+    gap: 40px;
+    max-width: 16ch;
+  }
+}

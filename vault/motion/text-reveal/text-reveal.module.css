@@ -1,0 +1,30 @@
+/*
+ * The mask wrappers SplitText generates need `overflow: clip` to actually
+ * clip. SplitText sets this inline when `mask` is used, but declaring it here
+ * as well keeps the reveal correct if the split is ever configured manually.
+ *
+ * `clip` rather than `hidden`: `overflow: hidden` creates a scroll container,
+ * which can be focus-scrolled by the browser and shift the layout. `clip`
+ * clips without that side effect.
+ */
+.reveal {
+  /* Prevents the pre-split flash of unmasked text on slow hydration. */
+  will-change: transform;
+
+  :global(.split-line),
+  :global(.split-word),
+  :global(.split-char) {
+    overflow: clip;
+  }
+}
+
+/*
+ * Reduced motion: the component never splits, so there is nothing to unmask.
+ * Dropping will-change avoids holding a compositor layer for an element that
+ * will not animate.
+ */
+@media (--reduced-motion) {
+  .reveal {
+    will-change: auto;
+  }
+}

@@ -1,0 +1,17 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  /* Decoration only — must never intercept a click during a route change. */
+  pointer-events: none;
+  background-color: var(--color-secondary);
+  /*
+   * Starts collapsed. If JS never runs (or the timeline is killed mid-flight
+   * on a fast double-navigation) the overlay is invisible rather than stuck
+   * covering the page — the failure mode is "no transition", never "blank
+   * screen".
+   */
+  transform: scaleY(0);
+  transform-origin: bottom;
+  will-change: transform;
+}

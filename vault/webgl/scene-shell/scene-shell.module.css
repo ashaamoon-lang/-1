@@ -1,0 +1,21 @@
+/*
+ * The shell itself paints nothing — the pixels come from the shared canvas
+ * that this component portals into. It exists to occupy layout space so the
+ * surrounding page does not shift when the canvas mounts.
+ */
+.shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Non-WebGL / reduced-motion path. Same footprint as `.shell` so swapping
+ * between them never causes layout shift (CLS from a decorative background
+ * would undo every other quality signal on the page).
+ */
+.fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}

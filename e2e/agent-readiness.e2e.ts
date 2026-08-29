@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { HOME_HEADLINE } from '../app/(site)/copy'
+
 const DEVELOPER_RESOURCE_URL = 'https://github.com/darkroomengineering/satus'
 const NEXT_VARY_FIELDS = [
   'rsc',
@@ -68,8 +70,12 @@ test.describe('agent-readable HTML', () => {
       const response = await page.goto('/')
       expect(response?.status()).toBe(200)
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
+      // Asserted against the page's own exported copy rather than a
+      // duplicated literal: the starter inlined its brand name here, which
+      // goes stale on the first fork that changes the headline. An absent or
+      // empty <h1> still fails, which is what this test is really for.
       await expect(page.getByRole('heading', { level: 1 })).toContainText(
-        'Satūs'
+        HOME_HEADLINE
       )
       expect(
         (await page.locator('body').innerText()).trim().length

@@ -1,0 +1,111 @@
+.grid {
+  /*
+   * Per-section knobs read by the global [data-reveal] contract in
+   * lib/styles/css/global.css. Card stagger is 70ms (vault/motion/tokens.ts
+   * `stagger.cards`); the total is bounded by how many cards are in view at
+   * once, which the -25% rootMargin keeps small.
+   */
+  --reveal-transform: translateY(32px);
+  --reveal-stagger: 70ms;
+  --reveal-duration: var(--duration-slow);
+
+  display: grid;
+  /* minmax(0, 1fr), never bare 1fr — see the component's doc comment. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  /* Mobile: every card spans the full 4-column grid. */
+  grid-column: span 4;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.media {
+  position: relative;
+  overflow: clip;
+  /*
+   * Reserve the box before the image loads. Without this the grid reflows as
+   * each image arrives — cumulative layout shift that undoes every other
+   * quality signal on the page.
+   */
+  aspect-ratio: 4 / 3;
+  background-color: color-mix(in oklab, var(--color-secondary) 8%, transparent);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /*
+   * Scale, not width/height — a transform is composited, a size change is a
+   * layout. 1.03 is deliberately small: a large zoom reads as a template
+   * effect, a small one reads as responsiveness.
+   */
+  transition: scale var(--duration-slow) var(--ease-out-quart);
+}
+
+/* Hover lives on the link so focus can share it — keyboard users get the
+   same affordance as pointer users. */
+.link:hover .image,
+.link:focus-visible .image {
+  scale: 1.03;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-contrast);
+  outline-offset: 4px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 120%;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.meta {
+  /*
+   * Mono for metadata — the move measured on Lusion, basement.studio, By-Kin
+   * and darkroom.engineering. It is what makes a portfolio read as
+   * engineered rather than decorated.
+   */
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  line-height: 120%;
+  letter-spacing: -0.01em;
+  margin: 0;
+  opacity: 0.6;
+}
+
+@media (width >= 800px) {
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .item[data-span='6'] {
+    grid-column: span 6;
+  }
+
+  .item[data-span='12'] {
+    grid-column: span 12;
+  }
+
+  .item[data-span='12'] .media {
+    /* A full-width card gets a wider crop, so the two spans read as different
+       compositions rather than the same card stretched. */
+    aspect-ratio: 16 / 9;
+  }
+}

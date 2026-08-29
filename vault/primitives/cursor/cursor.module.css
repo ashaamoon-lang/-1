@@ -1,0 +1,76 @@
+/*
+ * Positioned at the viewport origin and moved with translate3d by GSAP, so
+ * the element is composited and never triggers layout. `top`/`left` are fixed
+ * at 0 — animating those would be a layout change on every pointer move.
+ */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  /* Never intercept a click. Non-negotiable for an overlay at this z-index. */
+  pointer-events: none;
+  /* Centre the ring on the pointer coordinate GSAP writes. */
+  translate: -50% -50%;
+  will-change: transform;
+  display: grid;
+  place-items: center;
+}
+
+.ring {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 50%;
+  transition:
+    width var(--duration-fast) var(--ease-out-quart),
+    height var(--duration-fast) var(--ease-out-quart),
+    background-color var(--duration-fast) var(--ease-out-quart),
+    opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+.label {
+  position: absolute;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+/* Over a link: grow and fill, so the ring reads as an active target. */
+.cursor[data-state='link'] .ring {
+  width: 56px;
+  height: 56px;
+  background-color: var(--color-secondary);
+}
+
+/* Over a project card: grow further and reveal the label. */
+.cursor[data-state='view'] .ring {
+  width: 80px;
+  height: 80px;
+  background-color: var(--color-secondary);
+}
+
+.cursor[data-state='view'] .label {
+  opacity: 1;
+}
+
+/* Off-window, or over media that should not be occluded. */
+.cursor[data-state='hidden'] .ring {
+  opacity: 0;
+}
+
+/*
+ * Reduced motion: the cursor is still shown and still tracks the pointer
+ * (handled in JS with zero follow duration). Only the size/colour transitions
+ * are removed, so state changes are instant rather than animated.
+ */
+@media (--reduced-motion) {
+  .ring,
+  .label {
+    transition: none;
+  }
+}

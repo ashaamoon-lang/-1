@@ -1,6 +1,8 @@
 import { instant } from '@next/playwright'
 import { expect, test } from '@playwright/test'
 
+import { HOME_HEADLINE } from '../app/(site)/copy'
+
 /**
  * Instant navigation is a starter default (#259): the 404 page's "Go Home"
  * link is the one real internal navigation in the app, and its shell must
@@ -25,7 +27,9 @@ test.describe('instant navigation', () => {
     await instant(page, async () => {
       await goHome.click()
 
-      await expect(page.getByRole('heading', { name: 'Satūs' })).toBeVisible()
+      await expect(
+        page.getByRole('heading', { name: HOME_HEADLINE })
+      ).toBeVisible()
     })
   })
 })

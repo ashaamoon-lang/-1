@@ -1,0 +1,27 @@
+.magnetic {
+  display: inline-block;
+  /*
+   * The element is transformed on every pointer move. Promoting it once here
+   * avoids the browser re-rasterising on each frame.
+   *
+   * This is one of the few sanctioned permanent `will-change` uses in the
+   * project (MOTION-SPEC §4 calls it a last resort): the transform is driven
+   * by a continuous input rather than a discrete animation, so there is no
+   * "before" moment at which to add it and no "after" at which to remove it.
+   * It is scoped to a small interactive element, never a large region.
+   */
+  will-change: transform;
+}
+
+/* No transform is ever applied in these cases, so hold no compositor layer. */
+@media (--reduced-motion) {
+  .magnetic {
+    will-change: auto;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .magnetic {
+    will-change: auto;
+  }
+}

@@ -1,0 +1,61 @@
+.cta {
+  padding: 16px 32px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-mono, monospace);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out-quart),
+    color var(--duration-fast) var(--ease-out-quart);
+}
+
+.cta:hover,
+.cta:focus-visible {
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 68ch;
+  /* Generous vertical rhythm — whitespace is the cheapest expensive-looking
+     asset there is (DESIGN-SYSTEM.md §3). */
+  padding: 96px 16px 128px;
+}
+
+.heading {
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 90%;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.subheading {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 500;
+  line-height: 110%;
+  letter-spacing: -0.02em;
+  margin: 24px 0 0;
+}
+
+.body {
+  font-size: 16px;
+  line-height: 150%;
+  letter-spacing: -0.01em;
+  margin: 0;
+  opacity: 0.75;
+  text-wrap: pretty;
+}
+
+@media (width >= 800px) {
+  .section {
+    padding: 128px 32px 160px;
+  }
+}
