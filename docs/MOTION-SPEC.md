@@ -19,6 +19,10 @@ tokens, so `--ease-*` custom properties and `ease-*` utilities both work.
 **Never write a raw `cubic-bezier()` in a component. Never use bare
 `ease`, `ease-in-out`, or `linear` for meaningful motion.**
 
+They are also re-exported with their GSAP equivalents from
+`vault/motion/tokens.ts`, so a tween and a CSS transition can be written
+against the same named curve.
+
 ### The four you will actually use
 
 | Token                 | Curve                    | Use for                                           | Measured on                                         |
