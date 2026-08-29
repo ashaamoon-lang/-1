@@ -135,10 +135,7 @@ const nextConfig: NextConfig = {
     // 11 stylesheets instead of the default's 9, for identical total bytes —
     // more requests, no saving. The default 'loose' heuristic wins here.
     optimizePackageImports: [
-      '@react-three/drei',
-      '@react-three/fiber',
       'gsap',
-      'three',
       '@base-ui/react',
       'lenis',
       'zustand',
@@ -146,21 +143,15 @@ const nextConfig: NextConfig = {
       '@sanity/image-url',
       '@sanity/asset-utils',
       '@portabletext/react',
+      '@react-three/drei',
+      '@react-three/fiber',
+      'three',
     ],
   },
   devIndicators: false,
   images: {
     dangerouslyAllowSVG: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'cdn.shopify.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.sanity.io',
-      },
-    ],
+    remotePatterns: [{ protocol: 'https', hostname: 'cdn.sanity.io' }],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
     qualities: [90],
     formats: ['image/avif', 'image/webp'],

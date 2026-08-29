@@ -7,6 +7,13 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+const LazyWebGLCanvas = dynamic(
+  () =>
+    import('@/webgl/components/canvas').then((mod) => ({
+      default: mod.Canvas,
+    })),
+  { ssr: false }
+)
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
@@ -26,14 +33,6 @@ const GSAPRuntime = dynamic(
 
 // Root WebGL canvas. Mounted once here (in the shared layout) so the context
 // persists across route navigation; pages portal content in via <WebGLTunnel>.
-const LazyWebGLCanvas = dynamic(
-  () =>
-    import('@/webgl/components/canvas').then((mod) => ({
-      default: mod.Canvas,
-    })),
-  { ssr: false }
-)
-
 type OptionalFeaturesProps = {
   /**
    * Mount the GSAP runtime, which hands GSAP's clock to Tempus so tweens share
@@ -66,9 +65,10 @@ export function OptionalFeatures({ gsap = false }: OptionalFeaturesProps) {
       {/* GSAP runtime — opt-in, see the `gsap` prop */}
       {gsap && <GSAPRuntime />}
       {/* Persistent root WebGL canvas (no-op on non-WebGL devices) */}
-      <LazyWebGLCanvas root />
+
       {/* Development tools - only in development */}
       {isDevelopment && <OrchestraTools />}
+      <LazyWebGLCanvas root />
     </>
   )
 }
