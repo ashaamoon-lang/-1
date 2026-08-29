@@ -1,7 +1,7 @@
 import { instant } from '@next/playwright'
 import { expect, test } from '@playwright/test'
 
-import { HOME_HEADLINE } from '../app/(site)/copy'
+import { HOME_HEADLINE } from '../app/[locale]/copy'
 
 /**
  * Instant navigation is a starter default (#259): the 404 page's "Go Home"

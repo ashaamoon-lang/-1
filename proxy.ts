@@ -12,9 +12,11 @@
  * Note: Security headers are configured in next.config.ts (static, no need for proxy)
  */
 
+import createMiddleware from 'next-intl/middleware'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { routing } from '@/lib/i18n/routing'
 import {
   type DocumentMediaType,
   HTML_FORMAT_OVERRIDE_PARAM,
@@ -44,6 +46,40 @@ import { getClientIP, rateLimit, rateLimiters } from '@/lib/utils/rate-limit'
  * only entry — see the parity test there and `vercel.json`'s route `src`,
  * which independently encodes the same exclusions.
  */
+/**
+ * next-intl's locale router, built once at module scope — it is derived purely
+ * from static config, so rebuilding it per request would be waste.
+ *
+ * `routing.localePrefix` is 'always', which makes this emit plain redirects
+ * (`/` -> `/en`) rather than internal rewrites. That is what lets it coexist
+ * with the Markdown rewrite below: only one of the two ever rewrites a given
+ * request.
+ */
+const handleI18nRouting = createMiddleware(routing)
+
+/**
+ * Route prefixes that must never receive a locale prefix.
+ *
+ * Sanity Studio is the whole list today, and it is not optional: without this,
+ * next-intl redirects `/studio` to `/en/studio`, which does not exist —
+ * Studio lives under `app/(chrome)/`, deliberately outside the localized tree.
+ * That would take the CMS offline while every page still looked fine.
+ *
+ * Everything else that must stay unlocalized is already excluded upstream:
+ * `/api/*` and `/_next/*` by `isPageDocumentRequest`, `/agent-content` by
+ * `MACHINE_PATHS`, dotted paths (`/llms.txt`, `/manifest.webmanifest`,
+ * `/icon.png`) by `FILE_EXTENSION`, and `/robots.txt` + `/sitemap.xml` by the
+ * `matcher` at the bottom of this file.
+ */
+export const NON_LOCALIZED_PREFIXES = ['/studio'] as const
+
+/** Exported for `proxy.test.ts`; not used outside this module at runtime. */
+export function isLocalizable(pathname: string): boolean {
+  return !NON_LOCALIZED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+}
+
 export const MACHINE_PATHS = new Set([MARKDOWN_HANDLER_PATH])
 
 export const FILE_EXTENSION = /\/[^/]+\.[^/]+$/
@@ -197,7 +233,27 @@ export function proxy(request: NextRequest) {
     )
   }
 
-  return addAcceptVary(NextResponse.next(), NEXT_DOCUMENT_VARY)
+  // Not localizable (Studio): pass through untouched, but still advertise the
+  // negotiation Vary so a cached response cannot be reused across Accept.
+  if (!isLocalizable(request.nextUrl.pathname)) {
+    return addAcceptVary(NextResponse.next(), NEXT_DOCUMENT_VARY)
+  }
+
+  // HTML was selected, so this is a real page document — hand it to the locale
+  // router. Ordering is deliberate: Markdown was resolved above, so a `.md`
+  // alias is already rewritten and never reaches next-intl, which would
+  // otherwise try to prefix it.
+  const i18nResponse = handleI18nRouting(request)
+
+  // A locale redirect (`/` -> `/en`, or an unprefixed path being prefixed) is
+  // not a page document. Attaching content-negotiation Vary to it would tell
+  // caches to key a 307 on Accept, splitting the cache for no benefit — the
+  // negotiation happens again on the followed URL anyway.
+  if (i18nResponse.status >= 300 && i18nResponse.status < 400) {
+    return i18nResponse
+  }
+
+  return addAcceptVary(i18nResponse, NEXT_DOCUMENT_VARY)
 }
 
 export const config = {

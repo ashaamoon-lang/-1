@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "work": "Work",
+    "studio": "Studio",
+    "contact": "Contact",
+    "skipToContent": "Skip to main content"
+  },
+  "home": {
+    "headline": "Commissioned work for people who notice",
+    "subline": "A studio foundation built on measured decisions, not borrowed taste.",
+    "cta": "See the foundation"
+  },
+  "work": {
+    "sectionTitle": "Selected work",
+    "viewProject": "View",
+    "nextProject": "Next project"
+  },
+  "meta": {
+    "client": "Client",
+    "year": "Year",
+    "medium": "Medium"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch to {language}"
+  }
+}

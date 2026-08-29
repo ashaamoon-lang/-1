@@ -11,7 +11,11 @@
 
 import { describe, expect, it } from 'bun:test'
 
-import { buildRoutesFromDocuments, STATIC_ROUTES } from './routes'
+import {
+  buildRoutesFromDocuments,
+  STATIC_ROUTE_TEMPLATES,
+  STATIC_ROUTES,
+} from './routes'
 
 describe('buildRoutesFromDocuments', () => {
   it('skips a single malformed document without dropping the valid ones', () => {
@@ -92,7 +96,12 @@ describe('buildRoutesFromDocuments', () => {
     ]
 
     const routes = buildRoutesFromDocuments(docs)
-    expect(STATIC_ROUTES.some((route) => route.path === '/ai')).toBe(true)
+    // Dedup compares locale-free TEMPLATES, because a CMS slug is locale-free
+    // too — matching against the expanded '/en/ai' would never collide and the
+    // guard below would silently stop working.
+    expect(STATIC_ROUTE_TEMPLATES.some((route) => route.path === '/ai')).toBe(
+      true
+    )
     expect(routes.some((route) => route.path === '/ai')).toBe(false)
   })
 

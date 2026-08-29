@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 
 import { env } from '@/lib/env'
+import { localeFromPath } from '@/lib/i18n/paths'
+import { LOCALE_TAGS, routing } from '@/lib/i18n/routing'
 import { routeAlternates } from '@/lib/seo/alternates'
 import { BASE_URL, SITE } from '@/lib/seo/site'
 
@@ -112,7 +114,11 @@ export function generatePageMetadata(
       description,
       url: fullUrl,
       siteName,
-      locale: 'en_US',
+      // Derived from the URL's own locale prefix rather than hardcoded.
+      // `localeFromPath` returns null for unlocalized routes (/studio,
+      // /llms.txt), which fall back to the default — those pages have no
+      // language alternative to declare.
+      locale: LOCALE_TAGS[localeFromPath(url ?? '/') ?? routing.defaultLocale],
       type,
       images: [
         {

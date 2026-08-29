@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { HOME_HEADLINE } from '../app/(site)/copy'
+import { HOME_HEADLINE } from '../app/[locale]/copy'
 
 const DEVELOPER_RESOURCE_URL = 'https://github.com/darkroomengineering/satus'
 const NEXT_VARY_FIELDS = [
@@ -90,10 +90,12 @@ test.describe('Markdown content negotiation', () => {
   test('serves the homepage as Markdown with guidance and resource discovery', async ({
     request,
   }) => {
-    const htmlResponse = await request.get('/', {
+    // '/en', not '/': with `localePrefix: 'always'` the bare root only ever
+    // redirects, so negotiation happens on the locale home.
+    const htmlResponse = await request.get('/en', {
       headers: { Accept: 'text/html' },
     })
-    const response = await request.get('/', {
+    const response = await request.get('/en', {
       headers: { Accept: 'text/markdown' },
     })
     const body = await response.text()
@@ -166,7 +168,7 @@ test.describe('Markdown content negotiation', () => {
   test('HEAD advertises the Markdown representation without sending a body', async ({
     request,
   }) => {
-    const response = await request.head('/', {
+    const response = await request.head('/en', {
       headers: { Accept: 'text/markdown' },
     })
 
@@ -181,7 +183,9 @@ test.describe('Markdown content negotiation', () => {
   test('supports explicit Markdown aliases without an Accept header', async ({
     request,
   }) => {
-    for (const path of ['/index.md', '/ai.md']) {
+    // Aliases follow the localized routes: markdownPathForRoute('/en') is
+    // '/en.md'. '/index.md' only ever existed for the unprefixed root.
+    for (const path of ['/en.md', '/en/ai.md', '/id.md', '/id/ai.md']) {
       const response = await request.get(path)
       expect(response.status(), path).toBe(200)
       expect(response.headers()['content-type'], path).toBe(

@@ -1,0 +1,27 @@
+{
+  "nav": {
+    "work": "Karya",
+    "studio": "Studio",
+    "contact": "Kontak",
+    "skipToContent": "Lewati ke konten utama"
+  },
+  "home": {
+    "headline": "Karya pesanan untuk mereka yang memperhatikan",
+    "subline": "Fondasi studio yang dibangun dari keputusan terukur, bukan selera pinjaman.",
+    "cta": "Lihat fondasinya"
+  },
+  "work": {
+    "sectionTitle": "Karya pilihan",
+    "viewProject": "Lihat",
+    "nextProject": "Karya berikutnya"
+  },
+  "meta": {
+    "client": "Klien",
+    "year": "Tahun",
+    "medium": "Medium"
+  },
+  "language": {
+    "label": "Bahasa",
+    "switchTo": "Ganti ke {language}"
+  }
+}

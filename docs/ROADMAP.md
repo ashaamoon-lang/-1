@@ -209,16 +209,33 @@ dihematnya, dan alternatif mana yang ditolak. Kandidat yang sudah saya
 setujui di muka: `maath` dan `meshline` (keduanya MIT, dicatat di
 `references/website-2k25-architecture.md`) kalau kebutuhan 3D memerlukannya.
 
-**Satu penolakan yang perlu Anda tahu di muka: tidak memakai `next-intl`.**
-Library i18n standar mengambil alih middleware dan routing. Repo ini punya
-`proxy.ts` yang sudah menangani negosiasi konten Markdown, rate limiting, dan
-header — plus katalog SEO sendiri (`lib/seo/route-catalog.ts`) yang memberi
-makan sitemap, `/ai`, dan `/llms.txt`. Menaruh next-intl di atasnya berarti dua
-sistem routing berebut. Untuk **dua** locale dan situs sekecil ini, modul
-kamus bertipe (~100 baris) lebih sedikit kodenya daripada mengkonfigurasi
-next-intl agar berhenti mengurus routing. Kalau Anda lebih suka library penuh,
-katakan di Tahap 0 — itu keputusan Anda, dan lebih murah diambil sekarang
-daripada setelah lima tahap.
+**i18n memakai `next-intl` — keputusan user, dan sudah dieksekusi di Tahap 0.**
+
+Rencana awal di sini merekomendasikan menolaknya: `proxy.ts` sudah menangani
+negosiasi konten Markdown, rate limiting, dan header, plus katalog SEO sendiri
+(`lib/seo/route-catalog.ts`) yang memberi makan sitemap, `/ai`, dan
+`/llms.txt` — jadi library yang mengambil alih routing berisiko berebut dengan
+semua itu. User memilih next-intl, dan itu keputusannya.
+
+**Kekhawatiran itu ternyata dapat dikelola, dan sudah terbukti berjalan.**
+next-intl mendokumentasikan komposisi manual: `createMiddleware(routing)`
+dipanggil di dalam fungsi `proxy` kita sendiri, bukan sebagai default export
+yang menggantikannya. Urutannya yang menentukan — Markdown diselesaikan lebih
+dulu, sehingga alias `.md` tidak pernah sampai ke next-intl, dan redirect
+locale dikembalikan apa adanya tanpa header Vary negosiasi.
+
+Dua hal yang harus dijaga selamanya, keduanya sudah dites:
+
+- `/studio` **tidak boleh** dilokalkan. Tanpa pengecualian eksplisit,
+  next-intl me-redirect-nya ke `/en/studio` yang tidak ada — CMS mati
+  sementara seluruh halaman lain tampak normal.
+- Canonical harus tetap identik dengan URL sitemap. `localePrefix: 'always'`
+  dipilih justru karena itu: satu bentuk canonical per halaman.
+
+Risiko terbesarnya — next-intl tidak mendokumentasikan apa pun soal
+`cacheComponents`, yang aktif di repo ini — diuji lewat spike sebelum kode
+lain ditulis. Hasilnya: `/en` dan `/id` tetap terprerender statis (`○`),
+karena locale dibaca dari `next/root-params` yang dapat dianalisis statis.
 
 ## 2.3 Aturan yang sudah mengikat
 

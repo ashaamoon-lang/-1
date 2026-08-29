@@ -5,9 +5,13 @@ import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { urlForReference } from '@/integrations/sanity/utils/link'
 import { MARKDOWN_HANDLER_PATH } from '@/lib/seo/markdown-path'
-import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
+import { STATIC_ROUTE_TEMPLATES, STATIC_ROUTES } from '@/lib/seo/route-catalog'
 
-export { STATIC_ROUTES }
+// Both forms are re-exported: `STATIC_ROUTES` is the expanded, per-locale list
+// that gets advertised (sitemap, llms.txt, hreflang), while
+// `STATIC_ROUTE_TEMPLATES` is the locale-free list that CMS-slug deduplication
+// compares against. See lib/i18n/paths.ts for why the distinction matters.
+export { STATIC_ROUTE_TEMPLATES, STATIC_ROUTES }
 export type { StaticRoute } from '@/lib/seo/route-catalog'
 
 /**
@@ -40,7 +44,10 @@ export interface ContentRoute {
  * index: false, follow: false }`. A `robots.txt` disallow would defeat that
  * — it blocks the crawl a noindex directive needs in order to be read.
  */
-const staticPaths = new Set(STATIC_ROUTES.map((route) => route.path))
+// Compares TEMPLATES, not localized paths: a CMS slug is locale-free, so
+// matching it against `/en/ai` would never collide and the guard would
+// silently stop working the moment routing gained a locale prefix.
+const staticPaths = new Set(STATIC_ROUTE_TEMPLATES.map((route) => route.path))
 
 /**
  * Literal first-path-segment routes that live outside the `[...slug]`

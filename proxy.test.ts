@@ -14,7 +14,13 @@ import { describe, expect, it } from 'bun:test'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { config as proxyConfig, FILE_EXTENSION, MACHINE_PATHS } from './proxy'
+import {
+  config as proxyConfig,
+  FILE_EXTENSION,
+  isLocalizable,
+  MACHINE_PATHS,
+  NON_LOCALIZED_PREFIXES,
+} from './proxy'
 import vercelConfig from './vercel.json'
 
 const ROOT = import.meta.dir
@@ -150,5 +156,47 @@ describe('machine-path parity between proxy.ts and vercel.json', () => {
         `${path} in MACHINE_PATHS is redundant — already excluded elsewhere`
       ).toBe(false)
     }
+  })
+})
+
+describe('locale routing exclusions', () => {
+  it('never localizes Sanity Studio', () => {
+    // Without this, next-intl redirects /studio to /en/studio — a route that
+    // does not exist, because Studio lives under app/(chrome)/ outside the
+    // localized tree. The CMS would go offline while every page still looked
+    // fine, which is exactly the kind of failure that reaches production.
+    expect(isLocalizable('/studio')).toBe(false)
+    expect(isLocalizable('/studio/structure')).toBe(false)
+  })
+
+  it('localizes ordinary page paths', () => {
+    expect(isLocalizable('/')).toBe(true)
+    expect(isLocalizable('/en')).toBe(true)
+    expect(isLocalizable('/id/ai')).toBe(true)
+  })
+
+  it('does not exclude a path that merely starts with the same characters', () => {
+    // A prefix check on '/studio' must not swallow '/studios' — that would
+    // silently drop a real route out of locale routing.
+    expect(isLocalizable('/studios')).toBe(true)
+    expect(isLocalizable('/studio-notes')).toBe(true)
+  })
+
+  it('every non-localized prefix is a rooted path', () => {
+    // A bare 'studio' would never match the leading-slash pathnames the proxy
+    // actually receives, so the exclusion would silently do nothing.
+    for (const prefix of NON_LOCALIZED_PREFIXES) {
+      expect(prefix.startsWith('/')).toBe(true)
+    }
+  })
+})
+
+describe('proxy.ts locale wiring', () => {
+  const readProxy = () => Bun.file(join(ROOT, 'proxy.ts')).text()
+
+  it('runs next-intl routing — removing it silently drops every locale redirect', async () => {
+    const source = await readProxy()
+    expect(source).toMatch(/from ['"]next-intl\/middleware['"]/)
+    expect(source).toMatch(/\bhandleI18nRouting\s*\(/)
   })
 })

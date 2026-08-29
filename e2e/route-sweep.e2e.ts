@@ -4,6 +4,8 @@ import { join } from 'node:path'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
+import { routing } from '../lib/i18n/routing'
+
 /**
  * Route sweep — auto-discovered smoke coverage for every static page.
  *
@@ -71,29 +73,54 @@ function findPageFiles(dir: string, base = dir): string[] {
   return pages
 }
 
-/** `/(site)/(examples)/sanity/page.tsx` -> `/sanity`, or `null` if dynamic. */
-function toRoute(relativePagePath: string): string | null {
+/**
+ * `/[locale]/ai/page.tsx` -> `['/en/ai', '/id/ai']`; returns `[]` for a route
+ * with any other dynamic segment.
+ *
+ * `[locale]` is expanded rather than skipped. Every page in this app now lives
+ * under it, so skipping dynamic segments wholesale — as this did before
+ * bilingual routing — would discover nothing at all and silently delete the
+ * entire sweep. Expanding instead means each page is smoke-tested in BOTH
+ * languages, automatically, with no list to maintain.
+ *
+ * Other dynamic segments (`[slug]`, `[...slug]`) are still skipped: they need
+ * fixture data to render meaningfully and belong in a dedicated spec.
+ */
+function toRoutes(relativePagePath: string): string[] {
   // path.join produces `\` separators on Windows; split on both so the
   // sweep derives the same routes on every contributor's machine.
   const segments = relativePagePath
     .split(/[\\/]/)
     .filter((segment) => segment.length > 0 && segment !== 'page.tsx')
 
-  if (segments.some((segment) => segment.includes('['))) return null
+  const isLocaleSegment = (segment: string) => segment === '[locale]'
+
+  if (
+    segments.some(
+      (segment) => segment.includes('[') && !isLocaleSegment(segment)
+    )
+  ) {
+    return []
+  }
 
   const staticSegments = segments.filter(
     (segment) => !(segment.startsWith('(') && segment.endsWith(')'))
   )
 
-  return staticSegments.length === 0 ? '/' : `/${staticSegments.join('/')}`
+  if (!staticSegments.some(isLocaleSegment)) {
+    return [staticSegments.length === 0 ? '/' : `/${staticSegments.join('/')}`]
+  }
+
+  return routing.locales.map(
+    (locale) =>
+      `/${staticSegments.map((segment) => (isLocaleSegment(segment) ? locale : segment)).join('/')}`
+  )
 }
 
 function discoverRoutes(): string[] {
   if (!existsSync(APP_DIR) || !statSync(APP_DIR).isDirectory()) return []
 
-  const routes = findPageFiles(APP_DIR)
-    .map(toRoute)
-    .filter((route): route is string => route !== null)
+  const routes = findPageFiles(APP_DIR).flatMap(toRoutes)
 
   return [...new Set(routes)].sort()
 }

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 
+import { localizedPath, templateFromLocalizedPath } from '@/lib/i18n/paths'
+import { LOCALE_TAGS, routing } from '@/lib/i18n/routing'
 import { markdownPathForRoute } from '@/lib/seo/markdown-path'
 import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
 
@@ -24,11 +26,36 @@ export function routeAlternates(path: string): Metadata['alternates'] {
     (route) => route.path === path
   )
 
+  // hreflang. Derived from the path's own locale prefix rather than passed in,
+  // so every caller gets it for free and none can forget — the same reason
+  // canonical lives here. Unlocalized routes (`/studio`, `/llms.txt`) have no
+  // prefix, `templateFromLocalizedPath` returns null, and they correctly
+  // advertise no alternates.
+  //
+  // Keys are BCP 47 tags, not the internal segment: `en-US`, not `en`. The
+  // segment is a URL detail; hreflang is a language declaration, and search
+  // engines read it as one.
+  const template = templateFromLocalizedPath(path)
+  const languages = template
+    ? {
+        ...Object.fromEntries(
+          routing.locales.map((locale) => [
+            LOCALE_TAGS[locale],
+            localizedPath(locale, template),
+          ])
+        ),
+        // x-default names the version served to a visitor whose language
+        // matches none of ours. Omitting it makes engines guess.
+        'x-default': localizedPath(routing.defaultLocale, template),
+      }
+    : undefined
+
   return {
     // Self-referential on every route. A single hardcoded canonical in a
     // layout is inherited by every child that doesn't override it, which
     // tells search engines the whole site is one duplicated page.
     canonical: path,
+    ...(languages && { languages }),
     // Advertises the plain-text mirror via <link rel="alternate" type="text/plain">.
     types: {
       'text/plain': [{ url: '/llms.txt', title: 'llms.txt' }],

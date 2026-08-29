@@ -1,5 +1,6 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
 import type { NextConfig } from 'next'
+import createNextIntlPlugin from 'next-intl/plugin'
 
 // Relative import — see the comment on `./lib/integrations/registry`'s own
 // `@/utils/validation` import for why: Next's next.config.ts loader
@@ -222,4 +223,21 @@ const bundleAnalyzerPlugin = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })
 
-export default bundleAnalyzerPlugin(nextConfig)
+// next-intl. `requestConfig` is passed explicitly because the plugin's default
+// lookup is ./i18n/request.ts or ./src/i18n/request.ts, and this repo keeps
+// shared modules under lib/.
+//
+// `createMessagesDeclaration` generates types from the English catalog, so a
+// key that exists in one locale but not the other — or a typo at a call site —
+// fails `tsc` instead of rendering an empty string in production. English is
+// the source catalog; messages/id.json is checked against it.
+const withNextIntl = createNextIntlPlugin({
+  requestConfig: './lib/i18n/request.ts',
+  experimental: {
+    createMessagesDeclaration: './messages/en.json',
+  },
+})
+
+// Order matters: next-intl adds the loaders that resolve message catalogs, and
+// the analyzer wraps the finished config to report on what actually ships.
+export default bundleAnalyzerPlugin(withNextIntl(nextConfig))
