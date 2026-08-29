@@ -70,17 +70,18 @@ bun dev            # http://localhost:3000
 
 ## Read these in this order
 
-| Document                                         |                                                   |
-| ------------------------------------------------ | ------------------------------------------------- |
-| [`CLAUDE.md`](CLAUDE.md)                         | Hard rules for this project. Short.               |
-| [`AGENTS.md`](AGENTS.md)                         | Engineering standards, from Satūs. The reference. |
-| [`docs/TEARDOWN.md`](docs/TEARDOWN.md)           | Measured evidence. Real numbers.                  |
-| [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md) | Colour, type, spacing, grid.                      |
-| [`docs/MOTION-SPEC.md`](docs/MOTION-SPEC.md)     | Binding rules for animation.                      |
-| [`docs/PROVENANCE.md`](docs/PROVENANCE.md)       | Licensing. Read before copying anything.          |
-| [`docs/RESOURCES.md`](docs/RESOURCES.md)         | The dossier, and the known gaps.                  |
-| [`vault/README.md`](vault/README.md)             | What is in the vault — and what not to rebuild.   |
-| [`references/`](references/)                     | Architecture notes on code we may **not** copy.   |
+| Document                                         |                                                                     |
+| ------------------------------------------------ | ------------------------------------------------------------------- |
+| [`CLAUDE.md`](CLAUDE.md)                         | Hard rules for this project. Short.                                 |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)             | What gets built and in what order. Structure, workflow, six stages. |
+| [`AGENTS.md`](AGENTS.md)                         | Engineering standards, from Satūs. The reference.                   |
+| [`docs/TEARDOWN.md`](docs/TEARDOWN.md)           | Measured evidence. Real numbers.                                    |
+| [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md) | Colour, type, spacing, grid.                                        |
+| [`docs/MOTION-SPEC.md`](docs/MOTION-SPEC.md)     | Binding rules for animation.                                        |
+| [`docs/PROVENANCE.md`](docs/PROVENANCE.md)       | Licensing. Read before copying anything.                            |
+| [`docs/RESOURCES.md`](docs/RESOURCES.md)         | The dossier, and the known gaps.                                    |
+| [`vault/README.md`](vault/README.md)             | What is in the vault — and what not to rebuild.                     |
+| [`references/`](references/)                     | Architecture notes on code we may **not** copy.                     |
 
 ## The one finding worth reading first
 

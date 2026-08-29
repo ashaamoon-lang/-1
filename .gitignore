@@ -61,6 +61,12 @@ storybook-static
 certificates
 
 next-env.d.ts
+# Python bytecode from the vendored ui-ux-pro-max skill's search scripts.
+# The workflow in docs/ROADMAP.md runs those every stage, so this reappears
+# constantly; the skill's own .py sources are committed, the cache is not.
+__pycache__/
+*.pyc
+
 # claude
 # Local agent state stays out of version control, but vendored skills are
 # committed on purpose: any agent that opens this repo inherits them with

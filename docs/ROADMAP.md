@@ -1,0 +1,406 @@
+# ROADMAP — Dari Fondasi ke Website Jadi
+
+> **Status:** disetujui, belum dieksekusi. Tahap 0 adalah pekerjaan berikutnya.
+>
+> Dokumen ini adalah kontrak kerja untuk membangun situsnya. Agen mana pun yang
+> membuka repo ini membacanya setelah `CLAUDE.md`. Ia menetapkan **apa** yang
+> dibangun dan **urutannya**; `CLAUDE.md` menetapkan **bagaimana** menulis
+> kodenya, dan menang kalau keduanya tampak bertentangan.
+>
+> Rencana ini berhenti di level arsitektur **dengan sengaja**. Lihat §3.0 —
+> tiap tahap wajib diperdalam menjadi stage-spec sendiri sebelum dikerjakan.
+
+## Context
+
+Fondasi sudah berdiri dan hijau: Satūs ter-fork, di-prune, riset terukur di
+`docs/`, dan `vault/` berisi delapan pola siap pasang. Yang belum ada adalah
+**situsnya sendiri** — dan cara kerja yang menjamin kualitasnya tidak turun
+begitu kita mulai menulis banyak kode.
+
+Dokumen ini menjawab tiga hal, berurutan:
+
+1. **Struktur & ekspektasi akhir** — bentuk situs yang kita tuju, dan definisi
+   "selesai" yang bisa diuji, bukan dirasakan.
+2. **Alur kerja** — ritual skill yang wajib di setiap tahap, dan aturan
+   library-first supaya kita tidak membuang waktu menulis sintaks yang sudah
+   disediakan orang lain.
+3. **Tahapan eksekusi** — enam tahap dengan gerbang masuk/keluar, masing-masing
+   **wajib diperdalam ulang** oleh reasoning sebelum dieksekusi.
+
+Keputusan yang sudah dikunci oleh user:
+
+|               |                                             |
+| ------------- | ------------------------------------------- |
+| Jenis karya   | **Still image** — ilustrasi, lukisan, mural |
+| Sumber konten | **Sanity CMS**                              |
+| Bahasa        | **Bilingual ID/EN**                         |
+| Cakupan v1    | **Single page + halaman detail proyek**     |
+
+---
+
+# BAGIAN 1 — Struktur & Ekspektasi Akhir
+
+## 1.1 Peta rute
+
+Bilingual dengan **kedua locale diberi prefix**, dan root melakukan redirect:
+
+```
+/                    → redirect ke locale hasil negosiasi (default: /en)
+/en                  → home (single page)
+/id                  → home (single page)
+/en/work/[slug]      → detail proyek
+/id/work/[slug]      → detail proyek
+/studio              → Sanity Studio (tidak dilokalkan)
+/ai, /llms.txt, /sitemap.xml, /robots.txt   (sudah ada, perlu sadar-locale)
+```
+
+**Kenapa kedua locale di-prefix, bukan `/` = EN dan `/id` = ID.**
+`lib/seo/alternates.ts` menegaskan canonical harus sama persis dengan URL yang
+disubmit `app/sitemap.ts` — kalau tidak, mesin pencari merayapi satu URL dan
+mengindeks yang lain. Skema asimetris membuat home punya dua bentuk sah (`/`
+dan `/en`) dan itu persis ambiguitas yang diperingatkan file tersebut. Prefix
+simetris = satu bentuk canonical per halaman, tanpa kasus khusus di sitemap,
+llms.txt, maupun negosiasi Markdown.
+
+Implementasi: segmen `app/(site)/[locale]/` dengan `generateStaticParams`
+mengembalikan `['en','id']`, plus redirect root.
+
+## 1.2 Susunan home (single page)
+
+Diambil dari pola **`Portfolio Grid`** di `ui-ux-pro-max` (`landing.csv`), yang
+menetapkan urutan seksi: `Hero (Name/Role) > Project Grid (Masonry) >
+About/Philosophy > Contact`, dengan strategi warna _"Neutral background (let
+work shine), accent minimal"_ — sejalan dengan temuan `docs/TEARDOWN.md` §3.
+
+| #   | Seksi               | Komponen                    | Catatan                                                                  |
+| --- | ------------------- | --------------------------- | ------------------------------------------------------------------------ |
+| 1   | Hero                | `vault/blocks/hero`         | Nama studio + proposisi. `TextReveal` + `SceneShell` sebagai aksen.      |
+| 2   | Selected Work       | `vault/blocks/project-grid` | Grid 12 kolom, span 6/12 dicampur supaya tidak terbaca spreadsheet.      |
+| 3   | Studio / Philosophy | blok baru                   | Teks pendek + satu potret/foto studio.                                   |
+| 4   | Process             | blok baru (opsional)        | Hanya jika ada isi nyata. Seksi kosong lebih merusak daripada tidak ada. |
+| 5   | Contact             | blok baru                   | Satu CTA, email, sosial.                                                 |
+
+Navigasi adalah anchor dalam halaman (`#work`, `#studio`, `#contact`) plus
+pengalih bahasa. Karena satu halaman panjang, **koreografi scroll harus kuat** —
+itu konsekuensi yang diterima saat memilih opsi single-page.
+
+## 1.3 Halaman detail proyek
+
+```
+Hero gambar sampul  →  Meta (klien, tahun, medium, dimensi)
+                    →  Deskripsi  →  Galeri  →  Proyek berikutnya
+```
+
+Galeri = gambar diam, jadi `next/image` + `@sanity/image-url` sudah cukup;
+tidak perlu pipeline video. `components/ui/sanity-image` sudah ada.
+
+## 1.4 Model konten Sanity — lokalisasi di level field
+
+Dua pendekatan standar. Untuk situs ini, **field-level** yang benar:
+
+- **Field-level** (dipilih): satu dokumen `project`, field teks berisi objek
+  `{ en, id }`. Gambar, urutan, tahun, dan slug **dipakai bersama**.
+- Document-level (ditolak): satu dokumen per bahasa. Untuk portofolio yang
+  bedanya cuma teks, ini menggandakan aset gambar dan membuat dua dokumen bisa
+  hanyut isinya — karya yang sama bisa punya galeri berbeda per bahasa.
+
+Skema baru (menyusul pola `lib/integrations/sanity/schemas/`):
+
+```
+localeString / localeText / localeRichText   ← tipe objek reusable {en, id}
+project        title(loc) slug year medium client cover gallery[] body(loc) order
+studioSettings name statement(loc) email socials[]
+siteSettings   navLabels(loc) seoDefaults(loc)
+```
+
+`slug` sengaja tidak dilokalkan: satu slug per karya membuat hreflang
+antar-bahasa sepele dan URL tetap stabil kalau nanti terjemahan berubah.
+
+## 1.5 Definisi "selesai" — yang bisa diuji
+
+Bukan perasaan. Setiap baris di bawah ini bisa dijalankan:
+
+| Gerbang             | Perintah / bukti                                                            |
+| ------------------- | --------------------------------------------------------------------------- |
+| Semua cek CI        | `bun run check` exit 0                                                      |
+| Build produksi      | `bun run build` exit 0                                                      |
+| Unit test           | `bun test` — 0 fail                                                         |
+| E2E + aksesibilitas | `CI=true bun run test:e2e` — 0 fail, axe bersih                             |
+| Katalog komponen    | `bun run build-storybook` exit 0, tiap primitive punya story                |
+| Kontras warna       | `lib/styles/scripts/contrast.test.ts` hijau, tanpa di-silence               |
+| Reduced motion      | Tiap seksi diperiksa dengan preferensi aktif; konten **terlihat penuh**     |
+| Bilingual           | `/en` & `/id` render; hreflang + `x-default` benar; sitemap memuat keduanya |
+| Token               | Nol hex/px/ms mentah di komponen (ditegakkan saat review)                   |
+| Tanpa JS            | Home tetap punya satu `<h1>` dan teks terbaca (test sudah ada)              |
+
+**Yang sengaja TIDAK diklaim:** angka performa. Tidak ada profiling nyata yang
+mungkin di lingkungan ini (`docs/TEARDOWN.md` mencatat proxy menutup tunnel
+browser). Sampai `chrome-devtools-mcp` tersedia, semua angka performa disebut
+**anggaran**, bukan hasil ukur. Ini aturan keras `CLAUDE.md` #19.
+
+---
+
+# BAGIAN 2 — Alur Kerja
+
+## 2.1 Ritual skill — wajib, setiap tahap
+
+Bukan opsional dan bukan "kalau sempat". Urutannya tetap:
+
+**Sebelum mendesain UI apa pun — `ui-ux-pro-max`:**
+
+```bash
+S=.claude/skills/ui-ux-pro-max/scripts/search.py
+
+python3 $S "Portfolio Grid"        --domain landing      # urutan seksi
+python3 $S "<kebutuhan>"           --domain ux -n 5      # aturan interaksi & a11y
+python3 $S "<kebutuhan>"           --domain typography   # pasangan font
+python3 $S "<kebutuhan>"           --domain color        # palet + reasoning
+python3 $S "scroll reveal stagger" --domain gsap         # durasi, easing, snippet
+python3 $S "<topik>" --stack nextjs                      # 60 guideline Next
+python3 $S "<topik>" --stack threejs                     # 53 guideline 3D
+```
+
+Dua aturan pemakaian yang lahir dari uji coba saya barusan:
+
+1. **Pakai kosakata skill-nya.** Query `"creative studio portfolio commissioned
+artwork"` mengembalikan **0 hasil**; `"Portfolio Grid"` mengembalikan pola
+   lengkap. Kalau 0 hasil, skill menyebutkan _"Closest known terms"_ — ulangi
+   dengan istilah itu.
+2. **Kalau tetap 0 hasil, katakan terus terang** bahwa tidak ada kecocokan
+   database sebelum memakai default umum. Skill itu sendiri yang memerintahkan
+   ini, dan itu mencegah kita mengarang lalu mengklaimnya berbasis riset.
+
+Hasil query **dicatat di stage-spec tahap tersebut**, supaya keputusan desain
+bisa ditelusuri, bukan diperdebatkan sebagai selera.
+
+**Skill lain, pada titik tetap:**
+
+| Skill              | Kapan                                                      | Kenapa                                                  |
+| ------------------ | ---------------------------------------------------------- | ------------------------------------------------------- |
+| `/code-review`     | akhir tiap tahap, sebelum commit                           | Menangkap bug korektness + duplikasi                    |
+| `/simplify`        | setelah tahap yang menambah ≥3 komponen                    | Membuang lapisan sebelum menumpuk                       |
+| `/security-review` | tahap apa pun yang menyentuh form, route handler, atau env | Wajib sebelum kontak/CMS live                           |
+| `/run`             | tiap tahap yang menghasilkan UI                            | Melihat halaman berjalan, bukan cuma test hijau         |
+| `/init`            | —                                                          | Tidak dipakai; `CLAUDE.md` sudah ada dan lebih spesifik |
+
+## 2.2 Aturan library-first — hemat sintaks
+
+**Jangan tulis tangan apa yang sudah disediakan.** Sebelum menulis util atau
+komponen baru, cek daftar ini dulu:
+
+| Kebutuhan                                                      | Pakai ini                                                            | Sudah terpasang |
+| -------------------------------------------------------------- | -------------------------------------------------------------------- | --------------- |
+| Dialog, tabs, accordion, select, tooltip, toast, menu, switch  | `@base-ui/react` — sudah dibungkus di `components/ui/` (10 komponen) | ✅              |
+| IntersectionObserver, ResizeObserver, window size, media query | `hamo`                                                               | ✅              |
+| Smooth scroll                                                  | `lenis/react` — `useLenis`, `ReactLenis`                             | ✅              |
+| Animasi + cleanup otomatis                                     | `@gsap/react` — `useGSAP` (scoping + revert)                         | ✅              |
+| Frame loop bersama                                             | `tempus/react` — `useTempus` dengan `order` eksplisit                | ✅              |
+| Helper 3D                                                      | `@react-three/drei`                                                  | ✅              |
+| Query & live CMS                                               | `next-sanity` — `defineQuery`, `sanityFetch`, `SanityLive`           | ✅              |
+| Gambar responsif dari CMS                                      | `@sanity/image-url` + `components/ui/sanity-image`                   | ✅              |
+| Validasi                                                       | `zod`                                                                | ✅              |
+| State klien                                                    | `zustand`                                                            | ✅              |
+| Komposisi className                                            | `clsx`                                                               | ✅              |
+| Reveal on scroll (CSS, tanpa GSAP)                             | `lib/hooks/use-reveal.ts`                                            | ✅              |
+| Reveal teks, magnetic, cursor, transisi, scene 3D              | `vault/`                                                             | ✅              |
+
+**Dependency baru butuh pembenaran tertulis** di stage-spec: apa yang
+dihematnya, dan alternatif mana yang ditolak. Kandidat yang sudah saya
+setujui di muka: `maath` dan `meshline` (keduanya MIT, dicatat di
+`references/website-2k25-architecture.md`) kalau kebutuhan 3D memerlukannya.
+
+**Satu penolakan yang perlu Anda tahu di muka: tidak memakai `next-intl`.**
+Library i18n standar mengambil alih middleware dan routing. Repo ini punya
+`proxy.ts` yang sudah menangani negosiasi konten Markdown, rate limiting, dan
+header — plus katalog SEO sendiri (`lib/seo/route-catalog.ts`) yang memberi
+makan sitemap, `/ai`, dan `/llms.txt`. Menaruh next-intl di atasnya berarti dua
+sistem routing berebut. Untuk **dua** locale dan situs sekecil ini, modul
+kamus bertipe (~100 baris) lebih sedikit kodenya daripada mengkonfigurasi
+next-intl agar berhenti mengurus routing. Kalau Anda lebih suka library penuh,
+katakan di Tahap 0 — itu keputusan Anda, dan lebih murah diambil sekarang
+daripada setelah lima tahap.
+
+## 2.3 Aturan yang sudah mengikat
+
+`CLAUDE.md` tetap berlaku penuh dan tidak diulang di sini. Yang paling sering
+dilanggar saat menulis halaman: **nol `cubic-bezier()` mentah**, **nol 300ms
+generik** (default 400ms), **hanya `transform`/`opacity`**, **satu RAF loop**,
+dan **`prefers-reduced-motion` menyisakan konten terlihat penuh**.
+
+---
+
+# BAGIAN 3 — Tahapan Eksekusi
+
+## 3.0 Gerbang pendalaman — berlaku untuk SETIAP tahap
+
+Tidak ada tahap yang boleh langsung dikerjakan dari rencana ini. Rencana ini
+sengaja berhenti di level arsitektur. Sebelum menulis kode, tiap tahap **wajib**
+melalui langkah berikut, dan menghasilkan `docs/stages/TAHAP-<n>.md`:
+
+1. **Baca ulang** `CLAUDE.md`, `docs/MOTION-SPEC.md`, `docs/DESIGN-SYSTEM.md`,
+   dan `vault/README.md` bagian "apa yang jangan dibangun ulang".
+2. **Jalankan query skill** yang relevan (§2.1) dan **tempel hasilnya** ke
+   stage-spec — termasuk kalau hasilnya 0.
+3. **Inventaris dulu, baru tulis**: daftar apa yang sudah ada di
+   `components/ui/`, `lib/hooks/`, dan `vault/` yang menutupi kebutuhan tahap
+   ini. Komponen baru hanya untuk yang benar-benar belum ada.
+4. **Tulis stage-spec**: daftar file yang disentuh, kontrak props tiap komponen
+   baru, dan kriteria keluar yang bisa dijalankan.
+5. **Sebutkan risikonya** — apa yang paling mungkin gagal di tahap ini.
+
+Baru setelah stage-spec itu ada, kode ditulis. Ini yang mencegah tahap
+belakangan dikerjakan dengan kedalaman lebih dangkal dari tahap awal.
+
+---
+
+## Tahap 0 — Kontrak data & bilingual
+
+Paling berisiko, jadi paling depan. Semua tahap lain bergantung padanya, dan
+menambal i18n belakangan berarti menyentuh ulang setiap komponen.
+
+**Kerja:**
+
+- Segmen `app/(site)/[locale]/`, `generateStaticParams` → `['en','id']`,
+  redirect dari root.
+- Modul kamus bertipe (`lib/i18n/`): tipe locale, kamus, `getDictionary()`.
+  Kunci hilang harus gagal saat typecheck, bukan diam-diam render kosong.
+- **Perluas `routeAlternates()`** di `lib/seo/alternates.ts` dengan
+  `languages` + `x-default`. Ini titik sisip yang benar: doc comment-nya
+  menjelaskan Next menggabungkan metadata secara dangkal, jadi semua rute
+  memang harus lewat helper ini.
+- Ganti `locale: 'en_US'` yang di-hardcode di `lib/utils/metadata.ts:115` dan
+  `app/(site)/layout.tsx:65` menjadi sadar-locale.
+- `lib/seo/route-catalog.ts`, `app/sitemap.ts`, dan `/llms.txt` menjadi
+  sadar-locale (tiap rute muncul dua kali).
+- Skema Sanity: `localeString`/`localeText`/`localeRichText`, `project`,
+  `studioSettings`, `siteSettings`; query + `bun run sanity:typegen`.
+- Pengalih bahasa yang mempertahankan rute saat ini.
+
+**Butuh dari Anda:** `NEXT_PUBLIC_SANITY_PROJECT_ID` + dataset. Tanpa itu
+saya bisa menulis skema dan query, tapi tidak bisa memverifikasi data nyata —
+dan saya akan menyebutnya sebagai belum terverifikasi, bukan hijau.
+
+**Keluar:** build hijau · `/en` dan `/id` render · sitemap memuat keduanya ·
+hreflang benar · typegen bersih · e2e lama tetap lulus.
+
+---
+
+## Tahap 1 — Mengunci sistem desain
+
+Sekarang, bukan nanti. `docs/DESIGN-SYSTEM.md` sudah menetapkan strukturnya
+(satu aksen, dua family, 2–3 weight, oklch) tapi **hue dan typeface sengaja
+dibiarkan terbuka**. Selama masih terbuka, setiap komponen yang ditulis
+berisiko dibongkar ulang.
+
+**Kerja:**
+
+- `search.py "<brief>" --design-system --persist -o docs/` untuk mendapat
+  rekomendasi lengkap; **dinilai, bukan ditelan** — `TEARDOWN.md` yang menang
+  kalau bertentangan, karena itu berbasis pengukuran situs nyata.
+- Tetapkan aksen di `lib/styles/colors.ts` (oklch), turunkan varian dengan
+  `color-mix(in oklab, …)`.
+- Tetapkan pasangan typeface di `lib/styles/fonts.ts`. Kalau typeface komersial
+  belum dibeli, pilih pasangan open-source terbaik dan **catat sebagai
+  sementara** — ini celah #1 di `docs/RESOURCES.md`.
+- Sesuaikan skala tipografi di `lib/styles/typography.ts`. Perhatikan catatan
+  yang sudah ada: `caption` 8px di mobile di bawah ambang 12px — jangan dipakai
+  untuk konten bermakna.
+
+**Keluar:** `contrast.test.ts` hijau tanpa di-silence · `DESIGN-SYSTEM.md`
+memuat nilai yang benar-benar dipilih, bukan placeholder · Storybook merefleksi
+palet baru.
+
+---
+
+## Tahap 2 — Melengkapi primitive & blok
+
+**Kerja (hanya yang belum ada):**
+
+- `project-card` — kartu karya dengan `sanity-image`, ruang ter-reserve.
+- `nav` — anchor dalam halaman + progress + pengalih bahasa.
+- `footer` — kontak, sosial, kredit.
+- `section-header` — eyebrow mono + judul, dipakai ulang tiap seksi.
+- `language-switcher`.
+- Story Storybook untuk tiap primitive, termasuk state reduced-motion.
+
+**Jangan bangun ulang:** marquee, accordion, dialog, tabs, select, tooltip,
+toast, form, reveal, cursor, magnetic, text-reveal, page-transition,
+scene-shell. Semuanya sudah ada — tabel di `vault/README.md` adalah daftar
+otoritatifnya.
+
+**Keluar:** `build-storybook` exit 0 · tiap primitive punya story · axe bersih
+di Storybook · `bun run check` exit 0.
+
+---
+
+## Tahap 3 — Home single page
+
+**Kerja:** rakit lima seksi §1.2 dengan data Sanity nyata; koreografi scroll
+antar-seksi; nav anchor aktif mengikuti posisi scroll.
+
+**Titik paling mungkin gagal, dan sudah diketahui:** halaman panjang dengan
+banyak `ScrollTrigger` adalah tempat lahirnya jank dan kebocoran. Aturannya
+sudah tertulis — satu RAF loop, `kill()` saat unmount, `useGSAP` dengan scope,
+CSS reveal kalau cukup, GSAP hanya untuk timeline/scrub.
+
+**Keluar:** e2e + axe lulus · reduced-motion diverifikasi manual per seksi ·
+tanpa JS home tetap terbaca · nol pergeseran layout dari gambar.
+
+---
+
+## Tahap 4 — Detail proyek
+
+**Kerja:** `[locale]/work/[slug]`, `generateStaticParams` dari Sanity, galeri,
+navigasi proyek berikutnya, metadata + hreflang per proyek, OG image.
+
+**Keluar:** e2e untuk slug nyata di kedua bahasa · sitemap memuat semua proyek
+× 2 locale · 404 benar untuk slug tak dikenal.
+
+---
+
+## Tahap 5 — Poles & performa
+
+**Kerja:** audit pipeline gambar (ukuran, `sizes`, prioritas, format), audit
+jumlah script (Bruno Simon memuat 2, Iventions 36 — `docs/TEARDOWN.md` §7),
+lewati state loading & error, cek fokus keyboard menyeluruh.
+
+**Kejujuran:** kalau `chrome-devtools-mcp` belum terpasang, tahap ini
+menghasilkan **anggaran dan temuan struktural**, bukan angka terukur — dan
+laporannya akan mengatakan begitu.
+
+---
+
+## Tahap 6 — Deploy & handoff
+
+**Kerja:** Vercel, env produksi (`NEXT_PUBLIC_BASE_URL` — build sekarang
+memperingatkan kalau kosong), `PROD-README.md`, akses Sanity Studio untuk
+studio, jalur ke VPS kalau nanti pindah.
+
+**Keluar:** preview deploy hijau · sitemap & robots benar di domain nyata ·
+studio bisa menambah karya tanpa bantuan saya.
+
+---
+
+# Verifikasi
+
+Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap
+di-commit sebelum semuanya hijau**:
+
+```bash
+bun run check              # oxlint, oxfmt, type-aware lint, tsc, unit, manifest, aset
+bun run build              # build produksi
+CI=true bun run test:e2e   # Playwright + axe, lewat build produksi
+bun run build-storybook    # katalog komponen
+```
+
+Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
+halamannya.
+
+**Catatan yang sudah diketahui:** `bun run test:e2e` tanpa `CI=true` kadang
+gagal di `e2e/not-found.e2e.ts` karena kompilasi on-demand dev server berlomba
+dengan validasi prefetch `instant` milik Next. Lewat build produksi — jalur
+yang dipakai CI — suite lulus 17/17 tanpa console error. Sudah tercatat di
+`docs/RESOURCES.md` §6. **Gunakan `CI=true` sebagai sinyal yang menentukan.**
+
+Kalau ada yang gagal atau dilewati, itu dilaporkan eksplisit beserta alasannya —
+bukan diam-diam dikurangi cakupannya (`CLAUDE.md` #21).
