@@ -1,0 +1,35 @@
+/**
+ * Sanity Schema Types
+ *
+ * All schema definitions for Sanity CMS, organized in a flat structure.
+ */
+
+import type { SchemaTypeDefinition } from 'sanity'
+
+import { article } from './article'
+// Import all schema definitions
+import { link } from './link'
+import { metadata } from './metadata'
+import { navigation } from './navigation'
+import { page } from './page'
+import { richText } from './richText'
+
+// Re-export all schemas for convenience
+export { article, link, metadata, navigation, page, richText }
+
+// Schema collection for Sanity configuration
+export const schema = {
+  types: [
+    // Object types (reusable components)
+    link,
+    metadata,
+    richText,
+
+    // Document types (content pages)
+    page,
+    article,
+
+    // Singleton types (one-off content)
+    navigation,
+  ],
+} satisfies { types: SchemaTypeDefinition[] }

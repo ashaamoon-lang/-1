@@ -1,0 +1,58 @@
+import { type HTMLAttributes, type RefObject, useEffect, useState } from 'react'
+
+import Orchestra from './orchestra'
+
+type OrchestraToggleProps = Omit<
+  HTMLAttributes<HTMLButtonElement>,
+  'id' | 'children' | 'defaultValue'
+> & {
+  children: string
+  id: string
+  buttonRef?: RefObject<HTMLButtonElement | null>
+  defaultValue?: boolean
+}
+
+export function OrchestraToggle({
+  id,
+  children,
+  buttonRef,
+  defaultValue,
+  className,
+  ...props
+}: OrchestraToggleProps) {
+  useEffect(() => {
+    Orchestra.setState((state) => ({ [id]: defaultValue ?? state[id] }))
+  }, [defaultValue, id])
+
+  const [active, setActive] = useState(defaultValue ?? Orchestra.getState()[id])
+
+  useEffect(() => {
+    const unsubscribe = Orchestra.subscribe(
+      ({ [id]: value }) => value,
+      (value) => {
+        setActive(value)
+      },
+      {
+        fireImmediately: true,
+      }
+    )
+    return unsubscribe
+  }, [id])
+
+  return (
+    <button
+      type="button"
+      {...props}
+      onClick={() => {
+        Orchestra.setState((state) => ({ [id]: !state[id] }))
+      }}
+      style={{
+        backgroundColor: active ? 'oklch(0.8664 0.2948 142.5 / 0.5)' : '',
+      }}
+      className="size-20 grid place-items-center rounded-[8px] text-[64px]"
+      title={id}
+    >
+      {children}
+    </button>
+  )
+}

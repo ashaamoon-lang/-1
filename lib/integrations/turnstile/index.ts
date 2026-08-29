@@ -1,0 +1,112 @@
+/**
+ * Cloudflare Turnstile - Better than reCAPTCHA
+ * - Completely invisible to users
+ * - Faster verification
+ * - More privacy-friendly
+ * - Perfect for terminal aesthetics
+ */
+
+import { headers } from 'next/headers'
+import { z } from 'zod'
+
+import { env } from '@/lib/env'
+import { getIPFromHeaders } from '@/lib/utils/rate-limit'
+import { fetchWithTimeout } from '@/utils/fetch'
+
+const siteverifySchema = z.object({
+  success: z.boolean(),
+  'error-codes': z.array(z.string()).optional(),
+})
+
+export interface TurnstileValidationResult {
+  isValid: boolean
+  errors: string[]
+}
+
+// cache-exempt: reads headers() for the requester's IP and verifies a
+// one-time challenge token with Cloudflare — inherently per-request, so
+// 'use cache' would both be illegal (headers() is banned inside it) and
+// wrong (a cached verdict would replay the verification for other visitors).
+export async function validateTurnstile(
+  token: string
+): Promise<TurnstileValidationResult> {
+  if (!token) {
+    return {
+      isValid: false,
+      errors: ['security_verification_required_'],
+    }
+  }
+
+  try {
+    const secret = env.CLOUDFLARE_TURNSTILE_SECRET_KEY
+    if (!secret) {
+      // Fail closed in production, fail open in development
+      if (process.env.NODE_ENV === 'production') {
+        console.error(
+          'CLOUDFLARE_TURNSTILE_SECRET_KEY not configured in production'
+        )
+        return { isValid: false, errors: ['security_configuration_error_'] }
+      }
+      console.warn(
+        'CLOUDFLARE_TURNSTILE_SECRET_KEY not found - skipping in development'
+      )
+      return { isValid: true, errors: [] }
+    }
+
+    const requestHeaders = await headers()
+    const ip = getIPFromHeaders(requestHeaders)
+
+    const response = await fetchWithTimeout(
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          secret,
+          response: token,
+          ...(ip && ip !== 'unknown' && { remoteip: ip }),
+        }),
+        timeout: 5000, // 5 second timeout for Turnstile verification
+      }
+    )
+
+    if (!response.ok) {
+      return {
+        isValid: false,
+        errors: ['security_verification_failed_'],
+      }
+    }
+
+    const parsed = siteverifySchema.safeParse(await response.json())
+
+    // Fail closed: if the response shape is unexpected, treat as failure.
+    if (!parsed.success) {
+      console.error('Turnstile siteverify response has unexpected shape')
+      return { isValid: false, errors: ['security_verification_failed_'] }
+    }
+
+    if (parsed.data.success) {
+      return { isValid: true, errors: [] }
+    }
+    return {
+      isValid: false,
+      errors: ['access_denied_'],
+    }
+  } catch (error) {
+    console.error('Turnstile validation error:', error)
+    return {
+      isValid: false,
+      errors: ['connection_error_'],
+    }
+  }
+}
+
+export async function validateFormWithTurnstile(formData: FormData): Promise<{
+  isValid: boolean
+  errors: string[]
+}> {
+  const turnstileToken = formData.get('cf-turnstile-response')?.toString() || ''
+  return validateTurnstile(turnstileToken)
+}

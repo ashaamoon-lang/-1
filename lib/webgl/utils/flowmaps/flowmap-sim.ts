@@ -1,0 +1,211 @@
+/**
+ * @author pschroen / https://ufo.ai/
+ *
+ * Based on https://oframe.github.io/ogl/examples/?src=mouse-flowmap.html by gordonnl
+ */
+
+import {
+  type BufferGeometry,
+  GLSL3,
+  HalfFloatType,
+  Mesh,
+  NoBlending,
+  OrthographicCamera,
+  RawShaderMaterial,
+  type Texture,
+  Vector2,
+  type WebGLRenderer,
+} from 'three'
+
+import {
+  type DoubleRenderTarget,
+  getDoubleRenderTarget,
+  getFullscreenTriangle,
+  type ShaderMaterial,
+} from '@/lib/webgl/utils'
+
+export interface FlowmapOptions {
+  size?: number
+  falloff?: number
+  alpha?: number
+  dissipation?: number
+}
+
+const vertexShader = /* glsl */ `
+in vec3 position;
+in vec2 uv;
+
+out vec2 vUv;
+
+void main() {
+    vUv = uv;
+
+    gl_Position = vec4(position, 1.0);
+}
+`
+
+const fragmentShader = /* glsl */ `
+precision highp float;
+
+uniform sampler2D tMap;
+
+uniform float uFalloff;
+uniform float uAlpha;
+uniform float uDissipation;
+
+uniform float uAspect;
+uniform vec2 uMouse;
+uniform vec2 uVelocity;
+
+in vec2 vUv;
+
+out vec4 FragColor;
+
+void main() {
+    vec4 color = texture(tMap, vUv) * uDissipation;
+
+    vec2 cursor = vUv - uMouse;
+    cursor.x *= uAspect;
+
+    vec3 stamp = vec3(uVelocity * vec2(1, -1), 1.0 - pow(1.0 - min(1.0, length(uVelocity)), 3.0));
+    float falloff = smoothstep(uFalloff, 0.0, length(cursor)) * uAlpha;
+
+    color.rgb = mix(color.rgb, stamp, falloff);
+
+    FragColor = color;
+}
+`
+
+/**
+ * A class for a mouse flowmap.
+ */
+export class Flowmap {
+  renderer: WebGLRenderer
+  mouse: Vector2
+  velocity: Vector2
+  mask: DoubleRenderTarget
+  uniform: { value: Texture }
+  material: ShaderMaterial<
+    | 'tMap'
+    | 'uFalloff'
+    | 'uAlpha'
+    | 'uDissipation'
+    | 'uAspect'
+    | 'uMouse'
+    | 'uVelocity'
+  >
+  screenCamera: OrthographicCamera
+  screenTriangle: BufferGeometry
+  screen: Mesh
+
+  /** Cursor falloff radius — proxies the uFalloff shader uniform. */
+  get falloff() {
+    // SAFETY: `uFalloff` is initialized with a `number` in the constructor
+    // below and only ever reassigned through this class's own `falloff`
+    // setter, which is typed `number` — three.js types a uniform's `value`
+    // as `any`.
+    return this.material.uniforms.uFalloff.value as number
+  }
+  set falloff(value: number) {
+    this.material.uniforms.uFalloff.value = value
+  }
+
+  /** Trail persistence — proxies the uDissipation shader uniform. */
+  get dissipation() {
+    // SAFETY: `uDissipation` is initialized with a `number` in the
+    // constructor below and only ever reassigned through this class's own
+    // `dissipation` setter, which is typed `number` — three.js types a
+    // uniform's `value` as `any`.
+    return this.material.uniforms.uDissipation.value as number
+  }
+  set dissipation(value: number) {
+    this.material.uniforms.uDissipation.value = value
+  }
+
+  constructor(
+    renderer: WebGLRenderer,
+    {
+      size = 128,
+      falloff = 0.15,
+      alpha = 1,
+      dissipation = 0.98,
+    }: FlowmapOptions = {}
+  ) {
+    this.renderer = renderer
+
+    this.mouse = new Vector2(-1, -1)
+    this.velocity = new Vector2()
+
+    // Render targets
+    this.mask = getDoubleRenderTarget(size, size, {
+      type: HalfFloatType,
+      depthBuffer: false,
+    })
+
+    // Output uniform containing render target textures
+    this.uniform = { value: this.mask.read.texture }
+
+    // Flowmap material
+    // SAFETY: the uniforms object literal below is created with exactly
+    // these keys (tMap, uFalloff, uAlpha, uDissipation, uAspect, uMouse,
+    // uVelocity) — RawShaderMaterial's own return type only knows a generic
+    // uniforms record, not this class's narrowed uniform-key union.
+    this.material = new RawShaderMaterial({
+      glslVersion: GLSL3,
+      uniforms: {
+        tMap: this.uniform,
+
+        uFalloff: { value: falloff },
+        uAlpha: { value: alpha },
+        uDissipation: { value: dissipation },
+
+        // User needs to update these
+        uAspect: { value: 1 },
+        uMouse: { value: this.mouse },
+        uVelocity: { value: this.velocity },
+      },
+      vertexShader,
+      fragmentShader,
+      blending: NoBlending,
+      depthTest: false,
+      depthWrite: false,
+    }) as ShaderMaterial<
+      | 'tMap'
+      | 'uFalloff'
+      | 'uAlpha'
+      | 'uDissipation'
+      | 'uAspect'
+      | 'uMouse'
+      | 'uVelocity'
+    >
+
+    // Fullscreen triangle
+    this.screenCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1)
+    this.screenTriangle = getFullscreenTriangle()
+    this.screen = new Mesh(this.screenTriangle, this.material)
+    this.screen.frustumCulled = false
+  }
+
+  update() {
+    // Renderer state
+    const currentRenderTarget = this.renderer.getRenderTarget()
+    const currentAutoClear = this.renderer.autoClear
+    this.renderer.autoClear = false
+
+    this.renderer.setRenderTarget(this.mask.write)
+    this.renderer.render(this.screen, this.screenCamera)
+    this.mask.swap()
+
+    this.uniform.value = this.mask.read.texture
+
+    // Restore renderer settings
+    this.renderer.autoClear = currentAutoClear
+    this.renderer.setRenderTarget(currentRenderTarget)
+  }
+
+  destroy() {
+    this.mask.dispose()
+    this.material.dispose()
+    this.screenTriangle.dispose()
+  }
+}

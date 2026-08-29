@@ -1,0 +1,93 @@
+import type { Route } from 'next'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef } from 'react'
+
+function isString(value: string | number | undefined): value is string {
+  return typeof value === 'string'
+}
+
+/**
+ * Hook to prefetch a route when an element becomes visible in the viewport
+ * @param href - The route to prefetch
+ * @param options - Intersection Observer options
+ * @returns ref to attach to the element that should trigger prefetching
+ */
+export function usePrefetch<T extends HTMLElement = HTMLElement>(
+  href: Route | null | undefined,
+  options?: IntersectionObserverInit
+) {
+  const ref = useRef<T>(null)
+  const router = useRouter()
+  const prefetchedRef = useRef(false)
+
+  // Depend on the primitive fields actually used (not the `options` object
+  // identity) — an inline `{ rootMargin: '100px' }` literal at the call site
+  // would otherwise recreate the IntersectionObserver every render. Arrays
+  // are serialized to a stable string key and parsed back inside the effect.
+  const rootMargin = options?.rootMargin
+  const optionThreshold = options?.threshold
+  const thresholdKey = Array.isArray(optionThreshold)
+    ? optionThreshold.join(',')
+    : optionThreshold
+  const root = options?.root
+
+  useEffect(() => {
+    // Early return if no href or already prefetched
+    if (!href || prefetchedRef.current) return
+
+    const element = ref.current
+    if (!element) return
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      const [entry] = entries
+      if (entry?.isIntersecting && !prefetchedRef.current) {
+        // Check network conditions before prefetching
+        // SAFETY: Network Information API's `navigator.connection` is present
+        // on Chromium but absent from the DOM lib types.
+        const connection = (
+          navigator as Navigator & {
+            connection?: NetworkInformation
+          }
+        ).connection
+
+        const shouldPrefetch =
+          !connection ||
+          (connection.effectiveType !== 'slow-2g' &&
+            connection.effectiveType !== '2g' &&
+            !connection.saveData)
+
+        if (shouldPrefetch) {
+          router.prefetch(href)
+          prefetchedRef.current = true
+        }
+      }
+    }
+
+    const threshold = isString(thresholdKey)
+      ? thresholdKey.split(',').map(Number)
+      : thresholdKey
+
+    const observer = new IntersectionObserver(handleIntersection, {
+      rootMargin: rootMargin ?? '50px',
+      ...(threshold !== undefined && { threshold }),
+      ...(root !== undefined && { root }),
+    })
+
+    observer.observe(element)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [href, rootMargin, thresholdKey, root, router])
+
+  // Return null ref if href is not provided
+  return href ? ref : { current: null }
+}
+
+// TypeScript types for Network Information API
+interface NetworkInformation {
+  readonly effectiveType: 'slow-2g' | '2g' | '3g' | '4g'
+  readonly saveData: boolean
+  readonly rtt?: number
+  readonly downlink?: number
+}
