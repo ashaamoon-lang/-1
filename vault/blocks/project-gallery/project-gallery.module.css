@@ -36,19 +36,42 @@
   position: relative;
   overflow: clip;
   background-color: var(--surface-2);
-  /* Shrink-wrap the capped image so a portrait does not sit in a wide tinted
-     box. */
-  width: fit-content;
+  /*
+   * The box is computed, never measured from the image.
+   *
+   * `--ratio` is the asset's own width ÷ height, set inline by the component.
+   * `max-width` turns the height cap into a width cap through that ratio, so
+   * the box is `min(container, 78svh × ratio)` wide and `width / ratio` tall —
+   * both known before a single byte of the image arrives.
+   *
+   * Two earlier attempts both shifted the page, and both were measured:
+   * `max-height` on the image alone left the width undetermined until load
+   * (CLS 0.236), and `width: fit-content` made the box depend on the image's
+   * intrinsic size (CLS 0.174). Neither is visible in a screenshot; both move
+   * everything below the image when it loads.
+   *
+   * The `100` fallback is deliberately absurd: with no ratio there is nothing
+   * to cap against, so `max-width` resolves large and the image simply fills
+   * its track.
+   */
+  aspect-ratio: var(--ratio, auto);
+  width: 100%;
+  max-width: calc(78svh * var(--ratio, 100));
 }
 
 /*
- * No `aspect-ratio` here, on purpose.
+ * The ratio is per-image, and it comes from the asset.
  *
- * A gallery holds images of different shapes, and forcing one crop on all of
+ * A gallery holds pictures of different shapes, and forcing one crop on all of
  * them is a decision the layout has no business making — a tall study cropped
- * to 16/9 is a different picture. `SanityImage` reads the real dimensions off
- * the asset and sets the ratio per image, so each box is reserved at its own
- * proportions before the file arrives. Zero layout shift without guessing.
+ * to 16/9 is a different picture. So the component sets `aspect-ratio` inline
+ * from each asset's own dimensions (`aspectRatioFor`), and the rule above only
+ * caps how tall any of them may get.
+ *
+ * Both halves are load-bearing. `max-height` on its own leaves the box
+ * undetermined until the file arrives, which measured as 0.236 CLS on the
+ * project page — one shift moving the meta list, the body, the gallery and the
+ * next-project block together.
  */
 
 .image {
@@ -65,8 +88,7 @@
    * intrinsic dimensions `next/image` writes into the markup make the clamp
    * known before the file arrives — no layout shift.
    */
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 78svh;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

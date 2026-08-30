@@ -124,10 +124,17 @@ export default async function Home() {
   ]
 
   return (
-    // No `webgl` prop: `lib/features` already mounts a shared root canvas in
-    // the layout, which Hero's SceneShell portals into. Adding `<Wrapper webgl>`
-    // here would mount a SECOND root canvas — the case Wrapper's own docs warn
-    // about — and the two race to claim primary during a prefetch render.
+    /*
+     * `webgl` and `gsap` are mounted here, not in the layout.
+     *
+     * This is the only page with a scene (the hero's `SceneShell`) and the
+     * only one running a GSAP timeline (`TextReveal`). Mounting them in the
+     * shared layout made every other route download three.js, R3F and GSAP —
+     * measured at 859KB uncompressed of three alone on `/en/ai`.
+     *
+     * Exactly one root canvas may exist: `lib/features` no longer mounts one,
+     * so this is it. Two would race to claim primary (`lib/webgl/store.ts`).
+     */
     <Wrapper
       theme="dark"
       /*
@@ -142,6 +149,8 @@ export default async function Home() {
        */
       lenis={{ anchors: true }}
       sections={sections}
+      webgl
+      gsap
     >
       <Hero
         headline={content.headline}

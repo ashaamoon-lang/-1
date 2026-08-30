@@ -38,12 +38,27 @@ interface SanityImageProps extends Omit<
   maxWidth?: number
   /** Alt text override. Falls back to the CMS-provided `image.alt`, then `''`. */
   alt?: string
+  /**
+   * Override the derived `sizes`.
+   *
+   * By default this component derives `sizes` from `maxWidth` alone, which is
+   * right for an image that fills its container and wrong for one the layout
+   * constrains. Measured on the project page: a gallery image rendering at
+   * 562px wide requested `w=1440`, roughly three times the pixels it needed,
+   * because the default said `(max-width: 1440px) 100vw, 1440px`.
+   *
+   * Pass this when the layout knows the real rendered width — a half-width
+   * grid track, a height-capped figure. Err slightly wide: under-fetching
+   * shows as a blurry image, over-fetching only as wasted bytes.
+   */
+  sizes?: string
 }
 
 export function SanityImage({
   image,
   maxWidth = 1920,
   alt,
+  sizes,
   ...props
 }: SanityImageProps) {
   if (!image?.asset) return null
@@ -56,7 +71,7 @@ export function SanityImage({
       src={urlForImage(image).width(maxWidth).auto('format').quality(80).url()}
       alt={alt ?? image.alt ?? ''}
       aspectRatio={aspectRatio}
-      sizes={`(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}
+      sizes={sizes ?? `(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}
       {...props}
     />
   )

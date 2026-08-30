@@ -2,9 +2,11 @@ import cn from 'clsx'
 
 import { SanityImage } from '@/components/ui/sanity-image'
 import {
+  aspectRatioFor,
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { cappedImageSizes, ratioStyle } from '@/lib/utils/image-sizes'
 
 import s from './project-hero.module.css'
 
@@ -60,12 +62,25 @@ export function ProjectHero({
       <h1 className={cn('h1', s.title)}>{title}</h1>
 
       {cover && (
-        <div className={s.media}>
+        // The ratio is set inline because it belongs to this asset, not to
+        // the component. Without it the height cap below shifts the page —
+        // see `aspectRatioFor`.
+        <div className={s.media} style={ratioStyle(aspectRatioFor(cover))}>
           <SanityImage
             image={toImageSource(cover)}
             alt={coverAlt}
             maxWidth={1440}
             className={s.image}
+            /*
+             * The cover is this page's largest contentful paint. It shipped
+             * as `loading="lazy"` with no fetch priority, which is the one
+             * image on the page that must never wait its turn.
+             */
+            preload
+            sizes={cappedImageSizes({
+              ratio: aspectRatioFor(cover),
+              trackVw: 92,
+            })}
           />
         </div>
       )}

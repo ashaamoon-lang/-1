@@ -63,6 +63,7 @@ export function NextProject({
               alt=""
               maxWidth={704}
               className={s.image}
+              sizes="(max-width: 800px) 100vw, 33vw"
             />
           </div>
         )}

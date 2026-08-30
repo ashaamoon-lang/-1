@@ -31,8 +31,6 @@ const GSAPRuntime = dynamic(
   { ssr: false }
 )
 
-// Root WebGL canvas. Mounted once here (in the shared layout) so the context
-// persists across route navigation; pages portal content in via <WebGLTunnel>.
 type OptionalFeaturesProps = {
   /**
    * Mount the GSAP runtime, which hands GSAP's clock to Tempus so tweens share
@@ -51,6 +49,23 @@ type OptionalFeaturesProps = {
    * can render a frame behind the scroll position.
    */
   gsap?: boolean
+  /**
+   * Mount the persistent root WebGL canvas here, in the shared layout.
+   *
+   * Off by default, and that default is a measured decision. It used to be
+   * mounted unconditionally, which put three.js and react-three-fiber into
+   * every page's graph — **859KB uncompressed** downloaded by `/en/ai`, a
+   * page of plain text with no canvas on it.
+   *
+   * Two strategies, and only one may be used at a time (two root canvases
+   * race to claim primary — see `lib/webgl/store.ts`):
+   *
+   *   - here, for a canvas that survives route changes; or
+   *   - per page via `<Wrapper webgl>`, for a site where one page uses WebGL.
+   *
+   * This site takes the second: only the home hero has a scene.
+   */
+  webgl?: boolean
 }
 
 /**
@@ -59,7 +74,10 @@ type OptionalFeaturesProps = {
  * Note: React Compiler handles memoization automatically.
  * No manual useMemo/useCallback needed.
  */
-export function OptionalFeatures({ gsap = false }: OptionalFeaturesProps) {
+export function OptionalFeatures({
+  gsap = false,
+  webgl = false,
+}: OptionalFeaturesProps) {
   return (
     <>
       {/* GSAP runtime — opt-in, see the `gsap` prop */}
@@ -68,7 +86,7 @@ export function OptionalFeatures({ gsap = false }: OptionalFeaturesProps) {
 
       {/* Development tools - only in development */}
       {isDevelopment && <OrchestraTools />}
-      <LazyWebGLCanvas root />
+      {webgl && <LazyWebGLCanvas root />}
     </>
   )
 }

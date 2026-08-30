@@ -1,3 +1,4 @@
+import { getImageDimensions } from '@sanity/asset-utils'
 import {
   createImageUrlBuilder,
   type SanityImageSource,
@@ -53,5 +54,40 @@ export function toImageSource(image: {
     ...(image.asset && { asset: image.asset }),
     ...(image.hotspot && { hotspot: image.hotspot }),
     ...(image.crop && { crop: image.crop }),
+  }
+}
+
+/**
+ * The asset's own width ÷ height, or `null` when it cannot be determined.
+ *
+ * Sanity encodes the dimensions in the asset reference itself
+ * (`image-<hash>-1600x2000-jpg`), so this is a string parse — no network, no
+ * await, available during render.
+ *
+ * ## Why a container needs this
+ *
+ * `next/image` writes `width`/`height` onto the `<img>`, which is enough for a
+ * box that is only width-constrained. It is **not** enough for one that is
+ * *height*-capped: with `max-height` and `width: auto`, a browser reserves the
+ * full intrinsic height first and only shrinks the width once the file has
+ * loaded, so everything below jumps up. Measured on the project page before
+ * this existed: **CLS 0.236**, one shift at 127ms moving the meta list, the
+ * body, the gallery and the next-project block at once.
+ *
+ * Giving the container an explicit `aspect-ratio` alongside its `max-height`
+ * makes the box fully determined before the first byte of the image arrives.
+ */
+export function aspectRatioFor(image: {
+  asset?: { _ref: string } | undefined
+}): number | null {
+  if (!image.asset?._ref) return null
+
+  try {
+    const { width, height } = getImageDimensions(image.asset._ref)
+    return height > 0 ? width / height : null
+  } catch {
+    // A malformed or non-image reference. A missing ratio costs a reserved
+    // box, not a crash.
+    return null
   }
 }

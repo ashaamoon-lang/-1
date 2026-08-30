@@ -27,9 +27,27 @@
   position: relative;
   overflow: clip;
   background-color: var(--surface-2);
-  /* Shrink-wrap the capped image rather than leaving a full-width tinted box
-     beside a portrait cover. */
-  width: fit-content;
+  /*
+   * The box is computed, never measured from the image.
+   *
+   * `--ratio` is the asset's own width ÷ height, set inline by the component.
+   * `max-width` turns the height cap into a width cap through that ratio, so
+   * the box is `min(container, 78svh × ratio)` wide and `width / ratio` tall —
+   * both known before a single byte of the image arrives.
+   *
+   * Two earlier attempts both shifted the page, and both were measured:
+   * `max-height` on the image alone left the width undetermined until load
+   * (CLS 0.236), and `width: fit-content` made the box depend on the image's
+   * intrinsic size (CLS 0.174). Neither is visible in a screenshot; both move
+   * everything below the image when it loads.
+   *
+   * The `100` fallback is deliberately absurd: with no ratio there is nothing
+   * to cap against, so `max-width` resolves large and the image simply fills
+   * its track.
+   */
+  aspect-ratio: var(--ratio, auto);
+  width: 100%;
+  max-width: calc(78svh * var(--ratio, 100));
   /*
    * No `aspect-ratio`: `SanityImage` reads the real dimensions off the asset
    * and reserves the box at the artwork's own proportions. A cover cropped to
@@ -52,10 +70,9 @@
    * intrinsic width/height that `next/image` writes into the markup means the
    * clamp is known before the file loads — so this costs no layout shift.
    */
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 78svh;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .meta {

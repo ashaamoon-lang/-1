@@ -2,9 +2,11 @@ import cn from 'clsx'
 
 import { SanityImage } from '@/components/ui/sanity-image'
 import {
+  aspectRatioFor,
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { cappedImageSizes, ratioStyle } from '@/lib/utils/image-sizes'
 
 import s from './project-gallery.module.css'
 
@@ -71,12 +73,22 @@ export function ProjectGallery({ images, className }: ProjectGalleryProps) {
           data-span={isFullWidth(index, images.length) ? 'full' : 'half'}
         >
           <figure className={s.figure}>
-            <div className={s.media}>
+            <div className={s.media} style={ratioStyle(aspectRatioFor(image))}>
               <SanityImage
                 image={toImageSource(image)}
                 alt={image.alt ?? ''}
                 maxWidth={isFullWidth(index, images.length) ? 1440 : 704}
-                className={s.image}
+                /*
+                 * Matched to the grid track. The derived default assumes an
+                 * image fills the viewport, so a half-width figure asked for
+                 * 1440px to render 562 — three times the pixels. Slightly
+                 * wide on purpose: too small is a blurry image, too large is
+                 * only bytes.
+                 */
+                sizes={cappedImageSizes({
+                  ratio: aspectRatioFor(image),
+                  trackVw: isFullWidth(index, images.length) ? 92 : 48,
+                })}
               />
             </div>
           </figure>

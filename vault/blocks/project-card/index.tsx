@@ -136,6 +136,11 @@ export function ProjectCard({
               image={toImageSource(project.cover)}
               alt={project.coverAlt ?? ''}
               maxWidth={maxWidth}
+              sizes={
+                project.span === 12
+                  ? '(max-width: 800px) 100vw, 96vw'
+                  : '(max-width: 800px) 100vw, 48vw'
+              }
               className={s.image}
               preload={preload}
             />

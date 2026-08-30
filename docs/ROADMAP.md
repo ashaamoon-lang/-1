@@ -451,15 +451,44 @@ halaman detail dilihat langsung pada 390px dan 1440px, kedua bahasa.
 
 ---
 
-## Tahap 5 — Poles & performa
+## Tahap 5 — Poles & performa ✅
 
-**Kerja:** audit pipeline gambar (ukuran, `sizes`, prioritas, format), audit
-jumlah script (Bruno Simon memuat 2, Iventions 36 — `docs/TEARDOWN.md` §7),
-lewati state loading & error, cek fokus keyboard menyeluruh.
+Spec penuh: **`docs/stages/TAHAP-5.md`**.
 
-**Kejujuran:** kalau `chrome-devtools-mcp` belum terpasang, tahap ini
-menghasilkan **anggaran dan temuan struktural**, bukan angka terukur — dan
-laporannya akan mengatakan begitu.
+**Kejujuran, diperbarui.** Roadmap memperkirakan tahap ini hanya menghasilkan
+anggaran karena `chrome-devtools-mcp` tidak terpasang. Ternyata Chromium dan
+Playwright ada, jadi **setiap angka di bawah ini diukur** — terhadap
+`next start` di kontainer ini, viewport 1440×900. Bukan data lapangan, bukan
+profil perangkat, dan bukan skor Lighthouse.
+
+| Rute              | Total          | Script    | LCP            | CLS         |
+| ----------------- | -------------- | --------- | -------------- | ----------- |
+| `/en`             | 679→675 KB     | 32→31     | 164→144 ms     | 0           |
+| `/en/work/<slug>` | 705→649 KB     | 34→29     | **816→216 ms** | **0.226→0** |
+| `/en/ai`          | **621→327 KB** | **28→21** | 68→88 ms       | 0           |
+
+**Lima temuan, semuanya terukur:**
+
+1. **CLS 0.226 di halaman proyek** — dan kriteria keluar Tahap 4 menandai "nol
+   pergeseran layout" sebagai ✅. Itu **salah**: saya menalar tentang kotak
+   yang dipesan, bukan mengukur. `max-height` pada gambar membiarkan lebarnya
+   tak tentu sampai berkasnya termuat. Diperbaiki dengan menghitung kotaknya
+   dari rasio aset.
+2. **three.js dikirim ke halaman teks** — `/en/ai` mengunduh 859 KB three +
+   R3F karena layout memasang kanvas WebGL tanpa syarat. Sekarang opt-in per
+   halaman; hanya beranda yang punya scene.
+3. **Sampul proyek `loading="lazy"`** padahal ia elemen LCP-nya.
+4. **Over-fetch gambar hingga 3×** — `sizes` tidak tahu tata letak
+   membatasinya. Sekarang dinyatakan persis lewat `min(vw, vh × rasio)`.
+5. **State loading merender kotak 0×0** — ditulis dengan utility Tailwind yang
+   tidak ada di proyek ini. Layar kosong, dan itulah satu-satunya yang dilihat
+   pengunjung tanpa JavaScript.
+
+**Baru:** `e2e/keyboard-focus.e2e.ts` menyapu Tab di tiap rute — diverifikasi
+bisa gagal, bukan hiasan.
+
+**Keluar:** `bun run check` (373 test) · `bun run build` · `build-storybook` ·
+`CI=true bun run test:e2e` (120 lulus).
 
 ---
 

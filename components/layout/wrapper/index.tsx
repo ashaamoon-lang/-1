@@ -10,6 +10,7 @@
 
 import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
+import dynamic from 'next/dynamic'
 
 import { Footer } from '@/components/layout/footer'
 import { Header, type SectionLink } from '@/components/layout/header'
@@ -17,6 +18,19 @@ import { Lenis } from '@/components/layout/lenis'
 import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
 import { Canvas } from '@/webgl/components/canvas'
+
+/**
+ * GSAP's clock handed to Tempus, so tweens share one frame loop with Lenis and
+ * WebGL. Loaded per page rather than from the layout: mounting it globally put
+ * GSAP into every page's graph, including pages that never animate.
+ */
+const GSAPRuntime = dynamic(
+  () =>
+    import('@/components/effects/gsap').then((mod) => ({
+      default: mod.GSAPRuntime,
+    })),
+  { ssr: false }
+)
 
 function isLenisOptions(value: boolean | LenisOptions): value is LenisOptions {
   return typeof value === 'object'
@@ -50,6 +64,15 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
    * section to reach.
    */
   sections?: readonly SectionLink[] | undefined
+  /**
+   * Mount the GSAP runtime for this page.
+   *
+   * Off by default. GSAP only earns its ~69KB on a page that actually uses a
+   * timeline — here, the home hero's `TextReveal`. Without it GSAP still works
+   * wherever it is imported; it just runs on its own ticker rather than in
+   * Tempus order.
+   */
+  gsap?: boolean
 }
 
 /**
@@ -115,6 +138,7 @@ export function Wrapper({
   className,
   lenis = true,
   webgl = false,
+  gsap = false,
   sections,
   ...props
 }: WrapperProps) {
@@ -133,6 +157,7 @@ export function Wrapper({
       </Canvas>
       {/* Footer is rendered here - do NOT add another in layout.tsx */}
       <Footer />
+      {gsap && <GSAPRuntime />}
       {lenis && (
         <Lenis
           root

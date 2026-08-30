@@ -204,14 +204,14 @@ export default async function AppLayout({ children }: PropsWithChildren) {
             </ToastProvider>
           </RealViewport>
           {/*
-        Optional features - conditionally loaded based on configuration.
+        Optional features — dev tools only.
 
-        `gsap` is on because the starter homepage animates its outro with
-        <ProgressText>. It costs ~43KB gzipped, so drop it once no page under
-        this layout uses GSAP — a site that does not animate should not ship
-        an animation engine.
+        `gsap` and `webgl` both moved to `<Wrapper>`, per page. Mounting them
+        here put GSAP and three.js into every page's graph: `/en/ai`, a page of
+        plain text, downloaded 859KB of three.js and react-three-fiber it had
+        no use for. Only the home hero has a scene, so only the home page pays.
       */}
-          <OptionalFeatures gsap />
+          <OptionalFeatures />
 
           {/* Sanity Live - renders unconditionally when Sanity is configured for real-time updates.
           includeDrafts subscribes the event stream to draft mutations so

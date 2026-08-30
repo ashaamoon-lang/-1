@@ -1,0 +1,80 @@
+/*
+ * A CSS module rather than utilities, and that is the point.
+ *
+ * This skeleton shipped using `gap-3`, `w-40`, `space-y-2`, `h-2` and
+ * `animate-pulse`. None of those exist here: `lib/styles/css/tailwind.css`
+ * resets `--spacing-*` and `--color-*` to `initial`, so Tailwind's default
+ * scales are gone, and no animation tokens are defined. The bars measured
+ * 0×0 — a loading state that shows a blank screen and a screen-reader-only
+ * word.
+ *
+ * That matters more here than it would elsewhere: under Cache Components this
+ * fallback is what a reader sees while a CMS page streams, and everything a
+ * visitor without JavaScript ever sees.
+ */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: mobile-vw(12px);
+  min-height: 100dvh;
+  font-family: var(--font-mono);
+
+  @media (--desktop) {
+    gap: desktop-vw(12px);
+  }
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(8px);
+  width: mobile-vw(160px);
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+    width: desktop-vw(160px);
+  }
+}
+
+.bar {
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--color-secondary);
+  opacity: 0.2;
+  animation: pulse 1.6s var(--ease-in-out-cubic) infinite;
+}
+
+/* Descending widths read as text loading rather than as a progress bar. */
+.bar:nth-child(2) {
+  width: 75%;
+}
+
+.bar:nth-child(3) {
+  width: 50%;
+  opacity: 0.1;
+}
+
+/* Staggered, so it reads as one object breathing rather than three blinking
+   in lockstep. */
+.bar:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.bar:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.05;
+  }
+}
+
+@media (--reduced-motion) {
+  .bar {
+    animation: none;
+  }
+}
