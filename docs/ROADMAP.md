@@ -398,10 +398,17 @@ yang di-hardcode Tahap 2 salah di setiap halaman yang bukan home. Sekarang
 `Wrapper` menerima `sections`, dan halaman tanpa seksi mendapat header berisi
 wordmark + pengalih bahasa saja.
 
+**Tiga cacat visual yang lolos setiap gate** dan hanya ketahuan setelah
+situsnya dijalankan dan di-screenshot: `max-width: 16ch` pada container hero
+memotong `<h1>` jadi kolom 128px (`ch` diukur pada font elemen itu sendiri,
+bukan pada judulnya); `body` tidak pernah punya `font-family`, jadi judulnya
+dirender Times; dan token `h1` mobile 72px tidak muat memuat satu kata
+duabelas huruf. Detail dan angkanya di `TAHAP-3.md` §11.
+
 **Keluar:** `bun run check` (349 test) · `bun run build` (`/en` dan `/id` tetap
 `○ Static`) · `build-storybook` · `CI=true bun run test:e2e` (94 lulus) ·
 HTML awal `/en` memuat 1014 char teks tanpa JS, satu `<h1>`, nol lompatan
-heading.
+heading · **dilihat langsung di 360/390/430/1440px**.
 
 ---
 

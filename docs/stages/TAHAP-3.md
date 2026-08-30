@@ -246,3 +246,71 @@ dari router.
 **Footer melepas `id="contact"`.** Diperkirakan di §6 sebelum kode ditulis, dan
 memang terbukti: dua elemen dengan id sama akan gagal `duplicate-id`, yang
 sekarang menggagalkan suite karena Tahap 2 menghapus filter severity axe.
+
+---
+
+## 11. Tiga cacat visual yang hanya bisa ditemukan dengan melihat
+
+Semua gate hijau — `check`, `build`, `test:e2e` termasuk axe di setiap impact
+— dan halamannya tetap salah. Ditemukan dengan menyalakan servernya,
+mengambil screenshot, dan memandanginya.
+
+### 11.1 `<h1>` terpotong jadi kolom selebar 128px
+
+`hero.module.css` memakai `.content { max-width: 16ch }`, bermaksud "kira-kira
+enam belas karakter judul". Bukan itu artinya: `ch` adalah lebar glif "0"
+**pada font dan ukuran elemen itu sendiri**, dan container mewarisi tipe body
+~14px. Jadi batasnya jadi ~128px, judul meluber, dan `overflow: clip` pada
+hero menyembunyikan buktinya alih-alih menunjukkannya.
+
+Diperbaiki: measure pindah ke `.headline` dalam `em` (relatif terhadap
+ukurannya sendiri), container tidak lagi membatasi lebar.
+
+### 11.2 Judul dirender dengan Times, bukan Syne
+
+Tidak ada satu pun aturan yang menetapkan `font-family` pada `body`. Semua
+yang tidak memakai kelas tipe mewarisi default browser. Nyaris semua komponen
+starter memakai kelas, jadi ini tidak pernah terlihat — sampai `<h1>` hero,
+yang tidak memakainya, merender judul studio dengan serif yang tidak pernah
+dipilih siapa pun.
+
+Diperbaiki di tingkat sistem: `body { font-family: var(--font-display) }`.
+Hero juga berhenti mendeklarasikan `clamp`, weight, leading, dan tracking-nya
+sendiri — semuanya nilai hardcode di sebelah token yang sudah mengatakan hal
+yang sama — dan memakai kelas `h1`.
+
+### 11.3 Judul terpotong di mobile, dua kali
+
+Pertama karena `align-items: flex-start` pada `.content` membuat setiap anak
+berukuran **max-content**: judul jadi selebar kata terpanjangnya dalam satu
+baris (396px di dalam kolom 357px). `align-items` dikembalikan ke `stretch`;
+hanya `.action` yang memang ingin menyusut, dan itu sudah memakai
+`align-self: start`.
+
+Kedua karena skalanya sendiri. Diukur di browser, "Commissioned" selebar
+**7.93em** dalam Syne pada weight dan tracking ini. Ponsel 360px menyisakan
+~329px, jadi plafonnya 329 / 7.93 ≈ 41.5px. Token `h1` mobile Tahap 1 adalah
+**72** (19.2vw) — dikunci tanpa pernah merender copy sungguhan pada lebar
+ponsel. Diturunkan ke **42**, angka yang berasal dari pengukuran, bukan dari
+selera.
+
+Hasil setelah perbaikan, diukur di tiga lebar:
+
+```
+360px : kata terlebar 312px / baris 319px   ✅
+390px : 348 / 348                            ✅ (pas)
+430px : 379 / 383                            ✅
+```
+
+`overflow-wrap: break-word` ditambahkan di `.headline` sebagai penjaga
+terakhir. Kata yang patah itu gejala, bukan desain — tapi jauh lebih baik
+daripada `overflow: clip` menelannya diam-diam.
+
+### Yang perlu diakui
+
+Ketiganya **sudah ada sebelum Tahap 3**. `hero` ditulis di Tahap C dan
+dipasang di halaman sejak saat itu; `body` tidak pernah punya `font-family`
+sejak fork. Semua gate lulus selama itu, karena tidak ada satu pun dari mereka
+yang bisa melihat. Pelajarannya bukan "tambah gate lagi" — pelajarannya adalah
+menjalankan situsnya dan melihatnya adalah langkah verifikasi tersendiri, dan
+itu belum pernah ada di daftar kriteria keluar tahap manapun sebelum ini.

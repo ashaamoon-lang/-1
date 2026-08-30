@@ -18,7 +18,12 @@
    * visible.
    */
   min-height: 100svh;
-  padding: 0 16px;
+  /*
+   * Top padding clears the fixed header. The content is vertically centred in
+   * the viewport, so without this a tall headline slides underneath the bar
+   * instead of centring in the space actually available.
+   */
+  padding: var(--header-height) var(--safe) mobile-vw(48px);
   overflow: clip;
 }
 
@@ -37,28 +42,55 @@
   flex-direction: column;
   /* Generous, not tight. Whitespace is the cheapest expensive-looking asset
      there is — see DESIGN-SYSTEM.md §3. */
-  gap: 32px;
-  max-width: 20ch;
+  gap: mobile-vw(24px);
+  /*
+   * No width limit here, and `align-items` left at its `stretch` default.
+   *
+   * Setting it to `flex-start` sizes every child to its own max-content
+   * width, which for the headline means "as wide as the longest word on one
+   * line" — 396px inside a 357px column at phone width, overflowing into the
+   * hero's `overflow: clip`. `.action` opts out individually with
+   * `align-self: start`, which is the one child that genuinely wants to
+   * shrink-wrap.
+   */
 }
 
 .headline {
   /*
-   * Fluid display type with a small viewport coefficient. Lusion's measured
-   * pattern is clamp(7em, 8vw, 20em) for display; aggressive vw scaling makes
-   * text lurch during resize and is a reliable amateur tell.
+   * Size, weight, leading and tracking come from the `h1` type class in
+   * `lib/styles/typography.ts`, applied in the component rather than restated
+   * here.
+   *
+   * This block previously declared its own `clamp(2.5rem, 8vw, 7.5rem)`, its
+   * own weight, 85% leading and -0.04em tracking. Every one was a hardcoded
+   * design value (CLAUDE.md rule 8) sitting beside the token that already said
+   * the same thing, and free to drift from it.
    */
-  font-size: clamp(2.5rem, 8vw, 7.5rem);
-  font-weight: 700;
-  /*
-   * Sub-100% leading on large type — the signature of considered typography.
-   * Satūs's own h1 token uses 80%.
-   */
-  line-height: 85%;
-  /* Large type needs tightening; the scale of the negative tracking follows
-     the size, matching lib/styles/typography.ts. */
-  letter-spacing: -0.04em;
   margin: 0;
   text-wrap: balance;
+  /*
+   * `em`, not `ch`, and on the headline rather than its container.
+   *
+   * The container previously carried `max-width: 16ch`, meaning to say "about
+   * sixteen characters of headline". It does not: `ch` is the advance of "0"
+   * in the *element's own* font at its own size, and the container inherits
+   * body type — so the constraint resolved to roughly 128px and clipped the
+   * `<h1>` into a narrow strip against the left edge, with `overflow: clip` on
+   * the hero hiding the evidence. Nothing failed: not the build, not a test,
+   * not axe. It was found by screenshotting the page and looking at it.
+   *
+   * `9em` is relative to the headline's own fluid size, so it holds the same
+   * measure at every viewport.
+   */
+  max-width: 9em;
+  /*
+   * Last resort, and it should never fire. The `h1` scale is sized so the
+   * longest word in this site's copy fits the narrowest supported line — but
+   * copy is written by people, not by the scale. Breaking a word is ugly;
+   * `overflow: clip` on the hero silently swallowing half of it, which is what
+   * happened before, is worse.
+   */
+  overflow-wrap: break-word;
 }
 
 .subline {
@@ -77,13 +109,12 @@
   align-self: start;
 }
 
-@media (width >= 800px) {
+@media (--desktop) {
   .hero {
-    padding: 0 32px;
+    padding: var(--header-height) var(--safe) desktop-vw(64px);
   }
 
   .content {
-    gap: 40px;
-    max-width: 16ch;
+    gap: desktop-vw(32px);
   }
 }

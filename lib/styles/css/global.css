@@ -53,6 +53,17 @@ html.overflow-hidden {
 }
 
 body {
+  /*
+   * The document's default face.
+   *
+   * Nothing set this before, so every element that did not opt into a type
+   * class inherited the browser default — Times. It went unnoticed because
+   * almost everything in the starter carried a class; the home page's `<h1>`
+   * did not, and rendered the studio's headline in a serif nobody chose.
+   * Setting it here makes the fallback the design system rather than the
+   * browser's.
+   */
+  font-family: var(--font-display);
   min-height: 100vh;
   overscroll-behavior: none;
   background-color: var(--color-primary);

@@ -66,7 +66,7 @@ export function StudioNote({
     <section id={id} className={cn(s.section, className)}>
       <SectionHeader eyebrow={eyebrow} title={title} className={s.header} />
 
-      <div className={s.body}>
+      <div className={s.body} data-has-portrait={portrait ? '' : undefined}>
         <div className={s.prose}>{children}</div>
 
         {portrait && (

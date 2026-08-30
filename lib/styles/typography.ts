@@ -27,7 +27,23 @@ const typography = {
     // it replaced and 80% collides the lines.
     'line-height': '85%',
     'letter-spacing': '-0.04em',
-    'font-size': { mobile: 72, desktop: 120 },
+    /*
+     * 42 on mobile, not 72.
+     *
+     * The constraint is a measured one, not a preference: a display size is
+     * only usable if the longest *word* in a headline fits one line at the
+     * narrowest supported viewport. Measured in the browser, "Commissioned"
+     * renders 7.93em wide in Syne at this weight and tracking. A 360px phone
+     * leaves ~329px of line, so the ceiling is 329 / 7.93 ≈ 41.5px — and the
+     * token resolves to `value / 375 * 100vw`, which puts the ceiling at 42.
+     *
+     * 72 (19.2vw) was locked in Tahap 1 without ever rendering real copy at
+     * phone width; it clipped the first headline that had to live in it.
+     * Keep this relationship in mind when changing either the scale or the
+     * copy: `hero.module.css` carries `overflow-wrap: break-word` as a guard,
+     * but a broken word is a symptom, not a design.
+     */
+    'font-size': { mobile: 42, desktop: 120 },
   },
   h2: {
     'font-family': `var(${fonts.display})`,

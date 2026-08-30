@@ -68,7 +68,7 @@ export function Hero({ headline, subline, action, className }: HeroProps) {
       </div>
 
       <div ref={ref} className={s.content}>
-        <TextReveal as="h1" split="lines" className={s.headline}>
+        <TextReveal as="h1" split="lines" className={cn('h1', s.headline)}>
           {headline}
         </TextReveal>
 

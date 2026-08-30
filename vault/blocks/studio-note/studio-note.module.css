@@ -20,15 +20,27 @@
   gap: mobile-vw(32px);
 
   @media (--desktop) {
-    /*
-     * 7 / 5 rather than 6 / 6. An even split makes the prose and the
-     * photograph compete; giving the text the larger share states which one
-     * the section is about. Both tracks are minmax(0, …) so a long word wraps
-     * instead of widening the page.
-     */
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
     gap: calc(var(--gap) * 2);
     align-items: start;
+  }
+}
+
+/*
+ * The second column exists only when there is a portrait to put in it.
+ *
+ * 7 / 5 rather than 6 / 6: an even split makes the prose and the photograph
+ * compete, and giving the text the larger share states which one the section
+ * is about. Both tracks are minmax(0, …) so a long word wraps instead of
+ * widening the page.
+ *
+ * Without the attribute the body stays a single column. Declaring the split
+ * unconditionally left a dead 5-column gap beside the statement whenever the
+ * CMS had no portrait — which is its state today, and looked like a layout
+ * that had lost its image rather than one that never had it.
+ */
+@media (--desktop) {
+  .body[data-has-portrait] {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 }
 
