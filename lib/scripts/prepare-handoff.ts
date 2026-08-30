@@ -207,8 +207,7 @@ const removeBrandingAssets = async (dryRun: boolean): Promise<boolean> => {
     'components/ui/darkroom.svg',
     'public/opengraph-image.jpg',
     'public/twitter-image.jpg',
-    'app/opengraph-image.jpg',
-    'app/twitter-image.jpg',
+    'app/opengraph-image.png',
     'app/apple-icon.png',
     'app/icon.png',
   ]

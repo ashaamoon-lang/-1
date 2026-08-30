@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 import { env } from '@/lib/env'
 import { localeFromPath } from '@/lib/i18n/paths'
-import { LOCALE_TAGS, routing } from '@/lib/i18n/routing'
+import { ogLocale, routing } from '@/lib/i18n/routing'
 import { routeAlternates } from '@/lib/seo/alternates'
 import { BASE_URL, SITE } from '@/lib/seo/site'
 
@@ -53,7 +53,24 @@ interface GenerateMetadataOptions {
     height?: number
     alt?: string
   }
-  url?: string
+  /**
+   * The page's **localized** root-relative path — `/en/work/mural`, not
+   * `/work/mural`.
+   *
+   * Required, and required in that exact form, because three separate tags
+   * are derived from it: the canonical, `og:url`, and `og:locale`. When a
+   * caller passed a locale-free template instead, all three went wrong at
+   * once and only one of them was visible: `og:url` disagreed with the
+   * canonical, and `og:locale` reported `en_US` on every Indonesian page
+   * because `localeFromPath` found no prefix to read.
+   *
+   * `lib/i18n/paths.ts` names the distinction — a *template* is locale-free,
+   * a *localized path* is what a browser requests. Build one with
+   * `localizedPath(locale, template)`. It must be the same URL
+   * `app/sitemap.ts` submits for the route; see `lib/seo/alternates.ts` for
+   * why a canonical that disagrees with the sitemap is worse than none.
+   */
+  url: string
   siteName?: string
   noIndex?: boolean
   type?: 'website' | 'article'
@@ -74,7 +91,7 @@ interface GenerateMetadataOptions {
  *     title: page.metadata?.title || page.title,
  *     description: page.metadata?.description,
  *     image: { url: page.metadata?.image?.asset?.url },
- *     url: `/page/${params.slug}`,
+ *     url: localizedPath(locale, `/page/${params.slug}`),
  *     noIndex: page.metadata?.noIndex,
  *   })
  * }
@@ -97,8 +114,12 @@ export function generatePageMetadata(
     authors,
   } = options
 
-  const fullUrl = url ? `${BASE_URL}${url}` : BASE_URL
-  const imageUrl = image?.url ?? '/opengraph-image.jpg'
+  // og:url and the canonical are the same URL by construction, derived from
+  // one value. They were previously two expressions reading `url` differently,
+  // and they drifted apart the moment locale prefixes existed.
+  const fullUrl = `${BASE_URL}${url}`
+  const pageLocale = localeFromPath(url)
+  const imageUrl = image?.url ?? '/opengraph-image.png'
   const imageWidth = image?.width ?? 1200
   const imageHeight = image?.height ?? 630
   const imageAlt = image?.alt ?? title ?? siteName
@@ -108,7 +129,7 @@ export function generatePageMetadata(
     title,
     description,
     keywords,
-    alternates: routeAlternates(url ?? '/'),
+    alternates: routeAlternates(url),
     openGraph: {
       title,
       description,
@@ -117,8 +138,12 @@ export function generatePageMetadata(
       // Derived from the URL's own locale prefix rather than hardcoded.
       // `localeFromPath` returns null for unlocalized routes (/studio,
       // /llms.txt), which fall back to the default — those pages have no
-      // language alternative to declare.
-      locale: LOCALE_TAGS[localeFromPath(url ?? '/') ?? routing.defaultLocale],
+      // language alternative to declare, which is also why `alternateLocale`
+      // below is empty for them.
+      locale: ogLocale(pageLocale ?? routing.defaultLocale),
+      alternateLocale: pageLocale
+        ? routing.locales.filter((l) => l !== pageLocale).map(ogLocale)
+        : [],
       type,
       images: [
         {
@@ -171,7 +196,7 @@ export function generatePageMetadata(
  *
  * // 'use cache' is required: sanityFetch calls cacheTag() internally, which
  * // Cache Components only allow inside a 'use cache' boundary — see
- * // app/(site)/articles/[slug]/page.tsx for the same pattern applied to a page.
+ * // app/[locale]/articles/[slug]/page.tsx for the same pattern applied to a page.
  * async function fetchPage(
  *   slug: string,
  *   perspective: 'published' | 'drafts',
@@ -194,7 +219,8 @@ export function generatePageMetadata(
  *
  *   return generateSanityMetadata({
  *     document: data,
- *     url: `/sanity/${slug}`,
+ *     // Localized, not `/sanity/${slug}` — see the `url` field's own note.
+ *     url: localizedPath(locale, `/sanity/${slug}`),
  *   })
  * }
  * ```
@@ -215,7 +241,8 @@ export function generateSanityMetadata(options: {
     /** Body prose used to derive a description when the editor left one blank. */
     excerpt?: string | null
   }
-  url?: string
+  /** Localized root-relative path — see {@link GenerateMetadataOptions.url}. */
+  url: string
   type?: 'website' | 'article'
 }): Metadata {
   const { document, url, type = 'website' } = options
@@ -228,10 +255,9 @@ export function generateSanityMetadata(options: {
 
   if (!metadata) {
     // Fallback to basic metadata if none provided
-    const fallbackOptions: GenerateMetadataOptions = { type }
+    const fallbackOptions: GenerateMetadataOptions = { type, url }
     if (document.title) fallbackOptions.title = document.title
     if (derivedDescription) fallbackOptions.description = derivedDescription
-    if (url) fallbackOptions.url = url
     return generatePageMetadata(fallbackOptions)
   }
 
@@ -246,11 +272,10 @@ export function generateSanityMetadata(options: {
 
   const resolvedDescription = description || derivedDescription
 
-  const pageOptions: GenerateMetadataOptions = { type }
+  const pageOptions: GenerateMetadataOptions = { type, url }
   if (title) pageOptions.title = title
   if (resolvedDescription) pageOptions.description = resolvedDescription
   if (keywords) pageOptions.keywords = keywords
-  if (url) pageOptions.url = url
   if (noIndex != null) pageOptions.noIndex = noIndex
   if (publishedAt) pageOptions.publishedTime = publishedAt
   if (_updatedAt) pageOptions.modifiedTime = _updatedAt

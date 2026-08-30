@@ -44,11 +44,27 @@ export function isLocale(value: string | undefined): value is Locale {
   )
 }
 
-/** BCP 47 tags for `<html lang>`, OpenGraph, and hreflang. */
+/** BCP 47 tags, for `<html lang>` and hreflang. */
 export const LOCALE_TAGS = {
   en: 'en-US',
   id: 'id-ID',
 } as const satisfies Record<Locale, string>
+
+/**
+ * The same locale in OpenGraph's spelling: `language_TERRITORY`, underscore.
+ *
+ * OpenGraph is not BCP 47 and never was — its spec asks for `en_US`, and a
+ * consumer that reads `en-US` there falls back to its own default. So the
+ * hyphenated tag above is correct for `<html lang>` and hreflang and wrong
+ * for `og:locale`, which is exactly the kind of near-miss that ships: both
+ * strings look right, and no validator in the build reads either one.
+ *
+ * Derived rather than listed as a second map, so the two spellings cannot
+ * drift apart when a locale is added.
+ */
+export function ogLocale(locale: Locale): string {
+  return LOCALE_TAGS[locale].replace('-', '_')
+}
 
 /** Human-readable names, for the language switcher. */
 export const LOCALE_LABELS = {

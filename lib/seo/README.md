@@ -12,7 +12,7 @@ crawlable/citable, or change how a page negotiates HTML vs. Markdown.
 - `schemas.ts` — typed schema.org JSON-LD node builders (Organization,
   WebSite, etc).
 - `json-ld.tsx` — renders a JSON-LD `<script>` tag from a schema.
-- `route-catalog.ts` — `STATIC_ROUTES`: starter-owned pages with no CMS
+- `route-catalog.ts` — `STATIC_ROUTES`: code-owned pages with no CMS
   backing (label, description, sitemap metadata).
 - `routes.ts` — `ContentRoute` type and CMS-backed route lookup
   (`getCmsRoutes`), re-exports `STATIC_ROUTES`. Shared by the sitemap,

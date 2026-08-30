@@ -30,7 +30,7 @@
  * `<WebGLTunnel>` portals into whichever `<Canvas root>` is mounted. In this
  * project that canvas is **already mounted, site-wide**, by `lib/features`
  * (`OptionalFeatures` renders `<LazyWebGLCanvas root />` unconditionally) from
- * `app/(site)/layout.tsx`. So this component works with no setup.
+ * `app/[locale]/layout.tsx`. So this component works with no setup.
  *
  * **Do not also pass `webgl` to `<Wrapper>`.** That mounts a second root
  * canvas. The two instances then race to claim "primary" during render —

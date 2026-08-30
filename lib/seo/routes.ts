@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { urlForReference } from '@/integrations/sanity/utils/link'
+import { localizedPath } from '@/lib/i18n/paths'
+import { type Locale, routing } from '@/lib/i18n/routing'
 import { MARKDOWN_HANDLER_PATH } from '@/lib/seo/markdown-path'
 import { STATIC_ROUTE_TEMPLATES, STATIC_ROUTES } from '@/lib/seo/route-catalog'
 
@@ -30,7 +32,7 @@ export interface ContentRoute {
 /**
  * Routes with no CMS backing. `/ai` has no link from the design, so
  * `app/sitemap.ts` is the only place crawlers discover it — see
- * `app/(site)/ai/page.tsx`, which reads the same catalog for the
+ * `app/[locale]/ai/page.tsx`, which reads the same catalog for the
  * human/agent-facing machine view.
  *
  * This list is what gets *advertised* — every entry here is emitted into
@@ -223,6 +225,38 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
 }
 
 /** Graceful-empty-on-failure accessor for sitemap.xml, llms.txt, and /ai. */
+/**
+ * Expands locale-free CMS templates into the URLs the site actually serves.
+ *
+ * `getCmsRoutes` returns templates (`/work/rimbun`) because a slug is shared
+ * across languages. Every surface that *advertises* a route has to expand it
+ * — `localePrefix` is 'always', so the bare template is not a page: it 307s
+ * to whichever locale the visitor's `Accept-Language` picks.
+ *
+ * `app/sitemap.ts` did this inline and correctly. `/llms.txt` and
+ * `app/[locale]/ai/page.tsx` did not, and shipped `https://…/work/rimbun`
+ * for every artwork — a URL that appears in no sitemap and is no page's
+ * canonical, on the two surfaces whose entire job is handing machines the
+ * canonical address. Extracted here so the three cannot drift again.
+ *
+ * Pass `locale` to expand for one locale (the `/ai` page, which is itself
+ * locale-scoped); omit it for every locale (`/llms.txt` and the sitemap,
+ * which are single documents covering the whole site).
+ */
+export function localizedContentRoutes(
+  routes: readonly ContentRoute[],
+  locale?: Locale
+): ContentRoute[] {
+  const locales = locale ? [locale] : routing.locales
+
+  return routes.flatMap((route) =>
+    locales.map((each) => ({
+      ...route,
+      path: localizedPath(each, route.path),
+    }))
+  )
+}
+
 export async function getCmsRoutes(): Promise<ContentRoute[]> {
   return (await fetchCmsRoutesResult()).routes
 }

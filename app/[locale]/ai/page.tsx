@@ -1,8 +1,14 @@
-import type { Metadata } from 'next'
+import { locale as localeRootParam } from 'next/root-params'
 
-import { routeAlternates } from '@/lib/seo/alternates'
-import { getCmsRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
+import { localizedPath } from '@/lib/i18n/paths'
+import { isLocale, routing } from '@/lib/i18n/routing'
+import {
+  getCmsRoutes,
+  localizedContentRoutes,
+  STATIC_ROUTES,
+} from '@/lib/seo/routes'
 import { formatList, SITE } from '@/lib/seo/site'
+import { generatePageMetadata } from '@/lib/utils/metadata'
 
 /**
  * `/ai` — a plain-HTML index of the site for LLM agents and crawlers.
@@ -30,14 +36,39 @@ import { formatList, SITE } from '@/lib/seo/site'
  * way, but this keeps the whole route server-only end to end.
  */
 
-export const metadata: Metadata = {
-  title: 'Machine view',
-  description: `Plain-text index of ${SITE.name} for AI agents and crawlers.`,
-  alternates: routeAlternates('/ai'),
+/**
+ * A function, not `export const metadata`.
+ *
+ * The static object could not read the locale, so it declared
+ * `canonical: /ai` on both `/en/ai` and `/id/ai` — a URL this app does not
+ * serve and `app/sitemap.ts` never submits, which is worse than declaring
+ * none. Its `og:url` was inherited from the layout, so the machine view also
+ * told crawlers it *was* the home page.
+ *
+ * Nothing caught it: the canonical looked plausible, and no gate compared
+ * the sitemap against the pages it lists. `lib/utils/metadata.test.ts` now
+ * covers the helper; this route is the reason the sweep exists at all.
+ */
+export async function generateMetadata() {
+  const requested = await localeRootParam()
+  const locale = isLocale(requested) ? requested : routing.defaultLocale
+
+  return generatePageMetadata({
+    title: 'Machine view',
+    description: `Plain-text index of ${SITE.name} for AI agents and crawlers.`,
+    url: localizedPath(locale, '/ai'),
+  })
 }
 
 export default async function AiPage() {
-  const cmsRoutes = await getCmsRoutes()
+  const requested = await localeRootParam()
+  const locale = isLocale(requested) ? requested : routing.defaultLocale
+
+  // This page is itself locale-scoped, so its links carry its own locale.
+  // They used to be the bare templates, which 307 to whichever locale the
+  // fetching agent's `Accept-Language` happens to imply — not necessarily
+  // the language of the page the link was found on.
+  const cmsRoutes = localizedContentRoutes(await getCmsRoutes(), locale)
 
   return (
     <>

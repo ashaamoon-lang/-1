@@ -1,7 +1,7 @@
 {
-  "name": "@darkroom.engineering/satus",
+  "name": "arth-site",
   "version": "3.0.0",
-  "description": "Next.js 16 starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, Zod validation, and production-ready integrations",
+  "description": "Website for Arth, a commissioned-artwork studio. Built on Satūs by darkroom.engineering (MIT).",
   "license": "MIT",
   "type": "module",
   "sideEffects": [
@@ -41,6 +41,7 @@
     "generate:manifest": "bun ./lib/scripts/generate-manifest.ts",
     "manifest:check": "bun ./lib/scripts/generate-manifest.ts --check",
     "check:assets": "bun ./lib/scripts/check-assets.ts",
+    "brand:assets": "bun ./lib/scripts/generate-brand-assets.ts",
     "handoff": "bun ./lib/scripts/prepare-handoff.ts",
     "sanity:extract": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity schema extract",
     "sanity:typegen": "cd lib/integrations/sanity && bun --env-file ../../../.env.local sanity typegen generate",

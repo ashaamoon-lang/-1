@@ -10,7 +10,7 @@
  * runs a cover → reveal sequence whenever the route changes.
  *
  * ```tsx
- * // app/(site)/layout.tsx
+ * // app/[locale]/layout.tsx
  * <PageTransition />
  * {children}
  * ```

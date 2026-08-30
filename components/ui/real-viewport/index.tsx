@@ -15,7 +15,7 @@ import { type ReactNode, useEffect } from 'react'
  *
  * @example
  * ```tsx
- * // app/(site)/layout.tsx
+ * // app/[locale]/layout.tsx
  * import { RealViewport } from '@/components/ui/real-viewport'
  *
  * export default function RootLayout({ children }) {

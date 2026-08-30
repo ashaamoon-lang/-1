@@ -1,14 +1,16 @@
 import type { MetadataRoute } from 'next'
 
-import { localizedPath } from '@/lib/i18n/paths'
-import { routing } from '@/lib/i18n/routing'
-import { getCmsRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
+import {
+  getCmsRoutes,
+  localizedContentRoutes,
+  STATIC_ROUTES,
+} from '@/lib/seo/routes'
 import { BASE_URL } from '@/lib/seo/site'
 
 /**
  * Static routes are listed in `lib/seo/routes.ts` (`STATIC_ROUTES`) —
  * shared with `/llms.txt` so the two surfaces can't drift. New static
- * routes must be added there and to `PAGES` in `app/(site)/ai/page.tsx`;
+ * routes must be added there and to `PAGES` in `app/[locale]/ai/page.tsx`;
  * the machine view (`/ai`) has no link from the design, so crawlers only
  * discover it here.
  *
@@ -31,15 +33,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // sitemap advertises exactly the URLs that exist — and exactly the URLs
   // those pages canonicalize to, which is the invariant lib/seo/alternates.ts
   // depends on. Emitting the bare template instead would submit a URL that
-  // only ever redirects.
-  const cmsEntries: MetadataRoute.Sitemap = cmsRoutes.flatMap((route) =>
-    routing.locales.map((locale) => ({
-      url: `${BASE_URL}${localizedPath(locale, route.path)}`,
-      lastModified: route.lastModified,
-      changeFrequency: 'weekly' as const,
-      priority: 0.6,
-    }))
-  )
+  // only ever redirects. `/llms.txt` and `/ai` now share this expansion via
+  // `localizedContentRoutes`, because for a while they did not.
+  const cmsEntries: MetadataRoute.Sitemap = localizedContentRoutes(
+    cmsRoutes
+  ).map((route) => ({
+    url: `${BASE_URL}${route.path}`,
+    lastModified: route.lastModified,
+    changeFrequency: 'weekly' as const,
+    priority: 0.6,
+  }))
 
   return [...staticEntries, ...cmsEntries]
 }

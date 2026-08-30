@@ -6,7 +6,7 @@ interface NotFoundViewProps {
   /**
    * Element rendered in place of the default "Go Home" anchor. Pass the
    * project's `Link` (from '@/components/ui/link') when rendering inside the
-   * router (e.g. app/(site)/not-found.tsx). Defaults to a raw `<a>`, which is
+   * router (e.g. app/[locale]/not-found.tsx). Defaults to a raw `<a>`, which is
    * required in app/not-found.tsx since it renders under the bare root
    * layout, outside the (site) group's providers.
    */
@@ -42,7 +42,7 @@ const DEFAULT_RECOVERY_LINKS = (
 )
 
 /**
- * Shared 404 view used by both app/(site)/not-found.tsx and app/not-found.tsx.
+ * Shared 404 view used by both app/[locale]/not-found.tsx and app/not-found.tsx.
  *
  * Uses no hooks and no app providers, so it stays server-renderable and is
  * safe to render both inside the (site) group (wrapped in Wrapper there) and

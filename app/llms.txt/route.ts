@@ -5,7 +5,7 @@ import {
   buildStaticRoutesMarkdown,
 } from '@/lib/seo/agent-content'
 import { mergeVary } from '@/lib/seo/content-negotiation'
-import { getCmsRoutes } from '@/lib/seo/routes'
+import { getCmsRoutes, localizedContentRoutes } from '@/lib/seo/routes'
 import { formatList, SITE } from '@/lib/seo/site'
 
 /**
@@ -49,7 +49,11 @@ function buildAbout(): string {
 
 async function buildBody(): Promise<string> {
   'use cache'
-  const cmsRoutes = await getCmsRoutes()
+  // Expanded per locale, like the sitemap's. This file used to list the bare
+  // template (`https://…/work/rimbun`), which is a URL that only 307s — on
+  // the one surface whose entire purpose is handing a crawler the address to
+  // record.
+  const cmsRoutes = localizedContentRoutes(await getCmsRoutes())
 
   return `# ${SITE.name}
 

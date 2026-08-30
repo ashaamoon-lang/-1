@@ -1,13 +1,16 @@
 import type { MetadataRoute } from 'next'
 
-import AppData from '@/package.json'
+import { SITE } from '@/lib/seo/site'
 import { themes } from '@/styles/colors'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: AppData.name,
-    short_name: AppData.name,
-    description: AppData.description,
+    // From `lib/seo/site.ts`, not `package.json`. The installed-app name used
+    // to read `@darkroom.engineering/satus` — a package identifier is not a
+    // display name, and it is what a person sees on their home screen.
+    name: SITE.name,
+    short_name: SITE.name,
+    description: SITE.description,
     start_url: '/',
     display: 'standalone',
     // The ink. See the note on `themeColor` in app/[locale]/layout.tsx: this

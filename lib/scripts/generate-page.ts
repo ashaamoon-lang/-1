@@ -133,7 +133,12 @@ export function generatePageContent(
   }
   if (sanity) {
     externalImports.push(`import { sanityFetch } from 'next-sanity/live'`)
+    externalImports.push(
+      `import { locale as localeRootParam } from 'next/root-params'`
+    )
     internalImports.push(
+      `import { localizedPath } from '@/lib/i18n/paths'`,
+      `import { isLocale, routing } from '@/lib/i18n/routing'`,
       `import { pageQuery } from '@/lib/integrations/sanity/queries'`,
       `import type { Page } from '@/lib/integrations/sanity/sanity.types'`,
       `import { generateSanityMetadata } from '@/lib/utils/metadata'`
@@ -221,9 +226,14 @@ export async function generateMetadata(): Promise<Metadata> {
     }
   }
 
+  const requested = await localeRootParam()
+  const locale = isLocale(requested) ? requested : routing.defaultLocale
+
+  // Localized path, not the bare template: canonical, og:url and og:locale
+  // are all derived from this one string. See lib/utils/metadata.ts.
   return generateSanityMetadata({
     document: data,
-    url: '/${pageName}',
+    url: localizedPath(locale, '/${pageName}'),
     type: 'website',
   })
 }`
@@ -252,7 +262,10 @@ export async function createPage(
   pageName: string,
   options: PageOptions
 ): Promise<void> {
-  const pageDir = `app/${pageName}`
+  // Under `app/[locale]/`, not `app/`. Every page route in this app is
+  // localized (`localePrefix: 'always'`); a page written to `app/<name>` would
+  // sit outside both root layouts and render without `<html>`.
+  const pageDir = `app/[locale]/${pageName}`
   const componentsDir = `${pageDir}/_components`
   const pagePath = `${pageDir}/page.tsx`
   const cssPath = `${pageDir}/${pageName}.module.css`

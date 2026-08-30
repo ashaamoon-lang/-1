@@ -39,7 +39,7 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
     path: '/ai',
     label: 'Agent index',
     description:
-      'Server-rendered site facts, page links, agent guidance, and developer resources.',
+      'Server-rendered studio facts, every page link, and guidance for agents handling a commission enquiry.',
     changeFrequency: 'monthly',
     priority: 0.5,
   },

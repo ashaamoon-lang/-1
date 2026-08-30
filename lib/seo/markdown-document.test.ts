@@ -6,6 +6,7 @@ import {
   buildMarkdownDocumentFromRoutes,
   type MarkdownDocument,
 } from './markdown-document'
+import { SITE } from './site'
 
 /** Narrows away the redirect/degraded branches for tests asserting on a document body. */
 function assertDocumentBody(
@@ -25,9 +26,11 @@ describe('buildMarkdownDocument', () => {
 
     expect(document.status).toBe(200)
     expect(document.contentType).toBe('text/markdown; charset=utf-8')
-    expect(document.body).toMatch(/^# Home \| Satūs/m)
+    // Read from SITE rather than spelled out: this assertion held the
+    // starter's name in place long after the fork stopped being it.
+    expect(document.body).toContain(`# Home | ${SITE.name}`)
     expect(document.body).toContain('## When to use')
-    expect(document.body).toContain('## Developer resources')
+    expect(document.body).toContain('## How to use')
   })
 
   it('returns a recoverable Markdown 404 for a path outside static and CMS routes', async () => {

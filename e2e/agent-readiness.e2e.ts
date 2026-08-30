@@ -1,6 +1,16 @@
 import { expect, test } from '@playwright/test'
 
-const DEVELOPER_RESOURCE_URL = 'https://github.com/darkroomengineering/satus'
+/*
+ * Identity is read from `lib/seo/site.ts`, not retyped.
+ *
+ * These assertions used to spell out the starter's identity — `# Satūs`, a
+ * `## Developer resources` section, and a link to the darkroom GitHub repo.
+ * They passed for exactly as long as the fork had not been rebranded, which
+ * means the suite was holding the *wrong* identity in place rather than
+ * guarding the right one.
+ */
+import { isLocalizableRoute } from '../lib/i18n/paths'
+import { SITE } from '../lib/seo/site'
 const NEXT_VARY_FIELDS = [
   'rsc',
   'next-router-state-tree',
@@ -179,11 +189,9 @@ test.describe('Markdown content negotiation', () => {
       if (htmlVary.includes(field)) expect(markdownVary).toContain(field)
     }
 
-    expect(body).toMatch(/^# Home \| Satūs/m)
+    expect(body).toContain(`# Home | ${SITE.name}`)
     expect(body).toContain('## When to use')
     expect(body).toContain('## How to use')
-    expect(body).toContain('## Developer resources')
-    expect(body).toContain(DEVELOPER_RESOURCE_URL)
   })
 
   test('honors qualities and rejects requests for unsupported representations', async ({
@@ -259,7 +267,7 @@ test.describe('Markdown content negotiation', () => {
       expect(response.headers()['content-type'], path).toBe(
         'text/markdown; charset=utf-8'
       )
-      expect(await response.text(), path).toMatch(/^# .+ \| Satūs/m)
+      expect(await response.text(), path).toContain(`| ${SITE.name}`)
     }
   })
 
@@ -320,10 +328,26 @@ test.describe('machine-readable discovery files', () => {
     const llmsBody = await llms.text()
     expect(llms.status()).toBe(200)
     expect(llms.headers()['content-type']).toContain('text/plain')
-    expect(llmsBody).toContain('# Satūs')
+    expect(llmsBody).toContain(`# ${SITE.name}`)
     expect(llmsBody).toContain('## When to use')
     expect(llmsBody).toContain('## How to use')
-    expect(llmsBody).toContain(DEVELOPER_RESOURCE_URL)
+
+    /*
+     * Every advertised content URL carries a locale prefix.
+     *
+     * `localePrefix` is 'always', so a bare `/work/<slug>` is not a page —
+     * it 307s to whatever the fetching agent's Accept-Language implies. This
+     * file shipped exactly that for every artwork: a URL in no sitemap, and
+     * no page's canonical, on the surface whose whole job is handing a
+     * crawler an address to record. See `localizedContentRoutes`.
+     */
+    const advertised = [...llmsBody.matchAll(/\]\((https?:\/\/[^)]+)\)/g)].map(
+      (match) => new URL(match[1] ?? '').pathname
+    )
+    expect(advertised.length).toBeGreaterThan(0)
+    for (const path of advertised) {
+      expect(path).toMatch(/^\/(en|id)(\/|$)/)
+    }
 
     const ai = await request.get('/ai')
     const aiBody = await ai.text()
@@ -331,7 +355,28 @@ test.describe('machine-readable discovery files', () => {
     expect(ai.headers()['content-type']).toContain('text/html')
     expect(aiBody).toContain('When to use')
     expect(aiBody).toContain('How to use')
-    expect(aiBody).toContain(DEVELOPER_RESOURCE_URL)
+    expect(aiBody).toContain(SITE.name)
+
+    /*
+     * Same rule as /llms.txt above, for the HTML machine view: no internal
+     * link may skip the locale prefix.
+     *
+     * Anchors only. A bare `href="…"` match also picks up the stylesheet
+     * `<link>` in the head (`/_next/static/chunks/*.css`), which is neither
+     * internal navigation nor localizable.
+     */
+    const aiLinks = [...aiBody.matchAll(/<a[^>]+href="(\/[^"#]*)"/g)].map(
+      (match) => match[1] ?? ''
+    )
+    // `isLocalizableRoute` is the app's own rule for which paths take a
+    // prefix — it excludes `/robots.txt`, `/sitemap.xml` and friends because
+    // a dotted last segment is a file, not a page. Reusing it beats keeping
+    // a second exclusion list here that could disagree with the first.
+    const internal = aiLinks.filter(isLocalizableRoute)
+    expect(internal.length).toBeGreaterThan(0)
+    for (const href of internal) {
+      expect(href).toMatch(/^\/(en|id)(\/|$)/)
+    }
 
     const sitemap = await request.get('/sitemap.xml')
     const sitemapBody = await sitemap.text()

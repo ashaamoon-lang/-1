@@ -12,8 +12,9 @@ import { APP_BASE_URL } from '@/lib/env'
  * render empty, the site has no citable identity. If editors need to own
  * this copy, back it with a CMS singleton and keep these as fallbacks.
  *
- * Replace every value before launch. Prefer phrasing that does not go stale:
- * "multiple Awwwards honors" beats "30+ awards".
+ * Prefer phrasing that does not go stale: "commissioned work" beats
+ * "12 commissions in 2026". Values still waiting on the studio are marked
+ * with a TODO below rather than guessed.
  */
 export interface AgentUseCase {
   /** Short job name that an agent can match against its task. */
@@ -79,58 +80,64 @@ export interface SiteFacts {
  */
 export const BASE_URL = APP_BASE_URL.replace(/\/+$/, '')
 
+/*
+ * ## Placeholders are marked, not hidden
+ *
+ * The studio has not supplied contact details, a founding year, or profile
+ * URLs yet. Rather than invent them, the fields that need a real answer are
+ * either omitted or use the `.example` TLD (RFC 2606 — reserved, never
+ * resolves, so a placeholder can never accidentally reach a stranger). That
+ * matches `lib/content/home-fallback.ts`, which uses the same address.
+ *
+ * `docs/PANDUAN-STUDIO.md` §6 lists exactly which of these the studio has to
+ * hand over before launch.
+ */
 export const SITE: SiteFacts = {
-  name: 'Satūs',
-  alternateNames: ['Satus'],
+  name: 'Arth',
+  alternateNames: ['Studio Arth'],
   url: BASE_URL,
-  // NOTE: `app/icon.png` is one of the files `bun run handoff` deletes as
-  // Satus branding. Point this at the project's own logo before launch, or
-  // the Organization schema advertises a 404.
   logo: `${BASE_URL}/icon.png`,
   description:
-    'Satūs is a Next.js starter by darkroom.engineering — React 19, TypeScript strict, Tailwind v4, and production-ready integrations.',
+    'Arth is a commissioned-artwork studio working in painting, mural and illustration — each piece made to a brief, for the room it will live in.',
   areaServed: 'Worldwide',
-  services: [],
-  knowsAbout: [],
-  sameAs: ['https://darkroom.engineering'],
+  services: [
+    'Commissioned painting',
+    'Mural painting',
+    'Illustration to brief',
+  ],
+  knowsAbout: [
+    'Commissioned artwork',
+    'Mural painting',
+    'Acrylic painting',
+    'Gouache painting',
+    'Illustration',
+  ],
+  // TODO(studio): real address, and remove `.example`.
+  email: 'studio@arth.example',
+  // Deliberately empty. `sameAs` asserts "these profiles are the same entity";
+  // a guessed handle asserts it about someone else's account.
+  sameAs: [],
   agentGuidance: {
     whenToUse: [
       {
-        name: 'Start a production Next.js site',
+        name: 'Commission an artwork',
         description:
-          'Use Satūs when a new project needs a Next.js 16 and React 19 baseline with strict TypeScript, accessible UI primitives, and production checks already configured.',
+          'Use Arth when someone wants an original painting, mural or illustration made for a specific space or brief, rather than buying an existing work.',
       },
       {
-        name: 'Add optional commerce or content integrations',
+        name: 'See past commissioned work',
         description:
-          'Use Satūs when a site may need Sanity, Shopify, HubSpot, Mailchimp, or Turnstile without making those services mandatory for a fresh clone.',
+          'Use Arth to review completed commissions with their client, year, medium and dimensions before approaching the studio.',
       },
     ],
     howToUse: [
-      'Clone or deploy the Satūs repository, then follow the README setup steps.',
-      'Read AGENTS.md and ARCHITECTURE.md before changing project conventions or integration boundaries.',
-      'Run bun run check before committing changes.',
+      'Browse the work at /en/work (English) or /id/work (Indonesian); each project lists client, year, medium and dimensions.',
+      'Email the studio with the room, the wall or surface, the rough size, and when it is needed.',
+      'Expect an estimate before anything is agreed — timelines run from about three weeks for a study to several months for an installed mural.',
     ],
   },
-  developerResources: [
-    {
-      name: 'Satūs source repository',
-      description: 'Source code, releases, and issue tracker for the starter.',
-      url: 'https://github.com/darkroomengineering/satus',
-    },
-    {
-      name: 'Satūs setup guide',
-      description:
-        'Installation, local development, and deployment instructions.',
-      url: 'https://github.com/darkroomengineering/satus#readme',
-    },
-    {
-      name: 'Satūs architecture',
-      description:
-        'Project structure, design decisions, and customization boundaries.',
-      url: 'https://github.com/darkroomengineering/satus/blob/main/ARCHITECTURE.md',
-    },
-  ],
+  // No `developerResources`: this is a studio site, not a developer product,
+  // and the field's own contract is to never list a surface that is not shipped.
 }
 
 /** "a, b, and c" — prose-friendly list for entity copy. */

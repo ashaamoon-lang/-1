@@ -492,14 +492,62 @@ bisa gagal, bukan hiasan.
 
 ---
 
-## Tahap 6 — Deploy & handoff
+## Tahap 6 — Deploy & handoff ⚠️
 
-**Kerja:** Vercel, env produksi (`NEXT_PUBLIC_BASE_URL` — build sekarang
-memperingatkan kalau kosong), `PROD-README.md`, akses Sanity Studio untuk
-studio, jalur ke VPS kalau nanti pindah.
+Spec penuh: **`docs/stages/TAHAP-6.md`**.
 
-**Keluar:** preview deploy hijau · sitemap & robots benar di domain nyata ·
-studio bisa menambah karya tanpa bantuan saya.
+**Satu dari tiga kriteria keluar tidak terpenuhi, dan itu disengaja
+dinyatakan, bukan dibulatkan:**
+
+| Kriteria                               | Status                                                           |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| preview deploy hijau                   | ❌ tidak ada kredensial Vercel di kontainer ini                  |
+| sitemap & robots benar di domain nyata | ✅ diverifikasi terhadap build `https://arth.studio`, 10/10 rute |
+| studio bisa menambah karya tanpa saya  | ⚠️ `docs/PANDUAN-STUDIO.md` ada; belum diuji orang selain saya   |
+
+**Empat cacat, semuanya di artefak yang benar-benar terkirim:**
+
+1. **Situs masih memperkenalkan dirinya sebagai Satūs.** `og:site_name` dan
+   nama PWA berbunyi `@darkroom.engineering/satus`; JSON-LD `Organization`
+   berbunyi "Satūs"; dan `app/opengraph-image.jpg` masih kartu merah
+   bertuliskan **"SATŪS — NEXT.JS STARTER"** — gambar yang muncul setiap kali
+   tautan situs ini dibagikan. Merah, pula: satu-satunya warna yang justru
+   dibuang di Tahap 1. Identitas sekarang bersumber dari `lib/seo/site.ts`,
+   dan asetnya dirender dari token desain oleh `bun run brand:assets`
+   (312 KB → 16 KB, dan sekarang memakai Syne dan tinta yang sama dengan
+   halamannya).
+2. **`og:url` tidak setuju dengan canonical**, karena satu opsi `url` dipakai
+   untuk dua kosakata berbeda — template vs localized path
+   (`lib/i18n/paths.ts` sudah menamai bedanya). Cacat ketiga dari akar yang
+   sama: `og:locale` **selalu** `en_US`, termasuk di seluruh halaman
+   berbahasa Indonesia. Ditambah `og:locale` memakai ejaan hreflang
+   (`en-US`) padahal OpenGraph minta `en_US`.
+3. **`/en/ai` dan `/id/ai` sama-sama mengaku `canonical: /ai`** — URL yang
+   tidak dilayani aplikasi ini. Penyebabnya struktural: `export const
+metadata` statis tidak bisa membaca locale.
+4. **`/llms.txt` dan `/ai` mengiklankan URL yang hanya redirect** untuk tiap
+   karya. Sitemap sudah benar sejak Tahap 0; dua permukaan saudaranya tidak
+   ikut. `localizedContentRoutes()` sekarang dipakai ketiganya.
+
+**Pelajaran metodologis, dan ini yang paling penting dari tahap ini.** Cacat 3
+dan 4 tidak ditemukan dengan membaca HTML halaman satu per satu — saya sudah
+melakukan itu dan sempat menyatakan "semuanya benar". Keduanya muncul begitu
+pemeriksaannya diubah jadi skrip yang membuka **setiap** URL di `sitemap.xml`:
+2 dari 10 rute gagal. Pemeriksaan manual mengukur ketelitian pemeriksanya.
+
+**Baru:** `e2e/canonical-sweep.e2e.ts` (sweep itu, jadi permanen) ·
+`docs/PANDUAN-STUDIO.md` (bahasa Indonesia, untuk studio) · `PROD-README.md`
+ditulis ulang · `bun run brand:assets`.
+
+**Keluar:** `bun run check` (380 test) · `bun run build` ·
+`build-storybook` · `CI=true bun run test:e2e` (123 lulus) · halaman dilihat
+langsung pada 1440×900, kedua bahasa · kartu OG dibuka sebagai gambar dan
+dilihat.
+
+**Belum dikerjakan, eksplisit:** preview deploy Vercel · rotasi token Sanity
+(ditunda atas permintaan; ada di checklist pra-luncur) · `bun run handoff`
+tidak dijalankan (menghapus kredit MIT yang harus tetap ada) · `setup:lean`
+belum diuji ulang sejak restrukturisasi Tahap 0.
 
 ---
 

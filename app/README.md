@@ -14,7 +14,7 @@ app/
 ├── sitemap.ts            # sitemap.xml
 ├── llms.txt/             # /llms.txt route
 ├── agent-content/        # /agent-content route
-├── icon.png, apple-icon.png, opengraph-image.jpg, twitter-image.jpg
+├── icon.png, apple-icon.png, opengraph-image.png  (rendered by lib/scripts/generate-brand-assets.ts)
 ├── (site)/               # Site routes with app providers; /studio, /api and the machine-readable routes live outside
 │   ├── layout.tsx        # App providers, metadata, analytics
 │   ├── page.tsx          # Manual / in-app documentation landing page

@@ -90,7 +90,7 @@ export const integrations = {
       'img-src': ['https://cdn.sanity.io'],
       // Live/API: `next-sanity`'s `defineLive`/`SanityLive`
       // (`lib/integrations/sanity/live/index.tsx`, rendered client-side from
-      // `app/(site)/layout.tsx`) opens a live-events connection, and
+      // `app/[locale]/layout.tsx`) opens a live-events connection, and
       // `client.ts` reads with `useCdn: true`. Both hosts are project-id
       // subdomains — confirmed in `@sanity/client`'s
       // `dist/_chunks-cjs/config.cjs` (`defaultConfig.apiHost =
@@ -172,7 +172,7 @@ export const integrations = {
     // no code in this repo actually loads a Google Analytics/Tag Manager
     // script — the env schema exists for `doctor`/validation only. Nothing
     // to allow until that loader exists. (Not to be confused with
-    // `@vercel/analytics`, wired in `app/(site)/layout.tsx` — that one is
+    // `@vercel/analytics`, wired in `app/[locale]/layout.tsx` — that one is
     // handled directly in `./csp`, since it isn't a registry integration.)
   },
 } as const satisfies Record<string, IntegrationEntry>

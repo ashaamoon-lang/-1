@@ -6,6 +6,10 @@ top to bottom without prior knowledge of the codebase.
 Two hosts are covered: **Vercel** (recommended first, and what the build is
 tuned for) and **a VPS** (for later, when you want to own the machine).
 
+For the studio's own day-to-day work — adding artwork, editing the home page —
+see [`PANDUAN-STUDIO.md`](./PANDUAN-STUDIO.md) instead. It is written in
+Indonesian and never asks anyone to open a terminal.
+
 ---
 
 ## 0. Before anything — the security bit that matters most
@@ -175,15 +179,45 @@ Two things Vercel did for you that you now own:
 
 ## 6. Pre-launch checklist
 
+### Credentials
+
 - [ ] Production token is **Viewer** role, not developer/editor
-- [ ] Any token ever pasted into a chat or issue has been **revoked**
+- [ ] **Rotate the development token.** The token in `.env.local` was pasted
+      into a chat during development and is write-capable (developer, editor,
+      contributor, viewer). It has **not** been revoked — that was deliberately
+      deferred while the site was still being built with it. Revoking is one
+      screen: manage.sanity.io → API → Tokens → delete, then create a Viewer
+      token for production. Do this before the domain goes public.
 - [ ] No token sits behind a `NEXT_PUBLIC_` variable
 - [ ] `.env.local` is not committed (`git ls-files .env.local` returns nothing)
-- [ ] `NEXT_PUBLIC_BASE_URL` set, no trailing slash
+
+### Configuration
+
+- [ ] `NEXT_PUBLIC_BASE_URL` set, no trailing slash, and the site **rebuilt**
+      after setting it — it is baked in at build time
 - [ ] Domain and preview domain added to Sanity CORS, credentials allowed
+- [ ] Publish webhook configured and returning 200 on a test publish
+
+### Content and identity
+
+- [ ] Real contact email replaces `studio@arth.example` (in Sanity's **Studio**
+      document, and in `lib/seo/site.ts` for the JSON-LD fallback)
+- [ ] Real social profile URLs added to `SITE.sameAs` in `lib/seo/site.ts` —
+      it ships empty on purpose, because a guessed handle asserts that someone
+      else's account belongs to the studio
+- [ ] The studio has published a **Studio** document, so the home page shows
+      its own words instead of the placeholder copy
+- [ ] Share card checked by actually looking at it: open
+      `https://<domain>/opengraph-image.png`. Regenerate with
+      `bun run brand:assets` if the studio name changed.
+
+### Gates
+
 - [ ] `/` redirects to `/en`; `/en` and `/id` return 200
 - [ ] `sitemap.xml` and `hreflang` show the real domain
-- [ ] Publish webhook configured and returning 200 on a test publish
+- [ ] Every sitemap URL matches that page's own canonical and `og:url`
+      (`e2e/canonical-sweep.e2e.ts` asserts this; run it against the deploy if
+      you want belt and braces)
 - [ ] `bun run check`, `bun run build`, `CI=true bun run test:e2e` all pass
 
 ---

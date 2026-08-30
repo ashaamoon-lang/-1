@@ -201,9 +201,12 @@ export function composeCsp({
   isVercelPreview,
 }: ComposeCspOptions): string {
   // Base policy. `'unsafe-inline'` on script-src/style-src is the documented
-  // trade-off from this module's header comment (no nonce pipeline in this
-  // PR) — see e.g. app/(site)/layout.tsx's inline `window.satusVersion`
-  // script, which needs it. `'unsafe-eval'` is dev-only, for React Refresh.
+  // trade-off from this module's header comment: no nonce pipeline. It used
+  // to cite the starter's `window.satusVersion` script as the example, which
+  // has since been removed — but Next's own bootstrap is inline
+  // (`self.__next_f.push(...)` carries the RSC payload on every page), so
+  // the allowance is still load-bearing and removing it blanks the site.
+  // `'unsafe-eval'` is dev-only, for React Refresh.
   const base: CspSources = {
     'script-src': [
       "'self'",
@@ -241,7 +244,7 @@ export function composeCsp({
   // the same-origin `/_vercel/insights/script.js` path instead, needing
   // nothing here. This only matters for `vercel dev` locally (VERCEL_ENV set
   // + NODE_ENV=development) — `bun run dev`/`next dev` alone never renders
-  // `<Analytics />` at all (app/(site)/layout.tsx gates it on VERCEL_ENV), so
+  // `<Analytics />` at all (app/[locale]/layout.tsx gates it on VERCEL_ENV), so
   // this is a defensive allowance for a workflow this PR's own verification
   // can't exercise, not something observed to violate.
   const devVercelAnalytics: CspSources = isDev

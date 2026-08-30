@@ -1,6 +1,7 @@
 import type { PortableTextBlock } from 'next-sanity'
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
+import { locale as localeRootParam } from 'next/root-params'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -8,6 +9,8 @@ import { isConfigured } from '@/integrations/registry'
 import { RichText } from '@/integrations/sanity/components/rich-text'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { articleQuery } from '@/integrations/sanity/queries'
+import { localizedPath } from '@/lib/i18n/paths'
+import { isLocale, routing } from '@/lib/i18n/routing'
 import { JsonLd } from '@/lib/seo/json-ld'
 import {
   type ArticleSchemaInput,
@@ -23,7 +26,7 @@ import { generateSanityMetadata } from '@/utils/metadata'
  * slug resolved by the `[...slug]` catch-all.
  */
 
-// Same 'use cache' + draftMode pattern as `app/(site)/[...slug]/page.tsx` —
+// Same 'use cache' + draftMode pattern as `app/[locale]/[...slug]/page.tsx` —
 // see that file's comment for why `sanityFetch` requires this shape under
 // Cache Components.
 async function fetchArticle(
@@ -116,9 +119,14 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   if (!data) return
 
+  const requested = await localeRootParam()
+  const locale = isLocale(requested) ? requested : routing.defaultLocale
+
+  // Localized, not the bare template: canonical, og:url and og:locale all
+  // come from this one string. See `lib/utils/metadata.ts`.
   return generateSanityMetadata({
     document: data,
-    url: `/articles/${slug}`,
+    url: localizedPath(locale, `/articles/${slug}`),
     type: 'article',
   })
 }

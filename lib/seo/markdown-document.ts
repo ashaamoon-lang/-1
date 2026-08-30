@@ -159,7 +159,7 @@ export function buildMarkdownDocumentFromRoutes(
 
 ${route.description}
 
-This representation summarizes the starter-owned route. It lists CMS pages for discovery but does not claim to reproduce their article bodies.
+This representation summarizes the route as the site owns it. It lists CMS pages for discovery but does not claim to reproduce their bodies.
 
 ## Pages
 

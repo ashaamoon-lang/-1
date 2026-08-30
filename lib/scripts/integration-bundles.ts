@@ -121,14 +121,14 @@ export const INTEGRATION_BUNDLES = defineBundles({
     // by `setup:project` (see `pruneExampleRoutes` in setup-project.ts) so it
     // never ships to a scaffolded project regardless of whether Sanity is
     // kept — it's a wiring tutorial for this repo's own contributors, not
-    // real site content. app/(site)/[...slug]/page.tsx (the in-chrome 404
+    // real site content. app/[locale]/[...slug]/page.tsx (the in-chrome 404
     // handler) is deliberately absent too: it must survive even when Sanity
     // is dropped, so it's stripped in place via codeTransforms below instead
     // of being deleted with the bundle — see this bundle's `overwriteFiles`.
     folders: [
       'lib/integrations/sanity',
       'components/ui/sanity-image',
-      'app/(site)/articles',
+      'app/[locale]/articles',
       'app/studio',
     ],
     files: ['app/api/draft-mode/enable/route.ts'],
@@ -149,7 +149,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
     barrelExports: [],
     codeTransforms: [
       {
-        file: 'app/(site)/layout.tsx',
+        file: 'app/[locale]/layout.tsx',
         ops: [
           // Remove `import { SanityLive } from '@/lib/integrations/sanity/live'`
           { kind: 'removeImport', specifier: '@/lib/integrations/sanity/live' },
@@ -301,7 +301,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
           },
         ],
       },
-      // app/(site)/[...slug]/page.tsx is the in-chrome 404 handler (it
+      // app/[locale]/[...slug]/page.tsx is the in-chrome 404 handler (it
       // REPLACES app/(site)/[...unmatched]/page.tsx) — it must survive with
       // or without Sanity, so instead of living in `folders` above, it's
       // stripped in place down to a lean `notFound()` stub, single-owner and
@@ -313,7 +313,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
       // leave `{}: CmsPageProps`, tripping oxlint's no-empty-pattern), so the
       // stripped body reads the parameter instead of dropping it.
       {
-        file: 'app/(site)/[...slug]/page.tsx',
+        file: 'app/[locale]/[...slug]/page.tsx',
         ops: [
           { kind: 'removeImport', specifier: 'next-sanity', required: true },
           {
@@ -382,7 +382,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
     ],
-    // app/(site)/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
+    // app/[locale]/layout.tsx has complex Sanity wiring (SanityLive, VisualEditing,
     // isConfigured call) that cannot be re-injected statement-by-statement
     // safely.  Restore wholesale from the payload on `satus add sanity`.
     // lib/seo/routes.ts's only owner is Sanity (no other bundle touches it),
@@ -390,13 +390,13 @@ export const INTEGRATION_BUNDLES = defineBundles({
     // app/api/revalidate/route.ts below, which Shopify also owns and must be
     // restored surgically via addTransforms instead (overwriteFiles would
     // reintroduce Shopify's wiring even when Shopify isn't kept).
-    // app/(site)/[...slug]/page.tsx is likewise single-owner: setupLean's
+    // app/[locale]/[...slug]/page.tsx is likewise single-owner: setupLean's
     // union pass strips it to the lean notFound() stub above, and this
     // restores the full CMS-backed version wholesale when Sanity is kept.
     overwriteFiles: [
-      'app/(site)/layout.tsx',
+      'app/[locale]/layout.tsx',
       'lib/seo/routes.ts',
-      'app/(site)/[...slug]/page.tsx',
+      'app/[locale]/[...slug]/page.tsx',
     ],
     addTransforms: [
       {

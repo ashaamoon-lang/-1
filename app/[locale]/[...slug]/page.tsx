@@ -10,6 +10,7 @@ import { RichText } from '@/integrations/sanity/components/rich-text'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { pageQuery } from '@/integrations/sanity/queries'
 import { getLinkAttributes } from '@/integrations/sanity/utils/link'
+import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { generateSanityMetadata } from '@/utils/metadata'
 
@@ -131,9 +132,14 @@ export async function generateMetadata({ params }: CmsPageProps) {
 
   if (!data) return
 
+  const requested = await localeRootParam()
+  const locale = isLocale(requested) ? requested : routing.defaultLocale
+
+  // Localized, not the bare template: canonical, og:url and og:locale all
+  // come from this one string. See `lib/utils/metadata.ts`.
   return generateSanityMetadata({
     document: data,
-    url: `/${slugSegment}`,
+    url: localizedPath(locale, `/${slugSegment}`),
     type: 'website',
   })
 }

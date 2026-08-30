@@ -12,7 +12,6 @@ import { isConfigured } from '@/lib/integrations/registry'
 import { RichText } from '@/lib/integrations/sanity/components/rich-text'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { projectQuery, projectsQuery } from '@/lib/integrations/sanity/queries'
-import { routeAlternates } from '@/lib/seo/alternates'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
@@ -185,23 +184,20 @@ export async function generateMetadata({ params }: ProjectPageProps) {
 
   const path = localizedPath(locale, `/work/${slug}`)
 
-  return {
-    ...generateSanityMetadata({
-      document: project,
-      url: `/work/${slug}`,
-      type: 'article',
-    }),
-    /*
-     * `routeAlternates` last, and deliberately overriding whatever
-     * `generateSanityMetadata` set.
-     *
-     * `lib/seo/alternates.ts` is explicit that Next merges metadata shallowly,
-     * so every route has to go through the helper or its canonical and
-     * hreflang silently fall back to the layout's. The canonical it emits is
-     * also the exact URL `app/sitemap.ts` submits for this page — a canonical
-     * that disagrees with the sitemap asks a crawler to fetch one URL and
-     * index another.
-     */
-    alternates: routeAlternates(path),
-  }
+  /*
+   * `path` is localized, and that is the whole contract: `generateSanityMetadata`
+   * derives the canonical, `og:url` and `og:locale` from this one string, so
+   * they cannot disagree with each other. It is also the exact URL
+   * `app/sitemap.ts` submits for this page — a canonical that disagrees with
+   * the sitemap asks a crawler to fetch one URL and index another.
+   *
+   * This used to pass the locale-free `/work/${slug}` and then override
+   * `alternates` afterwards. That fixed the canonical and hid the fact that
+   * `og:url` and `og:locale`, derived from the same argument, were still wrong.
+   */
+  return generateSanityMetadata({
+    document: project,
+    url: path,
+    type: 'article',
+  })
 }

@@ -6,7 +6,6 @@ import { getMessages } from 'next-intl/server'
 import { VisualEditing } from 'next-sanity/visual-editing'
 import { draftMode } from 'next/headers'
 import { locale as localeRootParam } from 'next/root-params'
-import Script from 'next/script'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
@@ -16,22 +15,32 @@ import { ToastProvider, ToastViewport } from '@/components/ui/toast'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { localizedPath } from '@/lib/i18n/paths'
-import { isLocale, LOCALE_TAGS, routing } from '@/lib/i18n/routing'
+import { isLocale, LOCALE_TAGS, ogLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { SanityLive } from '@/lib/integrations/sanity/live'
 import { routeAlternates } from '@/lib/seo/alternates'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
+import { SITE } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
-import AppData from '@/package.json'
 
 import '@/lib/styles/css/index.css'
 
-const APP_NAME = AppData.name
-const APP_DEFAULT_TITLE = 'Satūs'
-const APP_TITLE_TEMPLATE = '%s - Satūs'
-const APP_DESCRIPTION = AppData.description
+/*
+ * Identity comes from `lib/seo/site.ts`, not from `package.json`.
+ *
+ * It used to come from package.json's `name`, and that shipped
+ * `@darkroom.engineering/satus` as `og:site_name`, as `applicationName`, and
+ * as the installed-app name in `manifest.webmanifest`. A package identifier
+ * is not a display name, and nothing in the gates could tell the difference.
+ * `site.ts` already calls itself the single source of truth for entity copy;
+ * this makes that true.
+ */
+const APP_NAME = SITE.name
+const APP_DEFAULT_TITLE = SITE.name
+const APP_TITLE_TEMPLATE = `%s — ${SITE.name}`
+const APP_DESCRIPTION = SITE.description
 
 /**
  * Locale-aware metadata.
@@ -73,16 +82,27 @@ export async function generateMetadata(): Promise<Metadata> {
         template: APP_TITLE_TEMPLATE,
       },
       description: APP_DESCRIPTION,
-      url: APP_BASE_URL,
+      // Localized, matching the canonical set above. A bare origin here told
+      // every crawler that `/en` and `/id` were both the same URL.
+      url: `${APP_BASE_URL}${localizedPath(locale, '/')}`,
       images: [
         {
-          url: '/opengraph-image.jpg',
+          url: '/opengraph-image.png',
           width: 1200,
           height: 630,
-          alt: APP_DEFAULT_TITLE,
+          // Describes the card, not the site: it is a wordmark on the ink
+          // ground with one line of mediums under it. Pasting the whole
+          // site description here made a 150-character alt that repeated
+          // the name twice and described nothing visible.
+          alt: `${SITE.name} — commissioned artwork: painting, mural, illustration`,
         },
       ],
-      locale: LOCALE_TAGS[locale],
+      // Underscore, not the hyphenated tag `<html lang>` takes below.
+      // See `ogLocale` — OpenGraph is not BCP 47.
+      locale: ogLocale(locale),
+      alternateLocale: routing.locales
+        .filter((other) => other !== locale)
+        .map(ogLocale),
     },
     twitter: {
       card: 'summary_large_image',
@@ -92,9 +112,9 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       description: APP_DESCRIPTION,
     },
-    authors: [
-      { name: 'darkroom.engineering', url: 'https://darkroom.engineering' },
-    ],
+    // The site's author is the studio it belongs to. The starter's own credit
+    // is kept where it belongs — the footer, as the MIT notice requires.
+    authors: [{ name: SITE.name, url: SITE.url }],
   }
 
   if (env.NEXT_PUBLIC_FACEBOOK_APP_ID) {
@@ -171,11 +191,6 @@ export default async function AppLayout({ children }: PropsWithChildren) {
     >
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          {/* this helps to track Satus usage thanks to Wappalyzer */}
-          <Script
-            id="satus-version"
-            async
-          >{`window.satusVersion = '${AppData.version}';`}</Script>
           {/* Entity identity for search and answer engines, on every page — deep
           pages are landed on directly far more often than the homepage. */}
           <JsonLd data={organizationSchema()} />
