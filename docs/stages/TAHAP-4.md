@@ -153,8 +153,22 @@ pipeline video, sesuai roadmap §1.3.
 | 404 untuk slug tak dikenal, kedua locale      | ⚠️ **soft-404** — lihat §9.1                    |
 | Sitemap memuat setiap proyek × 2 locale       | ✅ 6 entri terverifikasi terhadap fixture nyata |
 | Detail dirender di kedua bahasa, gambar nyata | ✅ dilihat langsung pada 390px dan 1440px       |
-| Nol pergeseran layout dari gambar galeri      | ✅ rasio diturunkan per-aset oleh `SanityImage` |
+| Nol pergeseran layout dari gambar galeri      | ❌ **klaim ini salah** — koreksi di bawah       |
 | Nol nilai desain hardcode                     | ✅                                              |
+
+> **Koreksi, ditambahkan di Tahap 5.**
+>
+> Baris "nol pergeseran layout" ditandai ✅ berdasarkan penalaran tentang kotak
+> yang dipesan, bukan pengukuran. Ketika akhirnya diukur, CLS halaman proyek
+> adalah **0.226** — gagal Core Web Vitals, yang menuntut ≤ 0.1. `max-height`
+> pada elemen tergantikan membiarkan lebarnya tak tentu sampai berkas gambar
+> termuat, jadi sampulnya menyusut dan memindahkan daftar meta, badan teks,
+> galeri, dan blok proyek-berikutnya sekaligus.
+>
+> Penyebab dan perbaikannya ada di `TAHAP-5.md` §2. Barisnya dikoreksi di
+> tempat alih-alih ditulis ulang seolah tidak pernah salah: kesalahannya ada
+> pada **cara memverifikasi**, bukan pada kodenya, dan itu bagian yang perlu
+> diingat.
 
 ## 8. Risiko
 
