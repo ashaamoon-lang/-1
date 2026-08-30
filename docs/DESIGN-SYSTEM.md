@@ -63,11 +63,44 @@ Satūs ships `light`, `dark`, and `red`, each with `primary` / `secondary` /
 (`var(--color-primary)`), never the literal (`var(--color-black)`), so theme
 switching works without touching components.
 
-### When the accent is chosen
+### The chosen values
 
-Deferred to art direction, deliberately. The structure is fixed (one accent,
-semantic roles, oklch, contrast-tested); the hue is a brand decision. Until
-then Satūs's red stands in and is fully functional.
+Locked in Tahap 1 (`docs/stages/TAHAP-1.md`), from measurement rather than
+taste:
+
+| Role           | Value                                     | Source                          |
+| -------------- | ----------------------------------------- | ------------------------------- |
+| Ground (dark)  | `oklch(0.145 0 0)` ≈ `#0a0a0a`            | off-black, per `TEARDOWN.md` §3 |
+| Ground (light) | `oklch(0.9647 0.0071 106.42)` ≈ `#f4f4ee` | warm off-white                  |
+| Accent         | `oklch(0.592 0.2339 27.95)` ≈ `#e71419`   | darkroom.engineering's own red  |
+
+The accent was already in the palette before it was chosen: Satūs _is_
+darkroom's starter, and their production red converts to within 0.004
+lightness of the value that shipped with it.
+
+### The accent is not body-text colour — a measured constraint
+
+Moving the grounds off pure black and white narrows every contrast ratio with
+them. Measured: the accent scores **4.58:1** against `#000`/`#fff`, but
+**4.19:1** against these grounds. That clears WCAG AA for large text (3:1) and
+misses it for body text (4.5:1).
+
+**No lightness of this hue recovers it.** The best achievable against these
+grounds is 4.19, and even against pure white only 4.41 — the band peaks at
+4.583 and only pure black/white reaches it. This was computed, not guessed.
+
+So the rule: **use `--color-contrast` for emphasis, borders, hover states and
+display type. Never for paragraphs.** Every accent in the measured set is used
+exactly that way.
+
+`contrast-baseline.json` records the sub-AA pairs deliberately. Two notes on
+reading it honestly:
+
+- The `red/*` entries describe the `red` _theme_, which no page applies —
+  only `dark` and `light` are used. `themes.red.primary` serves as the browser
+  chrome and PWA manifest colour, which is not text.
+- The `dark|light/contrast on *` entries are the accent-on-ground pairs the
+  rule above governs.
 
 ---
 
@@ -81,6 +114,10 @@ case — not from weight count.
 **Rules**
 
 - **Two families.** A display/sans and a mono. A third only with a reason.
+  Locked to **Geist + Geist Mono**: `TEARDOWN.md` §4 measured basement.studio
+  shipping exactly that pairing, and of every typeface in the measured set it
+  is the only open-source one. It replaced Oswald, the starter's placeholder —
+  a condensed face, which is a poster register rather than a studio one.
 - **Two to three weights.** More than three is a smell.
 - **The mono is not decoration.** On Lusion, basement.studio, By-Kin and
   darkroom the mono carries labels, captions, and metadata. It is what makes
