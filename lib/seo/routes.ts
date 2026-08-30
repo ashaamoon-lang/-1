@@ -78,7 +78,17 @@ const RESERVED_PATHS = new Set(['/studio', '/sanity', MARKDOWN_HANDLER_PATH])
  * failing the whole fetch.
  */
 const routableDocumentSchema = z.object({
-  _type: z.enum(['page', 'article']),
+  _type: z.enum(['page', 'article', 'project']),
+  /*
+   * Resolved to a plain string by the query's `select()`.
+   *
+   * A `project`'s title is an `internationalizedArray` (`[{_key, value}]`),
+   * not a string, so projecting it raw made this parse fail on every project
+   * — and because entries are skipped one at a time (deliberately, see below),
+   * they vanished from the sitemap and /llms.txt with no error anywhere. The
+   * label is English because these surfaces list locale-free templates; the
+   * per-locale URLs are expanded by the sitemap itself.
+   */
   title: z.string().nullable(),
   // A dot is a valid Sanity slug character but collides with proxy.ts's
   // FILE_EXTENSION heuristic (`/\/[^/]+\.[^/]+$/`): any dotted last path
@@ -92,11 +102,14 @@ const routableDocumentSchema = z.object({
 })
 
 const routableContentQuery = defineQuery(`
-  *[_type in ["page", "article"] && defined(slug.current)] {
+  *[_type in ["page", "article", "project"] && defined(slug.current)] {
     _type,
-    title,
     slug,
-    _updatedAt
+    _updatedAt,
+    "title": select(
+      _type == "project" => title[_key == "en"][0].value,
+      title
+    )
   }
 `)
 

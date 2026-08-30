@@ -1,0 +1,37 @@
+/*
+ * The project page owns rhythm and gutter; each block owns its own internals.
+ * Same division as the home page — see `app/[locale]/page.module.css`.
+ */
+
+.article {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(64px);
+  padding-inline: var(--safe);
+  /* Clears the fixed header — this page has no full-viewport hero to sit
+     under it, so the top of the title would otherwise be covered. */
+  padding-block: calc(var(--header-height) + mobile-vw(32px)) mobile-vw(96px);
+
+  @media (--desktop) {
+    gap: desktop-vw(112px);
+    padding-block: calc(var(--header-height) + desktop-vw(48px))
+      desktop-vw(128px);
+  }
+}
+
+.body {
+  /* Running measure for prose. The gallery and hero span the full gutter;
+     text does not. */
+  max-width: 65ch;
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(16px);
+
+  @media (--desktop) {
+    gap: desktop-vw(20px);
+  }
+
+  & p {
+    margin: 0;
+  }
+}

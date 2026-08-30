@@ -1,5 +1,4 @@
 import { getTranslations } from 'next-intl/server'
-import { draftMode } from 'next/headers'
 import { locale as localeRootParam } from 'next/root-params'
 
 import type { SectionLink } from '@/components/layout/header'
@@ -24,10 +23,10 @@ import s from './page.module.css'
 /*
  * Same `'use cache'` + draftMode shape as `app/[locale]/[...slug]/page.tsx`.
  *
- * `sanityFetch` calls `cacheTag()` internally, which under Cache Components is
- * only legal inside a `'use cache'` function — draft mode included. Locale is
- * an argument rather than read inside, so it is part of the cache key: `/en`
- * and `/id` must not share one cached result.
+ * The fetch calls `cacheTag()` internally, which under Cache Components is
+ * only legal inside a `'use cache'` function. Locale is an argument rather
+ * than read inside, so it is part of the cache key: `/en` and `/id` must not
+ * share one cached result.
  */
 async function fetchHome(
   locale: string,
@@ -52,16 +51,35 @@ async function fetchHome(
   return { settings: settings.data, projects: projects.data }
 }
 
+/**
+ * Published content only, and deliberately no `draftMode()` on this path.
+ *
+ * Reading draft mode is a request-time access, which pushes the whole page
+ * into a dynamic hole under Cache Components. The reader then gets the
+ * `loading.tsx` fallback, and the real content arrives in a streamed chunk
+ * that only JavaScript can swap in — so with JS disabled the home page is
+ * "Skip to main content / Loading" and nothing else. Measured: `<h1>` present
+ * in the DOM but hidden, 28 characters of visible text.
+ *
+ * That was true before this stage too. Tahap 3's no-JS exit criterion passed
+ * only because the dataset was empty; the same code against a seeded dataset
+ * shows the identical shell. The bug was invisible for exactly as long as
+ * there was nothing to render.
+ *
+ * The trade this makes: the Presentation tool no longer previews *drafts* of
+ * the home page — it still previews published changes live through
+ * `SanityLive` tag revalidation. Project and article pages keep their draft
+ * path, because they are dynamic (`◐`) by nature and lose nothing. The home
+ * page is the one route where being readable without JavaScript matters more
+ * than previewing an unpublished headline.
+ */
 async function fetchHomeForRequest(locale: string) {
   // A project without Sanity configured still renders a complete page: every
   // section falls back to `lib/content/home-fallback.ts`, and the work grid is
   // simply absent. This is the same path an empty dataset takes.
   if (!isConfigured('sanity')) return { settings: null, projects: [] }
 
-  const { isEnabled: isDraftMode } = await draftMode()
-  return isDraftMode
-    ? fetchHome(locale, 'drafts', true)
-    : fetchHome(locale, 'published', false)
+  return fetchHome(locale, 'published', false)
 }
 
 /**
@@ -147,7 +165,7 @@ export default async function Home() {
               title={t('workTitle')}
               aside={t('workCount', { count: projects.length })}
             />
-            <ProjectGrid projects={projects} locale={locale} />
+            <ProjectGrid projects={projects} />
           </section>
         )}
 

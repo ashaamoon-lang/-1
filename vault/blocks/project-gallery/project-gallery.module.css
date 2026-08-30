@@ -1,0 +1,72 @@
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  @media (--desktop) {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    row-gap: desktop-vw(48px);
+  }
+}
+
+.item {
+  /* Mobile: every image spans the full 4-column grid. */
+  grid-column: span 4;
+  min-width: 0;
+}
+
+@media (--desktop) {
+  .item[data-span='full'] {
+    grid-column: span 12;
+  }
+
+  .item[data-span='half'] {
+    grid-column: span 6;
+  }
+}
+
+.figure {
+  margin: 0;
+}
+
+.media {
+  position: relative;
+  overflow: clip;
+  background-color: var(--surface-2);
+  /* Shrink-wrap the capped image so a portrait does not sit in a wide tinted
+     box. */
+  width: fit-content;
+}
+
+/*
+ * No `aspect-ratio` here, on purpose.
+ *
+ * A gallery holds images of different shapes, and forcing one crop on all of
+ * them is a decision the layout has no business making — a tall study cropped
+ * to 16/9 is a different picture. `SanityImage` reads the real dimensions off
+ * the asset and sets the ratio per image, so each box is reserved at its own
+ * proportions before the file arrives. Zero layout shift without guessing.
+ */
+
+.image {
+  display: block;
+  /*
+   * Capped by viewport height, exactly as the cover is.
+   *
+   * Without it a portrait gallery image at the full gutter is close to two
+   * screens tall, and a gallery of three becomes six screens of scrolling with
+   * nothing to read between them. 78svh means an image is always taken in as
+   * one thing rather than panned through.
+   *
+   * `width: auto` with `max-width: 100%` preserves the ratio, and the
+   * intrinsic dimensions `next/image` writes into the markup make the clamp
+   * known before the file arrives — no layout shift.
+   */
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 78svh;
+}

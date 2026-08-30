@@ -226,3 +226,60 @@ describe('buildRoutesFromDocuments', () => {
     )
   })
 })
+
+describe('buildRoutesFromDocuments — project documents', () => {
+  it('routes a project to /work/<slug>', () => {
+    const routes = buildRoutesFromDocuments([
+      {
+        _type: 'project',
+        title: 'Panas Sore',
+        slug: { current: 'panas-sore' },
+        _updatedAt: '2026-01-01T00:00:00Z',
+      },
+    ])
+
+    expect(routes.map((route) => route.path)).toEqual(['/work/panas-sore'])
+  })
+
+  it('keeps a project and a page that share a slug apart', () => {
+    // Sanity enforces slug uniqueness per type, not across types. Before
+    // projects had their own namespace one of these would have overwritten
+    // the other in the route map, and the loser vanished from the sitemap.
+    const routes = buildRoutesFromDocuments([
+      {
+        _type: 'page',
+        title: 'About',
+        slug: { current: 'about' },
+        _updatedAt: '2026-01-01T00:00:00Z',
+      },
+      {
+        _type: 'project',
+        title: 'About',
+        slug: { current: 'about' },
+        _updatedAt: '2026-01-01T00:00:00Z',
+      },
+    ])
+
+    expect(routes.map((route) => route.path).sort()).toEqual([
+      '/about',
+      '/work/about',
+    ])
+  })
+
+  it('skips a project whose title never resolved to a string', () => {
+    // The failure this guards: a localized title projected raw arrives as
+    // `[{_key,value}]`, the parse fails, and the project silently disappears
+    // from the sitemap. The query resolves it with `select()`; if that
+    // regresses, this fails instead of the sitemap going quiet.
+    const routes = buildRoutesFromDocuments([
+      {
+        _type: 'project',
+        title: [{ _key: 'en', value: 'Panas Sore' }],
+        slug: { current: 'panas-sore' },
+        _updatedAt: '2026-01-01T00:00:00Z',
+      },
+    ])
+
+    expect(routes).toEqual([])
+  })
+})

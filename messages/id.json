@@ -43,5 +43,12 @@
     "colophon": "Kolofon",
     "rights": "Seluruh karya © {year} Arth. Reproduksi hanya dengan kesepakatan.",
     "builtOn": "Dibangun di atas Satūs oleh darkroom.engineering, berlisensi MIT. Hurufnya Syne dan Geist Mono."
+  },
+  "project": {
+    "client": "Klien",
+    "year": "Tahun",
+    "medium": "Medium",
+    "dimensions": "Dimensi",
+    "nextProject": "Karya berikutnya"
   }
 }

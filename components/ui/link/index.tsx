@@ -13,7 +13,11 @@ import {
   Link as IntlLink,
   usePathname as useLocalePathname,
 } from '@/lib/i18n/navigation'
-import { isLocalizableRoute, templateFromLocalizedPath } from '@/lib/i18n/paths'
+import {
+  isLocalizableRoute,
+  localeFromPath,
+  templateFromLocalizedPath,
+} from '@/lib/i18n/paths'
 
 type CustomLinkProps = Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
@@ -68,7 +72,20 @@ export function isExternalHref(href: string) {
  * routing.
  */
 function isLocalizableHref(href: string) {
-  return !isExternalHref(href) && isLocalizableRoute(href)
+  if (isExternalHref(href) || !isLocalizableRoute(href)) return false
+
+  /*
+   * An href that already starts with a locale segment is already localized.
+   *
+   * Prefixing it again produces `/en/en/work/foo`, which matches the CMS
+   * catch-all instead of the work route and renders a not-found page — with a
+   * 200 status, because Cache Components flushes the shell before
+   * `notFound()` resolves. Every card in the work grid pointed at one of
+   * these, and nothing failed: not the build, not a test, not axe. Callers
+   * should pass templates (`/work/foo`), and this makes the other case
+   * harmless rather than silently broken.
+   */
+  return localeFromPath(href) === null
 }
 
 /**

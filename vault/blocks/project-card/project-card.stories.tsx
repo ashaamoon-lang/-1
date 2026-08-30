@@ -42,14 +42,13 @@ const base: Project = {
 }
 
 export const Half: Story = {
-  args: { project: base, locale: 'en' },
+  args: { project: base },
 }
 
 /** A full-width card takes a wider crop, so the two spans read differently. */
 export const Full: Story = {
   args: {
     project: { ...base, _id: 'fixture-2', span: 12, title: 'Tenun' },
-    locale: 'en',
   },
 }
 
@@ -66,13 +65,7 @@ export const MinimalMetadata: Story = {
       client: null,
       year: 2024,
     },
-    locale: 'en',
   },
-}
-
-/** Rendered under `id`: the href gains the `/id` prefix, not a bare `/work/…`. */
-export const IndonesianLocale: Story = {
-  args: { project: base, locale: 'id' },
 }
 
 /**
@@ -83,7 +76,6 @@ export const IndonesianLocale: Story = {
 export const NoSlugRendersNothing: Story = {
   args: {
     project: { ...base, _id: 'fixture-4', slug: null },
-    locale: 'en',
   },
 }
 
@@ -93,6 +85,6 @@ export const NoSlugRendersNothing: Story = {
  * Hover the card with the OS preference set to verify.
  */
 export const ReducedMotion: Story = {
-  args: { project: base, locale: 'en' },
+  args: { project: base },
   parameters: { chromatic: { prefersReducedMotion: 'reduce' } },
 }

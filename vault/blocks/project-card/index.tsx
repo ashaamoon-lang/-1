@@ -43,8 +43,6 @@ import cn from 'clsx'
 
 import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
-import { localizedPath } from '@/lib/i18n/paths'
-import type { Locale } from '@/lib/i18n/routing'
 import {
   type ImageSource,
   toImageSource,
@@ -84,8 +82,6 @@ export interface Project {
 
 interface ProjectCardProps {
   project: Project
-  /** The locale the card is rendered under — the href needs its prefix. */
-  locale: Locale
   /**
    * Preload this card's image. Set it on the cards above the fold only —
    * marking every card is the same as marking none. `preload`, not the
@@ -97,7 +93,6 @@ interface ProjectCardProps {
 
 export function ProjectCard({
   project,
-  locale,
   preload = false,
   className,
 }: ProjectCardProps) {
@@ -107,9 +102,13 @@ export function ProjectCard({
   // would be worse than rendering nothing.
   if (!slug) return null
 
-  // Built with the shared helper, never string-concatenated: `localizedPath`
-  // is the one place that knows `/` becomes `/en` rather than `/en/`.
-  const href = localizedPath(locale, `/work/${slug}`)
+  /*
+   * A template, not a localized path. `components/ui/link` adds the locale
+   * prefix itself; handing it `/en/work/…` would produce `/en/en/work/…`.
+   * `localizedPath` is for places that need a finished URL string — the
+   * sitemap, a canonical — not for a component that already localizes.
+   */
+  const href = `/work/${slug}`
 
   /*
    * Cap the requested asset to what the card actually renders at.

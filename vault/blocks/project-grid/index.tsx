@@ -40,7 +40,6 @@
 import cn from 'clsx'
 
 import { useReveal } from '@/lib/hooks/use-reveal'
-import type { Locale } from '@/lib/i18n/routing'
 import { type Project, ProjectCard } from '@/vault/blocks/project-card'
 
 import s from './project-grid.module.css'
@@ -49,8 +48,6 @@ export type { Project }
 
 interface ProjectGridProps {
   projects: Project[]
-  /** The locale the grid is rendered under — each card href needs its prefix. */
-  locale: Locale
   /**
    * How many leading cards are preloaded. Two is what fits above the fold at
    * desktop width; raising it to cover the whole grid defeats the point.
@@ -61,7 +58,6 @@ interface ProjectGridProps {
 
 export function ProjectGrid({
   projects,
-  locale,
   preloadCount = 2,
   className,
 }: ProjectGridProps) {
@@ -79,11 +75,7 @@ export function ProjectGrid({
           className={s.item}
           data-span={project.span ?? 6}
         >
-          <ProjectCard
-            project={project}
-            locale={locale}
-            preload={index < preloadCount}
-          />
+          <ProjectCard project={project} preload={index < preloadCount} />
         </li>
       ))}
     </ul>

@@ -17,7 +17,7 @@
 
 import { describe, expect, it } from 'bun:test'
 
-import { isLocalizableRoute } from '@/lib/i18n/paths'
+import { isLocalizableRoute, localeFromPath } from '@/lib/i18n/paths'
 
 import { getLinkIntent, isExternalHref } from './index'
 
@@ -121,6 +121,38 @@ describe('which hrefs take a locale prefix', () => {
   it('never prefixes something that is not a path', () => {
     for (const href of ['#work', 'mailto:a@b.c', 'tel:+1', 'https://x.test']) {
       expect(isLocalizableRoute(href), `${href} is not a route`).toBe(false)
+    }
+  })
+})
+
+describe('never double-prefixes an already-localized href', () => {
+  it('treats a path that starts with a locale as already localized', () => {
+    // The failure: a caller pre-localizes with `localizedPath`, Link prefixes
+    // again, and the result is `/en/en/work/foo`. That matches the CMS
+    // catch-all rather than the work route, so every card in the grid led to
+    // a not-found page — served with a 200 status, because Cache Components
+    // flushes the shell before `notFound()` resolves. Nothing failed.
+    for (const href of ['/en', '/id', '/en/work/panas-sore', '/id/ai']) {
+      expect(
+        isLocalizableRoute(href) && localeFromPath(href) === null,
+        `${href} would be prefixed twice`
+      ).toBe(false)
+    }
+  })
+
+  it('still prefixes a template', () => {
+    for (const href of ['/', '/work/panas-sore', '/ai']) {
+      expect(
+        isLocalizableRoute(href) && localeFromPath(href) === null,
+        `${href} should be prefixed`
+      ).toBe(true)
+    }
+  })
+
+  it('does not mistake a path that merely starts with those letters', () => {
+    // `/energy` begins with "en" but its first segment is not a locale.
+    for (const href of ['/energy', '/id-cards', '/index-of-works']) {
+      expect(localeFromPath(href), `${href} misread as localized`).toBeNull()
     }
   })
 })

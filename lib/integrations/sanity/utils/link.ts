@@ -123,6 +123,12 @@ function resolveDocumentUrl(documentType?: string, slug?: string): string {
       return `/${slug}`
     case 'article':
       return `/articles/${slug}`
+    // Projects get their own namespace rather than sharing the `page`
+    // catch-all: slugs are unique per type in Sanity, not across types, so a
+    // work called "About" and a page called "About" would otherwise both
+    // resolve to `/about` and one would silently win.
+    case 'project':
+      return `/work/${slug}`
     default:
       console.warn('Unknown document type for URL resolution:', documentType)
       return '#'

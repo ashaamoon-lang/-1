@@ -412,13 +412,42 @@ heading · **dilihat langsung di 360/390/430/1440px**.
 
 ---
 
-## Tahap 4 — Detail proyek
+## Tahap 4 — Detail proyek ✅
 
-**Kerja:** `[locale]/work/[slug]`, `generateStaticParams` dari Sanity, galeri,
-navigasi proyek berikutnya, metadata + hreflang per proyek, OG image.
+Spec penuh: **`docs/stages/TAHAP-4.md`**.
 
-**Keluar:** e2e untuk slug nyata di kedua bahasa · sitemap memuat semua proyek
-× 2 locale · 404 benar untuk slug tak dikenal.
+**Dibangun:** rute `[locale]/work/[slug]`, blok `project-hero`,
+`project-gallery`, `next-project`, metadata + hreflang + canonical per proyek,
+dan `project` ditambahkan ke `urlForReference` serta ke query sitemap
+(sebelumnya sebuah link CMS ke dokumen `project` menghasilkan `#`).
+
+**Datasetnya masih kosong**, jadi verifikasinya memakai fixture sementara —
+`lib/scripts/seed-fixtures.ts`, tiga proyek dan satu `studioSettings` dengan
+gambar sungguhan. Fixture itu **masih hidup** supaya situsnya bisa diperiksa;
+hapus dengan `bun --env-file .env.local lib/scripts/seed-fixtures.ts --clean`,
+yang membuang dokumen **dan** asetnya.
+
+**Enam temuan, semuanya senyap** (detail dan angkanya di TAHAP-4.md §9):
+
+1. **Prefix locale ganda** — setiap kartu karya menuju halaman not-found
+   berstatus 200, karena komponen melokalkan href lalu `Link` melokalkannya
+   lagi.
+2. **Judul terlokalisasi menghapus semua proyek dari sitemap** — `title`
+   sebuah `project` adalah array, skema zod-nya gagal, entri di-skip diam-diam.
+3. **Id berawalan titik tidak pernah terbit** — Sanity membaca `fixture.x`
+   sebagai versi, bukan dokumen terbit.
+4. **`generateStaticParams` tidak bisa hidup dengan dataset kosong** — Cache
+   Components menolak build; rute ini `◐`, seperti rute CMS lainnya.
+5. **"404 benar" hanya bisa berupa soft-404** — status 200 + `noindex`, sama
+   seperti setiap rute CMS lain di aplikasi ini.
+6. **Halaman CMS tidak terbaca tanpa JavaScript** — dan **bukan regresi**:
+   kode Tahap 3 apa adanya menghasilkan angka identik terhadap dataset yang
+   sama. Kriteria "tanpa JS home tetap terbaca" di Tahap 3 lulus hanya karena
+   datasetnya kosong.
+
+**Keluar:** `bun run check` (369 test) · `bun run build` · `build-storybook` ·
+`CI=true bun run test:e2e` (112 lulus) · sitemap memuat 3 proyek × 2 locale ·
+halaman detail dilihat langsung pada 390px dan 1440px, kedua bahasa.
 
 ---
 

@@ -1,0 +1,81 @@
+.next {
+  border-top: 1px solid var(--line);
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(20px);
+  padding-block: mobile-vw(32px);
+  text-decoration: none;
+  color: inherit;
+
+  @media (--desktop) {
+    flex-direction: row;
+    align-items: center;
+    gap: calc(var(--gap) * 2);
+    padding-block: desktop-vw(48px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 4px;
+  }
+}
+
+.media {
+  position: relative;
+  overflow: clip;
+  aspect-ratio: 4 / 3;
+  background-color: var(--surface-2);
+  flex-shrink: 0;
+
+  @media (--desktop) {
+    /* Four of twelve columns — a thumbnail, not a second hero. */
+    width: calc(4 * var(--column-width) + 3 * var(--gap));
+  }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: scale var(--duration-slow) var(--ease-out-quart);
+}
+
+.link:hover .image,
+.link:focus-visible .image {
+  scale: 1.03;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(8px);
+  min-width: 0;
+
+  @media (--desktop) {
+    gap: desktop-vw(12px);
+  }
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: color-mix(in oklab, var(--color-secondary) 55%, transparent);
+}
+
+.title {
+  text-wrap: balance;
+}
+
+@media (--reduced-motion) {
+  .image {
+    transition: none;
+  }
+
+  .link:hover .image,
+  .link:focus-visible .image {
+    scale: 1;
+  }
+}

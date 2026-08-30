@@ -52,14 +52,13 @@ const projects: Project[] = [
 ]
 
 export const Default: Story = {
-  args: { projects, locale: 'en' },
+  args: { projects },
 }
 
 /** A uniform grid is what makes a portfolio read as a spreadsheet. */
 export const UniformSpans: Story = {
   args: {
     projects: projects.map((project) => ({ ...project, span: 6 as const })),
-    locale: 'en',
   },
 }
 
@@ -67,7 +66,7 @@ export const UniformSpans: Story = {
 export const SingleProject: Story = {
   // SAFETY: `projects` is a literal array with five entries declared above, so
   // index 0 always exists; `noUncheckedIndexedAccess` cannot see that.
-  args: { projects: [projects[0] as Project], locale: 'en' },
+  args: { projects: [projects[0] as Project] },
 }
 
 /**
@@ -81,7 +80,6 @@ export const LongTitles: Story = {
       ...project,
       title: `${project.title} — an unusually long commissioned title that has to wrap ${index}`,
     })),
-    locale: 'en',
   },
 }
 
@@ -90,6 +88,6 @@ export const LongTitles: Story = {
  * immediately, so no card is ever stranded at `opacity: 0`.
  */
 export const ReducedMotion: Story = {
-  args: { projects, locale: 'en' },
+  args: { projects },
   parameters: { chromatic: { prefersReducedMotion: 'reduce' } },
 }

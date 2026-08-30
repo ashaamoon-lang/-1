@@ -175,3 +175,38 @@ describe('getLinkAttributes — locale prefixing', () => {
     expect(getLinkAttributes({ linkType: 'internal' }, 'id').href).toBe('#')
   })
 })
+
+describe('urlForReference — document type to path', () => {
+  const cases = [
+    ['page', 'about', '/about'],
+    ['article', 'a-post', '/articles/a-post'],
+    ['project', 'panas-sore', '/work/panas-sore'],
+  ] as const
+
+  for (const [type, slug, expected] of cases) {
+    test(`maps ${type} to ${expected}`, () => {
+      expect(
+        urlForReference({
+          linkType: 'internal',
+          internalLink: { _type: type, slug: { current: slug } },
+        })
+      ).toBe(expected)
+    })
+  }
+
+  test('gives projects their own namespace, so a name can exist as both', () => {
+    // Sanity enforces slug uniqueness per type, not across types. A work and a
+    // page can both be called "About"; without separate namespaces they would
+    // both resolve to `/about` and one would silently never be reachable.
+    const asPage = urlForReference({
+      linkType: 'internal',
+      internalLink: { _type: 'page', slug: { current: 'about' } },
+    })
+    const asProject = urlForReference({
+      linkType: 'internal',
+      internalLink: { _type: 'project', slug: { current: 'about' } },
+    })
+
+    expect(asPage).not.toBe(asProject)
+  })
+})
