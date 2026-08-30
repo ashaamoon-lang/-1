@@ -1,92 +1,194 @@
-import { Wrapper } from '@/components/layout/wrapper'
-import { Hero } from '@/vault/blocks/hero'
+import { getTranslations } from 'next-intl/server'
+import { draftMode } from 'next/headers'
+import { locale as localeRootParam } from 'next/root-params'
 
-import { HOME_HEADLINE } from './copy'
+import type { SectionLink } from '@/components/layout/header'
+import { Wrapper } from '@/components/layout/wrapper'
+import { SectionHeader } from '@/components/ui/section-header'
+import { resolveHomeContent } from '@/lib/content/home-fallback'
+import { isLocale, routing } from '@/lib/i18n/routing'
+import { isConfigured } from '@/lib/integrations/registry'
+import { RichText } from '@/lib/integrations/sanity/components/rich-text'
+import { sanityFetch } from '@/lib/integrations/sanity/live'
+import {
+  featuredProjectsQuery,
+  studioSettingsQuery,
+} from '@/lib/integrations/sanity/queries'
+import { ContactBlock } from '@/vault/blocks/contact-block'
+import { Hero } from '@/vault/blocks/hero'
+import { ProjectGrid } from '@/vault/blocks/project-grid'
+import { StudioNote } from '@/vault/blocks/studio-note'
 
 import s from './page.module.css'
 
-/**
- * Foundation homepage.
+/*
+ * Same `'use cache'` + draftMode shape as `app/[locale]/[...slug]/page.tsx`.
  *
- * This is **not** the designed site — real pages are built after the
- * foundation is reviewed. It exists for two concrete reasons:
- *
- * 1. It exercises the vault end-to-end (`Hero` → `TextReveal`, `Magnetic`,
- *    `SceneShell`), so the components are proven to render in a real Next.js
- *    build rather than only in Storybook.
- * 2. It satisfies the repository's own contracts. `e2e/agent-readiness.e2e.ts`
- *    requires the homepage to serve exactly one `<h1>`, a non-skipping heading
- *    order, and ≥500 characters of readable text without JavaScript. Those
- *    tests are correct, and an empty homepage fails them — a foundation that
- *    fails its own test suite is not finished.
- *
- * Replace the copy when the real site is designed; keep the structure.
+ * `sanityFetch` calls `cacheTag()` internally, which under Cache Components is
+ * only legal inside a `'use cache'` function — draft mode included. Locale is
+ * an argument rather than read inside, so it is part of the cache key: `/en`
+ * and `/id` must not share one cached result.
  */
-export default function Home() {
+async function fetchHome(
+  locale: string,
+  perspective: 'published' | 'drafts',
+  stega: boolean
+) {
+  'use cache'
+  const [settings, projects] = await Promise.all([
+    sanityFetch({
+      query: studioSettingsQuery,
+      params: { locale },
+      perspective,
+      stega,
+    }),
+    sanityFetch({
+      query: featuredProjectsQuery,
+      params: { locale },
+      perspective,
+      stega,
+    }),
+  ])
+  return { settings: settings.data, projects: projects.data }
+}
+
+async function fetchHomeForRequest(locale: string) {
+  // A project without Sanity configured still renders a complete page: every
+  // section falls back to `lib/content/home-fallback.ts`, and the work grid is
+  // simply absent. This is the same path an empty dataset takes.
+  if (!isConfigured('sanity')) return { settings: null, projects: [] }
+
+  const { isEnabled: isDraftMode } = await draftMode()
+  return isDraftMode
+    ? fetchHome(locale, 'drafts', true)
+    : fetchHome(locale, 'published', false)
+}
+
+/**
+ * The home page — one long page, per `docs/ROADMAP.md` §1.2.
+ *
+ * ## Which sections exist is decided here, not in the header
+ *
+ * The roadmap lists five sections and also states that an empty section is
+ * more damaging than a missing one. Both hold at once: Work renders only when
+ * there is work, and Process is not built at all because no real content for
+ * it exists yet (see `docs/stages/TAHAP-3.md` §1).
+ *
+ * The nav anchors are therefore derived from what actually rendered and passed
+ * up to the header, rather than hardcoded there. An anchor pointing at a
+ * section that does not exist is a link that silently does nothing — and with
+ * an empty dataset that is exactly what `#work` would be.
+ *
+ * ## Content precedence
+ *
+ * The CMS wins field by field; `resolveHomeContent` documents why per-field
+ * and not per-document. With the dataset empty today, every string here comes
+ * from the fallback — which is placeholder copy, and says so on the page.
+ */
+export default async function Home() {
+  const requested = await localeRootParam()
+  const locale = isLocale(requested) ? requested : routing.defaultLocale
+
+  const [{ settings, projects }, t] = await Promise.all([
+    fetchHomeForRequest(locale),
+    getTranslations('home'),
+  ])
+
+  const content = resolveHomeContent(locale, settings)
+  const hasWork = projects.length > 0
+
+  // Document order, and only what rendered. `useActiveSection` relies on this
+  // order to decide which of several visible sections is the one being read.
+  const sections: SectionLink[] = [
+    ...(hasWork ? [{ id: 'work', labelKey: 'work' as const }] : []),
+    { id: 'studio', labelKey: 'studio' as const },
+    { id: 'contact', labelKey: 'contact' as const },
+  ]
+
   return (
     // No `webgl` prop: `lib/features` already mounts a shared root canvas in
-    // the site layout, which Hero's SceneShell portals into. Adding
-    // `<Wrapper webgl>` here would mount a SECOND root canvas — the case
-    // Wrapper's own docs warn about — and the two instances race to claim
-    // primary during a prefetch render, which breaks the 404 page's console.
-    <Wrapper theme="dark" lenis={{}}>
-      {/*
-        No <main> here: Wrapper already renders `<main id="main-content">`,
-        which is what the skip link targets. Nesting a second one produced
-        three axe landmark violations (landmark-no-duplicate-main,
-        landmark-main-is-top-level, landmark-unique) that the e2e gate did
-        not catch, because it filtered to critical/serious only.
-      */}
+    // the layout, which Hero's SceneShell portals into. Adding `<Wrapper webgl>`
+    // here would mount a SECOND root canvas — the case Wrapper's own docs warn
+    // about — and the two race to claim primary during a prefetch render.
+    <Wrapper
+      theme="dark"
+      /*
+       * `anchors` hands same-page hash clicks to Lenis, so a jump to `#work`
+       * is eased rather than teleported — the whole reason a single-page site
+       * carries a smooth-scroll library at all. Lenis reads
+       * `scroll-padding-top` (set globally from `--header-height`), so the
+       * target still clears the fixed header.
+       *
+       * With JavaScript off, Lenis never mounts and the browser's own anchor
+       * handling takes over. Same destination, no easing.
+       */
+      lenis={{ anchors: true }}
+      sections={sections}
+    >
       <Hero
-        headline={HOME_HEADLINE}
-        subline="A studio foundation built on measured decisions, not borrowed taste."
+        headline={content.headline}
+        subline={content.subline}
         action={
-          <button type="button" className={s.cta}>
-            See the foundation
-          </button>
+          /* oxlint-disable-next-line react/forbid-elements -- deliberate native
+             anchor, same reasoning as the header nav: a same-page hash must
+             scroll with the browser's own handling so it still works with
+             JavaScript disabled, which is a stated Tahap 3 exit criterion. */
+          <a href={hasWork ? '#work' : '#contact'} className={s.heroCta}>
+            {hasWork ? t('heroCta') : t('heroCtaContact')}
+          </a>
         }
       />
 
-      <section className={s.section}>
-        <h2 className={s.heading}>What this repository is</h2>
-        <p className={s.body}>
-          This is the foundation for a commissioned-artwork studio site. It
-          starts from Satūs, the production Next.js starter published by
-          darkroom.engineering — the studio behind Lenis, the smooth-scroll
-          library that turns up in the shipped source of award-winning sites
-          across the industry. Starting there means starting from the same line
-          as the studios doing this work professionally, under the MIT licence,
-          rather than assembling a stack from tutorials.
-        </p>
-        <p className={s.body}>
-          On top of that sits a research layer. Ten award-winning sites were
-          measured directly from their live production CSS: the easing curves
-          they actually ship, the durations they actually use, how many font
-          weights they allow themselves, how their grids are declared. The raw
-          counts are committed alongside the analysis, so every claim in the
-          design system can be checked rather than taken on trust.
-        </p>
+      <div className={s.sections}>
+        {hasWork && (
+          <section id="work" className={s.section}>
+            <SectionHeader
+              eyebrow={t('workEyebrow')}
+              title={t('workTitle')}
+              aside={t('workCount', { count: projects.length })}
+            />
+            <ProjectGrid projects={projects} locale={locale} />
+          </section>
+        )}
 
-        <h3 className={s.subheading}>What the measurements showed</h3>
-        <p className={s.body}>
-          The most useful finding was that the easing curves these studios ship
-          are already named tokens in this codebase. The curve used most heavily
-          on one measured site is exactly the token defined here as
-          ease-out-quart; another site&rsquo;s is exactly ease-out-expo. The
-          most common duration across the field is 400ms, not the 300ms that
-          ships as a default in most component libraries. Restraint, applied
-          consistently, is what separates these sites from competent ones — two
-          typefaces, three weights, one accent colour, a handful of durations,
-          chosen once and never violated.
-        </p>
-        <p className={s.body}>
-          Seven of the ten sites ship no reduced-motion handling in their CSS at
-          all. That gap is treated here as an opportunity rather than a
-          precedent: every component in this repository honours the preference,
-          and does so without leaving content stranded invisible when animation
-          is skipped.
-        </p>
-      </section>
+        <StudioNote
+          id="studio"
+          className={s.section}
+          eyebrow={t('studioEyebrow')}
+          title={t('studioTitle')}
+          portrait={settings?.portrait ?? null}
+          {...(settings?.portraitAlt && { portraitAlt: settings.portraitAlt })}
+        >
+          {content.statement ? (
+            // SAFETY: `statement` is the CMS's Portable Text for this locale.
+            // `resolveHomeContent` widens it to `unknown[]` because it also
+            // accepts the fallback shape; the query types it as `RichText`,
+            // and `RichText` renders nothing for a block it does not know.
+            <RichText content={content.statement as never} />
+          ) : (
+            content.statementFallback.map((paragraph) => (
+              <p key={paragraph.slice(0, 32)} className="p-big">
+                {paragraph}
+              </p>
+            ))
+          )}
+
+          {content.isPlaceholder && (
+            <p className={`caption ${s.placeholder}`}>{t('placeholderNote')}</p>
+          )}
+        </StudioNote>
+
+        <ContactBlock
+          id="contact"
+          className={s.section}
+          eyebrow={t('contactEyebrow')}
+          title={t('contactTitle')}
+          email={content.email}
+          emailLabel={t('emailLabel', { name: content.name })}
+          socials={content.socials}
+          socialsHeading={t('socialsHeading')}
+        />
+      </div>
     </Wrapper>
   )
 }

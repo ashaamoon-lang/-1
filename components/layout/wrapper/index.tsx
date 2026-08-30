@@ -12,7 +12,7 @@ import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
 
 import { Footer } from '@/components/layout/footer'
-import { Header } from '@/components/layout/header'
+import { Header, type SectionLink } from '@/components/layout/header'
 import { Lenis } from '@/components/layout/lenis'
 import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
@@ -39,6 +39,17 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
    * both mounts two canvases.
    */
   webgl?: boolean
+  /**
+   * In-page sections this page rendered, in document order, for the header's
+   * anchor nav.
+   *
+   * Omit it on pages that have none — the header then shows just the wordmark
+   * and the language switcher, which is the correct header for a project
+   * detail page or a 404, not a degraded one. A hardcoded anchor list in the
+   * header would put `#work` on every page, including the ones with no work
+   * section to reach.
+   */
+  sections?: readonly SectionLink[] | undefined
 }
 
 /**
@@ -104,12 +115,13 @@ export function Wrapper({
   className,
   lenis = true,
   webgl = false,
+  sections,
   ...props
 }: WrapperProps) {
   return (
     <Theme theme={theme} global>
       {/* Header is rendered here - do NOT add another in layout.tsx */}
-      <Header />
+      <Header {...(sections && { sections })} />
       <Canvas root={webgl}>
         <main
           id="main-content"

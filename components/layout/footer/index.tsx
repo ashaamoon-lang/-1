@@ -56,7 +56,10 @@ const SOCIAL = [
 export function Footer() {
   const t = useTranslations('footer')
   return (
-    <footer className={s.footer} id="contact">
+    // No `id="contact"`. The home page's Contact section owns that id, and two
+    // elements sharing one is a `duplicate-id` violation — which now fails the
+    // suite outright, since Tahap 2 removed the critical/serious axe filter.
+    <footer className={s.footer}>
       <div className={s.columns}>
         <section className={s.column}>
           <h2 className={cn('caption', s.heading)}>{t('contact')}</h2>

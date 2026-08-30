@@ -45,6 +45,10 @@ import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
 import { localizedPath } from '@/lib/i18n/paths'
 import type { Locale } from '@/lib/i18n/routing'
+import {
+  type ImageSource,
+  toImageSource,
+} from '@/lib/integrations/sanity/utils/image'
 
 import s from './project-card.module.css'
 
@@ -67,7 +71,15 @@ export interface Project {
   client: string | null
   /** Half (6) or full (12) of the 12 desktop columns. */
   span: 6 | 12 | null
-  cover: Parameters<typeof SanityImage>[0]['image'] | null
+  /**
+   * The cover, straight off the query. Narrowed with `toImageSource` at the
+   * render below rather than in the caller: the un-localized `alt` on a CMS
+   * image object is not the alt this card renders (`coverAlt` is), and
+   * passing the raw object hands `SanityImage` a field it would misread.
+   */
+  cover:
+    | (ImageSource & { alt?: unknown; media?: unknown; _type?: string })
+    | null
 }
 
 interface ProjectCardProps {
@@ -122,7 +134,7 @@ export function ProjectCard({
         <div className={s.media}>
           {project.cover && (
             <SanityImage
-              image={project.cover}
+              image={toImageSource(project.cover)}
               alt={project.coverAlt ?? ''}
               maxWidth={maxWidth}
               className={s.image}

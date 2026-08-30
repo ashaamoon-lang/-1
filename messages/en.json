@@ -10,9 +10,18 @@
     "skipToContent": "Skip to main content"
   },
   "home": {
-    "headline": "Commissioned work for people who notice",
-    "subline": "A studio foundation built on measured decisions, not borrowed taste.",
-    "cta": "See the foundation"
+    "workEyebrow": "Selected work",
+    "workTitle": "Recent commissions",
+    "workCount": "{count, plural, one {# piece} other {# pieces}}",
+    "studioEyebrow": "Studio",
+    "studioTitle": "How the work is made",
+    "contactEyebrow": "Commissions",
+    "contactTitle": "Start a conversation",
+    "emailLabel": "Email {name}",
+    "socialsHeading": "Elsewhere",
+    "heroCta": "See the work",
+    "heroCtaContact": "Get in touch",
+    "placeholderNote": "Placeholder copy — this text is replaced by the studio’s own words as soon as the CMS has them."
   },
   "work": {
     "sectionTitle": "Selected work",

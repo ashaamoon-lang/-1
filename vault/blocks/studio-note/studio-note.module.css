@@ -1,0 +1,72 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(32px);
+
+  @media (--desktop) {
+    gap: desktop-vw(48px);
+  }
+}
+
+.header {
+  /* The header spans the full width even though the body below is two
+     columns — a title indented to a text column reads as a caption. */
+  width: 100%;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: mobile-vw(32px);
+
+  @media (--desktop) {
+    /*
+     * 7 / 5 rather than 6 / 6. An even split makes the prose and the
+     * photograph compete; giving the text the larger share states which one
+     * the section is about. Both tracks are minmax(0, …) so a long word wraps
+     * instead of widening the page.
+     */
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: calc(var(--gap) * 2);
+    align-items: start;
+  }
+}
+
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(16px);
+  /* Running measure. Prose set the full width of a 7-column track is a wall;
+     65ch is where the eye stops losing the line. */
+  max-width: 65ch;
+
+  @media (--desktop) {
+    gap: desktop-vw(20px);
+  }
+
+  & p {
+    margin: 0;
+  }
+}
+
+.figure {
+  margin: 0;
+}
+
+.media {
+  position: relative;
+  overflow: clip;
+  /*
+   * Portrait crop, and the box is reserved before the asset arrives. A studio
+   * photograph loading into an unreserved box shifts the whole section, which
+   * is the one form of jank a reader always notices.
+   */
+  aspect-ratio: 4 / 5;
+  background-color: var(--surface-2);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

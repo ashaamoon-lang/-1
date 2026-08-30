@@ -10,9 +10,18 @@
     "skipToContent": "Lewati ke konten utama"
   },
   "home": {
-    "headline": "Karya pesanan untuk mereka yang memperhatikan",
-    "subline": "Fondasi studio yang dibangun dari keputusan terukur, bukan selera pinjaman.",
-    "cta": "Lihat fondasinya"
+    "workEyebrow": "Karya pilihan",
+    "workTitle": "Pesanan terakhir",
+    "workCount": "{count, plural, other {# karya}}",
+    "studioEyebrow": "Studio",
+    "studioTitle": "Bagaimana karyanya dikerjakan",
+    "contactEyebrow": "Pesanan",
+    "contactTitle": "Mulai percakapan",
+    "emailLabel": "Kirim surel ke {name}",
+    "socialsHeading": "Di tempat lain",
+    "heroCta": "Lihat karyanya",
+    "heroCtaContact": "Hubungi kami",
+    "placeholderNote": "Teks sementara — akan diganti oleh kata-kata studio sendiri begitu CMS-nya terisi."
   },
   "work": {
     "sectionTitle": "Karya pilihan",

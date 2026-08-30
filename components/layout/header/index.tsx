@@ -6,6 +6,7 @@ import { useState } from 'react'
 
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { getLinkIntent, Link } from '@/components/ui/link'
+import { useActiveSection } from '@/lib/hooks/use-active-section'
 import { usePathname } from '@/lib/i18n/navigation'
 
 import s from './header.module.css'
@@ -17,12 +18,19 @@ import s from './header.module.css'
  * pathname as a debug readout, and links to darkroom's own repository. Useful
  * while forking; not something to ship on a studio's site.
  *
- * ## In-page anchors, not routes
+ * ## The in-page anchors belong to the page, not to the header
  *
- * The home page is a single page (`docs/ROADMAP.md`, Tahap 3), so the primary
- * nav points at sections within it. Anchors are also the one nav shape that
- * degrades honestly before those sections exist: an anchor with no target
- * simply does not move the page. A route with no page is a 404.
+ * The home page is one long page (`docs/ROADMAP.md` §1.2), so its primary nav
+ * points at sections within it. Which sections exist is not something the
+ * header can know: Work renders only when there is published work, and with
+ * an empty dataset it is absent entirely. A hardcoded `#work` would then be a
+ * link that silently does nothing — and on the 404 page, or a project detail
+ * page, *every* section anchor would be.
+ *
+ * So the page passes the sections it actually rendered, in document order, and
+ * a page that passes none gets a header with just the wordmark and the
+ * language switcher. That is the correct header for those pages, not a
+ * degraded one.
  *
  * ## Locale
  *
@@ -34,15 +42,12 @@ import s from './header.module.css'
  * and every item renders inactive. See `components/ui/link/link.test.ts`.
  */
 
-// `newTab` is only needed when a link should open in a new tab despite not
-// being externally-derivable from its href (e.g. the proxied, relative
-// Storybook route in production). Absolute http(s) hrefs get new-tab + the
-// arrow indicator automatically via isExternalHref.
-type NavLink = {
-  href: string
+/** An in-page section the current page rendered, in document order. */
+export interface SectionLink {
+  /** The section element's `id`, without the `#`. */
+  id: string
   /** Key into the `nav` message namespace. */
-  labelKey: 'work' | 'studio' | 'contact' | 'storybook'
-  newTab?: boolean
+  labelKey: 'work' | 'studio' | 'contact'
 }
 
 // In local dev, link straight to the Storybook dev server. In deployed builds,
@@ -57,27 +62,22 @@ const STORYBOOK_ENABLED =
   process.env.NODE_ENV === 'development' ||
   Boolean(process.env.NEXT_PUBLIC_STORYBOOK_URL)
 
-const LINKS: NavLink[] = [
-  { href: '#work', labelKey: 'work' },
-  { href: '#studio', labelKey: 'studio' },
-  { href: '#contact', labelKey: 'contact' },
-  // Prod Storybook route is relative (/storybook/, proxied) so it isn't
-  // externally-derivable from the href alone — needs the explicit intent.
-  ...(STORYBOOK_ENABLED
-    ? [
-        {
-          href: STORYBOOK_HREF,
-          labelKey: 'storybook' as const,
-          newTab: true,
-        },
-      ]
-    : []),
-]
+/** Stable empty default — a fresh `[]` per render re-subscribes the observer. */
+const NO_SECTIONS: readonly SectionLink[] = []
 
-export function Header() {
+export function Header({
+  sections = NO_SECTIONS,
+}: {
+  sections?: readonly SectionLink[]
+}) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const t = useTranslations('nav')
+
+  // Highlights where the reader is. Without JavaScript this is simply absent
+  // and the anchors still work — a highlight adds to navigation, it is never
+  // a prerequisite for it.
+  const activeSection = useActiveSection(sections.map((section) => section.id))
 
   return (
     <header className={s.header}>
@@ -102,32 +102,46 @@ export function Header() {
         id="header-nav"
       >
         <ul className={s.navList}>
-          {LINKS.map((link) => {
-            const { isExternal: opensNewTab, isActive } = getLinkIntent(
-              link.href,
-              pathname,
-              { newTab: link.newTab }
-            )
+          {sections.map((section) => (
+            <li key={section.id} className={s.navItem}>
+              {/* oxlint-disable-next-line react/forbid-elements -- deliberate native anchor: a same-page hash must scroll with the browser's own handling so it works with JavaScript disabled (a stated Tahap 3 exit criterion), and so `scroll-padding-top`/`scroll-margin-top` apply. The Link component defaults `scroll` to false, which is right for routes and wrong for anchors. */}
+              <a
+                className={cn('caption', s.navLink)}
+                href={`#${section.id}`}
+                onClick={() => setMenuOpen(false)}
+                /*
+                 * `location`, not `page`. `aria-current="page"` marks the
+                 * current page within a set of links; `location` marks the
+                 * current position *within* a page, which is exactly what an
+                 * in-page anchor set is. The route links below still use
+                 * `page`, correctly.
+                 */
+                {...(activeSection === section.id && {
+                  'aria-current': 'location' as const,
+                })}
+              >
+                {t(section.labelKey)}
+              </a>
+            </li>
+          ))}
 
-            return (
-              <li key={link.href} className={s.navItem}>
-                <Link
-                  className={cn('caption', s.navLink)}
-                  href={link.href}
-                  newTab={link.newTab}
-                  onClick={() => setMenuOpen(false)}
-                  {...(isActive && { 'aria-current': 'page' as const })}
-                >
-                  {t(link.labelKey)}
-                  {opensNewTab && (
-                    <span aria-hidden="true" className={s.externalMark}>
-                      ↗
-                    </span>
-                  )}
-                </Link>
-              </li>
-            )
-          })}
+          {STORYBOOK_ENABLED && (
+            <li className={s.navItem}>
+              <Link
+                className={cn('caption', s.navLink)}
+                href={STORYBOOK_HREF}
+                newTab
+                onClick={() => setMenuOpen(false)}
+                {...(getLinkIntent(STORYBOOK_HREF, pathname, { newTab: true })
+                  .isActive && { 'aria-current': 'page' as const })}
+              >
+                {t('storybook')}
+                <span aria-hidden="true" className={s.externalMark}>
+                  ↗
+                </span>
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
 

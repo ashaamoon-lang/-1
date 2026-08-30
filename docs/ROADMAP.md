@@ -374,18 +374,34 @@ tetap `○ Static`) · `build-storybook` · `CI=true bun run test:e2e` (86 lulus
 
 ---
 
-## Tahap 3 — Home single page
+## Tahap 3 — Home single page ✅
 
-**Kerja:** rakit lima seksi §1.2 dengan data Sanity nyata; koreografi scroll
-antar-seksi; nav anchor aktif mengikuti posisi scroll.
+Spec penuh: **`docs/stages/TAHAP-3.md`**.
 
-**Titik paling mungkin gagal, dan sudah diketahui:** halaman panjang dengan
-banyak `ScrollTrigger` adalah tempat lahirnya jank dan kebocoran. Aturannya
-sudah tertulis — satu RAF loop, `kill()` saat unmount, `useGSAP` dengan scope,
-CSS reveal kalau cukup, GSAP hanya untuk timeline/scrub.
+**Masalah utamanya bukan layout — datasetnya kosong** (diukur: 0 proyek, 0
+`studioSettings`). Salinan cadangan dua bahasa ditaruh di
+`lib/content/home-fallback.ts`, kalah per-field oleh CMS begitu ada isinya, dan
+halaman menyatakan sendiri di layar bahwa teksnya sementara. Mengisi dataset
+produksi dengan karya karangan ditolak — itu CMS asli studio.
 
-**Keluar:** e2e + axe lulus · reduced-motion diverifikasi manual per seksi ·
-tanpa JS home tetap terbaca · nol pergeseran layout dari gambar.
+**Seksi yang dirender:** Hero, Studio, Contact selalu; **Work hanya jika ada
+proyek**; **Process tidak dibangun** karena tidak ada isi nyata untuknya
+(roadmap: _"Hanya jika ada isi nyata"_).
+
+**Nol ScrollTrigger baru.** Roadmap menyebut sendiri titik gagalnya; masuknya
+seksi memakai kontrak CSS `useReveal` yang sudah ada, dan anchor aktif memakai
+**satu** IntersectionObserver bersama (`lib/hooks/use-active-section.ts`), bukan
+satu trigger per seksi. GSAP tetap hanya di `TextReveal`.
+
+**Anchor nav pindah dari header ke halaman.** Daftar `#work/#studio/#contact`
+yang di-hardcode Tahap 2 salah di setiap halaman yang bukan home. Sekarang
+`Wrapper` menerima `sections`, dan halaman tanpa seksi mendapat header berisi
+wordmark + pengalih bahasa saja.
+
+**Keluar:** `bun run check` (349 test) · `bun run build` (`/en` dan `/id` tetap
+`○ Static`) · `build-storybook` · `CI=true bun run test:e2e` (94 lulus) ·
+HTML awal `/en` memuat 1014 char teks tanpa JS, satu `<h1>`, nol lompatan
+heading.
 
 ---
 

@@ -1,61 +1,99 @@
-.cta {
-  padding: 16px 32px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  background: transparent;
-  color: inherit;
-  font-family: var(--font-mono, monospace);
-  font-size: 14px;
-  letter-spacing: -0.01em;
-  cursor: pointer;
-  transition:
-    background-color var(--duration-fast) var(--ease-out-quart),
-    color var(--duration-fast) var(--ease-out-quart);
-}
+/*
+ * The home page owns rhythm and nothing else.
+ *
+ * Every section's internals live in its own block under `vault/blocks/`. What
+ * belongs here is the spacing between them and the page gutter — the two
+ * things no single section can decide on its own.
+ */
 
-.cta:hover,
-.cta:focus-visible {
-  background-color: var(--color-secondary);
-  color: var(--color-primary);
+.sections {
+  display: flex;
+  flex-direction: column;
+  /*
+   * Generous vertical rhythm. `DESIGN-SYSTEM.md` §3: the most common failure
+   * in almost-premium work is sections that are too tight, and whitespace is
+   * the cheapest expensive-looking asset there is.
+   */
+  gap: mobile-vw(96px);
+  padding-block: mobile-vw(96px) mobile-vw(128px);
+
+  @media (--desktop) {
+    gap: desktop-vw(160px);
+    padding-block: desktop-vw(160px) desktop-vw(200px);
+  }
 }
 
 .section {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 68ch;
-  /* Generous vertical rhythm — whitespace is the cheapest expensive-looking
-     asset there is (DESIGN-SYSTEM.md §3). */
-  padding: 96px 16px 128px;
+  /* Matches the site gutter used by the header and footer, so a section edge
+     lines up with the wordmark above it rather than nearly lining up. */
+  padding-inline: var(--safe);
+  /*
+   * `scroll-margin-top` on the section, not just `scroll-padding-top` on
+   * `<html>`. The global rule handles the fixed header; this adds breathing
+   * room so an anchored section starts below the bar rather than flush
+   * against it.
+   */
+  scroll-margin-top: calc(var(--header-height) + mobile-vw(24px));
+
+  @media (--desktop) {
+    scroll-margin-top: calc(var(--header-height) + desktop-vw(32px));
+  }
 }
 
-.heading {
-  font-size: clamp(1.75rem, 4vw, 3rem);
-  font-weight: 700;
-  line-height: 90%;
-  letter-spacing: -0.03em;
+.heroCta {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: mobile-vw(12px);
+  line-height: 100%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-secondary);
+  padding: mobile-vw(14px) mobile-vw(24px);
+  /* Outline rather than border: it does not change the box, so the magnetic
+     wrapper's transform has nothing to fight. */
+  outline: 1px solid var(--color-secondary);
+  outline-offset: -1px;
+  transition:
+    background-color var(--duration) var(--ease-gleasing),
+    color var(--duration) var(--ease-gleasing);
+
+  @media (--desktop) {
+    font-size: desktop-vw(14px);
+    padding: desktop-vw(16px) desktop-vw(32px);
+  }
+
+  @media (--hover) {
+    &:hover {
+      background-color: var(--color-secondary);
+      color: var(--color-primary);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 4px;
+  }
+}
+
+.placeholder {
+  /*
+   * Says out loud that the copy above is a stand-in. It is set back rather
+   * than hidden: a placeholder nobody can see is how placeholder copy ends up
+   * shipped.
+   */
   margin: 0;
+  padding-top: mobile-vw(12px);
+  border-top: 1px solid var(--line);
+  color: color-mix(in oklab, var(--color-secondary) 55%, transparent);
+
+  @media (--desktop) {
+    padding-top: desktop-vw(16px);
+  }
 }
 
-.subheading {
-  font-size: clamp(1.25rem, 2vw, 1.5rem);
-  font-weight: 500;
-  line-height: 110%;
-  letter-spacing: -0.02em;
-  margin: 24px 0 0;
-}
-
-.body {
-  font-size: 16px;
-  line-height: 150%;
-  letter-spacing: -0.01em;
-  margin: 0;
-  opacity: 0.75;
-  text-wrap: pretty;
-}
-
-@media (width >= 800px) {
-  .section {
-    padding: 128px 32px 160px;
+@media (--reduced-motion) {
+  .heroCta {
+    transition: none;
   }
 }

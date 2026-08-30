@@ -3,6 +3,7 @@
  *
  */
 
+export { useActiveSection } from './use-active-section'
 export { useDeviceDetection } from './use-device-detection'
 export { useMediaQuery } from 'hamo'
 export { usePrefetch } from './use-prefetch'
