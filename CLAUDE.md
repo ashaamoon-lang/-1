@@ -25,6 +25,18 @@ Supporting documents, in the order they usually matter:
 A design skill is vendored at `.claude/skills/ui-ux-pro-max/` and is
 available without any install step.
 
+Three project agents live in `.claude/agents/`, and they share one set of
+working rules in [`.claude/agents/HOUSE-RULES.md`](./.claude/agents/HOUSE-RULES.md):
+
+| Agent           | For                                                                 |
+| --------------- | ------------------------------------------------------------------- |
+| `arth-auditor`  | Read-only audit of one domain. Evidence required; does not edit.    |
+| `arth-designer` | UI work. Runs the `ui-ux-pro-max` ritual before proposing anything. |
+| `arth-stage`    | A whole roadmap stage: spec first, then code, then every gate.      |
+
+They encode what this project keeps re-learning — that a green gate is not a
+correct site — so a fresh agent does not have to discover it again.
+
 ---
 
 ## Hard rules
