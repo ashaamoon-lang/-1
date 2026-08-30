@@ -34,9 +34,10 @@ vault/
 │  └─ cursor/          custom cursor with hover states
 ├─ webgl/          3D, behind the feature flag
 │  └─ scene-shell/     R3F scene wrapper + shader material pattern
-└─ blocks/         page-level compositions
-   ├─ hero/
-   └─ project-grid/
+   └─ blocks/         page-level compositions
+      ├─ hero/
+      ├─ project-card/   one commissioned work, on the CMS query shape
+      └─ project-grid/   placement + staggered entrance; composes the card
 ```
 
 ## What is deliberately **not** here, because Satūs already ships it
@@ -53,7 +54,9 @@ ending up with two competing implementations.
 | Marquee                                               | `components/ui/marquee/`                                       |                                                        |
 | WebGL canvas, tunnels, device tiering, postprocessing | `lib/webgl/`                                                   |                                                        |
 | Reduced-motion hook (reactive)                        | `lib/hooks/use-sync-external.ts` → `usePreferredReducedMotion` |                                                        |
-| Header, footer, wrapper                               | `components/layout/`                                           |                                                        |
+| Header, footer, wrapper                               | `components/layout/`                                           | Rewritten for Arth in Tahap 2 — edit, don't duplicate  |
+| Section header (mono eyebrow + title)                 | `components/ui/section-header/`                                |                                                        |
+| Language switcher                                     | `components/ui/language-switcher/`                             |                                                        |
 | Accordion, dialog, tabs, select, toast, tooltip, form | `components/ui/` (Base UI)                                     |                                                        |
 
 **Check this table before adding anything.**

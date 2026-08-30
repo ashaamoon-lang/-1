@@ -8,7 +8,10 @@ import '../lib/styles/css/index.css'
 // iframe's documentElement (not a wrapper) makes those derived tokens resolve
 // exactly as they do on the site, so editing the site's CSS tokens updates
 // Storybook too.
-const THEMES = ['dark', 'light', 'red'] as const
+// Mirrors `themeNames` in lib/styles/colors.ts. `red` was removed in Tahap 1
+// v2; leaving it here offered a theme with no rules behind it, which rendered
+// as the bare `:root` defaults and looked like a styling bug.
+const THEMES = ['dark', 'light'] as const
 
 const withTheme: Decorator = (Story, context) => {
   const theme = (context.globals.theme as string) ?? 'dark'
@@ -24,7 +27,7 @@ const preview: Preview = {
   decorators: [withTheme],
   globalTypes: {
     theme: {
-      description: 'Satūs theme',
+      description: 'Theme',
       defaultValue: 'dark',
       toolbar: {
         title: 'Theme',

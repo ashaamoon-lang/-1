@@ -336,24 +336,41 @@ terbaik secara mutlak; menukarnya hanya menyentuh `lib/styles/fonts.ts`.
 
 ---
 
-## Tahap 2 — Melengkapi primitive & blok
+## Tahap 2 — Melengkapi primitive & blok ✅
 
-**Kerja (hanya yang belum ada):**
+Spec penuh: **`docs/stages/TAHAP-2.md`**.
 
-- `project-card` — kartu karya dengan `sanity-image`, ruang ter-reserve.
-- `nav` — anchor dalam halaman + progress + pengalih bahasa.
-- `footer` — kontak, sosial, kredit.
-- `section-header` — eyebrow mono + judul, dipakai ulang tiap seksi.
-- `language-switcher`.
-- Story Storybook untuk tiap primitive, termasuk state reduced-motion.
+**Dibangun:** `section-header`, `project-card` (diekstrak dari `project-grid`
+dan dipindahkan ke `sanity-image` + skala tipografi), `language-switcher`,
+serta `nav` dan `footer` — keduanya menulis ulang isi
+`components/layout/{header,footer}` yang masih milik Satūs, bukan file baru.
+66 story, tiap komponen baru menyertakan state reduced-motion.
 
-**Jangan bangun ulang:** marquee, accordion, dialog, tabs, select, tooltip,
-toast, form, reveal, cursor, magnetic, text-reveal, page-transition,
-scene-shell. Semuanya sudah ada — tabel di `vault/README.md` adalah daftar
-otoritatifnya.
+**Empat cacat senyap yang dipaksa terlihat oleh tahap ini:**
 
-**Keluar:** `build-storybook` exit 0 · tiap primitive punya story · axe bersih
-di Storybook · `bun run check` exit 0.
+1. **Tautan internal membuang locale.** `components/ui/link` memakai
+   `next/link`, jadi `/work` merender tanpa prefix dan `/` di-redirect
+   berdasarkan `Accept-Language` browser — bukan bahasa yang dipilih pembaca.
+   State aktif juga tidak pernah menyala (`'/id' === '/'`).
+2. **`new Date()` saat render mengosongkan halaman prerender.** Di bawah Cache
+   Components, membaca jam di badan komponen membatalkan boundary-nya ke
+   client-side rendering; `/en` dan `/id` terkirim sebagai cangkang. Build
+   hijau, dev benar, produksi kosong.
+3. **`<main>` bersarang** — 3 pelanggaran axe yang lolos karena gate menyaring
+   ke critical/serious saja.
+4. **Kanvas WebGL memicu `region`** di setiap halaman.
+
+Setelah 3 dan 4 diperbaiki, seluruh rute bersih di **setiap** impact, jadi
+filter severity starter dihapus dari `route-sweep.e2e.ts` dan
+`not-found.e2e.ts`.
+
+**Gate baru:** `e2e/storybook-a11y.e2e.ts` menjalankan axe atas tiap story.
+Kriteria "axe bersih di Storybook" sebelumnya tidak punya alat pengukur sama
+sekali; gate-nya dibangun lebih dulu, dan langsung menemukan `Select` tanpa
+nama aksesibel (impact serious).
+
+**Keluar:** `bun run check` (342 test) · `bun run build` (`/en` dan `/id`
+tetap `○ Static`) · `build-storybook` · `CI=true bun run test:e2e` (86 lulus).
 
 ---
 

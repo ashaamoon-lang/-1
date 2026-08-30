@@ -1,0 +1,103 @@
+.card {
+  /* The grid owns placement; the card owns everything inside its own box. */
+  min-width: 0;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(12px);
+  text-decoration: none;
+  color: inherit;
+
+  @media (--desktop) {
+    gap: desktop-vw(12px);
+  }
+}
+
+.media {
+  position: relative;
+  overflow: clip;
+  /*
+   * Reserve the box before the image loads. SanityImage derives its own
+   * aspect ratio from the asset, but the container is what holds the grid
+   * still while the asset metadata is still in flight — without it the grid
+   * reflows as each image arrives, which is layout shift that undoes every
+   * other quality signal on the page.
+   */
+  aspect-ratio: 4 / 5;
+  /*
+   * A tinted placeholder rather than a grey: derived from the page's own ink
+   * so it belongs to the palette in both themes instead of being a third
+   * neutral nobody chose.
+   */
+  background-color: var(--surface-2);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /*
+   * Scale, not width/height — a transform composites, a size change forces
+   * layout. 1.03 is deliberately small: a large zoom reads as a stock
+   * template effect, a small one reads as the page responding.
+   */
+  transition: scale var(--duration-slow) var(--ease-out-quart);
+}
+
+/* Focus shares the hover treatment so a keyboard user sees the same response. */
+.link:hover .image,
+.link:focus-visible .image {
+  scale: 1.03;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-contrast);
+  outline-offset: 4px;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(4px);
+
+  @media (--desktop) {
+    gap: desktop-vw(4px);
+  }
+}
+
+.title {
+  /* Size, family and leading come from the `p-big` type class. */
+  margin: 0;
+}
+
+.meta {
+  /*
+   * Mono for metadata — the division measured on Lusion, basement.studio,
+   * By-Kin and darkroom.engineering. Size comes from the `caption` class.
+   */
+  margin: 0;
+  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+}
+
+@media (--desktop) {
+  /* A full-width card gets a wider crop, so the two spans read as different
+     compositions rather than the same card stretched. */
+  .card[data-span='12'] .media {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (--reduced-motion) {
+  .image {
+    transition: none;
+  }
+
+  .link:hover .image,
+  .link:focus-visible .image {
+    /* No scale at all, rather than an instant one — an abrupt jump is the
+       thing the preference exists to avoid. */
+    scale: 1;
+  }
+}

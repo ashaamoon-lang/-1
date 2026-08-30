@@ -1,128 +1,188 @@
 .header {
   position: fixed;
-  top: var(--safe);
-  left: var(--safe);
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 20;
-  font-family: var(--next-font-mono);
-  font-size: calc((10 * 100) / var(--device-width) * 1vw);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  /*
+   * Height comes from `--header-height` (lib/styles/layout.mjs), which until
+   * now was declared and never consumed. Anything that needs to clear the bar
+   * — `scroll-padding-top` in global.css, a page that starts at the very top —
+   * reads the same token instead of guessing a number.
+   */
+  height: var(--header-height);
+  padding-inline: var(--safe);
+  /*
+   * A translucent ground rather than a solid bar. The header sits over
+   * artwork, and a solid strip cuts the top off every image behind it;
+   * a blur keeps the work continuous while the type stays legible.
+   */
+  background-color: color-mix(in oklab, var(--color-primary) 82%, transparent);
+  backdrop-filter: blur(mobile-vw(12px));
+  border-bottom: 1px solid var(--line);
 
   @media (--desktop) {
-    font-size: calc((11 * 100) / var(--device-width) * 1vw);
+    backdrop-filter: blur(desktop-vw(12px));
   }
 }
 
 .brand {
-  font-size: calc((12 * 100) / var(--device-width) * 1vw);
-  margin-bottom: calc((6 * 100) / var(--device-width) * 1vw);
-  display: flex;
-  align-items: baseline;
-  gap: 0.15em;
+  /*
+   * The wordmark is display type, not a nav item, and it is the only place on
+   * the header where Syne appears — which is what makes it read as the mark
+   * rather than as another link.
+   */
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-size: mobile-vw(18px);
+  line-height: 100%;
+  text-decoration: none;
+  color: var(--color-secondary);
+  flex-shrink: 0;
 
   @media (--desktop) {
-    font-size: calc((13 * 100) / var(--device-width) * 1vw);
+    font-size: desktop-vw(20px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 4px;
   }
 }
 
-.brandPath {
-  /* 0.5 rendered #808080 on white — 3.94:1, under WCAG AA's 4.5:1 (caught by
-     the e2e axe pass on /sanity's light-theme NotConfigured fallback). 0.55:
-     on black ≈#8c8c8c = 6.27:1; on white ≈#737373 = 4.74:1; both clear 4.5.
-     Opacity below ~0.535 fails white; below ~0.457 fails black. */
-  opacity: 0.55;
-  max-width: 12ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.nav {
+  @media (--mobile) {
+    /*
+     * `display: none` removes the list from the tab order and the
+     * accessibility tree while collapsed, which is what a disclosure should
+     * do — the toggle button carries `aria-expanded` and `aria-controls`, so
+     * the state is announced rather than merely visible.
+     */
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--color-primary);
+    border-bottom: 1px solid var(--line);
+    padding: mobile-vw(8px) var(--safe) mobile-vw(16px);
+  }
+}
+
+.navOpen {
+  @media (--mobile) {
+    display: block;
+  }
+}
+
+.navList {
+  display: flex;
+  align-items: center;
+  gap: mobile-vw(18px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  @media (--mobile) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  @media (--desktop) {
+    gap: desktop-vw(28px);
+  }
 }
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 0.3em;
-}
 
-.chevron {
-  width: 0.75em;
-  flex-shrink: 0;
-  color: var(--color-contrast);
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out-expo);
-}
-
-.chevronActive {
-  opacity: 1;
-}
-
-.navLink {
-  transition:
-    color var(--duration-fast) var(--ease-out-expo),
-    opacity var(--duration-fast) var(--ease-out-expo);
-
-  @media (--hover) {
-    &:hover {
-      color: var(--color-contrast);
-      text-decoration: none;
-      opacity: 1;
-    }
+  @media (--mobile) {
+    /* Comfortable touch target — 44px is the floor, not a target to hit
+       exactly. */
+    min-height: 44px;
   }
 }
 
-.navLinkActive {
-  opacity: 1;
+.navLink {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  /*
+   * 62% against either ground clears WCAG AA comfortably in both themes.
+   * Measured pairs are in `lib/styles/scripts/contrast-baseline.json`, which
+   * is empty — nothing here is an accepted exception.
+   */
+  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  transition: color var(--duration-fast) var(--ease-out-expo);
+
+  @media (--hover) {
+    &:hover {
+      color: var(--color-secondary);
+      text-decoration: none;
+    }
+  }
+
+  &[aria-current] {
+    color: var(--color-secondary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 4px;
+    border-radius: 1px;
+  }
 }
 
-.navLinkDim {
-  /* Same dual-polarity fix as .brandPath above (see its comment for the math):
-     0.5 rendered #808080 on white — 3.94:1, under WCAG AA. 0.55 clears 4.5:1
-     on both white and black. */
-  opacity: 0.55;
+.externalMark {
+  margin-left: 0.25em;
+  /* Decorative: the link text already names the destination. */
+  display: inline-block;
 }
 
-/* Mobile menu toggle button — only shown on mobile */
 .menuToggle {
   display: none;
   align-items: center;
-  gap: 0.4em;
   background: none;
   border: none;
-  color: inherit;
-  font: inherit;
-  text-transform: inherit;
-  letter-spacing: inherit;
+  color: var(--color-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
   cursor: pointer;
   padding: 0;
   min-height: 44px;
   min-width: 44px;
+  justify-content: flex-end;
 
   @media (--mobile) {
     display: flex;
   }
-}
 
-/* Left-aligned vertical nav; hidden behind the toggle on mobile */
-.navList {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-
-  @media (--mobile) {
-    display: none;
-    margin-top: calc((4 * 100) / var(--device-width) * 1vw);
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 4px;
   }
 }
 
-.navListOpen {
+.language {
+  flex-shrink: 0;
+
   @media (--mobile) {
-    display: flex;
+    /* Order matters on mobile: wordmark, language, menu toggle. The language
+       control is a preference, so it sits before the disclosure rather than
+       inside it, where it would be unreachable while the menu is closed. */
+    order: 1;
   }
 }
 
-/* Mobile touch targets — bump up link height */
-@media (--mobile) {
-  .navItem {
-    min-height: 44px;
+@media (--reduced-motion) {
+  .navLink {
+    transition: none;
   }
 }

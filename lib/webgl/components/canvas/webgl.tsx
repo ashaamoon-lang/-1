@@ -90,7 +90,22 @@ export function WebGLCanvas({
 
   return (
     <div className={cn(s.webgl, className)} {...props}>
+      {/*
+        `aria-hidden` on the canvas, not on the container.
+
+        `CLAUDE.md` #13/#14: 3D is an accent, and no page may depend on WebGL
+        to be usable or readable — so nothing R3F draws carries meaning a
+        screen-reader user would otherwise miss. Left exposed, the canvas is
+        content sitting outside every landmark, which axe reports as `region`
+        on every page of the site (moderate impact).
+
+        It goes here rather than on the wrapper because `<DOMTunnel.Out />`
+        below is the documented way to overlay *real* HTML on the canvas.
+        Hiding the wrapper would silently strip that content from the
+        accessibility tree the first time someone used the API.
+      */}
       <Canvas
+        aria-hidden="true"
         gl={{
           precision: 'highp',
           powerPreference: 'high-performance',

@@ -1,0 +1,60 @@
+.switcher {
+  display: flex;
+  align-items: center;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  /*
+   * The gap doubles as the separator. A literal "/" between two languages is
+   * one more glyph competing with the wordmark for the same corner, and it
+   * has to be hidden from screen readers to avoid being read as punctuation.
+   */
+  gap: mobile-vw(10px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  @media (--desktop) {
+    gap: desktop-vw(10px);
+  }
+}
+
+.link {
+  /*
+   * Inactive languages sit back rather than disappearing. Below roughly 50%
+   * against the ground this stops reading as a control at all; 55% keeps it
+   * clearly interactive while the active one still wins.
+   */
+  color: color-mix(in oklab, var(--color-secondary) 55%, transparent);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-out-quart);
+
+  @media (--hover) {
+    &:hover {
+      color: var(--color-secondary);
+    }
+  }
+
+  /*
+   * Attribute selector, not a class: `aria-current` is the accessible state,
+   * so styling from it makes the visual and the announced state impossible to
+   * desynchronise.
+   */
+  &[aria-current] {
+    color: var(--color-secondary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+}
+
+@media (--reduced-motion) {
+  .link {
+    transition: none;
+  }
+}

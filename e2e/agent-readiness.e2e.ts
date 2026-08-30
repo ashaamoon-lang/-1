@@ -60,6 +60,38 @@ test.describe('agent-readable HTML', () => {
     expect(readableText(html).length).toBeGreaterThanOrEqual(500)
   })
 
+  test('the prerendered HTML carries the site chrome, not just a shell', async ({
+    request,
+  }) => {
+    /*
+     * A regression guard with a specific cause behind it.
+     *
+     * Under Cache Components, a clock read during render — `new Date()` in a
+     * component body — makes the enclosing boundary dynamic. When that
+     * boundary is inside a Client Component, React bails it to client-side
+     * rendering and the prerendered HTML arrives as a shell: skip link,
+     * `<script>` tags, nothing else. The build still succeeds, dev still
+     * renders correctly, and only the served bytes show it. That shipped once
+     * (the footer's copyright year) and was found by reading the HTML, not by
+     * a failing test.
+     *
+     * The heading assertions above would also fail in that state, but they
+     * would say "no h1", which sends you looking at the page component. This
+     * one names the actual failure.
+     */
+    for (const path of ['/en', '/id']) {
+      const html = await (await request.get(path)).text()
+
+      expect(
+        html,
+        `${path} prerendered without the header — a boundary bailed to client-side rendering`
+      ).toContain('id="header-nav"')
+      expect(html, `${path} prerendered without the footer`).toContain(
+        '<footer'
+      )
+    }
+  })
+
   test('the homepage remains useful when JavaScript is disabled', async ({
     browser,
   }) => {

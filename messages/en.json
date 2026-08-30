@@ -1,8 +1,12 @@
 {
   "nav": {
+    "primary": "Primary",
     "work": "Work",
     "studio": "Studio",
     "contact": "Contact",
+    "storybook": "Storybook",
+    "openMenu": "Menu",
+    "closeMenu": "Close",
     "skipToContent": "Skip to main content"
   },
   "home": {
@@ -23,5 +27,12 @@
   "language": {
     "label": "Language",
     "switchTo": "Switch to {language}"
+  },
+  "footer": {
+    "contact": "Commissions",
+    "elsewhere": "Elsewhere",
+    "colophon": "Colophon",
+    "rights": "All work © {year} Arth. Reproduction by arrangement only.",
+    "builtOn": "Built on Satūs by darkroom.engineering, MIT licensed. Type is Syne and Geist Mono."
   }
 }

@@ -15,6 +15,10 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 import {
+  isLocalizableRoute,
+  UNLOCALIZED_ROUTE_PREFIXES,
+} from './lib/i18n/paths'
+import {
   config as proxyConfig,
   FILE_EXTENSION,
   isLocalizable,
@@ -187,6 +191,35 @@ describe('locale routing exclusions', () => {
     // actually receives, so the exclusion would silently do nothing.
     for (const prefix of NON_LOCALIZED_PREFIXES) {
       expect(prefix.startsWith('/')).toBe(true)
+    }
+  })
+
+  it('never claims a route is localizable that link rendering excludes', () => {
+    /*
+     * Two lists, deliberately different widths, guarded against contradiction.
+     *
+     * `proxy.ts` only names `/studio`, because `isPageDocumentRequest`,
+     * `MACHINE_PATHS`, `FILE_EXTENSION` and the matcher already exclude the
+     * rest before its list is consulted. `lib/i18n/paths.ts` names all of
+     * them, because `components/ui/link` renders in one pass with no upstream
+     * guard at all.
+     *
+     * Narrower is fine. Contradicting is not: a prefix the proxy would happily
+     * localize while links refuse to is a route reachable by URL and
+     * unreachable by clicking.
+     */
+    for (const prefix of UNLOCALIZED_ROUTE_PREFIXES) {
+      expect(
+        isLocalizableRoute(prefix),
+        `${prefix} is excluded from link rendering`
+      ).toBe(false)
+    }
+
+    for (const prefix of NON_LOCALIZED_PREFIXES) {
+      expect(
+        UNLOCALIZED_ROUTE_PREFIXES as readonly string[],
+        `proxy excludes ${prefix} but link rendering would localize it`
+      ).toContain(prefix)
     }
   })
 })

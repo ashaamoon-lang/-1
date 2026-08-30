@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
+import { getMessages } from 'next-intl/server'
 import { VisualEditing } from 'next-sanity/visual-editing'
 import { draftMode } from 'next/headers'
 import { locale as localeRootParam } from 'next/root-params'
@@ -142,6 +143,20 @@ export default async function AppLayout({ children }: PropsWithChildren) {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
+  /*
+   * `locale` and `messages` are passed explicitly rather than left to
+   * next-intl's implicit inheritance.
+   *
+   * Inheritance works in dev, and it works for Server Components in
+   * production. It does NOT survive the static prerender: with
+   * `cacheComponents` on, a client component calling `useTranslations`
+   * under an empty provider makes its whole boundary bail to client-side
+   * rendering, and `/en` and `/id` ship as an empty shell. Measured — the
+   * header and footer vanished from the prerendered HTML the moment they
+   * started translating, while dev kept rendering them.
+   */
+  const messages = await getMessages()
+
   return (
     <html
       lang={LOCALE_TAGS[locale]}
@@ -155,7 +170,7 @@ export default async function AppLayout({ children }: PropsWithChildren) {
       suppressHydrationWarning
     >
       <body>
-        <NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           {/* this helps to track Satus usage thanks to Wappalyzer */}
           <Script
             id="satus-version"

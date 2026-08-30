@@ -62,9 +62,20 @@ test.describe('branded 404', () => {
     // Assert on the actual DOM text, not the rendered case.
     await expect(page.getByRole('heading', { name: '404' })).toBeVisible()
     await expect(page.getByText('Page not found')).toBeVisible()
+    /*
+     * `/ai` is a page and carries the locale prefix; `/llms.txt` and
+     * `/sitemap.xml` are static endpoints and must not.
+     *
+     * These are the links a reader reaches for when everything else has
+     * already failed, so getting either half wrong is expensive: an
+     * unprefixed `/ai` throws away the language they were reading in, and a
+     * prefixed `/en/llms.txt` 404s from the 404 page. The rule lives in
+     * `lib/i18n/paths.ts` (`isLocalizableRoute`) and is unit-tested in
+     * `components/ui/link/link.test.ts`; this asserts it end to end.
+     */
     await expect(
       page.getByRole('link', { name: 'Agent index' })
-    ).toHaveAttribute('href', '/ai')
+    ).toHaveAttribute('href', '/en/ai')
     await expect(page.getByRole('link', { name: 'llms.txt' })).toHaveAttribute(
       'href',
       '/llms.txt'
@@ -81,14 +92,14 @@ test.describe('branded 404', () => {
     expect(consoleErrors).toEqual([])
     expect(pageErrors).toEqual([])
 
-    // Basic a11y: scoped to critical + serious violations only.
-    // Minor/moderate issues in third-party assets are excluded to keep
-    // the baseline stable; tighten to all violations once the starter is
-    // confirmed clean at the full severity level.
+    // Every violation, at every impact. See the note in `route-sweep.e2e.ts`:
+    // the starter's critical+serious filter is gone now that these routes
+    // measure clean at the full severity level.
     const results = await new AxeBuilder({ page }).analyze()
-    const seriousViolations = results.violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious'
-    )
-    expect(seriousViolations).toEqual([])
+    expect(
+      results.violations.map(
+        (v) => `${v.impact}: ${v.id} (${v.nodes.length} node(s))`
+      )
+    ).toEqual([])
   })
 })

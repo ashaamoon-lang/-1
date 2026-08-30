@@ -168,15 +168,24 @@ test.describe('route sweep', () => {
       expect(consoleErrors).toEqual([])
       expect(pageErrors).toEqual([])
 
-      // Basic a11y: scoped to critical + serious violations only.
-      // Minor/moderate issues in third-party assets are excluded to keep
-      // the baseline stable; tighten to all violations once the starter is
-      // confirmed clean at the full severity level.
+      /*
+       * Every violation, at every impact — no severity filter.
+       *
+       * The starter filtered to critical + serious "until the starter is
+       * confirmed clean at the full severity level". It now is: Tahap 2
+       * removed the nested `<main>` (three moderate landmark violations) and
+       * marked the WebGL canvas decorative (one `region` violation on every
+       * page), and these routes measure clean at every impact.
+       *
+       * The filter was not harmless while it lasted. It is exactly what let
+       * four real defects sit in the suite while it reported green.
+       */
       const results = await new AxeBuilder({ page }).analyze()
-      const seriousViolations = results.violations.filter(
-        (v) => v.impact === 'critical' || v.impact === 'serious'
-      )
-      expect(seriousViolations).toEqual([])
+      expect(
+        results.violations.map(
+          (v) => `${v.impact}: ${v.id} (${v.nodes.length} node(s))`
+        )
+      ).toEqual([])
     })
   }
 })

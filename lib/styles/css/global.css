@@ -4,6 +4,14 @@ html {
   --scrollbar-gutter: 0px;
   scrollbar-gutter: stable; /* This is needed to prevent the scrollbar from jumping */
 
+  /*
+   * The header is fixed, so an in-page anchor would otherwise land its target
+   * underneath it — the reader jumps to `#work` and the section heading is
+   * hidden behind the bar. One declaration fixes every anchor on the site,
+   * reading the same `--header-height` the header sizes itself from.
+   */
+  scroll-padding-top: var(--header-height);
+
   &.lenis-stopped {
     --scrollbar-gutter: var(--scrollbar-width);
   }
@@ -17,7 +25,8 @@ html {
  * Derived semantic tokens — depth, hairlines, motion.
  * Surfaces and lines are derived from the active theme's colors via color-mix,
  * so they adapt automatically across every [data-theme] without new palette
- * entries. The red `--color-contrast` doubles as the accent.
+ * entries. `--color-contrast` carries interactive state (focus rings,
+ * checked controls); since Tahap 1 v2 it is the ink itself, not an accent.
  */
 :root {
   --surface: color-mix(

@@ -41,3 +41,44 @@ export function localeFromPath(path: string): Locale | null {
   const [, maybeLocale] = path.split('/')
   return isLocale(maybeLocale) ? maybeLocale : null
 }
+
+/**
+ * Route prefixes that are never served under a locale.
+ *
+ * This is the list a *link* needs, and it is deliberately wider than
+ * `proxy.ts`'s `NON_LOCALIZED_PREFIXES`. Those two are not duplicates:
+ *
+ *  - `proxy.ts` runs after several upstream guards have already excluded
+ *    `/api/*`, `/agent-content` and dotted paths, so its own list only has to
+ *    name what nothing else catches — `/studio`. Its doc comment says so.
+ *  - a link has no upstream guard. `<Link href="/api/draft-mode/enable">`
+ *    renders in one pass, and if it comes out as `/en/api/...` the request
+ *    404s.
+ *
+ * `proxy.test.ts` asserts the proxy's list stays a subset of this one, so the
+ * two can never contradict each other even though they differ in width.
+ */
+export const UNLOCALIZED_ROUTE_PREFIXES = [
+  '/studio',
+  '/api',
+  '/agent-content',
+] as const
+
+/**
+ * A dotted last segment — `/llms.txt`, `/sitemap.xml`, `/icon.png`.
+ *
+ * The same heuristic `proxy.ts` applies: anything with a file extension is a
+ * static endpoint, not a page, and prefixing it produces a 404. The Sanity
+ * schema forbids dots in slugs (see `schemas/page.ts`) precisely so a real
+ * page can never look like one of these.
+ */
+const FILE_EXTENSION = /\/[^/]+\.[^/]+$/
+
+/** Whether a path is a page this app serves under a locale prefix. */
+export function isLocalizableRoute(pathname: string): boolean {
+  if (!pathname.startsWith('/')) return false
+  if (FILE_EXTENSION.test(pathname)) return false
+  return !UNLOCALIZED_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+}

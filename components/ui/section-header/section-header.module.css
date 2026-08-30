@@ -1,0 +1,53 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(12px);
+
+  @media (--desktop) {
+    gap: desktop-vw(16px);
+  }
+}
+
+.eyebrow {
+  /*
+   * Uppercase with open tracking is what makes a mono label read as a label
+   * rather than as small body text. The `caption` type class owns size,
+   * family and leading; only the two properties that make it an eyebrow live
+   * here.
+   */
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: mobile-vw(16px);
+  /*
+   * Wrap rather than shrink. A long title and a trailing link on one line is
+   * the usual cause of a mid-word break on mobile; letting the aside drop is
+   * cheaper than a container query here.
+   */
+  flex-wrap: wrap;
+
+  @media (--desktop) {
+    gap: desktop-vw(24px);
+  }
+}
+
+.title {
+  margin: 0;
+  text-wrap: balance;
+  /* minmax(0, …) equivalent for a flex child — without this the title refuses
+     to shrink below its longest word and pushes the aside off-screen. */
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.aside {
+  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  flex: 0 0 auto;
+}

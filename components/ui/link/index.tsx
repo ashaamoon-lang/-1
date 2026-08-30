@@ -1,7 +1,6 @@
 'use client'
 
 import NextLink from 'next/link'
-import { usePathname } from 'next/navigation'
 import {
   type AnchorHTMLAttributes,
   type ComponentProps,
@@ -10,11 +9,25 @@ import {
   useSyncExternalStore,
 } from 'react'
 
+import {
+  Link as IntlLink,
+  usePathname as useLocalePathname,
+} from '@/lib/i18n/navigation'
+import { isLocalizableRoute, templateFromLocalizedPath } from '@/lib/i18n/paths'
+
 type CustomLinkProps = Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
   keyof ComponentProps<typeof NextLink> | 'href'
 > &
-  Omit<ComponentProps<typeof NextLink>, 'href'> & {
+  /*
+   * `locale` is dropped, not forgotten. `next/link` types it `string | false`
+   * (false meaning "do not add a prefix"); next-intl's Link types it
+   * `string | undefined`, and the two do not unify. More importantly, setting
+   * it here would let a caller pin one link to a language while the rest of
+   * the page follows the URL — which is how a site ends up serving two
+   * languages at once. Locale comes from the route, in one place.
+   */
+  Omit<ComponentProps<typeof NextLink>, 'href' | 'locale'> & {
     href?: string
     onClick?: (e: MouseEvent<HTMLElement>) => void
     scroll?: boolean
@@ -40,6 +53,25 @@ export function isExternalHref(href: string) {
 }
 
 /**
+ * Whether an href names a page this app serves under a locale prefix.
+ *
+ * Three kinds of href look internal but must never be prefixed:
+ *
+ *  - a hash (`#work`), a `mailto:`, a `tel:` — not routes at all. Handing
+ *    `#work` to next-intl's `Link` rewrites it to `/en#work`, which forces a
+ *    full navigation away from the page the reader is on.
+ *  - a static endpoint (`/llms.txt`, `/sitemap.xml`) — `/en/llms.txt` 404s.
+ *  - `/studio`, `/api`, `/agent-content` — deliberately locale-free.
+ *
+ * The last two rules live in `lib/i18n/paths.ts` as `isLocalizableRoute`,
+ * rather than being restated here where they would drift out of step with
+ * routing.
+ */
+function isLocalizableHref(href: string) {
+  return !isExternalHref(href) && isLocalizableRoute(href)
+}
+
+/**
  * Single source of truth for a link's "intent" — whether it's external (and
  * should therefore open in a new tab) and whether it matches the current
  * pathname (and should therefore render as active). Both `Link` itself and
@@ -54,8 +86,28 @@ export function getLinkIntent(
 ) {
   return {
     isExternal: isExternalHref(href) || newTab,
-    isActive: pathname === href,
+    isActive: isActiveHref(href, pathname),
   }
+}
+
+/**
+ * Active-state comparison, done on templates rather than raw strings.
+ *
+ * Every page is served under a locale prefix, so a raw comparison asks
+ * whether `'/id' === '/'` and is permanently false — the bug that left every
+ * nav item rendering as inactive on both locales. Both sides are reduced to
+ * their locale-free template first, so a caller may pass either the
+ * next-intl pathname (`/work`) or a full localized one (`/id/work`) and get
+ * the same answer.
+ */
+function isActiveHref(href: string, pathname: string | null) {
+  if (pathname === null) return false
+  return toTemplate(pathname) === toTemplate(href)
+}
+
+/** A path reduced to its locale-free form; already-template paths pass through. */
+function toTemplate(path: string) {
+  return templateFromLocalizedPath(path) ?? path
 }
 
 // Browser Network Information API (not in the DOM lib types). Present on Chromium.
@@ -97,7 +149,10 @@ export function Link({
   newTab = false,
   ...props
 }: CustomLinkProps) {
-  const pathname = usePathname()
+  // next-intl's `usePathname`, not the one from `next/navigation`: it returns
+  // the path with the locale prefix already stripped, which is the form
+  // `isActiveHref` compares against.
+  const pathname = useLocalePathname()
 
   // Derived during render straight from `href`. The string check is
   // deterministic on both server and client, so the SSR markup and the first
@@ -152,22 +207,45 @@ export function Link({
     return <div {...typedDivProps}>{children}</div>
   }
 
-  // New-tab links (external or explicit `newTab`) ride the same NextLink —
-  // it passes `target`/`rel` through to the anchor, skips client routing for
-  // absolute URLs on its own, and prefetching a new-tab destination is waste.
+  const shared = {
+    prefetch: opensNewTab ? false : shouldPrefetch,
+    scroll,
+    'data-active': isActive || undefined,
+    ...(opensNewTab && { target: '_blank', rel: 'noopener noreferrer' }),
+    ...(onClick && { onClick }),
+    ...props,
+  }
+
+  // A route in this app: rendered through next-intl's Link so the reader's
+  // locale prefix survives the navigation. Without this, `/work` sends
+  // someone reading `/id/...` to `/work`, which proxy.ts re-negotiates from
+  // their browser's Accept-Language — silently discarding the language they
+  // chose. `lib/i18n/navigation.ts` documents the same failure.
+  if (isLocalizableHref(href) && !opensNewTab) {
+    return (
+      // SAFETY: hrefs arrive as arbitrary strings (CMS links, nav data), which
+      // typed routes cannot verify statically; `isLocalizableHref` has already
+      // established this one is a root-relative path. The cast only exists
+      // against `next typegen` output, so an un-typegen'd tsc run calls it
+      // redundant.
+      <IntlLink
+        href={href as ComponentProps<typeof IntlLink>['href']}
+        {...shared}
+      >
+        {children}
+      </IntlLink>
+    )
+  }
+
+  // Everything else — absolute URLs, explicit new-tab, hashes, mailto:, tel:.
+  // NextLink passes `target`/`rel` through to the anchor, skips client routing
+  // for absolute URLs on its own, and prefetching a new-tab destination is
+  // waste. None of these take a locale prefix.
   return (
     <NextLink
-      // SAFETY: hrefs arrive as arbitrary strings (CMS links, external URLs),
-      // which typed routes cannot verify statically; this component resolves
-      // internal-vs-external handling at runtime. The cast only exists under
-      // `next typegen` output, so an un-typegen'd tsc run calls it redundant.
+      // SAFETY: see the cast above — same reasoning, for the non-route branch.
       href={href as ComponentProps<typeof NextLink>['href']}
-      prefetch={opensNewTab ? false : shouldPrefetch}
-      scroll={scroll}
-      data-active={isActive || undefined}
-      {...(opensNewTab && { target: '_blank', rel: 'noopener noreferrer' })}
-      {...(onClick && { onClick })}
-      {...props}
+      {...shared}
     >
       {children}
     </NextLink>

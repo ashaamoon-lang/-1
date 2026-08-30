@@ -134,6 +134,22 @@ function Select<T extends string = string>({
           s.trigger,
           className
         )}
+        /*
+         * Without a visible `label`, the trigger has NO accessible name.
+         *
+         * Base UI points the trigger's `aria-labelledby` at its `Select.Label`.
+         * When no label is rendered that reference resolves to nothing, and an
+         * empty `aria-labelledby` wins over the trigger's own text content — so
+         * the visible placeholder is not the name, and the control announces as
+         * an unlabelled button. axe reports it as `button-name`, impact
+         * serious, and `e2e/storybook-a11y.e2e.ts` caught it on three of the
+         * four Select stories the moment that gate existed.
+         *
+         * Naming it from the placeholder is a floor, not a substitute for a
+         * real label: a visible `label` is still the better choice, and it
+         * takes precedence here whenever one is present.
+         */
+        {...(!label && placeholder && { 'aria-label': placeholder })}
       >
         <BaseSelect.Value>
           {(state) => state?.value || placeholder}

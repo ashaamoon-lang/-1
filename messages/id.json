@@ -1,8 +1,12 @@
 {
   "nav": {
+    "primary": "Utama",
     "work": "Karya",
     "studio": "Studio",
     "contact": "Kontak",
+    "storybook": "Storybook",
+    "openMenu": "Menu",
+    "closeMenu": "Tutup",
     "skipToContent": "Lewati ke konten utama"
   },
   "home": {
@@ -23,5 +27,12 @@
   "language": {
     "label": "Bahasa",
     "switchTo": "Ganti ke {language}"
+  },
+  "footer": {
+    "contact": "Pesanan",
+    "elsewhere": "Di tempat lain",
+    "colophon": "Kolofon",
+    "rights": "Seluruh karya © {year} Arth. Reproduksi hanya dengan kesepakatan.",
+    "builtOn": "Dibangun di atas Satūs oleh darkroom.engineering, berlisensi MIT. Hurufnya Syne dan Geist Mono."
   }
 }

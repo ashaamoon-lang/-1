@@ -1,53 +1,125 @@
 .footer {
-  padding: var(--safe);
-  padding-top: calc(var(--safe) * 1.5);
-  padding-bottom: calc(var(--safe) * 1.5);
-  font-family: var(--next-font-mono);
-  font-size: calc((10 * 100) / var(--device-width) * 1vw);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  padding-inline: var(--safe);
+  padding-block: mobile-vw(48px) mobile-vw(32px);
   border-top: 1px solid var(--line);
-
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: calc((16 * 100) / var(--device-width) * 1vw);
+  gap: mobile-vw(40px);
 
   @media (--desktop) {
-    font-size: calc((11 * 100) / var(--device-width) * 1vw);
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
+    padding-block: desktop-vw(96px) desktop-vw(40px);
+    gap: desktop-vw(64px);
   }
 }
 
-.logo {
+.columns {
+  display: grid;
+  /* minmax(0, 1fr), never bare 1fr — a long email address in a bare track
+     refuses to shrink and pushes the page sideways on mobile. */
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: mobile-vw(32px);
+
+  @media (--desktop) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gap);
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(10px);
+  min-width: 0;
+
+  @media (--desktop) {
+    gap: desktop-vw(12px);
+  }
+}
+
+.heading {
+  /*
+   * A real `<h2>`, styled down to a mono label. Screen-reader users navigate
+   * a footer by its headings; styling one as a label is a visual decision and
+   * should not cost the outline.
+   */
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: color-mix(in oklab, var(--color-secondary) 55%, transparent);
+  margin: 0;
+  font-weight: 400;
+}
+
+.email {
+  text-decoration: none;
+  color: var(--color-secondary);
+  /* Long addresses break rather than widening the grid track. */
+  overflow-wrap: anywhere;
   transition: opacity var(--duration-fast) var(--ease-out-expo);
 
   @media (--hover) {
     &:hover {
-      opacity: 0.65;
+      opacity: 0.7;
     }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 4px;
   }
 }
 
-.links {
+.list {
   display: flex;
-  align-items: center;
-  gap: 0.6em;
-}
+  flex-direction: column;
+  gap: mobile-vw(6px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 
-.separator {
-  opacity: 0.3;
+  @media (--desktop) {
+    gap: desktop-vw(6px);
+  }
 }
 
 .link {
+  text-decoration: none;
+  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
   transition: color var(--duration-fast) var(--ease-out-expo);
 
   @media (--hover) {
     &:hover {
-      color: var(--color-contrast);
+      color: var(--color-secondary);
       text-decoration: none;
     }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+}
+
+.note,
+.rights {
+  margin: 0;
+  color: color-mix(in oklab, var(--color-secondary) 55%, transparent);
+  max-width: 46ch;
+}
+
+.rights {
+  border-top: 1px solid var(--line);
+  padding-top: mobile-vw(20px);
+  max-width: none;
+
+  @media (--desktop) {
+    padding-top: desktop-vw(24px);
+  }
+}
+
+@media (--reduced-motion) {
+  .email,
+  .link {
+    transition: none;
   }
 }

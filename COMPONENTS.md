@@ -18,6 +18,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Fold | `@/components/ui/fold` | Client |
 | Form | `@/components/ui/form` | Client |
 | Image | `@/components/ui/image` | Client |
+| LanguageSwitcher | `@/components/ui/language-switcher` | Client |
 | Link | `@/components/ui/link` | Client |
 | Marquee | `@/components/ui/marquee` | Client |
 | Menu | `@/components/ui/menu` | Client |
@@ -26,6 +27,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | RealViewport | `@/components/ui/real-viewport` | Client |
 | SanityImage | `@/components/ui/sanity-image` | Server |
 | Scrollbar | `@/components/ui/scrollbar` | Client |
+| SectionHeader | `@/components/ui/section-header` | Server |
 | Select | `@/components/ui/select` | Client |
 | Switch | `@/components/ui/switch` | Client |
 | Tabs | `@/components/ui/tabs` | Client |
