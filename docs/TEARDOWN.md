@@ -109,9 +109,19 @@ Two rules fall out, and both are cheap to follow and expensive-looking:
 `oklch()`, and darkroom's own production site ships `lab()` with
 `color-mix(in oklab, …)`. Perceptual colour space is not decoration — it is
 what makes a tint ramp keep its chroma instead of going muddy. Satūs also
-ships a contrast test (`lib/styles/scripts/contrast.test.ts`) that pins its
-red to `oklch(0.592 …)` so it clears WCAG AA on both grounds. That is the
+ships a contrast test (`lib/styles/scripts/contrast.test.ts`). That is the
 level of rigour worth keeping.
+
+> **Correction, and a limit on rule 1.** An earlier version of this paragraph
+> said Satūs pins its red to `oklch(0.592 …)` "so it clears WCAG AA on both
+> grounds". Measurement says otherwise: that hue peaks at **4.58:1** on pure
+> black/white and **4.19:1** on this project's off-grounds — under the 4.5
+> body-text floor either way. No lightness of it recovers that.
+>
+> Rule 1 above is also **not** the rule this project follows. It holds for the
+> studios measured here, whose content carries no colour of its own. This site
+> shows artwork, so it ships **no chromatic accent at all**. The reasoning is
+> in `docs/stages/TAHAP-1.md` §0; rule 2 survives unchanged.
 
 ---
 

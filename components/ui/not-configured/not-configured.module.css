@@ -92,16 +92,12 @@
 .instructions {
   padding: calc(24 / 375 * 100vw) calc(24 / 375 * 100vw);
   border-bottom: 1px solid var(--line);
-  /* var(--color-contrast) (the red token, #e9161a) is 4.08:1 on the panel's
-     --surface (#f2f2f2) and only 3.59:1 on the envBlock's --surface-2
-     (#e4e4e4) — both under WCAG AA's 4.5:1 (e2e axe pass on /sanity's
-     unconfigured variant). The red is meaningful here (the shared accent
-     used on .accent, .instructionsLabel, and .envVar), so darken it locally
-     rather than dropping the color. #c41317 is 5.43:1 on #f2f2f2 and 4.78:1
-     on #e4e4e4 — both clear 4.5. Scoped here (not on .instructionsLabel
-     alone) so .envVar, a sibling descendant of this container, can use it
-     too. The global --color-red token is untouched. */
-  --accent-readable: oklch(52.16% 0.2047 27.69);
+  /* Was a locally darkened red, needed because the old chromatic accent only
+     reached 4.08:1 on this panel. The palette has no chromatic accent any more
+     (see lib/styles/colors.ts), so --color-contrast is the ink itself at
+     17.24:1 against its ground — nothing to compensate for, and a local red
+     would now be the only colour in an otherwise neutral system. */
+  --accent-readable: var(--color-contrast);
 
   @media (--desktop) {
     padding: calc(28 / 1440 * 100vw) calc(32 / 1440 * 100vw);
@@ -178,9 +174,7 @@
 .envVar {
   font-family: var(--font-mono);
   font-size: calc(10 / 375 * 100vw);
-  /* See --accent-readable comment on .instructions above: var(--color-contrast)
-     is 3.59:1 on this element's envBlock (--surface-2, #e4e4e4) — under
-     WCAG AA. --accent-readable is 4.78:1 on #e4e4e4. */
+  /* --accent-readable now resolves to --color-contrast; see .instructions. */
   color: var(--accent-readable);
 
   @media (--desktop) {

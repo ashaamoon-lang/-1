@@ -37,7 +37,7 @@ export function DisableDraftMode() {
     // oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- deliberate bare anchor: the Link component prefetches, and a prefetch of this route handler disables draft mode (see comment above)
     <a
       href="/api/draft-mode/disable"
-      className="text-sm fixed top-safe right-safe z-50 bg-red dr-p-4 font-mono text-primary uppercase"
+      className="text-sm fixed top-safe right-safe z-50 bg-contrast dr-p-4 font-mono text-primary uppercase"
     >
       Disable Draft Mode
     </a>

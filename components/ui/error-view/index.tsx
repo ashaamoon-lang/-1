@@ -21,7 +21,7 @@ const DEFAULT_HOME_LINK = (
   // oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- global-error renders outside the router, so the Link component cannot be used here
   <a
     href="/"
-    className="rounded border-gray-300 px-6 py-3 hover:bg-gray-50 border transition-colors"
+    className="border border-secondary dr-px-24 dr-py-12 cta uppercase transition-colors hover:bg-secondary hover:text-primary"
   >
     Go Home
   </a>
@@ -46,16 +46,16 @@ export function ErrorView({
   }, [error])
 
   return (
-    <div className="my-auto flex flex-col items-center justify-center dr-gap-y-24 uppercase">
-      <h1 className="mb-4 font-bold text-4xl">{title}</h1>
-      <p className="mb-6 text-gray-600 text-lg">{description}</p>
+    <div className="my-auto flex flex-col items-center justify-center dr-gap-y-24 dr-px-16 text-center uppercase">
+      <h1 className="h2 text-balance">{title}</h1>
+      <p className="dr-max-w-480 p-big opacity-70">{description}</p>
 
       {process.env.NODE_ENV === 'development' && (
-        <details className="mb-6 text-left">
-          <summary className="text-gray-500 text-sm hover:text-gray-700 cursor-pointer">
+        <details className="dr-max-w-720 text-left">
+          <summary className="cursor-pointer caption opacity-70 hover:opacity-100">
             Error Details (Development Only)
           </summary>
-          <pre className="mt-2 rounded bg-gray-100 p-4 text-xs overflow-auto">
+          <pre className="dr-mt-8 overflow-auto bg-(--surface-2) dr-p-16 caption normal-case">
             {error.message}
             {error.digest && `\nDigest: ${error.digest}`}
             {error.stack && `\n\n${error.stack}`}
@@ -63,11 +63,11 @@ export function ErrorView({
         </details>
       )}
 
-      <div className="gap-4 flex justify-center">
+      <div className="flex flex-wrap justify-center dr-gap-16">
         <button
           onClick={reset}
           type="button"
-          className="rounded px-6 py-3 hover:bg-gray-800 bg-black text-white transition-colors"
+          className="border border-secondary bg-secondary dr-px-24 dr-py-12 cta text-primary uppercase transition-colors hover:bg-transparent hover:text-secondary"
         >
           Try Again
         </button>

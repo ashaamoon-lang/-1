@@ -1,7 +1,21 @@
+/*
+ * The submit button carries no status hue.
+ *
+ * It used to fill green on success and white on error, which the gallery
+ * palette no longer has a colour for — and which signalled state by colour
+ * alone. The label already switches to `successText` / `errorText`, and the
+ * error copy renders in `.messages`, so state stays legible without one.
+ *
+ * The button is an inversion of the page: ink fill, paper label. Hover wipes
+ * back to the ground, so the outline is what keeps it a button at that moment
+ * rather than a hole in the page.
+ */
 .submit {
   position: relative;
   background-color: var(--color-secondary);
   color: var(--color-primary);
+  outline: 1px solid var(--color-secondary);
+  outline-offset: -1px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -9,18 +23,22 @@
   &.disabled {
     pointer-events: none;
     background-color: var(--color-secondary);
-    color: oklch(0 0 0 / 0.25);
+    color: color-mix(in oklab, var(--color-primary) 45%, transparent);
     opacity: 0.5;
   }
 
   &.submitted {
     pointer-events: none;
-    background: var(--color-green);
+    background: var(--surface-2);
+    color: var(--color-secondary);
   }
 
   &.error {
     pointer-events: none;
-    background: var(--color-white);
+    background: var(--color-primary);
+    color: var(--color-secondary);
+    outline: 1px solid var(--line-strong);
+    outline-offset: -1px;
   }
 
   &.pending {
@@ -41,13 +59,13 @@
     transform: translate(-50%, -50%);
     width: 100%;
     height: 100%;
-    background-color: var(--color-black);
+    background-color: var(--color-primary);
     clip-path: circle(0%);
   }
 
   @media (--hover) {
     &:hover {
-      color: var(--color-white);
+      color: var(--color-secondary);
 
       &::before {
         transition: 1000ms clip-path var(--ease-gleasing);
@@ -69,6 +87,6 @@
   }
 
   .error {
-    color: var(--color-white);
+    color: var(--color-secondary);
   }
 }

@@ -3,131 +3,214 @@
 Stage-spec yang diwajibkan `docs/ROADMAP.md` §3.0. Tidak ada kode ditulis
 sebelum dokumen ini ada.
 
-**Kenapa tahap ini sekarang, bukan nanti.** `docs/DESIGN-SYSTEM.md` sudah
-menetapkan _struktur_ (satu aksen, dua family, 2–3 weight, oklch) tapi
-sengaja membiarkan _nilainya_ terbuka. Selama masih terbuka, setiap komponen
-yang ditulis berisiko dibongkar ulang. Mengunci sekarang berarti Tahap 2
-menulis komponen sekali.
+**Dokumen ini adalah versi kedua.** Versi pertama dikerjakan sampai selesai
+dan hijau, lalu ditolak. §0 mencatat kenapa — bukan sebagai basa-basi, tapi
+karena kesalahannya spesifik dan bisa terulang kalau tidak ditulis.
 
 ---
 
-## 1. Hasil query skill
+## 0. Kenapa Tahap 1 diulang
 
-Dijalankan sesuai ritual §2.1 roadmap. Hasilnya **dinilai, bukan ditelan** —
-`docs/TEARDOWN.md` menang kalau bertentangan, karena itu pengukuran situs
-nyata, bukan katalog umum.
+Versi pertama mengunci **Geist + Geist Mono** dengan **satu aksen merah
+berkroma tinggi** (`oklch(0.592 0.2339 27.95)` ≈ `#e71419`). Alasannya:
+sepuluh situs pemenang award yang diukur di `docs/TEARDOWN.md` semuanya
+membawa persis satu aksen berkroma tinggi.
 
-### `--domain color`
+Pengukurannya benar. **Penerapannya salah**, dan kesalahannya milik saya.
 
-Skill mengembalikan pola _Portfolio/Personal_: monokrom `#18181B`/`#FAFAFA`
-dengan aksen **`#2563EB`**, catatan "Monochrome + blue accent".
+`TEARDOWN.md` mengukur _studio kreatif dan teknologi_ — basement.studio,
+darkroom.engineering, Lusion, Iventions. Isi situs mereka adalah kode, tipe,
+dan 3D: material yang tidak berwarna sendiri. Di situs seperti itu aksen
+**adalah** identitas, karena tidak ada yang lain yang bisa memegangnya.
 
-**Diambil:** strukturnya — ground monokrom, satu aksen. Itu mengonfirmasi
-`TEARDOWN.md` §3 secara independen.
+Situs ini bukan itu. Arth memajang **karya pesanan** — lukisan, mural,
+ilustrasi. Karyanya sendiri yang berwarna. Aksen jenuh di sekitarnya bukan
+identitas, melainkan pesaing: setiap gambar di halaman harus berebut perhatian
+dengan sebuah merah yang tidak ada hubungannya dengan karya itu.
 
-**Ditolak:** warnanya. `#2563EB` adalah biru default yang ada di hampir setiap
-UI kit. Tidak satu pun dari sepuluh situs yang diukur memakai biru semacam
-itu sebagai aksen. Memakainya berarti mengambil persis ciri "templated" yang
-seluruh riset ini ada untuk dihindari.
+Dua sumber independen mengatakan hal yang sama, dan keduanya sudah ada di
+repo ini sejak Tahap B:
 
-### `--domain typography`
+- palet **Museum/Gallery** di `.claude/skills/ui-ux-pro-max` menetapkan
+  `Accent` **sama persis** dengan `Primary` (`#18181B`) — galeri tidak punya
+  aksen kromatik;
+- pola **Portfolio Grid** di skill yang sama menyatakan strateginya terang-
+  terangan: _"Neutral background (let work shine). Accent: Minimal."_
 
-Tiga pasangan dikembalikan:
+Versi pertama menanyakan skill dengan `--domain color` dan mendapat pola
+_Portfolio/Personal_. Yang tidak saya lakukan adalah menanyakan pola yang
+benar untuk jenis konten ini. Itu bukan kegagalan alat.
 
-| Pasangan                                           | Penilaian                                                                                                  |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Playfair Display + Source Serif 4 + JetBrains Mono | Register salah. Serif editorial/luxury, bukan neo-grotesque yang diukur.                                   |
-| Archivo + Space Grotesk                            | Terdekat secara maksud, tapi **tanpa mono** — dan mono terbukti dipakai di 4 dari 10 situs untuk metadata. |
-| Libre Bodoni + Public Sans                         | Register majalah. Bukan studio.                                                                            |
+### Bukti tambahan yang datang dari kegagalan itu sendiri
 
-**Kesimpulan jujur: tidak ada yang cocok.** Situs yang diukur memakai
-neo-grotesque netral (Aeonik, Söhne, Apercu, Geist) berpasangan dengan mono.
-Rekomendasi di §2 datang dari `TEARDOWN.md`, bukan dari skill — dan itu
-dicatat di sini supaya keputusannya bisa ditelusuri.
+Versi pertama meninggalkan **12 pasangan sub-AA** di
+`contrast-baseline.json`, semuanya berasal dari aksen merah, dan `axe` menemukan
+**3 pelanggaran serius** di halaman 404 yang harus diperbaiki di sumbernya.
+Merah itu tidak pernah lolos 4.5:1 sebagai teks di atas ground manapun — bukan
+karena lightness-nya salah pilih, tapi karena **tidak ada** lightness dari hue
+itu yang bisa: puncaknya 4.19:1 di atas ground proyek ini dan 4.41:1 bahkan di
+atas putih murni. Itu dihitung, bukan ditebak.
+
+Sistem warna yang benar untuk konten ini menghapus masalah itu, tidak
+menegosiasikannya.
+
+---
+
+## 1. Keputusan: warna
+
+**Dua netral hangat. Nol aksen kromatik.**
+
+| Token   | oklch                   | ≈ hex     | Peran                |
+| ------- | ----------------------- | --------- | -------------------- |
+| `ink`   | `oklch(0.17 0.006 66)`  | `#110f0d` | ground gelap / teks  |
+| `paper` | `oklch(0.964 0.006 92)` | `#f4f3ef` | ground terang / teks |
+
+Dipetakan ke dua tema:
+
+| Tema    | `primary` | `secondary` | `contrast` |
+| ------- | --------- | ----------- | ---------- |
+| `light` | paper     | ink         | ink        |
+| `dark`  | ink       | paper       | paper      |
+
+**Tema `red` dihapus.** Ia mendeskripsikan tema yang tidak pernah dipakai
+halaman manapun, dan tanpa aksen kromatik ia tidak mendeskripsikan apa-apa.
+Menghapusnya juga membersihkan seluruh baris `red/*` dari baseline kontras.
+
+### Netralnya hangat, dan itu pilihan
+
+Abu-abu murni terbaca sebagai tidak dipertimbangkan. Kedua netral ini membawa
+bias hangat kecil (hue ~66° dan ~92° pada kroma sangat rendah), yang terbaca
+sebagai kertas dan pigmen alih-alih layar. Pergeserannya cukup halus sehingga
+tidak ada gambar di atasnya yang tertular cast warna.
+
+Ground tetap lepas dari `#000`/`#fff` murni sesuai `TEARDOWN.md` §3 — itu
+temuan yang tetap berlaku dan tidak ikut dibatalkan.
+
+### Kenapa `contrast` bukan warna ketiga
+
+Komponen memakai `--color-contrast` untuk state interaktif: focus ring,
+checkbox tercentang, isian switch, error form. Mengisinya dengan ink itu
+sendiri memberi focus ring **17.24:1** terhadap ground-nya — jauh di atas
+4.32:1 yang dicapai merah, dan WCAG 2.2 hanya meminta 3:1 untuk indikator
+non-teks. Token-nya tetap ada supaya warna brand di masa depan bisa masuk di
+satu tempat tanpa menyentuh setiap komponen.
+
+### Hasil terukur
+
+Seluruh 18 pasangan yang diukur `contrast.test.ts` lolos WCAG AA. Yang
+terendah adalah `secondary on surface-2` di **14.22:1** terhadap minimum 4.5.
+APCA terendah |Lc| **86.1** terhadap ambang 60.
+
+`contrast-baseline.json` sekarang **kosong**: `{ "accepted": {},
+"apcaAccepted": {} }`. Tidak ada satu pun pengecualian sadar yang tersisa,
+turun dari 12.
 
 ---
 
 ## 2. Keputusan: typeface
 
-**Geist + Geist Mono.**
+**Syne (display) + Geist Mono (mono).**
 
-Ini bukan selera. `TEARDOWN.md` §4 mencatat basement.studio — agensi pemenang
-award — mengirim **Geist + Geist Mono** di produksi. Dari semua typeface di
-set pengukuran (Aeonik, Apercu, Söhne, Maisonneue, ABC Arizona, Brier), Geist
-adalah **satu-satunya yang open-source dan gratis**.
+`Syne` digambar untuk **Synesthésie**, sebuah pusat seni di Prancis, dan
+dipakai luas di konteks seni kontemporer. Provenance itu justru intinya: situs
+ini duduk di sekitar karya seni, dan huruf dari dunia seni terbaca sebagai
+milik tempat itu dengan cara yang tidak bisa dicapai sans UI serba-guna.
 
-Terverifikasi tersedia lewat `next/font/google` dengan sumbu `wght` variabel
-untuk keduanya, jadi pola `fonts.ts` yang ada (tanpa `weight` eksplisit)
-bekerja tanpa perubahan.
+**Yang diganti: Geist.** Geist huruf yang bagus dan basement.studio memang
+mengirimkannya. Tapi ia sans teknologi yang netral — dan netralitas persis
+yang tidak bisa dibayar situs ini begitu palet melepas aksennya. Kalau warna
+tidak lagi memegang identitas, tipografi yang harus.
 
-**Yang diganti:** `Oswald`. Itu sans _condensed_ — register poster, bukan
-studio. Placeholder bawaan Satūs, dan tidak pernah dipilih untuk proyek ini.
+**Geist Mono tetap.** Setiap situs yang diukur di `TEARDOWN.md` §4
+memasangkan display face-nya dengan mono yang membawa label, caption, dan
+metadata. Pembagian kerja itulah yang membuat portofolio terbaca sebagai
+direkayasa, bukan sekadar dihias.
 
-**Yang tetap terbuka:** typeface komersial masih celah #1 di
-`docs/RESOURCES.md`. Geist membuat situs ini terlihat disengaja dan konsisten
-dengan bukti, tapi Aeonik atau Söhne berlisensi tetap upgrade nyata kalau
-studio mau membelinya nanti. Menukarnya belakangan hanya menyentuh
-`lib/styles/fonts.ts`.
+Keduanya tersedia lewat `next/font/google` dengan sumbu `wght` variabel (Syne
+400–800, Geist Mono 100–900), jadi pola `fonts.ts` tanpa `weight` eksplisit
+bekerja tanpa perubahan — satu file per family, bukan satu file per weight.
 
----
+### Skala yang ikut berubah
 
-## 3. Keputusan yang butuh user: aksen
+Mengganti display face mengubah metrik, jadi skalanya disetel ulang, bukan
+diwarisi:
 
-Struktur sudah pasti — **satu** aksen berkroma tinggi di atas ground
-off-black/off-white. Hue-nya keputusan brand, bukan keputusan teknis.
+| Style     | v1                    | v2                      | Alasan                                            |
+| --------- | --------------------- | ----------------------- | ------------------------------------------------- |
+| `h1`      | lh 80%, track −0.05em | lh **85%**, **−0.04em** | Syne berbadan lebih tinggi; 80% menabrakkan baris |
+| `h2`      | w700, lh 80%          | **w600**, lh **90%**    | sama, pada ukuran lebih kecil                     |
+| `p-big`   | mono                  | **display**             | prosa dibaca, bukan dipindai                      |
+| `p`       | mono                  | **display**             | idem                                              |
+| `caption` | 8 → 10px              | **11 → 12px**           | 8px di bawah lantai keterbacaan manapun           |
 
-Aksen yang benar-benar diukur (`docs/TEARDOWN.md` §3):
-
-| Situs                | Aksen     | Karakter                          |
-| -------------------- | --------- | --------------------------------- |
-| basement.studio      | `#ff4d00` | oranye, paling berani             |
-| Minh Pham            | `#eb5939` | oranye-merah, lebih hangat/lembut |
-| darkroom.engineering | `#e71419` | merah murni                       |
-| Lando Norris         | `#d2ff00` | lime asam                         |
-| Lusion               | `#c1ff00` | hijau asam                        |
-| Iventions            | `#9c93e8` | periwinkle, paling tenang         |
-
-Polanya: **hangat (oranye/merah) atau asam (lime)**. Tidak ada yang memakai
-biru default.
-
-Apapun yang dipilih akan ditulis dalam `oklch()` dan diuji `contrast.test.ts`
-sebelum dikunci — Satūs menyematkan merahnya di `oklch(0.592 …)` justru karena
-hanya di pita sempit itu satu warna lolos WCAG AA di atas hitam _dan_ putih.
+Baris `caption` menutup cacat yang v1 **tandai tapi tidak perbaiki**:
+dokumen lama memuat "Flag for review: `caption` at 8px mobile is below the
+12px minimum". Menandai bukan memperbaiki.
 
 ---
 
-## 4. Ground: lepas dari hitam/putih murni
+## 3. Konsekuensi di komponen
 
-`TEARDOWN.md` §3 menemukan situs yang terasa paling dipertimbangkan tidak
-memakai `#000`/`#fff` murni: Lando Norris `#111112`/`#f4f4ed`, Minh Pham
-`#0d0d0d`, By-Kin `#242527`/`#f4f2ed`.
+Menghapus `--color-black`, `--color-white`, `--color-green`, `--color-blue`
+dan `--color-red` membuat setiap komponen yang memakai literal itu berhenti
+bekerja secara diam-diam — utility Tailwind-nya tidak lagi punya nilai.
+Semuanya adalah pelanggaran aturan keras #9 (`CLAUDE.md`: _"Semantic tokens,
+not literals"_) yang sudah ada sebelum tahap ini, dan sekarang terlihat:
 
-Saat ini `lib/styles/colors.ts` memakai `oklch(0 0 0)` dan `oklch(1 0 0)` —
-hitam dan putih murni. Menggesernya sedikit adalah perubahan kecil dengan
-dampak besar pada kesan "disengaja".
+| File                                       | Sebelum                              | Sesudah                                       |
+| ------------------------------------------ | ------------------------------------ | --------------------------------------------- |
+| `app/[locale]/layout.tsx` (skip link)      | `bg-black text-white ring-white`     | `bg-secondary text-primary ring-contrast`     |
+| `components/ui/form/form.module.css`       | fill hijau/putih untuk sukses/error  | netral + outline; label yang menandakan state |
+| `components/ui/error-view/index.tsx`       | `bg-black text-white`, `gray-*` mati | token semantik + utility `dr-*`               |
+| `components/ui/accordion/*.stories.tsx`    | `border-white/20`                    | `border-secondary/20`                         |
+| `.../sanity/components/disable-draft-mode` | `bg-red`                             | `bg-contrast`                                 |
+| `components/ui/not-configured/*.css`       | override merah lokal                 | `var(--color-contrast)`                       |
+| `components/ui/not-found-view/*.css`       | referensi aksen basi                 | isian terbalik + `color-mix`                  |
+
+Catatan jujur soal `error-view`: utility `px-6`, `mb-4`, `text-4xl`,
+`bg-gray-100` di file itu **sudah mati sebelum tahap ini** — `tailwind.css`
+mereset `--spacing-*` dan `--color-*` ke `initial`, jadi skala bawaan Tailwind
+tidak pernah ada di proyek ini. Diperbaiki sekalian karena membiarkan padding
+yang tidak berfungsi di sebelah warna yang baru dibetulkan bukan pilihan.
+
+State sukses/error pada form sekarang **tidak disandikan warna sama sekali**.
+Label tombol sudah berganti ke `successText`/`errorText` dan pesan error
+dirender di `.messages`, jadi tidak ada informasi yang hilang — dan tidak ada
+lagi state yang hanya bisa dibedakan lewat warna.
 
 ---
 
-## 5. File yang disentuh
+## 4. File yang disentuh
 
-- `lib/styles/fonts.ts` — Oswald → Geist, Spline Sans Mono → Geist Mono
-- `lib/styles/colors.ts` — ground off-black/off-white, aksen terpilih (oklch)
-- `lib/styles/typography.ts` — periksa ulang skala terhadap metrik Geist
-- `docs/DESIGN-SYSTEM.md` — ganti placeholder dengan nilai yang benar-benar dipilih
-- `lib/styles/scripts/contrast-baseline.json` — hanya jika ada baseline sadar
+- `lib/styles/colors.ts` — dua netral, dua tema, tema `red` dihapus
+- `lib/styles/fonts.ts` — Geist → Syne; Geist Mono tetap
+- `lib/styles/typography.ts` — skala disetel ke metrik Syne; prosa ke display
+- `lib/styles/css/tailwind.css` — regenerasi (`bun run setup:styles`)
+- `lib/styles/scripts/contrast-baseline.json` — dikosongkan
+- `app/[locale]/layout.tsx`, `app/manifest.ts` — `themes.red` → `themes.dark`
+- komponen di tabel §3
+- `docs/DESIGN-SYSTEM.md` — §1 dan §2 ditulis ulang
 
-## 6. Kriteria keluar
+## 5. Kriteria keluar — status
 
-- `bun test lib/styles/scripts/contrast.test.ts` hijau, **tanpa di-silence**
-- `bun run check`, `bun run build`, `CI=true bun run test:e2e` hijau
-- Storybook merender palet dan tipografi baru
-- `DESIGN-SYSTEM.md` memuat nilai nyata, bukan placeholder
-- Nol nilai desain hardcode masuk lewat perubahan ini
+| Kriteria                                            | Status                               |
+| --------------------------------------------------- | ------------------------------------ |
+| `contrast.test.ts` hijau **tanpa di-silence**       | ✅ baseline kosong, bukan diterima   |
+| `bun run check`                                     | ✅ 328 test lulus                    |
+| `bun run build`                                     | ✅ `/en` dan `/id` tetap `○ Static`  |
+| `bun run build-storybook`                           | ✅                                   |
+| `CI=true bun run test:e2e` (termasuk axe)           | ✅ 19 lulus                          |
+| Nol nilai desain hardcode masuk lewat perubahan ini | ✅ satu `oklch(0 0 0 / .25)` dihapus |
 
-## 7. Risiko
+## 6. Yang belum terverifikasi, dinyatakan eksplisit
 
-Yang paling mungkin gagal: **kontras aksen**. Aksen berkroma tinggi seperti
-lime `#d2ff00` sangat terang — kontrasnya bagus di atas hitam dan buruk di
-atas putih. Kalau warna terpilih tidak lolos di kedua ground, pilihannya
-adalah menyesuaikan lightness-nya di oklch (mengubah warnanya) atau membatasi
-pemakaiannya ke satu tema. Itu dilaporkan, bukan diam-diam di-baseline.
+- **Tidak ada profiling browser.** Tidak ada angka performa di tahap ini, dan
+  tidak ada yang diklaim. Batasan lingkungan ini tercatat di
+  `docs/TEARDOWN.md` dan `docs/RESOURCES.md`.
+- **Sistem ini belum diuji di atas karya nyata.** Seluruh argumen "netral
+  supaya karya yang berwarna" masuk akal secara desain dan didukung dua sumber,
+  tapi belum ada satu pun gambar karya di dataset. Penilaian sebenarnya baru
+  bisa dilakukan setelah Tahap 4.
+- **Typeface komersial masih celah #1** di `docs/RESOURCES.md`. Syne adalah
+  pilihan open-source terbaik untuk register ini, bukan pilihan terbaik secara
+  mutlak. Menukarnya nanti hanya menyentuh `lib/styles/fonts.ts`.

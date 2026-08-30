@@ -24,83 +24,102 @@ defect, not a shortcut.
 
 ## 1. Colour
 
-### The rule the measurement supports
+### The rule this project follows
 
-**An off-black ground, an off-white foreground, and exactly one accent.**
+**Two warm neutrals, and no chromatic accent at all.**
 
-Measured: basement.studio ships `#ff4d00` as the single most-declared colour
-on the entire site. Lando Norris pairs `#111112` / `#f4f4ed` with one lime
-`#d2ff00`. Minh Pham: `#0d0d0d` ground, `#eb5939` accent. darkroom's own site:
-black/white with `#e71419`.
+That is a deliberate departure from what `TEARDOWN.md` measured, and the
+reasoning is written out in full in `docs/stages/TAHAP-1.md` §0. The short
+version: every site in the measured set is a creative or technology studio
+whose content — code, type, 3D — carries no colour of its own, so the accent
+_is_ the identity. This site shows commissioned artwork. The work is the
+colour, and an accent beside it competes with every image on the page.
 
-**Pure `#000` on `#fff` is rarer than you would expect at this level.** The
-sites that feel most considered sit slightly off pure — `#111112`, `#0d0d0d`,
-`#242527` for grounds; `#f4f4ed`, `#f4f2ed` for light. That small offset is
-disproportionately responsible for looking deliberate rather than default.
+Two independent sources in this repo say the same thing:
 
-### Authored in oklch, and that matters
+- the **Museum/Gallery** palette in `.claude/skills/ui-ux-pro-max` sets
+  `Accent` to the _same value_ as `Primary` — a gallery has no chromatic
+  accent;
+- its **Portfolio Grid** pattern states the strategy outright: _"Neutral
+  background (let work shine). Accent: Minimal."_
 
-`lib/styles/colors.ts` uses `oklch()`. darkroom's production site uses
-`lab()` with `color-mix(in oklab, …)`. Perceptual colour space is not
-theoretical: tints and shades derived in sRGB lose chroma and go muddy,
-while oklch keeps them consistent. Derive every variation with
-`color-mix(in oklab, …)`, never by hand-picking a hex.
-
-### Contrast is enforced, not assumed
-
-Satūs pins its red to `oklch(0.592 0.2339 27.95)` because that is inside the
-narrow band where one colour clears WCAG AA (4.5:1) as text on **both** black
-and white — peaking at only 4.583:1. There is almost no slack.
-
-`lib/styles/scripts/contrast.test.ts` guards this. **Run it after any palette
-change.** If a new colour fails, either fix the colour or record a deliberate
-baseline with `bun run contrast:accept` — never silence the test.
-
-### The three-theme structure
-
-Satūs ships `light`, `dark`, and `red`, each with `primary` / `secondary` /
-`contrast`. Components must reference the semantic role
-(`var(--color-primary)`), never the literal (`var(--color-black)`), so theme
-switching works without touching components.
+The measured finding that survives unchanged is the one about grounds:
+**pure `#000` on `#fff` is rarer than you would expect at this level.** Lando
+Norris ships `#111112`/`#f4f4ed`, Minh Pham `#0d0d0d`, By-Kin
+`#242527`/`#f4f2ed`. That small offset is disproportionately responsible for
+looking deliberate rather than default, and the values below keep it.
 
 ### The chosen values
 
-Locked in Tahap 1 (`docs/stages/TAHAP-1.md`), from measurement rather than
-taste:
+Locked in Tahap 1 (`docs/stages/TAHAP-1.md`):
 
-| Role           | Value                                     | Source                          |
-| -------------- | ----------------------------------------- | ------------------------------- |
-| Ground (dark)  | `oklch(0.145 0 0)` ≈ `#0a0a0a`            | off-black, per `TEARDOWN.md` §3 |
-| Ground (light) | `oklch(0.9647 0.0071 106.42)` ≈ `#f4f4ee` | warm off-white                  |
-| Accent         | `oklch(0.592 0.2339 27.95)` ≈ `#e71419`   | darkroom.engineering's own red  |
+| Token   | Value                   | ≈ hex     | Role                |
+| ------- | ----------------------- | --------- | ------------------- |
+| `ink`   | `oklch(0.17 0.006 66)`  | `#110f0d` | dark ground / text  |
+| `paper` | `oklch(0.964 0.006 92)` | `#f4f3ef` | light ground / text |
 
-The accent was already in the palette before it was chosen: Satūs _is_
-darkroom's starter, and their production red converts to within 0.004
-lightness of the value that shipped with it.
+Both carry a small warm bias — hue ~66° and ~92° at very low chroma. A pure
+grey reads as unconsidered; this reads as paper and pigment. The shift is
+subtle enough that no image placed on it picks up a cast.
 
-### The accent is not body-text colour — a measured constraint
+### The two-theme structure
 
-Moving the grounds off pure black and white narrows every contrast ratio with
-them. Measured: the accent scores **4.58:1** against `#000`/`#fff`, but
-**4.19:1** against these grounds. That clears WCAG AA for large text (3:1) and
-misses it for body text (4.5:1).
+Satūs shipped `light`, `dark`, and `red`. **`red` is gone** — it described a
+theme no page applied, and with no chromatic accent it described nothing.
 
-**No lightness of this hue recovers it.** The best achievable against these
-grounds is 4.19, and even against pure white only 4.41 — the band peaks at
-4.583 and only pure black/white reaches it. This was computed, not guessed.
+| Theme   | `primary` | `secondary` | `contrast` |
+| ------- | --------- | ----------- | ---------- |
+| `light` | paper     | ink         | ink        |
+| `dark`  | ink       | paper       | paper      |
 
-So the rule: **use `--color-contrast` for emphasis, borders, hover states and
-display type. Never for paragraphs.** Every accent in the measured set is used
-exactly that way.
+Components must reference the semantic role (`var(--color-primary)`), never a
+literal. **There is no longer any literal to reference:** `--color-black`,
+`--color-white`, `--color-red`, `--color-blue` and `--color-green` no longer
+exist, so `bg-black` and friends are dead classes that silently do nothing.
+Tahap 1 §3 lists every component that had to be corrected because of it.
 
-`contrast-baseline.json` records the sub-AA pairs deliberately. Two notes on
-reading it honestly:
+### `contrast` is a role, not a third colour
 
-- The `red/*` entries describe the `red` _theme_, which no page applies —
-  only `dark` and `light` are used. `themes.red.primary` serves as the browser
-  chrome and PWA manifest colour, which is not text.
-- The `dark|light/contrast on *` entries are the accent-on-ground pairs the
-  rule above governs.
+Components use `--color-contrast` for interactive state: focus rings, checked
+boxes, switch fills, form errors. Filling that role with the ink itself gives
+a focus ring **17.24:1** against its ground — WCAG 2.2 asks 3:1 for non-text
+indicators. The token stays so a future brand colour can be introduced in one
+place without touching every component.
+
+### Authored in oklch, and that matters
+
+`lib/styles/colors.ts` uses `oklch()`. darkroom's production site uses `lab()`
+with `color-mix(in oklab, …)`. Perceptual colour space is not theoretical:
+tints and shades derived in sRGB lose chroma and go muddy, while oklch keeps
+them consistent. Derive every variation with `color-mix(in oklab, …)`, never
+by hand-picking a hex. The derived tokens in `global.css` (`--surface`,
+`--surface-2`, `--line`, `--line-strong`) are all built that way.
+
+### Contrast is enforced, not assumed
+
+`lib/styles/scripts/contrast.test.ts` measures every role pair in every theme
+and ratchets in both directions — a new failure fails, and an _improved_ pair
+that is still recorded in the baseline also fails, so the baseline cannot go
+stale.
+
+Current state: **all 18 measured pairs clear WCAG AA.** The lowest is
+`secondary on surface-2` at 14.22:1 against a 4.5 minimum; the lowest APCA is
+|Lc| 86.1 against a 60 threshold. `contrast-baseline.json` is empty:
+
+```json
+{ "accepted": {}, "apcaAccepted": {} }
+```
+
+**Run the test after any palette change.** If a new colour fails, fix the
+colour or record a deliberate baseline with `bun run contrast:accept` — never
+silence the test.
+
+### If a brand colour is added later
+
+It goes in `themes.*.contrast`, in one place. Before it ships, it must clear
+4.5:1 as text on **both** grounds or be restricted to non-text use — the
+previous accent failed that test at every lightness of its hue (peak 4.19:1
+on these grounds, 4.41:1 even on pure white), which is why it is gone.
 
 ---
 
@@ -108,48 +127,65 @@ reading it honestly:
 
 ### Restraint is the whole technique
 
-Measured: **Lusion ships an entire award-winning site on weights 400 and 500.** Iventions runs on 500 and 300. Variety comes from size, spacing, and
-case — not from weight count.
+Measured: **Lusion ships an entire award-winning site on weights 400 and 500.**
+Iventions runs on 500 and 300. Variety comes from size, spacing, and case —
+not from weight count.
 
 **Rules**
 
-- **Two families.** A display/sans and a mono. A third only with a reason.
-  Locked to **Geist + Geist Mono**: `TEARDOWN.md` §4 measured basement.studio
-  shipping exactly that pairing, and of every typeface in the measured set it
-  is the only open-source one. It replaced Oswald, the starter's placeholder —
-  a condensed face, which is a poster register rather than a studio one.
-- **Two to three weights.** More than three is a smell.
+- **Two families.** A display face and a mono. A third only with a reason.
+  Locked to **Syne + Geist Mono**.
+- **Two to three weights.** More than three is a smell. The scale below uses
+  400 / 600 / 700.
 - **The mono is not decoration.** On Lusion, basement.studio, By-Kin and
   darkroom the mono carries labels, captions, and metadata. It is what makes
-  a site read as engineered. Satūs's `typography.ts` already assigns mono to
-  `p`, `caption`, `cta`, and `link`.
+  a site read as engineered.
 
-### The scale Satūs ships
+### Why Syne
+
+`Syne` was drawn for **Synesthésie**, a French art centre, and is widely used
+in contemporary-art contexts. That provenance is the point: this site sits
+around artwork, and a face from the art world reads as belonging there in a
+way a general-purpose UI sans does not.
+
+It replaced **Geist**, which Tahap 1 v1 chose because basement.studio ships
+it. Geist is a fine face, but it is a neutral technology sans — and
+neutrality is what this site cannot afford once the palette gives up its
+accent. With no colour carrying identity, the typography has to.
+
+Both families ship a variable `wght` axis (Syne 400–800, Geist Mono 100–900),
+so `fonts.ts` declares no explicit `weight`: one file per family covers every
+weight the styles use.
+
+### The scale
 
 From `lib/styles/typography.ts` (mobile → desktop):
 
-| Style     | Size     | Weight | Line-height | Tracking |
-| --------- | -------- | ------ | ----------- | -------- |
-| `h1`      | 72 → 120 | 700    | 80%         | −0.05em  |
-| `h2`      | 32 → 48  | 700    | 80%         | −0.03em  |
-| `p-big`   | 16 → 20  | 400    | 125%        | −0.02em  |
-| `p`       | 12 → 14  | 400    | 125% → 120% | −0.01em  |
-| `caption` | 8 → 10   | 400    | 125% → 120% | −0.01em  |
+| Style     | Family  | Size     | Weight | Line-height | Tracking |
+| --------- | ------- | -------- | ------ | ----------- | -------- |
+| `h1`      | display | 72 → 120 | 700    | 85%         | −0.04em  |
+| `h2`      | display | 32 → 48  | 600    | 90%         | −0.025em |
+| `p-big`   | display | 16 → 20  | 400    | 125%        | −0.02em  |
+| `p`       | display | 12 → 14  | 400    | 125% → 120% | −0.01em  |
+| `caption` | mono    | 11 → 12  | 400    | 125% → 120% | −0.01em  |
+| `cta`     | mono    | 12 → 14  | 400    | 100%        | −0.01em  |
+| `link`    | mono    | 12 → 14  | 400    | 125% → 120% | −0.01em  |
 
-Two details here are exactly right and worth stating so nobody "fixes" them:
+The split is the design: **display carries what is read** (headings, prose),
+**mono carries what is scanned** (captions, labels, calls to action).
 
-- **Display line-height of 80%.** Sub-100% leading on large type is the
-  signature of considered typography. Default 1.5 line-height on a 120px
-  heading looks like a document, not a design.
-- **Negative tracking that scales with size.** −0.05em at h1, −0.01em at
+Three details are deliberate and should not be "fixed":
+
+- **Display line-height below 100%.** Sub-100% leading on large type is the
+  signature of considered typography. Default 1.5 on a 120px heading looks
+  like a document, not a design. 85% rather than 80% because Syne has taller
+  forms than the neutral sans it replaced — at 80% the lines collide.
+- **Negative tracking that scales with size.** −0.04em at h1, −0.01em at
   body. Large type needs tightening; small type needs air. A single global
   letter-spacing is wrong at both ends.
-
-> **Flag for review:** `caption` at 8px mobile is below the 12px minimum that
-> the accessibility guidance in `.claude/skills/ui-ux-pro-max` sets for body
-> text. It is defensible for a non-essential metadata label and indefensible
-> for anything a user must read. Do not use `caption` for meaningful content
-> at mobile size.
+- **`caption` is 11px on mobile, not 8px.** The previous scale shipped 8px
+  and carried a written flag saying it was below any readable floor. A flag
+  is not a fix. 11px still reads as metadata, and is legible.
 
 ### Fluid sizing
 
@@ -234,7 +270,8 @@ by band, easing from `--ease-*` tokens only, `transform` and `opacity` only,
    come from tokens. A raw `#fff`, `16px`, or `400ms` in a component is a
    defect.
 2. **Semantic tokens, not literals.** `var(--color-primary)`, not
-   `var(--color-black)`.
+   `var(--color-ink)`. The literals are palette entries that the themes map
+   onto roles; referencing one directly breaks theme switching.
 3. **Tailwind v4 utilities first**, CSS Modules when a component needs real
    structure. Both read the same tokens, so they cannot drift.
 4. **Every primitive gets a Storybook story**, including its reduced-motion

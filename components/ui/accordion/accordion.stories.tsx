@@ -38,7 +38,10 @@ export const Default: Story = {
     <div style={{ width: 400 }}>
       <Accordion.Group>
         {FAQ_ITEMS.map(({ question, answer }) => (
-          <Accordion.Root key={question} className="border-b border-white/20">
+          <Accordion.Root
+            key={question}
+            className="border-b border-secondary/20"
+          >
             {({ isOpen }) => (
               <>
                 <Accordion.Button className="py-3 flex w-full justify-between text-left">
@@ -73,7 +76,10 @@ export const SingleOpen: Story = {
       <div style={{ width: 400 }}>
         <Accordion.Group>
           {FAQ_ITEMS.map(({ question, answer }) => (
-            <Accordion.Root key={question} className="border-b border-white/20">
+            <Accordion.Root
+              key={question}
+              className="border-b border-secondary/20"
+            >
               {({ isOpen }) => (
                 <>
                   <Accordion.Button className="py-3 flex w-full justify-between text-left">
@@ -96,7 +102,7 @@ export const SingleOpen: Story = {
 export const DefaultOpen: Story = {
   render: () => (
     <div style={{ width: 400 }}>
-      <Accordion.Root defaultOpen className="border-b border-white/20">
+      <Accordion.Root defaultOpen className="border-b border-secondary/20">
         {({ isOpen }) => (
           <>
             <Accordion.Button className="py-3 flex w-full justify-between text-left">

@@ -36,11 +36,9 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   /*
-   * Not `--color-contrast`. The accent scores 4.13:1 on this surface, and at
-   * ~9px that is body text, which needs 4.5:1 — axe flags it as a serious
-   * violation. No lightness of the accent hue can reach 4.5 against these
-   * grounds (docs/DESIGN-SYSTEM.md), so the accent is reserved for large or
-   * non-text emphasis. At 0.7 opacity the foreground reaches 8.67:1.
+   * A muted foreground rather than a coloured one. This was originally the
+   * accent, which axe flagged at 4.13:1 for ~9px text; the palette has no
+   * accent now, and 0.7 opacity reads as a label without shouting. 8.7:1.
    */
   color: color-mix(in oklab, var(--color-secondary) 70%, transparent);
   margin-bottom: calc(16 / 375 * 100vw);
@@ -111,11 +109,10 @@
   text-transform: uppercase;
   text-decoration: none;
   /*
-   * The accent is the border, not the fill. Text on an accent background
-   * cannot reach 4.5:1 in either direction — measured 4.33:1 with the dark
-   * foreground and 4.14:1 with the light one — and this label is ~10px, so
-   * AA-large does not apply. A secondary fill gives 17:1 and keeps the red
-   * present as the outline.
+   * A solid inverted button: secondary fill, primary text, 17.24:1. It was
+   * written this way to escape an accent background that could not reach
+   * 4.5:1 in either direction; the accent is gone now, but the inversion is
+   * still the strongest and simplest treatment, so it stays.
    */
   background: var(--color-secondary);
   color: var(--color-primary);
@@ -126,8 +123,7 @@
     color var(--duration-fast) ease;
 
   &:hover {
-    /* Inverts to the ground with a full-strength foreground: 17:1, and the
-       accent border still reads as the brand colour. */
+    /* Inverts to the ground with a full-strength foreground: 17.24:1. */
     background: transparent;
     color: var(--color-secondary);
   }

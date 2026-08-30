@@ -10,8 +10,10 @@ export default function manifest(): MetadataRoute.Manifest {
     description: AppData.description,
     start_url: '/',
     display: 'standalone',
-    background_color: themes.red.primary,
-    theme_color: themes.red.primary,
+    // The ink. See the note on `themeColor` in app/[locale]/layout.tsx: this
+    // palette is deliberately neutral, so the installed-app chrome is too.
+    background_color: themes.dark.primary,
+    theme_color: themes.dark.primary,
     // `sizes` must match the real pixel dimensions of each file — a browser
     // that trusts a wrong value picks the wrong icon, and nothing validates
     // this. One entry per file: listing `/icon.png` twice made the same

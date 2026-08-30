@@ -9,14 +9,11 @@
 	--breakpoint-dt: 800px;
 
   --color-*: initial;
-	--color-primary: oklch(0.9647 0.0071 106.42);
-	--color-secondary: oklch(0.145 0 0);
-	--color-contrast: oklch(0.592 0.2339 27.95);
-  --color-black: oklch(0.145 0 0);
-	--color-white: oklch(0.9647 0.0071 106.42);
-	--color-red: oklch(0.592 0.2339 27.95);
-	--color-blue: oklch(0.5731 0.2145 258.25);
-	--color-green: oklch(0.8763 0.2278 152.55);
+	--color-primary: oklch(0.964 0.006 92);
+	--color-secondary: oklch(0.17 0.006 66);
+	--color-contrast: oklch(0.17 0.006 66);
+  --color-ink: oklch(0.17 0.006 66);
+	--color-paper: oklch(0.964 0.006 92);
 
   --spacing-*: initial;
 	--spacing-0: 0;
@@ -31,19 +28,14 @@
 
 /** Custom theme overwrites **/
 [data-theme=light] {
-  --color-primary: oklch(0.9647 0.0071 106.42);
-	--color-secondary: oklch(0.145 0 0);
-	--color-contrast: oklch(0.592 0.2339 27.95);
+  --color-primary: oklch(0.964 0.006 92);
+	--color-secondary: oklch(0.17 0.006 66);
+	--color-contrast: oklch(0.17 0.006 66);
 }
 [data-theme=dark] {
-  --color-primary: oklch(0.145 0 0);
-	--color-secondary: oklch(0.9647 0.0071 106.42);
-	--color-contrast: oklch(0.592 0.2339 27.95);
-}
-[data-theme=red] {
-  --color-primary: oklch(0.592 0.2339 27.95);
-	--color-secondary: oklch(0.145 0 0);
-	--color-contrast: oklch(0.9647 0.0071 106.42);
+  --color-primary: oklch(0.17 0.006 66);
+	--color-secondary: oklch(0.964 0.006 92);
+	--color-contrast: oklch(0.964 0.006 92);
 }
   
 
@@ -52,22 +44,22 @@
   font-family: var(--next-font-display);
 	font-style: normal;
 	font-weight: 700;
-	line-height: 80%;
-	letter-spacing: -0.05em;
+	line-height: 85%;
+	letter-spacing: -0.04em;
 	font-size: calc(((72 * 100) / var(--device-width)) * 1vw);
 	@variant dt { font-size: calc(((120 * 100) / var(--device-width)) * 1vw); }
 }
 @utility h2 {
   font-family: var(--next-font-display);
 	font-style: normal;
-	font-weight: 700;
-	line-height: 80%;
-	letter-spacing: -0.03em;
+	font-weight: 600;
+	line-height: 90%;
+	letter-spacing: -0.025em;
 	font-size: calc(((32 * 100) / var(--device-width)) * 1vw);
 	@variant dt { font-size: calc(((48 * 100) / var(--device-width)) * 1vw); }
 }
 @utility p-big {
-  font-family: var(--next-font-mono);
+  font-family: var(--next-font-display);
 	font-style: normal;
 	font-weight: 400;
 	line-height: 125%;
@@ -76,7 +68,7 @@
 	@variant dt { font-size: calc(((20 * 100) / var(--device-width)) * 1vw); }
 }
 @utility p {
-  font-family: var(--next-font-mono);
+  font-family: var(--next-font-display);
 	font-style: normal;
 	font-weight: 400;
 	line-height: 125%;
@@ -92,8 +84,8 @@
 	line-height: 125%;
 	@variant dt { line-height: 120%; }
 	letter-spacing: -0.01em;
-	font-size: calc(((8 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((10 * 100) / var(--device-width)) * 1vw); }
+	font-size: calc(((11 * 100) / var(--device-width)) * 1vw);
+	@variant dt { font-size: calc(((12 * 100) / var(--device-width)) * 1vw); }
 }
 @utility cta {
   font-family: var(--next-font-mono);
@@ -154,7 +146,6 @@
 /** Custom variants **/
 @custom-variant light (&:where([data-theme=light], [data-theme=light] *));
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-@custom-variant red (&:where([data-theme=red], [data-theme=red] *));
 
 /** Custom function utilities **/
 @utility dr-text-* {

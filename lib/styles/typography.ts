@@ -1,5 +1,17 @@
 import type { CSSProperties } from 'react'
 
+/*
+ * Two roles, and the division matters more than the count.
+ *
+ * `display` (Syne) carries everything a reader reads: headings and prose.
+ * `mono` (Geist Mono) carries everything a reader scans: captions, labels,
+ * calls to action. That split is the pattern measured across Lusion,
+ * basement.studio, By-Kin and darkroom in `docs/TEARDOWN.md` §4 — the mono is
+ * never decoration, it is the metadata voice.
+ *
+ * The first Tahap 1 put prose in mono as well. With Syne carrying identity now
+ * that the palette has no accent, prose belongs in it too.
+ */
 const fonts = {
   display: '--next-font-display',
   mono: '--next-font-mono', // this should be the variable name defined in fonts.ts
@@ -10,20 +22,23 @@ const typography = {
     'font-family': `var(${fonts.display})`,
     'font-style': 'normal',
     'font-weight': 700,
-    'line-height': '80%',
-    'letter-spacing': '-0.05em',
+    // 85%, not 80%. Sub-100% leading on display type is the signature of
+    // considered typography, but Syne has taller forms than the neutral sans
+    // it replaced and 80% collides the lines.
+    'line-height': '85%',
+    'letter-spacing': '-0.04em',
     'font-size': { mobile: 72, desktop: 120 },
   },
   h2: {
     'font-family': `var(${fonts.display})`,
     'font-style': 'normal',
-    'font-weight': 700,
-    'line-height': '80%',
-    'letter-spacing': '-0.03em',
+    'font-weight': 600,
+    'line-height': '90%',
+    'letter-spacing': '-0.025em',
     'font-size': { mobile: 32, desktop: 48 },
   },
   'p-big': {
-    'font-family': `var(${fonts.mono})`,
+    'font-family': `var(${fonts.display})`,
     'font-style': 'normal',
     'font-weight': 400,
     'line-height': '125%',
@@ -31,7 +46,7 @@ const typography = {
     'font-size': { mobile: 16, desktop: 20 },
   },
   p: {
-    'font-family': `var(${fonts.mono})`,
+    'font-family': `var(${fonts.display})`,
     'font-style': 'normal',
     'font-weight': 400,
     'line-height': { mobile: '125%', desktop: '120%' },
@@ -44,7 +59,10 @@ const typography = {
     'font-weight': 400,
     'line-height': { mobile: '125%', desktop: '120%' },
     'letter-spacing': '-0.01em',
-    'font-size': { mobile: 8, desktop: 10 },
+    // Raised from 8/10. The first Tahap 1 shipped 8px on mobile and flagged it
+    // as below any readable floor — a flag is not a fix. 11px is still clearly
+    // metadata, and legible.
+    'font-size': { mobile: 11, desktop: 12 },
   },
   cta: {
     'font-family': `var(${fonts.mono})`,

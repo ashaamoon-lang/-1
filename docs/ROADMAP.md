@@ -302,30 +302,37 @@ hreflang benar · typegen bersih · e2e lama tetap lulus.
 
 ---
 
-## Tahap 1 — Mengunci sistem desain
+## Tahap 1 — Mengunci sistem desain ✅ (dikerjakan dua kali)
 
-Sekarang, bukan nanti. `docs/DESIGN-SYSTEM.md` sudah menetapkan strukturnya
-(satu aksen, dua family, 2–3 weight, oklch) tapi **hue dan typeface sengaja
-dibiarkan terbuka**. Selama masih terbuka, setiap komponen yang ditulis
-berisiko dibongkar ulang.
+Sekarang, bukan nanti: selama nilainya masih terbuka, setiap komponen yang
+ditulis berisiko dibongkar ulang.
 
-**Kerja:**
+Spec penuh dan kronologinya ada di **`docs/stages/TAHAP-1.md`**. Ringkasnya:
 
-- `search.py "<brief>" --design-system --persist -o docs/` untuk mendapat
-  rekomendasi lengkap; **dinilai, bukan ditelan** — `TEARDOWN.md` yang menang
-  kalau bertentangan, karena itu berbasis pengukuran situs nyata.
-- Tetapkan aksen di `lib/styles/colors.ts` (oklch), turunkan varian dengan
-  `color-mix(in oklab, …)`.
-- Tetapkan pasangan typeface di `lib/styles/fonts.ts`. Kalau typeface komersial
-  belum dibeli, pilih pasangan open-source terbaik dan **catat sebagai
-  sementara** — ini celah #1 di `docs/RESOURCES.md`.
-- Sesuaikan skala tipografi di `lib/styles/typography.ts`. Perhatikan catatan
-  yang sudah ada: `caption` 8px di mobile di bawah ambang 12px — jangan dipakai
-  untuk konten bermakna.
+**v1 — ditolak.** Geist + Geist Mono dengan satu aksen merah berkroma tinggi,
+mengikuti pola sepuluh situs di `TEARDOWN.md`. Pengukurannya benar, tapi
+diterapkan pada jenis situs yang salah: situs yang diukur adalah studio kode
+dan 3D, tempat aksen memang satu-satunya pemegang identitas. Situs ini
+memajang karya seni, dan karyanya sendiri yang berwarna.
 
-**Keluar:** `contrast.test.ts` hijau tanpa di-silence · `DESIGN-SYSTEM.md`
-memuat nilai yang benar-benar dipilih, bukan placeholder · Storybook merefleksi
-palet baru.
+**v2 — yang berlaku.**
+
+- **Warna:** dua netral hangat, **nol aksen kromatik**. `ink`
+  `oklch(0.17 0.006 66)` dan `paper` `oklch(0.964 0.006 92)`; tema `red`
+  dihapus. Seluruh 18 pasangan lolos WCAG AA dan
+  `contrast-baseline.json` **kosong** — turun dari 12 pengecualian.
+- **Typeface:** **Syne** (digambar untuk pusat seni Synesthésie) + **Geist
+  Mono**. Display membawa yang dibaca, mono membawa yang dipindai.
+- **Skala:** `h1` lh 85% / −0.04em, `h2` w600 / lh 90%, prosa pindah ke
+  display, dan `caption` naik 8→11px — menutup cacat yang v1 hanya _tandai_.
+
+**Catatan yang sudah tidak berlaku:** kalimat "satu aksen" di
+`DESIGN-SYSTEM.md` §1 lama, dan peringatan `caption` 8px. Keduanya sudah
+dikoreksi di tempatnya masing-masing, bukan dibiarkan bertentangan.
+
+**Masih terbuka:** typeface komersial tetap celah #1 di `docs/RESOURCES.md`.
+Syne adalah pilihan open-source terbaik untuk register ini, bukan pilihan
+terbaik secara mutlak; menukarnya hanya menyentuh `lib/styles/fonts.ts`.
 
 ---
 

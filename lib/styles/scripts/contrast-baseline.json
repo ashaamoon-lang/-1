@@ -1,26 +1,4 @@
 {
-  "accepted": {
-    "dark/contrast on primary": 4.32,
-    "dark/contrast on surface-2": 3.86,
-    "dark/primary on contrast": 4.32,
-    "light/contrast on primary": 4.14,
-    "light/contrast on surface-2": 3.39,
-    "light/primary on contrast": 4.14,
-    "red/contrast on primary": 4.14,
-    "red/primary on contrast": 4.14,
-    "red/primary on secondary": 4.32,
-    "red/secondary on primary": 4.32,
-    "red/secondary on surface": 4.03,
-    "red/secondary on surface-2": 3.75
-  },
-  "apcaAccepted": {
-    "dark/contrast on primary": 32.1,
-    "dark/contrast on surface-2": 31.1,
-    "dark/primary on contrast": 34.5,
-    "light/contrast on surface-2": 49.8,
-    "red/primary on secondary": 32.1,
-    "red/secondary on primary": 34.5,
-    "red/secondary on surface": 32.2,
-    "red/secondary on surface-2": 29.9
-  }
+  "accepted": {},
+  "apcaAccepted": {}
 }

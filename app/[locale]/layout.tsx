@@ -104,7 +104,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: themes.red.primary,
+  // The ink, not a brand colour — this palette has no chromatic accent, so
+  // browser chrome matches the site's own ground rather than inventing a hue.
+  themeColor: themes.dark.primary,
   colorScheme: 'normal',
 }
 
@@ -167,7 +169,7 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           <Suspense fallback={null}>
             <Link
               href="#main-content"
-              className="focus:top-4 focus:left-4 focus:rounded focus:px-4 focus:py-2 sr-only focus:not-sr-only focus:fixed focus:z-9999 focus:bg-black focus:text-white focus:ring-2 focus:ring-white focus:outline-none"
+              className="focus:rounded sr-only focus:not-sr-only focus:fixed focus:dr-top-16 focus:dr-left-16 focus:z-9999 focus:bg-secondary focus:dr-px-16 focus:dr-py-8 focus:text-primary focus:ring-2 focus:ring-contrast focus:outline-none"
             >
               Skip to main content
             </Link>
