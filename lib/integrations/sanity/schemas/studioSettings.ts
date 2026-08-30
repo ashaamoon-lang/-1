@@ -29,7 +29,7 @@ export const studioSettings = defineType({
     defineField({
       name: 'headline',
       title: 'Hero headline',
-      type: 'localeString',
+      type: 'internationalizedArrayString',
       description:
         'One line. It is the first thing a visitor reads and the page’s only <h1>.',
       validation: (Rule) => Rule.required(),
@@ -38,14 +38,14 @@ export const studioSettings = defineType({
     defineField({
       name: 'subline',
       title: 'Hero subline',
-      type: 'localeText',
+      type: 'internationalizedArrayText',
       description: 'One sentence. A hero is not a paragraph.',
     }),
 
     defineField({
       name: 'statement',
       title: 'Studio statement',
-      type: 'localeRichText',
+      type: 'internationalizedArrayRichText',
       description: 'The About / Philosophy section.',
     }),
 
@@ -58,7 +58,7 @@ export const studioSettings = defineType({
         defineField({
           name: 'alt',
           title: 'Alt text',
-          type: 'localeString',
+          type: 'internationalizedArrayString',
           validation: (Rule) => Rule.required(),
         }),
       ],

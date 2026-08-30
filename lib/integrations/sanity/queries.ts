@@ -70,47 +70,40 @@ export const allArticlesQuery = defineQuery(`
 // ---------------------------------------------------------------------------
 
 /**
- * Locale selection.
+ * Locale selection for `internationalizedArray*` fields.
  *
- * Every localized field is projected with `select($locale == "id" => f.id,
- * f.en)` — pick the Indonesian value when that locale is active, otherwise
- * fall back to English. The fallback mirrors the schema, which requires only
- * the default locale (`schemas/locale.ts`), so a missing translation renders
- * the English text rather than an empty string.
+ * The plugin stores each localized field as `[{ _key: 'en', value: … }]`, so
+ * a value is picked by filtering on `_key` and taking the first match. The
+ * `coalesce` falls back to English when a translation has not been written
+ * yet — without it the field resolves to null and the page renders a blank
+ * heading rather than an untranslated one, which is the worse failure.
  *
- * ## Why `select()` and not `field[$locale]`
+ * ## Why these are constants, not a helper function
  *
- * Both work at runtime — verified against the live API: `{"en":"a","id":"b"}[$loc]`
- * with `$loc="id"` correctly returns "b". But `sanity typegen` cannot know a
- * parameter's value statically, so it types the dynamic bracket as a filter and
- * produced `Array<LocaleString>` where the query actually returns a string. A
- * confidently wrong type is worse than none: every consumer would have been
- * written against a shape that never occurs at runtime.
- *
- * `select()` branches on static property accesses, so typegen infers
- * `string | null` correctly. That is the whole reason for the more verbose form.
- *
- * ## Why constants and not a helper function
- *
- * Typegen extracts queries by static analysis. It follows const string bindings
- * — which is why `richTextWithLinks` above works — but cannot evaluate a
- * function call. An earlier `localized(field)` helper failed with
+ * `sanity typegen` extracts queries by static analysis. It follows const
+ * string bindings — which is why `richTextWithLinks` above works — but cannot
+ * evaluate a function call. An earlier `localized(field)` helper failed with
  * "Could not find binding for node" and silently generated NO types for any
- * localized query.
+ * localized query. Verbose constants are the price of that check working.
  *
- * ## Locale names are literal here
+ * ## Why `[_key == $locale]` is safe here, unlike `field[$locale]`
  *
- * `"id"` and `"en"` are written out because typegen needs literals. That
- * duplicates `lib/i18n/routing.ts`, so `queries.test.ts` asserts the two stay
- * in step — adding a locale without updating these fails that test rather than
- * silently serving English.
+ * This is an array FILTER, which is what GROQ brackets are actually for.
+ * The previous localized-object model used `field[$locale]` as dynamic
+ * property access: correct at runtime, but typegen cannot know a parameter's
+ * value and typed it as `Array<LocaleString>` where a string comes back.
+ * Filtering an array types correctly — verified: every localized field below
+ * generates `string | null`.
+ *
+ * The fallback locale is a literal because typegen needs one, duplicating
+ * `lib/i18n/routing.ts`. `queries.test.ts` asserts the two stay in step.
  */
-const localizedTitle = `"title": select($locale == "id" => title.id, title.en)`
-const localizedMedium = `"medium": select($locale == "id" => medium.id, medium.en)`
-const localizedCoverAlt = `"coverAlt": select($locale == "id" => cover.alt.id, cover.alt.en)`
-const localizedHeadline = `"headline": select($locale == "id" => headline.id, headline.en)`
-const localizedSubline = `"subline": select($locale == "id" => subline.id, subline.en)`
-const localizedStatement = `"statement": select($locale == "id" => statement.id, statement.en)`
+const localizedTitle = `"title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value)`
+const localizedMedium = `"medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value)`
+const localizedCoverAlt = `"coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)`
+const localizedHeadline = `"headline": coalesce(headline[_key == $locale][0].value, headline[_key == "en"][0].value)`
+const localizedSubline = `"subline": coalesce(subline[_key == $locale][0].value, subline[_key == "en"][0].value)`
+const localizedStatement = `"statement": coalesce(statement[_key == $locale][0].value, statement[_key == "en"][0].value)`
 
 /** Fields shared by the work grid and the project detail page. */
 const projectCardFields = `
@@ -148,7 +141,7 @@ export const projectQuery = defineQuery(`
     publishedAt,
     metadata,
     _updatedAt,
-    "body": select($locale == "id" => body.id, body.en)[]{
+    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{
       ...,
       markDefs[]{
         ...,
@@ -160,7 +153,7 @@ export const projectQuery = defineQuery(`
     },
     gallery[]{
       ...,
-      "alt": select($locale == "id" => alt.id, alt.en)
+      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)
     }
   }
 `)
@@ -186,7 +179,7 @@ export const studioSettingsQuery = defineQuery(`
     metadata,
     ${localizedHeadline},
     ${localizedSubline},
-    "portraitAlt": select($locale == "id" => portrait.alt.id, portrait.alt.en),
+    "portraitAlt": coalesce(portrait.alt[_key == $locale][0].value, portrait.alt[_key == "en"][0].value),
     ${localizedStatement}
   }
 `)

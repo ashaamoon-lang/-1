@@ -29,15 +29,15 @@ export type StudioSettings = {
   _updatedAt: string;
   _rev: string;
   name?: string;
-  headline?: LocaleString;
-  subline?: LocaleText;
-  statement?: LocaleRichText;
+  headline?: InternationalizedArrayString;
+  subline?: InternationalizedArrayText;
+  statement?: InternationalizedArrayRichText;
   portrait?: {
     asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt?: LocaleString;
+    alt?: InternationalizedArrayString;
     _type: "image";
   };
   email?: string;
@@ -65,11 +65,11 @@ export type Metadata = {
   noIndex?: boolean;
 };
 
-export type LocaleString = {
-  _type: "localeString";
-  en?: string;
-  id?: string;
-};
+export type InternationalizedArrayString = Array<
+  {
+    _key: string;
+  } & InternationalizedArrayStringValue
+>;
 
 export type SanityImageCrop = {
   _type: "sanity.imageCrop";
@@ -87,17 +87,17 @@ export type SanityImageHotspot = {
   width?: number;
 };
 
-export type LocaleRichText = {
-  _type: "localeRichText";
-  en?: RichText;
-  id?: RichText;
-};
+export type InternationalizedArrayRichText = Array<
+  {
+    _key: string;
+  } & InternationalizedArrayRichTextValue
+>;
 
-export type LocaleText = {
-  _type: "localeText";
-  en?: string;
-  id?: string;
-};
+export type InternationalizedArrayText = Array<
+  {
+    _key: string;
+  } & InternationalizedArrayTextValue
+>;
 
 export type Navigation = {
   _id: string;
@@ -149,14 +149,14 @@ export type Project = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  title?: LocaleString;
+  title?: InternationalizedArrayString;
   slug?: Slug;
   cover?: {
     asset?: SanityImageAssetReference;
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt?: LocaleString;
+    alt?: InternationalizedArrayString;
     _type: "image";
   };
   gallery?: Array<{
@@ -164,15 +164,15 @@ export type Project = {
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt?: LocaleString;
+    alt?: InternationalizedArrayString;
     _type: "image";
     _key: string;
   }>;
   client?: string;
   year?: number;
-  medium?: LocaleString;
+  medium?: InternationalizedArrayString;
   dimensions?: string;
-  body?: LocaleRichText;
+  body?: InternationalizedArrayRichText;
   order?: number;
   featured?: boolean;
   span?: 6 | 12;
@@ -254,6 +254,24 @@ export type Page = {
   title?: string;
   content?: RichText;
   link?: Link;
+};
+
+export type InternationalizedArrayRichTextValue = {
+  _type: "internationalizedArrayRichTextValue";
+  value?: RichText;
+  language?: string;
+};
+
+export type InternationalizedArrayTextValue = {
+  _type: "internationalizedArrayTextValue";
+  value?: string;
+  language?: string;
+};
+
+export type InternationalizedArrayStringValue = {
+  _type: "internationalizedArrayStringValue";
+  value?: string;
+  language?: string;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -357,11 +375,11 @@ export type AllSanitySchemaTypes =
   | SanityImageAssetReference
   | StudioSettings
   | Metadata
-  | LocaleString
+  | InternationalizedArrayString
   | SanityImageCrop
   | SanityImageHotspot
-  | LocaleRichText
-  | LocaleText
+  | InternationalizedArrayRichText
+  | InternationalizedArrayText
   | Navigation
   | PageReference
   | ArticleReference
@@ -371,6 +389,9 @@ export type AllSanitySchemaTypes =
   | RichText
   | Article
   | Page
+  | InternationalizedArrayRichTextValue
+  | InternationalizedArrayTextValue
+  | InternationalizedArrayStringValue
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
@@ -551,7 +572,7 @@ export type AllArticlesQueryResult = Array<{
 
 // Source: queries.ts
 // Variable: projectsQuery
-// Query: *[_type == "project"] | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": select($locale == "id" => title.id, title.en),  "medium": select($locale == "id" => medium.id, medium.en),  "coverAlt": select($locale == "id" => cover.alt.id, cover.alt.en)  }
+// Query: *[_type == "project"] | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)  }
 export type ProjectsQueryResult = Array<{
   _id: string;
   slug: Slug | null;
@@ -564,7 +585,7 @@ export type ProjectsQueryResult = Array<{
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt?: LocaleString;
+    alt?: InternationalizedArrayString;
     _type: "image";
   } | null;
   title: string | null;
@@ -574,7 +595,7 @@ export type ProjectsQueryResult = Array<{
 
 // Source: queries.ts
 // Variable: featuredProjectsQuery
-// Query: *[_type == "project" && featured == true] | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": select($locale == "id" => title.id, title.en),  "medium": select($locale == "id" => medium.id, medium.en),  "coverAlt": select($locale == "id" => cover.alt.id, cover.alt.en)  }
+// Query: *[_type == "project" && featured == true] | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)  }
 export type FeaturedProjectsQueryResult = Array<{
   _id: string;
   slug: Slug | null;
@@ -587,7 +608,7 @@ export type FeaturedProjectsQueryResult = Array<{
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt?: LocaleString;
+    alt?: InternationalizedArrayString;
     _type: "image";
   } | null;
   title: string | null;
@@ -597,7 +618,7 @@ export type FeaturedProjectsQueryResult = Array<{
 
 // Source: queries.ts
 // Variable: projectQuery
-// Query: *[_type == "project" && slug.current == $slug][0] {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": select($locale == "id" => title.id, title.en),  "medium": select($locale == "id" => medium.id, medium.en),  "coverAlt": select($locale == "id" => cover.alt.id, cover.alt.en),    dimensions,    publishedAt,    metadata,    _updatedAt,    "body": select($locale == "id" => body.id, body.en)[]{      ...,      markDefs[]{        ...,        _type == "link" => {          ...,          internalLink->{_type, slug, title}        }      }    },    gallery[]{      ...,      "alt": select($locale == "id" => alt.id, alt.en)    }  }
+// Query: *[_type == "project" && slug.current == $slug][0] {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value),    dimensions,    publishedAt,    metadata,    _updatedAt,    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{      ...,      markDefs[]{        ...,        _type == "link" => {          ...,          internalLink->{_type, slug, title}        }      }    },    gallery[]{      ...,      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)    }  }
 export type ProjectQueryResult = {
   _id: string;
   slug: Slug | null;
@@ -610,7 +631,7 @@ export type ProjectQueryResult = {
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt?: LocaleString;
+    alt?: InternationalizedArrayString;
     _type: "image";
   } | null;
   title: string | null;
@@ -685,7 +706,7 @@ export type ProjectSlugsQueryResult = Array<string | null>;
 
 // Source: queries.ts
 // Variable: studioSettingsQuery
-// Query: *[_type == "studioSettings"][0] {    _id,    name,    email,    socials,    portrait,    metadata,    "headline": select($locale == "id" => headline.id, headline.en),    "subline": select($locale == "id" => subline.id, subline.en),    "portraitAlt": select($locale == "id" => portrait.alt.id, portrait.alt.en),    "statement": select($locale == "id" => statement.id, statement.en)  }
+// Query: *[_type == "studioSettings"][0] {    _id,    name,    email,    socials,    portrait,    metadata,    "headline": coalesce(headline[_key == $locale][0].value, headline[_key == "en"][0].value),    "subline": coalesce(subline[_key == $locale][0].value, subline[_key == "en"][0].value),    "portraitAlt": coalesce(portrait.alt[_key == $locale][0].value, portrait.alt[_key == "en"][0].value),    "statement": coalesce(statement[_key == $locale][0].value, statement[_key == "en"][0].value)  }
 export type StudioSettingsQueryResult = {
   _id: string;
   name: string | null;
@@ -700,7 +721,7 @@ export type StudioSettingsQueryResult = {
     media?: unknown;
     hotspot?: SanityImageHotspot;
     crop?: SanityImageCrop;
-    alt?: LocaleString;
+    alt?: InternationalizedArrayString;
     _type: "image";
   } | null;
   metadata: Metadata | null;
@@ -717,10 +738,10 @@ declare module "@sanity/client" {
     '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult;
     '\n  *[_type == "article" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    categories,\n    tags,\n    author,\n    publishedAt,\n    metadata,\n    _updatedAt\n  }\n': ArticleQueryResult;
     '\n  *[_type == "article"] | order(publishedAt desc) {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    categories,\n    publishedAt\n  }\n': AllArticlesQueryResult;
-    '\n  *[_type == "project"] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": select($locale == "id" => title.id, title.en),\n  "medium": select($locale == "id" => medium.id, medium.en),\n  "coverAlt": select($locale == "id" => cover.alt.id, cover.alt.en)\n\n  }\n': ProjectsQueryResult;
-    '\n  *[_type == "project" && featured == true] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": select($locale == "id" => title.id, title.en),\n  "medium": select($locale == "id" => medium.id, medium.en),\n  "coverAlt": select($locale == "id" => cover.alt.id, cover.alt.en)\n\n  }\n': FeaturedProjectsQueryResult;
-    '\n  *[_type == "project" && slug.current == $slug][0] {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": select($locale == "id" => title.id, title.en),\n  "medium": select($locale == "id" => medium.id, medium.en),\n  "coverAlt": select($locale == "id" => cover.alt.id, cover.alt.en)\n,\n    dimensions,\n    publishedAt,\n    metadata,\n    _updatedAt,\n    "body": select($locale == "id" => body.id, body.en)[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          ...,\n          internalLink->{_type, slug, title}\n        }\n      }\n    },\n    gallery[]{\n      ...,\n      "alt": select($locale == "id" => alt.id, alt.en)\n    }\n  }\n': ProjectQueryResult;
+    '\n  *[_type == "project"] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': ProjectsQueryResult;
+    '\n  *[_type == "project" && featured == true] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': FeaturedProjectsQueryResult;
+    '\n  *[_type == "project" && slug.current == $slug][0] {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n,\n    dimensions,\n    publishedAt,\n    metadata,\n    _updatedAt,\n    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          ...,\n          internalLink->{_type, slug, title}\n        }\n      }\n    },\n    gallery[]{\n      ...,\n      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)\n    }\n  }\n': ProjectQueryResult;
     '\n  *[_type == "project" && defined(slug.current)].slug.current\n': ProjectSlugsQueryResult;
-    '\n  *[_type == "studioSettings"][0] {\n    _id,\n    name,\n    email,\n    socials,\n    portrait,\n    metadata,\n    "headline": select($locale == "id" => headline.id, headline.en),\n    "subline": select($locale == "id" => subline.id, subline.en),\n    "portraitAlt": select($locale == "id" => portrait.alt.id, portrait.alt.en),\n    "statement": select($locale == "id" => statement.id, statement.en)\n  }\n': StudioSettingsQueryResult;
+    '\n  *[_type == "studioSettings"][0] {\n    _id,\n    name,\n    email,\n    socials,\n    portrait,\n    metadata,\n    "headline": coalesce(headline[_key == $locale][0].value, headline[_key == "en"][0].value),\n    "subline": coalesce(subline[_key == $locale][0].value, subline[_key == "en"][0].value),\n    "portraitAlt": coalesce(portrait.alt[_key == $locale][0].value, portrait.alt[_key == "en"][0].value),\n    "statement": coalesce(statement[_key == $locale][0].value, statement[_key == "en"][0].value)\n  }\n': StudioSettingsQueryResult;
   }
 }

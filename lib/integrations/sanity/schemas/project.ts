@@ -1,5 +1,18 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
+import { localeValue } from '../utils/i18n-array'
+
+/**
+ * Localized fields use `internationalizedArray*` types registered by the
+ * plugin in `sanity.config.ts`, not localized objects. Sanity's guidance is
+ * explicit that objects hit document attribute limits; an array grows a row
+ * per language instead of an attribute per language.
+ *
+ * The shape is `[{ _key: 'en', value: '…' }]`, so Studio-side reads (slug
+ * source, preview) go through `localeValue` rather than `field.en`.
+ */
+const DEFAULT_LOCALE = 'en'
+
 /**
  * A commissioned work.
  *
@@ -15,7 +28,7 @@ export const project = defineType({
     defineField({
       name: 'title',
       title: 'Title',
-      type: 'localeString',
+      type: 'internationalizedArrayString',
       validation: (Rule) => Rule.required(),
     }),
 
@@ -26,10 +39,12 @@ export const project = defineType({
       description:
         'Shared across languages — /en/work/<slug> and /id/work/<slug>.',
       options: {
-        // Sources from the default-locale title; a localized slug would give
-        // the same work two URLs per language and make hreflang pairing
+        // Sources from the default-locale title. A path string like
+        // `title.en` no longer resolves: the plugin stores an array, so the
+        // entry has to be looked up by `_key`. A localized slug would also
+        // give the same work two URLs per language and make hreflang pairing
         // guesswork instead of a lookup.
-        source: 'title.en',
+        source: (doc) => localeValue(doc.title, DEFAULT_LOCALE) ?? '',
         maxLength: 96,
       },
       validation: (Rule) =>
@@ -56,7 +71,7 @@ export const project = defineType({
         defineField({
           name: 'alt',
           title: 'Alt text',
-          type: 'localeString',
+          type: 'internationalizedArrayString',
           description:
             'Describe the artwork, not the layout — "mural, three figures in ochre", not "project image". Read by screen readers and by search.',
           validation: (Rule) => Rule.required(),
@@ -77,7 +92,7 @@ export const project = defineType({
             defineField({
               name: 'alt',
               title: 'Alt text',
-              type: 'localeString',
+              type: 'internationalizedArrayString',
               validation: (Rule) => Rule.required(),
             }),
           ],
@@ -102,7 +117,7 @@ export const project = defineType({
     defineField({
       name: 'medium',
       title: 'Medium',
-      type: 'localeString',
+      type: 'internationalizedArrayString',
       description: 'e.g. "Acrylic on canvas" / "Akrilik di atas kanvas".',
     }),
 
@@ -116,7 +131,7 @@ export const project = defineType({
     defineField({
       name: 'body',
       title: 'Description',
-      type: 'localeRichText',
+      type: 'internationalizedArrayRichText',
     }),
 
     defineField({
@@ -168,14 +183,15 @@ export const project = defineType({
 
   preview: {
     select: {
-      title: 'title.en',
+      // The whole array — `title.en` is not a valid path into it.
+      title: 'title',
       slug: 'slug.current',
       media: 'cover',
       year: 'year',
     },
     prepare({ title, slug, media, year }) {
       return {
-        title: title || 'Untitled',
+        title: localeValue(title, DEFAULT_LOCALE) || 'Untitled',
         subtitle: [year, slug && `/${slug}`].filter(Boolean).join(' · '),
         media,
       }

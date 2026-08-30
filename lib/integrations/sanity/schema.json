@@ -75,7 +75,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "inline",
-          "name": "localeString"
+          "name": "internationalizedArrayString"
         },
         "optional": true
       },
@@ -83,7 +83,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "inline",
-          "name": "localeText"
+          "name": "internationalizedArrayText"
         },
         "optional": true
       },
@@ -91,7 +91,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "inline",
-          "name": "localeRichText"
+          "name": "internationalizedArrayRichText"
         },
         "optional": true
       },
@@ -135,7 +135,7 @@
               "type": "objectAttribute",
               "value": {
                 "type": "inline",
-                "name": "localeString"
+                "name": "internationalizedArrayString"
               },
               "optional": true
             },
@@ -306,31 +306,23 @@
     }
   },
   {
-    "name": "localeString",
+    "name": "internationalizedArrayString",
     "type": "type",
     "value": {
-      "type": "object",
-      "attributes": {
-        "_type": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string",
-            "value": "localeString"
+      "type": "array",
+      "of": {
+        "type": "object",
+        "attributes": {
+          "_key": {
+            "type": "objectAttribute",
+            "value": {
+              "type": "string"
+            }
           }
         },
-        "en": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          },
-          "optional": true
-        },
-        "id": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          },
-          "optional": true
+        "rest": {
+          "type": "inline",
+          "name": "internationalizedArrayStringValue"
         }
       }
     }
@@ -424,63 +416,45 @@
     }
   },
   {
-    "name": "localeRichText",
+    "name": "internationalizedArrayRichText",
     "type": "type",
     "value": {
-      "type": "object",
-      "attributes": {
-        "_type": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string",
-            "value": "localeRichText"
+      "type": "array",
+      "of": {
+        "type": "object",
+        "attributes": {
+          "_key": {
+            "type": "objectAttribute",
+            "value": {
+              "type": "string"
+            }
           }
         },
-        "en": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "inline",
-            "name": "richText"
-          },
-          "optional": true
-        },
-        "id": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "inline",
-            "name": "richText"
-          },
-          "optional": true
+        "rest": {
+          "type": "inline",
+          "name": "internationalizedArrayRichTextValue"
         }
       }
     }
   },
   {
-    "name": "localeText",
+    "name": "internationalizedArrayText",
     "type": "type",
     "value": {
-      "type": "object",
-      "attributes": {
-        "_type": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string",
-            "value": "localeText"
+      "type": "array",
+      "of": {
+        "type": "object",
+        "attributes": {
+          "_key": {
+            "type": "objectAttribute",
+            "value": {
+              "type": "string"
+            }
           }
         },
-        "en": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          },
-          "optional": true
-        },
-        "id": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          },
-          "optional": true
+        "rest": {
+          "type": "inline",
+          "name": "internationalizedArrayTextValue"
         }
       }
     }
@@ -784,7 +758,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "inline",
-          "name": "localeString"
+          "name": "internationalizedArrayString"
         },
         "optional": true
       },
@@ -836,7 +810,7 @@
               "type": "objectAttribute",
               "value": {
                 "type": "inline",
-                "name": "localeString"
+                "name": "internationalizedArrayString"
               },
               "optional": true
             },
@@ -893,7 +867,7 @@
                 "type": "objectAttribute",
                 "value": {
                   "type": "inline",
-                  "name": "localeString"
+                  "name": "internationalizedArrayString"
                 },
                 "optional": true
               },
@@ -938,7 +912,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "inline",
-          "name": "localeString"
+          "name": "internationalizedArrayString"
         },
         "optional": true
       },
@@ -953,7 +927,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "inline",
-          "name": "localeRichText"
+          "name": "internationalizedArrayRichText"
         },
         "optional": true
       },
@@ -1515,6 +1489,97 @@
           "name": "link"
         },
         "optional": true
+      }
+    }
+  },
+  {
+    "name": "internationalizedArrayRichTextValue",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "internationalizedArrayRichTextValue"
+          }
+        },
+        "value": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "inline",
+            "name": "richText"
+          },
+          "optional": true
+        },
+        "language": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    }
+  },
+  {
+    "name": "internationalizedArrayTextValue",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "internationalizedArrayTextValue"
+          }
+        },
+        "value": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "language": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    }
+  },
+  {
+    "name": "internationalizedArrayStringValue",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "internationalizedArrayStringValue"
+          }
+        },
+        "value": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "language": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        }
       }
     }
   },

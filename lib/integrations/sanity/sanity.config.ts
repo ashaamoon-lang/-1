@@ -6,6 +6,7 @@
 
 import { visionTool } from '@sanity/vision'
 import { defineConfig } from 'sanity'
+import { internationalizedArray } from 'sanity-plugin-internationalized-array'
 import {
   defineDocuments,
   defineLocations,
@@ -133,6 +134,28 @@ export default projectId && dataset
               disable: '/api/draft-mode/disable',
             },
           },
+        }),
+        // Field-level localization. Sanity's own guidance is explicit that
+        // localized OBJECTS ({ en, id }) hit document attribute limits, and
+        // recommends this plugin instead: it stores each field as an array of
+        // { _key: locale, value }, which grows a row per language rather than
+        // an attribute per language.
+        //
+        // Languages are written out here rather than imported from
+        // lib/i18n/routing.ts because this module is dual-compiled into the
+        // Studio's client bundle, and importing the routing module would drag
+        // next-intl in with it. `sanity-config.test.ts` asserts these stay in
+        // step with the app's real locales.
+        internationalizedArray({
+          languages: [
+            { id: 'en', title: 'English' },
+            { id: 'id', title: 'Bahasa Indonesia' },
+          ],
+          // Generates `internationalizedArrayString`, `…Text` and
+          // `…RichText`. Adding a type here is what makes it available to
+          // schemas — a field referencing an unregistered one silently
+          // disappears from the Studio.
+          fieldTypes: ['string', 'text', 'richText'],
         }),
         structureTool(),
         // Vision is for querying with GROQ from inside the Studio
