@@ -15,6 +15,7 @@ Supporting documents, in the order they usually matter:
 | Document                                           | Covers                                                                                     |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | **What we build, and in what order.** Each stage must be deepened into its own spec first. |
+| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)       | Shipping it. Env vars, hosts, and the security checklist.                                  |
 | [`docs/MOTION-SPEC.md`](./docs/MOTION-SPEC.md)     | Every animation. Binding.                                                                  |
 | [`docs/DESIGN-SYSTEM.md`](./docs/DESIGN-SYSTEM.md) | Colour, type, spacing, grid.                                                               |
 | [`docs/TEARDOWN.md`](./docs/TEARDOWN.md)           | Measured evidence behind both.                                                             |
