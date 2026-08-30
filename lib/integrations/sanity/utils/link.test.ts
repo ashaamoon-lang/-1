@@ -116,25 +116,62 @@ describe('urlForReference — internal document resolution', () => {
 describe('getLinkAttributes', () => {
   test('a rejected scheme yields href="#" and no new-tab attrs', () => {
     expect(
-      getLinkAttributes({
-        linkType: 'external',
-        externalUrl: 'javascript:alert(1)',
-        openInNewTab: true,
-      })
+      getLinkAttributes(
+        {
+          linkType: 'external',
+          externalUrl: 'javascript:alert(1)',
+          openInNewTab: true,
+        },
+        // Locale is irrelevant for an external link — asserted below by the
+        // href coming back unprefixed.
+        'en'
+      )
     ).toEqual({ href: '#', target: '_blank', rel: 'noopener noreferrer' })
   })
 
   test('external new-tab link carries rel="noopener noreferrer"', () => {
     expect(
-      getLinkAttributes({
-        linkType: 'external',
-        externalUrl: 'https://example.com',
-        openInNewTab: true,
-      })
+      getLinkAttributes(
+        {
+          linkType: 'external',
+          externalUrl: 'https://example.com',
+          openInNewTab: true,
+        },
+        'en'
+      )
     ).toEqual({
       href: 'https://example.com',
       target: '_blank',
       rel: 'noopener noreferrer',
     })
+  })
+})
+
+describe('getLinkAttributes — locale prefixing', () => {
+  test('prefixes an internal document link with the active locale', () => {
+    // Without this, every internal CMS link points at the unprefixed path and
+    // takes a redirect on each click, in the wrong language.
+    const link = {
+      linkType: 'internal' as const,
+      internalLink: { _type: 'page', slug: { current: 'about' } },
+    }
+
+    expect(getLinkAttributes(link, 'id').href).toBe('/id/about')
+    expect(getLinkAttributes(link, 'en').href).toBe('/en/about')
+  })
+
+  test('leaves an external URL unprefixed', () => {
+    expect(
+      getLinkAttributes(
+        { linkType: 'external', externalUrl: 'https://example.com' },
+        'id'
+      ).href
+    ).toBe('https://example.com')
+  })
+
+  test('leaves the "#" fallback alone', () => {
+    // Prefixing it would produce "/id/#", a real navigation to a page that
+    // does not exist, instead of an inert link.
+    expect(getLinkAttributes({ linkType: 'internal' }, 'id').href).toBe('#')
   })
 })

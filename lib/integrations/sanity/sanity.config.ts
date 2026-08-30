@@ -16,17 +16,34 @@ import { structureTool } from 'sanity/structure'
 import { apiVersion, dataset, previewURL, projectId } from './env'
 import { schema } from './schemas'
 
-// Helper function for URL resolution — kept in sync with
-// `resolveDocumentUrl` in `./utils/link.ts` (this file can't import that
-// module: it's dual-compiled into the client bundle for the Studio route).
+/**
+ * Preview URL resolution — kept in sync with `resolveDocumentUrl` in
+ * `./utils/link.ts` (this file can't import that module: it's dual-compiled
+ * into the client bundle for the Studio route).
+ *
+ * Paths are locale-prefixed because routing is `localePrefix: 'always'` — the
+ * unprefixed form only ever redirects, and Presentation's visual editing
+ * breaks on a redirect. The prefix is duplicated here rather than imported
+ * for the same client-bundle reason; `sanity-config.test.ts` asserts it stays
+ * in step with `lib/i18n/routing.ts`.
+ *
+ * `PREVIEW_LOCALE` is the default locale: Presentation previews one URL per
+ * document, and previewing the source language is the useful default. An
+ * editor working in Indonesian can switch locale inside the previewed site.
+ */
+const PREVIEW_LOCALE = 'en'
+
 function resolveHref(documentType?: string, slug?: string): string | undefined {
   switch (documentType) {
-    // `home` is not special-cased: `/` is the developer-owned starter page,
-    // so a `home` document previews at `/home` like any other slug.
+    // `home` is not special-cased: `/${PREVIEW_LOCALE}` is the developer-owned
+    // starter page, so a `home` document previews at `/en/home` like any other
+    // slug.
     case 'page':
-      return slug ? `/${slug}` : undefined
+      return slug ? `/${PREVIEW_LOCALE}/${slug}` : undefined
     case 'article':
-      return slug ? `/articles/${slug}` : undefined
+      return slug ? `/${PREVIEW_LOCALE}/articles/${slug}` : undefined
+    case 'project':
+      return slug ? `/${PREVIEW_LOCALE}/work/${slug}` : undefined
     default:
       console.warn('Invalid document type:', documentType)
       return undefined
@@ -62,16 +79,19 @@ export default projectId && dataset
               // Static segments win over the catch-all — keep this first so
               // the tutorial page (a real static route) resolves ahead of
               // the generic page-by-slug entry below.
+              // Routes carry the `:locale` segment because every page is
+              // served under one. Without it these never match and
+              // Presentation silently falls back to no document mapping.
               {
-                route: '/sanity',
-                filter: `_type == "page" && slug.current == "sanity"`,
+                route: '/:locale/work/:slug',
+                filter: `_type == "project" && slug.current == $slug`,
               },
               {
-                route: '/articles/:slug',
+                route: '/:locale/articles/:slug',
                 filter: `_type == "article" && slug.current == $slug`,
               },
               {
-                route: '/:slug',
+                route: '/:locale/:slug',
                 filter: `_type == "page" && slug.current == $slug`,
               },
             ]),

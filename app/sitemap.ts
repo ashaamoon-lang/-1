@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
 
+import { localizedPath } from '@/lib/i18n/paths'
+import { routing } from '@/lib/i18n/routing'
 import { getCmsRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
 import { BASE_URL } from '@/lib/seo/site'
 
@@ -24,12 +26,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }))
 
-  const cmsEntries: MetadataRoute.Sitemap = cmsRoutes.map((route) => ({
-    url: `${BASE_URL}${route.path}`,
-    lastModified: route.lastModified,
-    changeFrequency: 'weekly',
-    priority: 0.6,
-  }))
+  // CMS routes arrive as locale-free templates (`/about`) because a slug is
+  // shared across languages. Each one is emitted once per locale so the
+  // sitemap advertises exactly the URLs that exist — and exactly the URLs
+  // those pages canonicalize to, which is the invariant lib/seo/alternates.ts
+  // depends on. Emitting the bare template instead would submit a URL that
+  // only ever redirects.
+  const cmsEntries: MetadataRoute.Sitemap = cmsRoutes.flatMap((route) =>
+    routing.locales.map((locale) => ({
+      url: `${BASE_URL}${localizedPath(locale, route.path)}`,
+      lastModified: route.lastModified,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    }))
+  )
 
   return [...staticEntries, ...cmsEntries]
 }

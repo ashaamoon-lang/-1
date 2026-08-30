@@ -1,3 +1,6 @@
+import { localizedPath } from '@/lib/i18n/paths'
+import type { Locale } from '@/lib/i18n/routing'
+
 /**
  * Structural link shape shared by the raw schema `Link` object and the
  * dereferenced link projection emitted by TypeGen (`internalLink->{...}`).
@@ -126,11 +129,31 @@ function resolveDocumentUrl(documentType?: string, slug?: string): string {
   }
 }
 
-// Helper to get link attributes
-export const getLinkAttributes = (link: LinkLike) => {
+/**
+ * Link attributes for rendering, with the active locale applied.
+ *
+ * `urlForReference` deliberately returns a locale-FREE template (`/about`),
+ * because that is what a CMS slug is and what route deduplication in
+ * `lib/seo/routes.ts` compares. A browser href needs the prefix, so it is
+ * applied here — the one place that turns a template into something a reader
+ * can click.
+ *
+ * `locale` is required rather than defaulted. A default would make every
+ * forgotten call site silently emit English URLs to Indonesian readers, and
+ * put a redirect on every internal CMS link. Requiring it turns that into a
+ * compile error instead.
+ *
+ * External links and the `#` fallback pass through untouched — prefixing
+ * either would corrupt it.
+ */
+export const getLinkAttributes = (link: LinkLike, locale: Locale) => {
   if (!link) return { href: '#', target: undefined, rel: undefined }
 
-  const href = urlForReference(link)
+  const resolved = urlForReference(link)
+  const href =
+    resolved.startsWith('/') && !resolved.startsWith('//')
+      ? localizedPath(locale, resolved)
+      : resolved
   const isExternal =
     link.linkType === 'external' ||
     (link.externalUrl != null && !link.externalUrl.startsWith('/'))

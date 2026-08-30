@@ -70,20 +70,47 @@ export const allArticlesQuery = defineQuery(`
 // ---------------------------------------------------------------------------
 
 /**
- * Selects one locale out of a `localeString`/`localeText`/`localeRichText`
- * object, falling back to the default locale.
+ * Locale selection.
  *
- * The fallback mirrors the schema exactly: `lib/integrations/sanity/schemas/
- * locale.ts` requires only the default locale, so a translation can be
- * legitimately absent. Without `coalesce` those fields would render as empty
- * strings — a blank heading rather than an untranslated one, which is the
- * worse of the two failures.
+ * Every localized field is projected with `select($locale == "id" => f.id,
+ * f.en)` — pick the Indonesian value when that locale is active, otherwise
+ * fall back to English. The fallback mirrors the schema, which requires only
+ * the default locale (`schemas/locale.ts`), so a missing translation renders
+ * the English text rather than an empty string.
  *
- * Written once here so no page hand-rolls the projection and drifts from it.
- * Callers pass `$locale` and `$defaultLocale` as query params.
+ * ## Why `select()` and not `field[$locale]`
+ *
+ * Both work at runtime — verified against the live API: `{"en":"a","id":"b"}[$loc]`
+ * with `$loc="id"` correctly returns "b". But `sanity typegen` cannot know a
+ * parameter's value statically, so it types the dynamic bracket as a filter and
+ * produced `Array<LocaleString>` where the query actually returns a string. A
+ * confidently wrong type is worse than none: every consumer would have been
+ * written against a shape that never occurs at runtime.
+ *
+ * `select()` branches on static property accesses, so typegen infers
+ * `string | null` correctly. That is the whole reason for the more verbose form.
+ *
+ * ## Why constants and not a helper function
+ *
+ * Typegen extracts queries by static analysis. It follows const string bindings
+ * — which is why `richTextWithLinks` above works — but cannot evaluate a
+ * function call. An earlier `localized(field)` helper failed with
+ * "Could not find binding for node" and silently generated NO types for any
+ * localized query.
+ *
+ * ## Locale names are literal here
+ *
+ * `"id"` and `"en"` are written out because typegen needs literals. That
+ * duplicates `lib/i18n/routing.ts`, so `queries.test.ts` asserts the two stay
+ * in step — adding a locale without updating these fails that test rather than
+ * silently serving English.
  */
-const localized = (field: string, alias = field) =>
-  `"${alias}": coalesce(${field}[$locale], ${field}[$defaultLocale])`
+const localizedTitle = `"title": select($locale == "id" => title.id, title.en)`
+const localizedMedium = `"medium": select($locale == "id" => medium.id, medium.en)`
+const localizedCoverAlt = `"coverAlt": select($locale == "id" => cover.alt.id, cover.alt.en)`
+const localizedHeadline = `"headline": select($locale == "id" => headline.id, headline.en)`
+const localizedSubline = `"subline": select($locale == "id" => subline.id, subline.en)`
+const localizedStatement = `"statement": select($locale == "id" => statement.id, statement.en)`
 
 /** Fields shared by the work grid and the project detail page. */
 const projectCardFields = `
@@ -94,9 +121,9 @@ const projectCardFields = `
   span,
   featured,
   cover,
-  ${localized('title')},
-  ${localized('medium')},
-  "coverAlt": coalesce(cover.alt[$locale], cover.alt[$defaultLocale])
+  ${localizedTitle},
+  ${localizedMedium},
+  ${localizedCoverAlt}
 `
 
 /** Every project, in curated order. */
@@ -121,7 +148,7 @@ export const projectQuery = defineQuery(`
     publishedAt,
     metadata,
     _updatedAt,
-    "body": coalesce(body[$locale], body[$defaultLocale])[]{
+    "body": select($locale == "id" => body.id, body.en)[]{
       ...,
       markDefs[]{
         ...,
@@ -133,7 +160,7 @@ export const projectQuery = defineQuery(`
     },
     gallery[]{
       ...,
-      "alt": coalesce(alt[$locale], alt[$defaultLocale])
+      "alt": select($locale == "id" => alt.id, alt.en)
     }
   }
 `)
@@ -157,9 +184,9 @@ export const studioSettingsQuery = defineQuery(`
     socials,
     portrait,
     metadata,
-    ${localized('headline')},
-    ${localized('subline')},
-    "portraitAlt": coalesce(portrait.alt[$locale], portrait.alt[$defaultLocale]),
-    "statement": coalesce(statement[$locale], statement[$defaultLocale])
+    ${localizedHeadline},
+    ${localizedSubline},
+    "portraitAlt": select($locale == "id" => portrait.alt.id, portrait.alt.en),
+    ${localizedStatement}
   }
 `)
