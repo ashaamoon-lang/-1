@@ -1,0 +1,78 @@
+.page {
+  padding: calc(var(--header-height) + mobile-vw(48px)) var(--safe)
+    mobile-vw(96px);
+
+  @media (--desktop) {
+    padding: calc(var(--header-height) + desktop-vw(80px)) var(--safe)
+      desktop-vw(160px);
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(16px);
+  margin-block-end: mobile-vw(32px);
+
+  @media (--desktop) {
+    gap: desktop-vw(16px);
+    margin-block-end: desktop-vw(48px);
+  }
+}
+
+.intro {
+  font-family: var(--font-mono, monospace);
+  font-size: clamp(0.875rem, 1vw, 1rem);
+  line-height: 150%;
+  /* Running prose stays near 65 characters however wide the page gets. */
+  max-width: 46ch;
+  color: color-mix(in oklab, var(--color-secondary) 72%, transparent);
+}
+
+.filter {
+  margin-block-end: mobile-vw(24px);
+
+  @media (--desktop) {
+    margin-block-end: desktop-vw(32px);
+  }
+}
+
+.grid {
+  margin-block-start: mobile-vw(16px);
+
+  @media (--desktop) {
+    margin-block-start: desktop-vw(24px);
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: mobile-vw(16px);
+  padding-block: mobile-vw(64px);
+
+  @media (--desktop) {
+    gap: desktop-vw(16px);
+    padding-block: desktop-vw(96px);
+  }
+}
+
+.emptyAction {
+  display: grid;
+  place-items: center;
+  min-block-size: var(--tap-target);
+  padding-inline: mobile-vw(24px);
+  border: 1px solid var(--color-secondary);
+  color: var(--color-secondary);
+  text-decoration: none;
+
+  @media (--desktop) {
+    padding-inline: desktop-vw(24px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 2px;
+  }
+}

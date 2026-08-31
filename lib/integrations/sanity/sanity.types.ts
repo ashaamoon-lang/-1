@@ -170,11 +170,13 @@ export type Project = {
   }>;
   client?: string;
   year?: number;
+  discipline?: "painting" | "mural" | "illustration";
   medium?: InternationalizedArrayString;
   dimensions?: string;
   body?: InternationalizedArrayRichText;
   order?: number;
   featured?: boolean;
+  listed?: boolean;
   span?: 6 | 12;
   publishedAt?: string;
   metadata?: Metadata;
@@ -572,7 +574,7 @@ export type AllArticlesQueryResult = Array<{
 
 // Source: queries.ts
 // Variable: projectsQuery
-// Query: *[_type == "project"] | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)  }
+// Query: *[_type == "project" && listed != false] | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  discipline,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)  }
 export type ProjectsQueryResult = Array<{
   _id: string;
   slug: Slug | null;
@@ -580,6 +582,7 @@ export type ProjectsQueryResult = Array<{
   client: string | null;
   span: 12 | 6 | null;
   featured: boolean | null;
+  discipline: "illustration" | "mural" | "painting" | null;
   cover: {
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -595,14 +598,15 @@ export type ProjectsQueryResult = Array<{
 
 // Source: queries.ts
 // Variable: featuredProjectsQuery
-// Query: *[_type == "project" && featured == true] | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)  }
+// Query: *[_type == "project" && listed != false && featured == true] | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  discipline,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)  }
 export type FeaturedProjectsQueryResult = Array<{
   _id: string;
   slug: Slug | null;
   year: number | null;
   client: string | null;
   span: 12 | 6 | null;
-  featured: true;
+  featured: boolean | null;
+  discipline: "illustration" | "mural" | "painting" | null;
   cover: {
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -617,8 +621,39 @@ export type FeaturedProjectsQueryResult = Array<{
 }>;
 
 // Source: queries.ts
+// Variable: workIndexQuery
+// Query: *[_type == "project" && listed != false && ($discipline == null || discipline == $discipline)]    | order(order asc, publishedAt desc) {      _id,  slug,  year,  client,  span,  featured,  discipline,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)  }
+export type WorkIndexQueryResult = Array<{
+  _id: string;
+  slug: Slug | null;
+  year: number | null;
+  client: string | null;
+  span: 12 | 6 | null;
+  featured: boolean | null;
+  discipline: "illustration" | "mural" | "painting" | null;
+  cover: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: InternationalizedArrayString;
+    _type: "image";
+  } | null;
+  title: string | null;
+  medium: string | null;
+  coverAlt: string | null;
+}>;
+
+// Source: queries.ts
+// Variable: disciplinesQuery
+// Query: array::unique(*[_type == "project" && listed != false && defined(discipline)].discipline)
+export type DisciplinesQueryResult = Array<
+  "illustration" | "mural" | "painting" | null
+>;
+
+// Source: queries.ts
 // Variable: projectQuery
-// Query: *[_type == "project" && slug.current == $slug][0] {      _id,  slug,  year,  client,  span,  featured,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value),    dimensions,    publishedAt,    metadata,    _updatedAt,    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{      ...,      markDefs[]{        ...,        _type == "link" => {          ...,          internalLink->{_type, slug, title}        }      }    },    gallery[]{      ...,      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)    },    // Metadata-only projections. See the note above this query.    "excerpt": pt::text(      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)    ),    "ogImage": cover.asset->{      url,      "width": metadata.dimensions.width,      "height": metadata.dimensions.height    }  }
+// Query: *[_type == "project" && slug.current == $slug][0] {      _id,  slug,  year,  client,  span,  featured,  discipline,  cover,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value),    dimensions,    publishedAt,    metadata,    _updatedAt,    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{      ...,      markDefs[]{        ...,        _type == "link" => {          ...,          internalLink->{_type, slug, title}        }      }    },    gallery[]{      ...,      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)    },    // Metadata-only projections. See the note above this query.    "excerpt": pt::text(      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)    ),    "ogImage": cover.asset->{      url,      "width": metadata.dimensions.width,      "height": metadata.dimensions.height    }  }
 export type ProjectQueryResult = {
   _id: string;
   slug: Slug | null;
@@ -626,6 +661,7 @@ export type ProjectQueryResult = {
   client: string | null;
   span: 12 | 6 | null;
   featured: boolean | null;
+  discipline: "illustration" | "mural" | "painting" | null;
   cover: {
     asset?: SanityImageAssetReference;
     media?: unknown;
@@ -744,9 +780,11 @@ declare module "@sanity/client" {
     '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult;
     '\n  *[_type == "article" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    categories,\n    tags,\n    author,\n    publishedAt,\n    metadata,\n    _updatedAt\n  }\n': ArticleQueryResult;
     '\n  *[_type == "article"] | order(publishedAt desc) {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    categories,\n    publishedAt\n  }\n': AllArticlesQueryResult;
-    '\n  *[_type == "project"] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': ProjectsQueryResult;
-    '\n  *[_type == "project" && featured == true] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': FeaturedProjectsQueryResult;
-    '\n  *[_type == "project" && slug.current == $slug][0] {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n,\n    dimensions,\n    publishedAt,\n    metadata,\n    _updatedAt,\n    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          ...,\n          internalLink->{_type, slug, title}\n        }\n      }\n    },\n    gallery[]{\n      ...,\n      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)\n    },\n    // Metadata-only projections. See the note above this query.\n    "excerpt": pt::text(\n      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)\n    ),\n    "ogImage": cover.asset->{\n      url,\n      "width": metadata.dimensions.width,\n      "height": metadata.dimensions.height\n    }\n  }\n': ProjectQueryResult;
+    '\n  *[_type == "project" && listed != false] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  discipline,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': ProjectsQueryResult;
+    '\n  *[_type == "project" && listed != false && featured == true] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  discipline,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': FeaturedProjectsQueryResult;
+    '\n  *[_type == "project" && listed != false && ($discipline == null || discipline == $discipline)]\n    | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  discipline,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': WorkIndexQueryResult;
+    '\n  array::unique(*[_type == "project" && listed != false && defined(discipline)].discipline)\n': DisciplinesQueryResult;
+    '\n  *[_type == "project" && slug.current == $slug][0] {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  discipline,\n  cover,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n,\n    dimensions,\n    publishedAt,\n    metadata,\n    _updatedAt,\n    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          ...,\n          internalLink->{_type, slug, title}\n        }\n      }\n    },\n    gallery[]{\n      ...,\n      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)\n    },\n    // Metadata-only projections. See the note above this query.\n    "excerpt": pt::text(\n      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)\n    ),\n    "ogImage": cover.asset->{\n      url,\n      "width": metadata.dimensions.width,\n      "height": metadata.dimensions.height\n    }\n  }\n': ProjectQueryResult;
     '\n  *[_type == "project" && defined(slug.current)].slug.current\n': ProjectSlugsQueryResult;
     '\n  *[_type == "studioSettings"][0] {\n    _id,\n    name,\n    email,\n    socials,\n    portrait,\n    metadata,\n    "headline": coalesce(headline[_key == $locale][0].value, headline[_key == "en"][0].value),\n    "subline": coalesce(subline[_key == $locale][0].value, subline[_key == "en"][0].value),\n    "portraitAlt": coalesce(portrait.alt[_key == $locale][0].value, portrait.alt[_key == "en"][0].value),\n    "statement": coalesce(statement[_key == $locale][0].value, statement[_key == "en"][0].value)\n  }\n': StudioSettingsQueryResult;
   }

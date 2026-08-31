@@ -1,6 +1,6 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
-import { localeValue } from '../utils/i18n-array'
+import { localeValue, requireEveryLocale } from '../utils/i18n-array'
 
 /**
  * Localized fields use `internationalizedArray*` types registered by the
@@ -29,7 +29,10 @@ export const project = defineType({
       name: 'title',
       title: 'Title',
       type: 'internationalizedArrayString',
-      validation: (Rule) => Rule.required(),
+      // Every language, not just one — see `requireEveryLocale`. Without it a
+      // work published in Indonesian only rendered its slug as the English
+      // `<h1>`.
+      validation: (Rule) => Rule.required().custom(requireEveryLocale),
     }),
 
     defineField({
@@ -74,7 +77,7 @@ export const project = defineType({
           type: 'internationalizedArrayString',
           description:
             'Describe the artwork, not the layout — "mural, three figures in ochre", not "project image". Read by screen readers and by search.',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().custom(requireEveryLocale),
         }),
       ],
       validation: (Rule) => Rule.required(),
@@ -115,6 +118,39 @@ export const project = defineType({
     }),
 
     defineField({
+      name: 'discipline',
+      title: 'Discipline',
+      type: 'string',
+      description:
+        'Which kind of work this is. Drives the filter on /work and the structured data.',
+      /*
+       * A closed list, and deliberately NOT localized.
+       *
+       * `medium` below is free prose and stays that way — "Acrylic on canvas"
+       * is a description, not a category. But `lib/seo/site.ts` advertises
+       * exactly three disciplines in three places (`services`, `knowsAbout`,
+       * `description`) and nothing in the schema could express which one a
+       * work belongs to, so neither a visitor nor an agent could act on the
+       * claim.
+       *
+       * The value is a key; the label is translated in `messages/*.json`.
+       * Localizing the value would give one work two different filter URLs,
+       * and `?discipline=mural` would stop meaning the same thing in each
+       * language.
+       */
+      options: {
+        list: [
+          { title: 'Painting', value: 'painting' },
+          { title: 'Mural', value: 'mural' },
+          { title: 'Illustration', value: 'illustration' },
+        ],
+        layout: 'radio',
+      },
+      validation: (Rule) => Rule.required(),
+      initialValue: 'painting',
+    }),
+
+    defineField({
       name: 'medium',
       title: 'Medium',
       type: 'internationalizedArrayString',
@@ -149,6 +185,31 @@ export const project = defineType({
       type: 'boolean',
       description: 'Show on the home page selection.',
       initialValue: false,
+    }),
+
+    defineField({
+      name: 'listed',
+      title: 'Listed publicly',
+      type: 'boolean',
+      description:
+        'Off = removed from the work index, the sitemap, llms.txt and the next-project chain. The page itself stays reachable by its link, but tells search engines not to index it.',
+      /*
+       * `featured` and `listed` are not the same switch, and conflating them
+       * is what `docs/PANDUAN-STUDIO.md` §7 did: it told the studio to turn
+       * Featured off to hide a work. That only removes it from the home page.
+       * Measured — the work stayed in `sitemap.xml` (twice), in `/llms.txt`
+       * (twice), and in the next-project chain, and
+       * `e2e/project-detail.e2e.ts` actively asserted it must
+       * (`docs/AUDIT-2026-08.md` §2.2).
+       *
+       *   featured -> curation: does this belong on the home page
+       *   listed   -> catalogue: does this exist publicly at all
+       *
+       * Off does not 404. Links already shared have to keep working; the page
+       * goes `noindex` and disappears from every listing instead. That is a
+       * rule the studio can be told in one sentence, and "it 404s" is not.
+       */
+      initialValue: true,
     }),
 
     defineField({

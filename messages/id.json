@@ -28,6 +28,20 @@
     "viewProject": "Lihat",
     "nextProject": "Karya berikutnya"
   },
+  "workIndex": {
+    "title": "Karya",
+    "eyebrow": "Katalog",
+    "intro": "Karya pesanan yang sudah selesai. Saring per disiplin, atau lihat semuanya.",
+    "filterLabel": "Saring per disiplin",
+    "all": "Semua",
+    "painting": "Lukisan",
+    "mural": "Mural",
+    "illustration": "Ilustrasi",
+    "count": "{count, plural, other {# karya}}",
+    "emptyTitle": "Belum ada karya di disiplin ini",
+    "emptyBody": "Studio belum menerbitkan karya di bawah kategori ini. Lihat semuanya saja.",
+    "emptyAction": "Lihat semua karya"
+  },
   "meta": {
     "client": "Klien",
     "year": "Tahun",
@@ -50,5 +64,36 @@
     "medium": "Medium",
     "dimensions": "Dimensi",
     "nextProject": "Karya berikutnya"
+  },
+  "notFound": {
+    "label": "Galat",
+    "message": "Halaman tidak ditemukan",
+    "description": "Halaman yang Anda cari tidak ada atau sudah dipindahkan.",
+    "tryPrefix": "Coba",
+    "home": "Ke beranda",
+    "agentIndex": "Indeks agen",
+    "sitemap": "Peta situs",
+    "title": "Halaman tidak ditemukan"
+  },
+  "error": {
+    "title": "Ada yang tidak beres",
+    "description": "Terjadi kesalahan tak terduga di sisi kami. Coba lagi, atau kembali ke beranda.",
+    "retry": "Coba lagi",
+    "home": "Ke beranda"
+  },
+  "machineView": {
+    "facts": "Fakta",
+    "founded": "Berdiri",
+    "location": "Lokasi",
+    "areaServed": "Wilayah layanan",
+    "email": "Surel",
+    "services": "Layanan",
+    "expertise": "Bidang keahlian",
+    "pages": "Halaman",
+    "whenToUse": "Kapan dipakai",
+    "howToUse": "Cara memakai",
+    "developerResources": "Sumber untuk pengembang",
+    "elsewhere": "Di tempat lain",
+    "forAgents": "Untuk agen"
   }
 }

@@ -103,8 +103,22 @@ const routableDocumentSchema = z.object({
   _updatedAt: z.string(),
 })
 
+/*
+ * `listed != false` excludes a work the studio has withdrawn.
+ *
+ * Not `listed == true`: documents written before the field existed have no
+ * value at all, and treating those as listed is both the safe default and the
+ * reason no migration is needed.
+ *
+ * This clause is why turning a work off now removes it from the sitemap,
+ * `/llms.txt` and `/ai` as well as from the grid. Before it,
+ * `docs/PANDUAN-STUDIO.md` §7 told the studio that unfeaturing hid a work
+ * while all three surfaces kept advertising it.
+ */
 const routableContentQuery = defineQuery(`
-  *[_type in ["page", "article", "project"] && defined(slug.current)] {
+  *[_type in ["page", "article", "project"]
+    && defined(slug.current)
+    && (_type != "project" || listed != false)] {
     _type,
     slug,
     _updatedAt,

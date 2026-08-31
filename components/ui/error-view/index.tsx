@@ -4,6 +4,14 @@ import type { ReactNode } from 'react'
 import { useEffect } from 'react'
 
 interface ErrorViewProps {
+  /*
+   * English defaults, passed over by the localized route.
+   *
+   * `app/global-error.tsx` renders outside `NextIntlClientProvider` and has
+   * no translations available, so these are what it shows. `/id/…` passes
+   * real ones — it used to show this English copy under `lang="id-ID"`.
+   */
+  retryLabel?: string
   error: Error & { digest?: string }
   reset: () => void
   title?: string
@@ -39,6 +47,7 @@ export function ErrorView({
   reset,
   title = 'Something went wrong',
   description = "We're sorry, but something unexpected happened. Please try again.",
+  retryLabel = 'Try Again',
   homeLink = DEFAULT_HOME_LINK,
 }: ErrorViewProps) {
   useEffect(() => {
@@ -69,7 +78,7 @@ export function ErrorView({
           type="button"
           className="border border-secondary bg-secondary dr-px-24 dr-py-12 cta text-primary uppercase transition-colors hover:bg-transparent hover:text-secondary"
         >
-          Try Again
+          {retryLabel}
         </button>
         {homeLink}
       </div>

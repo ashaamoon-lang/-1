@@ -104,6 +104,30 @@ interface ProjectPageProps {
  * enumerates every project, which is what the exit criterion actually needs.
  */
 
+/**
+ * Last-resort title when the CMS has none in either language.
+ *
+ * `project.title ?? slug` used to be the fallback, and it rendered
+ * `panas-sore` as an `<h1>`. The GROQ `coalesce` only falls back *to* English,
+ * so a work published in Indonesian first had no English title at all — and
+ * the studio writes in Indonesian, so that is the likely order
+ * (`docs/AUDIT-2026-08.md` §2.5). `requireEveryLocale` in the schema now stops
+ * that at Publish; this covers documents written before it existed.
+ *
+ * `??` also missed the empty-string case, which is what an editor who clears
+ * a field leaves behind — hence `||`.
+ *
+ * A title in the wrong language would be better still, but the query has
+ * already collapsed the field to one string by the time it arrives here.
+ * Turning a URL segment back into words is the honest floor.
+ */
+function humanizeSlug(slug: string): string {
+  return slug
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params
 
@@ -130,7 +154,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     <Wrapper theme="dark" lenis={{ anchors: true }}>
       <article className={s.article}>
         <ProjectHero
-          title={project.title ?? slug}
+          title={project.title || humanizeSlug(slug)}
           cover={project.cover}
           coverAlt={project.coverAlt ?? ''}
           meta={[

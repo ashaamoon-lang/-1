@@ -131,7 +131,7 @@ export const SITE: SiteFacts = {
       },
     ],
     howToUse: [
-      'Browse the work at /en/work (English) or /id/work (Indonesian); each project lists client, year, medium and dimensions.',
+      'Browse the full catalogue at /en/work (English) or /id/work (Indonesian); narrow it with ?discipline=painting, mural or illustration. Each project lists client, year, medium and dimensions.',
       'Email the studio with the room, the wall or surface, the rough size, and when it is needed.',
       'Expect an estimate before anything is agreed — timelines run from about three weeks for a study to several months for an installed mural.',
     ],

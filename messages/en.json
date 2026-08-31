@@ -28,6 +28,20 @@
     "viewProject": "View",
     "nextProject": "Next project"
   },
+  "workIndex": {
+    "title": "Work",
+    "eyebrow": "Catalogue",
+    "intro": "Commissions completed to date. Filter by discipline, or see everything.",
+    "filterLabel": "Filter by discipline",
+    "all": "All",
+    "painting": "Painting",
+    "mural": "Mural",
+    "illustration": "Illustration",
+    "count": "{count, plural, one {# piece} other {# pieces}}",
+    "emptyTitle": "Nothing in this discipline yet",
+    "emptyBody": "The studio has not published work under this heading. See everything instead.",
+    "emptyAction": "See all work"
+  },
   "meta": {
     "client": "Client",
     "year": "Year",
@@ -50,5 +64,36 @@
     "medium": "Medium",
     "dimensions": "Dimensions",
     "nextProject": "Next project"
+  },
+  "notFound": {
+    "label": "Error",
+    "message": "Page not found",
+    "description": "The page you’re looking for doesn’t exist or has been moved.",
+    "tryPrefix": "Try",
+    "home": "Go home",
+    "agentIndex": "Agent index",
+    "sitemap": "Sitemap",
+    "title": "Page not found"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "Something unexpected happened on our side. Try again, or go back to the home page.",
+    "retry": "Try again",
+    "home": "Go home"
+  },
+  "machineView": {
+    "facts": "Facts",
+    "founded": "Founded",
+    "location": "Location",
+    "areaServed": "Area served",
+    "email": "Email",
+    "services": "Services",
+    "expertise": "Expertise",
+    "pages": "Pages",
+    "whenToUse": "When to use",
+    "howToUse": "How to use",
+    "developerResources": "Developer resources",
+    "elsewhere": "Elsewhere",
+    "forAgents": "For agents"
   }
 }

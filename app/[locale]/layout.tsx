@@ -2,14 +2,13 @@ import { Analytics } from '@vercel/analytics/next'
 import { TransformProvider } from 'hamo'
 import type { Metadata, Viewport } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
+import { getMessages, getTranslations } from 'next-intl/server'
 import { VisualEditing } from 'next-sanity/visual-editing'
 import { draftMode } from 'next/headers'
 import { locale as localeRootParam } from 'next/root-params'
 import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
-import { Link } from '@/components/ui/link'
 import { RealViewport } from '@/components/ui/real-viewport'
 import { ToastProvider, ToastViewport } from '@/components/ui/toast'
 import { APP_BASE_URL, env } from '@/lib/env'
@@ -153,6 +152,7 @@ export function generateStaticParams() {
 }
 
 export default async function AppLayout({ children }: PropsWithChildren) {
+  const t = await getTranslations()
   const { isEnabled: isDraftMode } = await draftMode()
   const sanityConfigured = isConfigured('sanity')
 
@@ -195,15 +195,30 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           pages are landed on directly far more often than the homepage. */}
           <JsonLd data={organizationSchema()} />
           <JsonLd data={websiteSchema()} />
-          {/* Skip link for keyboard navigation accessibility */}
-          <Suspense fallback={null}>
-            <Link
-              href="#main-content"
-              className="focus:rounded sr-only focus:not-sr-only focus:fixed focus:dr-top-16 focus:dr-left-16 focus:z-9999 focus:bg-secondary focus:dr-px-16 focus:dr-py-8 focus:text-primary focus:ring-2 focus:ring-contrast focus:outline-none"
-            >
-              Skip to main content
-            </Link>
-          </Suspense>
+          {/*
+            A native anchor, not `components/ui/link`.
+            
+            That component wraps next-intl's `Link`, which routes through the
+            client router with `scroll: false` — so a fragment href performed
+            no navigation at all: `:target` stayed null, the scroll position
+            did not move, and focus never left the link. WCAG 2.4.1 failed on
+            every page, on the site's only bypass mechanism
+            (`docs/AUDIT-2026-08.md` §2.3). A plain `<a href="#…">` does what
+            the browser has always done, and `<main tabIndex={-1}>` gives it
+            somewhere to land.
+
+            The label comes from `nav.skipToContent`, which existed in both
+            message catalogues and was called from nowhere — so the first
+            thing an Indonesian screen-reader user heard on every `/id` page
+            was English.
+          */}
+          {/* oxlint-disable-next-line react/forbid-elements -- a fragment link must not go through the client router; see above */}
+          <a
+            href="#main-content"
+            className="focus:rounded sr-only focus:not-sr-only focus:fixed focus:dr-top-16 focus:dr-left-16 focus:z-9999 focus:bg-secondary focus:dr-px-16 focus:dr-py-8 focus:text-primary focus:ring-2 focus:ring-contrast focus:outline-none"
+          >
+            {t('nav.skipToContent')}
+          </a>
           {/* Critical: CSS custom properties needed for layout */}
           <RealViewport>
             <ToastProvider>

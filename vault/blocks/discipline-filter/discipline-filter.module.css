@@ -1,0 +1,76 @@
+.list {
+  /*
+   * `wrap`, and it is not decoration.
+   *
+   * The `ui-ux-pro-max` UX database rates Chip Collection Reflow **High**:
+   * "Filter chips and editable value collections must preserve labels when
+   * space or text size changes", and names the failure it is guarding against
+   * — "Force all chips into one clipped row". So: no fixed height, no
+   * horizontal overflow, no truncation. At 320px with four Indonesian labels
+   * this wraps to three rows and every label stays readable.
+   */
+  display: flex;
+  flex-wrap: wrap;
+  gap: mobile-vw(8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+  }
+}
+
+.chip {
+  display: grid;
+  place-items: center;
+  /* Hit area first; the type size stays what the caption class says. */
+  min-block-size: var(--tap-target);
+  padding-inline: mobile-vw(16px);
+  border: 1px solid var(--line-strong);
+  border-radius: calc(var(--tap-target) / 2);
+  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color var(--duration-fast) var(--ease-out-quart),
+    border-color var(--duration-fast) var(--ease-out-quart);
+
+  @media (--desktop) {
+    padding-inline: desktop-vw(16px);
+  }
+
+  @media (--hover) {
+    &:hover {
+      color: var(--color-secondary);
+      border-color: var(--color-secondary);
+    }
+  }
+
+  /*
+   * Styled from `aria-current`, not a class. The skill's Active State
+   * guideline asks for a visible indication of the current selection; taking
+   * it from the accessible attribute means a chip cannot look active while
+   * announcing otherwise.
+   *
+   * Border and colour together, not colour alone — this palette is
+   * monochrome by decision (Tahap 1), so a single-channel cue would be the
+   * weakest possible signal.
+   */
+  &[aria-current] {
+    color: var(--color-primary);
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 2px;
+  }
+}
+
+@media (--reduced-motion) {
+  .chip {
+    transition: none;
+  }
+}

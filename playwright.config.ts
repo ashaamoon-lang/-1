@@ -44,6 +44,7 @@ export default defineConfig({
         '**/project-detail.e2e.ts',
         '**/image-resolution.e2e.ts',
         '**/webgl-budget.e2e.ts',
+        '**/promises.e2e.ts',
       ],
       use: {
         browserName: 'chromium',

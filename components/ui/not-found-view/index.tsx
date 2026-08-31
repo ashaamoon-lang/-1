@@ -3,6 +3,21 @@ import type { ReactNode } from 'react'
 import s from './not-found-view.module.css'
 
 interface NotFoundViewProps {
+  /*
+   * Copy is passed in, and the defaults stay English on purpose.
+   *
+   * `app/global-error.tsx` renders outside the router and therefore outside
+   * `NextIntlClientProvider`, so it cannot translate anything — these defaults
+   * are what it shows. The localized route passes real translations instead.
+   *
+   * Before this, both did: `/id/anything` rendered "Page not found" under
+   * `lang="id-ID"` (`docs/AUDIT-2026-08.md` §2.4).
+   */
+  label?: string
+  message?: string
+  description?: string
+  /** Leads into the recovery links: "Try X, Y or Z." */
+  tryPrefix?: string
   /**
    * Element rendered in place of the default "Go Home" anchor. Pass the
    * project's `Link` (from '@/components/ui/link') when rendering inside the
@@ -52,17 +67,21 @@ const DEFAULT_RECOVERY_LINKS = (
 export function NotFoundView({
   homeLink = DEFAULT_HOME_LINK,
   recoveryLinks = DEFAULT_RECOVERY_LINKS,
+  label = 'Error',
+  message = 'Page not found',
+  description = "The page you're looking for doesn't exist or has been moved.",
+  tryPrefix = 'Try',
 }: NotFoundViewProps) {
   return (
     <section className={s.section}>
       <div className={s.panel}>
-        <div className={s.label}>Error</div>
+        <div className={s.label}>{label}</div>
         <h1 className={s.code}>404</h1>
-        <p className={s.message}>Page not found</p>
+        <p className={s.message}>{message}</p>
         <p className={s.description}>
-          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+          {description}
           <br />
-          Try {recoveryLinks}.
+          {tryPrefix} {recoveryLinks}.
         </p>
         {homeLink}
       </div>

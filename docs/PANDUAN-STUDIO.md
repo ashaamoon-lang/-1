@@ -32,27 +32,34 @@ Di kolom kiri pilih **Project → +** (tanda tambah).
 Isi dari atas ke bawah. Yang bertanda **wajib** akan menolak disimpan kalau
 kosong.
 
-| Field              | Wajib | Isi apa                                                       |
-| ------------------ | ----- | ------------------------------------------------------------- |
-| **Title**          | ✅    | Judul karya. Ada **dua kotak**: EN dan ID.                    |
-| **Slug**           | ✅    | Alamat karya. Klik **Generate** — jangan diketik manual.      |
-| **Cover image**    | ✅    | Foto utama. Ini yang muncul di grid dan saat dibagikan.       |
-| **Alt text**       | ✅    | Deskripsi gambar, dua bahasa. Lihat §4 — ini penting.         |
-| **Gallery**        |       | Foto tambahan. Tiap foto juga butuh alt text.                 |
-| **Client**         |       | Nama pemesan. Satu bahasa saja — nama tidak diterjemahkan.    |
-| **Year**           |       | Tahun, angka saja: `2026`.                                    |
-| **Medium**         |       | Contoh: `Acrylic on canvas` / `Akrilik di atas kanvas`.       |
-| **Dimensions**     |       | Contoh: `120 × 90 cm`. Satu bahasa — satuan sama di mana pun. |
-| **Description**    |       | Cerita karyanya. Dua bahasa.                                  |
-| **Order**          |       | Angka kecil tampil lebih dulu. Default `100`.                 |
-| **Featured**       |       | Nyalakan supaya muncul di halaman depan.                      |
-| **Grid span**      |       | `Half` = setengah lebar, `Full` = selebar layar.              |
-| **Published at**   |       | Terisi otomatis. Biarkan saja.                                |
-| **SEO & Metadata** |       | Boleh dikosongkan — lihat §5.                                 |
+| Field               | Wajib | Isi apa                                                                |
+| ------------------- | ----- | ---------------------------------------------------------------------- |
+| **Title**           | ✅    | Judul karya. Ada **dua kotak**: EN dan ID.                             |
+| **Slug**            | ✅    | Alamat karya. Klik **Generate** — jangan diketik manual.               |
+| **Cover image**     | ✅    | Foto utama. Ini yang muncul di grid dan saat dibagikan.                |
+| **Alt text**        | ✅    | Deskripsi gambar, dua bahasa. Lihat §4 — ini penting.                  |
+| **Gallery**         |       | Foto tambahan. Tiap foto juga butuh alt text.                          |
+| **Client**          |       | Nama pemesan. Satu bahasa saja — nama tidak diterjemahkan.             |
+| **Year**            |       | Tahun, angka saja: `2026`.                                             |
+| **Discipline**      | ✅    | Lukisan / Mural / Ilustrasi. Ini yang dipakai filter di halaman Karya. |
+| **Medium**          |       | Contoh: `Acrylic on canvas` / `Akrilik di atas kanvas`.                |
+| **Dimensions**      |       | Contoh: `120 × 90 cm`. Satu bahasa — satuan sama di mana pun.          |
+| **Description**     |       | Cerita karyanya. Dua bahasa.                                           |
+| **Order**           |       | Angka kecil tampil lebih dulu. Default `100`.                          |
+| **Featured**        |       | Nyalakan supaya muncul di **halaman depan**.                           |
+| **Listed publicly** |       | Nyalakan = tampil di katalog publik. Lihat §7.                         |
+| **Grid span**       |       | `Half` = setengah lebar, `Full` = selebar layar.                       |
+| **Published at**    |       | Terisi otomatis. Biarkan saja.                                         |
+| **SEO & Metadata**  |       | Boleh dikosongkan — lihat §5.                                          |
 
 Setelah selesai, tekan **Publish** (tombol hijau, kanan bawah). Situs akan
 memperbarui dirinya sendiri dalam beberapa detik. **Tidak perlu memanggil siapa
 pun.**
+
+> **Judul dan Alt text wajib diisi dalam KEDUA bahasa.** Studio menolak Publish
+> kalau salah satunya kosong, dan itu disengaja: kalau judul bahasa Inggris
+> kosong, halaman versi Inggris dulu menampilkan alamat URL-nya sendiri sebagai
+> judul.
 
 Selama belum ditekan Publish, karya itu masih _draft_: tersimpan, tapi belum
 terlihat pengunjung.
@@ -101,8 +108,13 @@ Satu kalimat sudah cukup. Isi keduanya, EN dan ID.
 
 Kosongkan saja, kecuali ada alasan khusus.
 
-Kalau dibiarkan kosong, situs otomatis memakai judul karya dan kalimat pertama
-deskripsinya. Itu biasanya lebih baik daripada tulisan pemasaran.
+Kalau dibiarkan kosong, situs otomatis memakai judul karya, kalimat pertama
+**Description**-nya, dan **Cover image** sebagai gambar yang muncul saat
+tautannya dibagikan. Itu biasanya lebih baik daripada tulisan pemasaran.
+
+> Versi sebelumnya dari panduan ini menjanjikan hal yang sama padahal belum
+> berlaku untuk karya: deskripsinya kosong, dan kartu bagikannya memakai logo
+> Arth alih-alih lukisannya. Sudah diperbaiki.
 
 Isi hanya kalau:
 
@@ -141,13 +153,46 @@ peluncuran** (mintalah ke yang mengelola deploy, ini bukan lewat Studio):
 
 ---
 
+## 6b. Halaman Karya dan filternya
+
+Semua karya yang **Listed publicly** tampil di halaman katalog, dan pengunjung
+bisa menyaringnya per disiplin. Alamatnya bisa dibagikan langsung:
+
+```
+/id/work                          semua karya
+/id/work?discipline=mural         hanya mural
+/id/work?discipline=painting      hanya lukisan
+/id/work?discipline=illustration  hanya ilustrasi
+```
+
+Yang menentukan sebuah karya masuk kelompok mana adalah field **Discipline** —
+bukan **Medium**. Medium adalah kalimat bebas ("Akrilik di atas kanvas");
+Discipline adalah satu dari tiga pilihan tetap. Sebuah disiplin hanya muncul
+sebagai tombol filter kalau ada karya di dalamnya.
+
+---
+
 ## 7. Mengubah dan menghapus
 
 **Mengubah:** buka karyanya, ubah, tekan **Publish** lagi.
 
 **Menghapus:** tombol titik-tiga di kanan atas → **Delete**. Karya langsung
-hilang dari situs. Kalau hanya ingin menyembunyikan sementara, lebih aman
-matikan **Featured** dan naikkan **Order** ke angka besar — datanya tetap ada.
+hilang dari situs, dan tautannya mati.
+
+**Menyembunyikan tanpa menghapus:** matikan **Listed publicly**, lalu Publish.
+Karyanya hilang dari halaman Karya, dari peta situs, dan dari tautan "karya
+berikutnya". Halamannya sendiri tetap terbuka bagi yang sudah punya tautannya —
+jadi tautan yang pernah dikirim ke klien tidak mati — tetapi mesin pencari
+diberi tahu untuk tidak mengindeksnya lagi.
+
+> **Koreksi.** Panduan ini sebelumnya menyuruh Anda mematikan **Featured**
+> untuk menyembunyikan karya. Itu **salah**: Featured hanya mengatur halaman
+> depan; karyanya tetap ada di peta situs dan tetap bisa ditemukan. Itulah
+> sebabnya **Listed publicly** ditambahkan — dua tombol untuk dua hal yang
+> memang berbeda:
+>
+> - **Featured** — tampil di halaman depan. Pilihan kurasi.
+> - **Listed publicly** — ada di katalog publik sama sekali atau tidak.
 
 ---
 

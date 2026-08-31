@@ -908,6 +908,27 @@
         },
         "optional": true
       },
+      "discipline": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "painting"
+            },
+            {
+              "type": "string",
+              "value": "mural"
+            },
+            {
+              "type": "string",
+              "value": "illustration"
+            }
+          ]
+        },
+        "optional": true
+      },
       "medium": {
         "type": "objectAttribute",
         "value": {
@@ -939,6 +960,13 @@
         "optional": true
       },
       "featured": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "boolean"
+        },
+        "optional": true
+      },
+      "listed": {
         "type": "objectAttribute",
         "value": {
           "type": "boolean"

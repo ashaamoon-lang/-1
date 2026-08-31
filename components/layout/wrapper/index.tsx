@@ -149,6 +149,17 @@ export function Wrapper({
       <Canvas root={webgl}>
         <main
           id="main-content"
+          /*
+           * `-1` so the skip link can actually land here.
+           *
+           * Without it `<main>` is not focusable, so following the skip link
+           * moved the document's scroll position and nothing else: the next
+           * Tab went to the wordmark, and a keyboard user still walked the
+           * whole header on every page. Measured — `document.activeElement`
+           * never changed (`docs/AUDIT-2026-08.md` §2.3). `-1` keeps it out
+           * of the tab order while allowing programmatic and fragment focus.
+           */
+          tabIndex={-1}
           className={cn('relative flex grow flex-col', className)}
           {...props}
         >

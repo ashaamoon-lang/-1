@@ -105,6 +105,25 @@ export const integrations = {
         'https://*.apicdn.sanity.io',
         'https://api.sanity.io',
       ],
+      /*
+       * The embedded Studio's own two hosts, and both were missing.
+       *
+       * Measured against a running `/studio`: the page requested
+       * `core.sanity-cdn.com/bridge.js` and two `InterVariable` faces from
+       * `design-system-static.sanity.io`, and the policy refused all three.
+       * `next-sanity` hardcodes the bridge URL
+       * (`dist/studio/index.js`: `const bridgeScript =
+       * "https://core.sanity-cdn.com/bridge.js"`), so it is not optional.
+       *
+       * Honest limit, recorded rather than glossed: that the policy blocked
+       * these is measured. That the policy is *why* the Studio failed to boot
+       * is not — with the header stripped it still hung, because Chromium in
+       * that container has no outbound network of its own
+       * (`docs/AUDIT-2026-08.md` §2.8). Adding them removes a certain
+       * blocker; it may not be the only one.
+       */
+      'script-src': ['https://core.sanity-cdn.com'],
+      'font-src': ['https://design-system-static.sanity.io'],
     },
   },
   shopify: {

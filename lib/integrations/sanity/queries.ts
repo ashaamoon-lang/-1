@@ -113,24 +113,57 @@ const projectCardFields = `
   client,
   span,
   featured,
+  discipline,
   cover,
   ${localizedTitle},
   ${localizedMedium},
   ${localizedCoverAlt}
 `
 
-/** Every project, in curated order. */
+/**
+ * The public catalogue, in one place.
+ *
+ * `listed` is absent on every document written before the field existed, and
+ * `listed != false` is deliberately not `listed == true`: the former treats a
+ * missing value as listed, which is the safe default and means no migration is
+ * needed. A work is hidden only when the editor explicitly turns it off.
+ *
+ * Every surface that *advertises* a work reuses this, so "hidden" cannot mean
+ * one thing on the home page and another in the sitemap — which is exactly
+ * what it did (`docs/AUDIT-2026-08.md` §2.2).
+ */
+const isListed = `_type == "project" && listed != false`
+
+/** Every listed project, in curated order. */
 export const projectsQuery = defineQuery(`
-  *[_type == "project"] | order(order asc, publishedAt desc) {
+  *[${isListed}] | order(order asc, publishedAt desc) {
     ${projectCardFields}
   }
 `)
 
 /** Home-page selection only. */
 export const featuredProjectsQuery = defineQuery(`
-  *[_type == "project" && featured == true] | order(order asc, publishedAt desc) {
+  *[${isListed} && featured == true] | order(order asc, publishedAt desc) {
     ${projectCardFields}
   }
+`)
+
+/**
+ * The work index, optionally narrowed to one discipline.
+ *
+ * `$discipline` is null for the unfiltered view, and GROQ's `||` short-circuits
+ * so the comparison is skipped entirely rather than matching nothing.
+ */
+export const workIndexQuery = defineQuery(`
+  *[${isListed} && ($discipline == null || discipline == $discipline)]
+    | order(order asc, publishedAt desc) {
+    ${projectCardFields}
+  }
+`)
+
+/** Which disciplines actually have listed work, for the filter chips. */
+export const disciplinesQuery = defineQuery(`
+  array::unique(*[${isListed} && defined(discipline)].discipline)
 `)
 
 /**

@@ -617,16 +617,61 @@ ketiganya ke Tahap 9.
 
 ---
 
-## Tahap 8 — Halaman indeks karya & janji yang tidak ditepati
+## Tahap 8 — Halaman indeks karya & janji yang tidak ditepati ✅
 
-**Kerja:** halaman `/[locale]/work` beserta field `discipline` (keputusan
-user), status listed/archived yang nyata, skip-link yang benar-benar
-memindahkan fokus, lokalisasi `/id/ai` + 404/error, fallback judul saat satu
-bahasa kosong, error boundary yang bergaya, CSP + smoke test `/studio`,
-koreksi `PANDUAN-STUDIO.md`.
+Spec penuh: **`docs/stages/TAHAP-8.md`**.
 
-**Keluar:** agen tidak lagi diarahkan ke 404 · tiap karya punya pintu masuk ·
-skip-link lolos uji tekan-Enter · nol string Inggris di rute `/id`.
+Benang merahnya bukan bug tersembunyi melainkan **janji tertulis yang tidak
+ditepati** — dan dua di antaranya saya sendiri yang menulisnya:
+
+| Yang dijanjikan                               | Di mana                | Kenyataannya            |
+| --------------------------------------------- | ---------------------- | ----------------------- |
+| "Browse the work at /en/work"                 | `SITE.agentGuidance`   | soft-404                |
+| "matikan Featured untuk menyembunyikan karya" | `PANDUAN-STUDIO.md` §7 | tidak menyembunyikan    |
+| "Skip to main content"                        | layout                 | tidak memindahkan fokus |
+| `lang="id-ID"`                                | `/id/ai`, 404, error   | isinya bahasa Inggris   |
+| "Lewati ke konten utama"                      | `messages/id.json`     | kunci mati              |
+
+| Yang diukur                           | Sebelum    | Sesudah                |
+| ------------------------------------- | ---------- | ---------------------- |
+| `/en/work` dan `/id/work`             | soft-404   | **200, katalog penuh** |
+| Karya tanpa pintu masuk dari navigasi | 1 dari 3   | **0**                  |
+| Skip-link memindahkan fokus           | tidak      | **ya**, dua locale     |
+| String identik `/en/ai` vs `/id/ai`   | 38 dari 38 | **di bawah ambang**    |
+| Test e2e                              | 144        | **156**                |
+
+**Halaman `/work` dibangun setelah ritual `ui-ux-pro-max`**, dan hasilnya
+dicatat di spec §1. Pola `portfolio-grid` sendiri yang menuntut **"Filter by
+category"** — jadi field `discipline` bukan tambahan saya — dan tiga guideline
+lain (Chip Collection Reflow _High_, Deep Linking, Empty States) menentukan
+bentuknya. `--stack nextjs "grid"` mengembalikan **0 hasil**, dinyatakan
+terus terang sesuai §2.1.
+
+**Filternya adalah tautan, bukan tombol,** dan penyaringan terjadi di GROQ.
+Konsekuensinya: URL yang bisa dibagikan, nol byte JavaScript klien, dan halaman
+yang berfungsi penuh tanpa JS — yang penting karena audit §2.6 mencatat `/en`
+justru tidak demikian.
+
+**`featured` dan `listed` sekarang dua tombol untuk dua hal berbeda.** Satu
+klausa `listed != false` dipakai bersama oleh sitemap, `/llms.txt`, `/ai`, grid
+beranda, halaman katalog, dan rantai next-project — sehingga "disembunyikan"
+tidak bisa lagi berarti satu hal di beranda dan hal lain di peta situs.
+
+**`e2e/promises.e2e.ts` dibuktikan merah lebih dulu**, empat kali, tepat pada
+cacat yang dilaporkan audit. Ia membaca URL dari prosa `/llms.txt` yang
+benar-benar dirender, bukan dari konstanta — yang diuji adalah apa yang situs
+ini _katakan_.
+
+**Keluar:** `bun run check` (380 test) · `bun run build` · `build-storybook` ·
+`CI=true bun run test:e2e` (**156 lulus**) · halaman katalog dilihat langsung,
+dua locale, 390px dan 1440px.
+
+**Belum dikerjakan, eksplisit:** prosa `SITE` masih satu bahasa, jadi kriteria
+"nol prosa Inggris di `/id`" **belum** terpenuhi seluruhnya — label sudah,
+entity copy belum · `listed: false` belum diuji terhadap dokumen nyata ·
+`/studio` masih tanpa smoke test yang berarti (sandbox ini tidak punya egress,
+jadi test-nya akan gagal karena lingkungan, bukan karena kode) · keputusan soal
+tipe `page`/`article` · paginasi `/work`.
 
 ---
 

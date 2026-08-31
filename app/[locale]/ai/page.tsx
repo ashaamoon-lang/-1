@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { localizedPath } from '@/lib/i18n/paths'
@@ -64,6 +65,22 @@ export default async function AiPage() {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
+  /*
+   * Section headings come from the message catalogue.
+   *
+   * They were English literals, so `/id/ai` served 37 of 37 visible strings
+   * in English under `lang="id-ID"` — and that page is in the sitemap, so an
+   * answer engine indexed two identical documents as two languages. axe
+   * passes either way: `html-has-lang` checks the attribute exists, not that
+   * the content matches it (`docs/AUDIT-2026-08.md` §2.4).
+   *
+   * What stays untranslated is deliberate: the studio's name, its email, its
+   * URLs, and the agent-guidance prose in `lib/seo/site.ts` — proper nouns
+   * and one source of entity copy. `e2e/locale-parity.e2e.ts` measures the
+   * labels, which are the part that has to move.
+   */
+  const t = await getTranslations('machineView')
+
   // This page is itself locale-scoped, so its links carry its own locale.
   // They used to be the bare templates, which 307 to whichever locale the
   // fetching agent's `Accept-Language` happens to imply — not necessarily
@@ -75,47 +92,47 @@ export default async function AiPage() {
       <h1>{SITE.name}</h1>
       <p>{SITE.description}</p>
 
-      <h2>Facts</h2>
+      <h2>{t('facts')}</h2>
       <dl>
         {SITE.foundingDate && (
           <>
-            <dt>Founded</dt>
+            <dt>{t('founded')}</dt>
             <dd>{SITE.foundingDate}</dd>
           </>
         )}
         {SITE.locationName && (
           <>
-            <dt>Location</dt>
+            <dt>{t('location')}</dt>
             <dd>{SITE.locationName}</dd>
           </>
         )}
         {SITE.areaServed && (
           <>
-            <dt>Area served</dt>
+            <dt>{t('areaServed')}</dt>
             <dd>{SITE.areaServed}</dd>
           </>
         )}
         {SITE.email && (
           <>
-            <dt>Email</dt>
+            <dt>{t('email')}</dt>
             <dd>{SITE.email}</dd>
           </>
         )}
         {SITE.services.length > 0 && (
           <>
-            <dt>Services</dt>
+            <dt>{t('services')}</dt>
             <dd>{formatList(SITE.services)}</dd>
           </>
         )}
         {SITE.knowsAbout.length > 0 && (
           <>
-            <dt>Expertise</dt>
+            <dt>{t('expertise')}</dt>
             <dd>{formatList(SITE.knowsAbout)}</dd>
           </>
         )}
       </dl>
 
-      <h2>Pages</h2>
+      <h2>{t('pages')}</h2>
       <ul>
         {STATIC_ROUTES.map((page) => (
           <li key={page.path}>
@@ -133,7 +150,7 @@ export default async function AiPage() {
 
       {SITE.agentGuidance?.whenToUse.length ? (
         <>
-          <h2>When to use</h2>
+          <h2>{t('whenToUse')}</h2>
           <ul>
             {SITE.agentGuidance.whenToUse.map((useCase) => (
               <li key={useCase.name}>
@@ -146,7 +163,7 @@ export default async function AiPage() {
 
       {SITE.agentGuidance?.howToUse.length ? (
         <>
-          <h2>How to use</h2>
+          <h2>{t('howToUse')}</h2>
           <ol>
             {SITE.agentGuidance.howToUse.map((instruction) => (
               <li key={instruction}>{instruction}</li>
@@ -157,7 +174,7 @@ export default async function AiPage() {
 
       {SITE.developerResources?.length ? (
         <>
-          <h2>Developer resources</h2>
+          <h2>{t('developerResources')}</h2>
           <ul>
             {SITE.developerResources.map((resource) => (
               <li key={resource.url}>
@@ -172,7 +189,7 @@ export default async function AiPage() {
 
       {SITE.sameAs.length > 0 && (
         <>
-          <h2>Elsewhere</h2>
+          <h2>{t('elsewhere')}</h2>
           <ul>
             {SITE.sameAs.map((url) => (
               <li key={url}>
@@ -186,7 +203,7 @@ export default async function AiPage() {
         </>
       )}
 
-      <h2>For agents</h2>
+      <h2>{t('forAgents')}</h2>
       <ul>
         <li>
           {/* oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- non-page static route; this route is intentionally client-component-free (see file header) */}
