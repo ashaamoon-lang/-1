@@ -6,12 +6,52 @@
   pointer-events: none;
   background-color: var(--color-secondary);
   /*
-   * Starts collapsed. If JS never runs (or the timeline is killed mid-flight
-   * on a fast double-navigation) the overlay is invisible rather than stuck
-   * covering the page — the failure mode is "no transition", never "blank
-   * screen".
+   * Parked below the viewport, and parked there by the base rule rather than
+   * by a state class. If JavaScript never runs, the panel is simply absent —
+   * the failure mode is "no transition", never "blank screen".
    */
-  transform: scaleY(0);
-  transform-origin: bottom;
+  transform: translateY(100%);
   will-change: transform;
+}
+
+/*
+ * Sweeping up to cover. Fast: this runs while the reader is waiting for the
+ * next route, so its duration is latency they can feel.
+ */
+.overlay[data-state='covering'] {
+  transform: translateY(0);
+  transition: transform var(--duration-fast) var(--ease-out-quart);
+}
+
+/*
+ * Continuing off the top. Slower than the cover, and deliberately so — the
+ * asymmetry is what makes a transition read as intentional rather than as a
+ * stall. It leaves through the opposite edge it arrived at, so the whole
+ * thing is one sweep rather than a curtain that drops twice.
+ */
+.overlay[data-state='revealing'] {
+  transform: translateY(-100%);
+  transition: transform var(--duration) var(--ease-out-expo);
+}
+
+/*
+ * No transition on the way back to the parked position. The panel is
+ * off-screen at both ends, so this is an instant, invisible reset — animating
+ * it would send a black bar sliding back down across a page the reader is
+ * already reading.
+ */
+.overlay[data-state='idle'] {
+  transition: none;
+}
+
+@media (--reduced-motion) {
+  /*
+   * Belt and braces. The component returns `null` under the preference, so
+   * this rule should be unreachable — but an overlay that animates when
+   * someone has asked for no animation is the one failure here that is worse
+   * than no overlay at all.
+   */
+  .overlay {
+    display: none;
+  }
 }

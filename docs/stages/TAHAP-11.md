@@ -106,24 +106,36 @@ Ukuran teks badan pada halaman detail benar secara tipografi (65 karakter,
 sementara gambar di atas dan di bawahnya berjalan sampai 78%. Teksnya jadi
 terlihat seperti sisa, bukan seperti bagian.
 
-### 2.4 Seluruh `vault/motion/` tidak terpakai
+### 2.4 `page-transition` dibangun lalu tidak pernah dipasang
 
-Inventaris impor dari `app/` dan `components/`:
+> **Koreksi.** Versi pertama bagian ini menulis bahwa **seluruh**
+> `vault/motion/` tidak terpakai — `text-reveal` dan `tokens.ts` ikut
+> didaftar. Itu salah, dan salahnya karena inventarisnya salah bentuk: ia
+> hanya memindai impor dari `app/` dan `components/`, sementara `text-reveal`
+> diimpor oleh `vault/blocks/hero` (impor vault→vault) dan `tokens.ts` oleh
+> `text-reveal`, `magnetic`, serta `cursor`. Sekali lagi: pengukuran yang
+> salah bentuk lebih berbahaya daripada tidak mengukur.
 
-| Modul                          | Status                    |
-| ------------------------------ | ------------------------- |
-| `vault/motion/page-transition` | **tidak dipakai**         |
-| `vault/motion/text-reveal`     | **tidak dipakai**         |
-| `vault/motion/tokens.ts`       | **tidak dipakai**         |
-| `vault/blocks/project-card`    | tidak langsung (via grid) |
-| delapan blok lainnya           | dipakai                   |
+Inventaris yang benar — impor dari mana pun:
 
-Dibangun di Phase C, lengkap dengan story dan reduced-motion, lalu tidak
-pernah dipasang. Yang benar-benar dikirim situs saat ini hanya `useReveal` —
-fade-and-rise CSS pada grid.
+| Modul                          | Status                                             |
+| ------------------------------ | -------------------------------------------------- |
+| `vault/motion/page-transition` | **tidak dipakai** — inilah temuannya               |
+| `vault/motion/text-reveal`     | dipakai, lewat `vault/blocks/hero`                 |
+| `vault/motion/tokens.ts`       | dipakai, lewat `text-reveal`, `magnetic`, `cursor` |
 
-Itu bukan kekurangan efek. Itu berarti **berpindah halaman terasa seperti
-memuat dokumen**, dan untuk situs portofolio, perpindahan halaman adalah
+Temuannya jadi lebih sempit tapi lebih tajam: satu komponen dibangun di Phase
+C lengkap dengan story dan penanganan reduced-motion, lalu **tidak pernah
+dipasang** — dan karena tidak pernah dirender, dua bug di dalamnya tidak
+pernah terlihat. Keduanya dicatat di §3b.
+
+Yang tetap benar dari temuan awal, dan diukur ulang: **berpindah halaman
+terasa seperti memuat dokumen**, dan di luar beranda hampir tidak ada yang
+beranimasi masuk — `useReveal` hanya terpasang di `project-grid`, `hero`, dan
+`studio-note`. Halaman katalog dan halaman karya, dua dari tiga kelas halaman
+di situs ini, tidak menganimasikan apa pun.
+
+Untuk situs portofolio itu bukan kekurangan efek: perpindahan halaman adalah
 sebagian besar pengalamannya. Skill menandai product type ini sebagai
 Motion-Driven; situsnya belum.
 

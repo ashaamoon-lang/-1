@@ -23,6 +23,7 @@ import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
 import { SITE, siteFacts } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
+import { PageTransition } from '@/vault/motion/page-transition'
 
 import '@/lib/styles/css/index.css'
 
@@ -223,6 +224,23 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           >
             {t('nav.skipToContent')}
           </a>
+          {/*
+            Mounted here, above every page, because a transition needs both
+            ends of a navigation. GSAP is opted into per page in `<Wrapper>`
+            and only the home page takes it, so a GSAP-driven overlay would
+            have animated on exactly one route — for a transition, the same as
+            none. This is a CSS wipe and costs no library on any route.
+
+            The `<Suspense>` is required, not stylistic: the overlay reads
+            `usePathname()` to know when a route has committed, and under
+            Cache Components URL data in a client component must sit behind a
+            boundary. Scoping it to this one decorative element with a `null`
+            fallback is what keeps the page content itself out of a boundary —
+            which is the whole of Tahap 10's no-JavaScript work.
+          */}
+          <Suspense fallback={null}>
+            <PageTransition />
+          </Suspense>
           {/* Critical: CSS custom properties needed for layout */}
           <RealViewport>
             <ToastProvider>

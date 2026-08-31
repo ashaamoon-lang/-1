@@ -1,4 +1,21 @@
 .hero {
+  /*
+   * Reveal knobs read by the global `[data-reveal]` contract in
+   * `lib/styles/css/global.css`. The title, the cover and the fact list rise
+   * in that order — the sequence a reader's eye takes anyway, so the motion
+   * follows the reading rather than competing with it.
+   *
+   * A larger step than the grid's: three items, not a dozen, so the total
+   * stays well inside the ~0.6s cap `vault/motion/tokens.ts` sets on stagger.
+   */
+  --reveal-transform: translateY(mobile-vw(24px));
+  --reveal-stagger: 90ms;
+  --reveal-duration: var(--duration-slow);
+
+  @media (--desktop) {
+    --reveal-transform: translateY(desktop-vw(24px));
+  }
+
   display: flex;
   flex-direction: column;
   gap: mobile-vw(24px);

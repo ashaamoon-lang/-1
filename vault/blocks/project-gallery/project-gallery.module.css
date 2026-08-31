@@ -1,4 +1,17 @@
 .gallery {
+  /*
+   * Reveal knobs — see the note in `project-hero.module.css`. The step is the
+   * card value from `vault/motion/tokens.ts` (70ms): a gallery is a set of
+   * peers, and the same rhythm the work grid uses is the right one here.
+   */
+  --reveal-transform: translateY(mobile-vw(32px));
+  --reveal-stagger: 70ms;
+  --reveal-duration: var(--duration-slow);
+
+  @media (--desktop) {
+    --reveal-transform: translateY(desktop-vw(32px));
+  }
+
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--gap);

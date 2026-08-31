@@ -1,6 +1,9 @@
+'use client'
+
 import cn from 'clsx'
 
 import { SanityImage } from '@/components/ui/sanity-image'
+import { useReveal } from '@/lib/hooks/use-reveal'
 import {
   aspectRatioFor,
   type ImageSource,
@@ -58,12 +61,15 @@ export function ProjectHero({
       item.value !== null && item.value !== undefined && item.value !== ''
   )
 
+  const ref = useReveal<HTMLElement>()
   const coverRatio = cover ? aspectRatioFor(cover) : undefined
   const coverIsFull = isFullWidth(coverRatio ?? null)
 
   return (
-    <header className={cn(s.hero, className)}>
-      <h1 className={cn('h1', s.title)}>{title}</h1>
+    <header ref={ref} className={cn(s.hero, className)}>
+      <h1 data-reveal-item className={cn('h1', s.title)}>
+        {title}
+      </h1>
 
       {coverRatio !== undefined && cover && (
         /*
@@ -80,6 +86,7 @@ export function ProjectHero({
          * page on one of two widths.
          */
         <div
+          data-reveal-item
           className={s.media}
           data-span={coverIsFull ? 'full' : 'half'}
           style={ratioStyle(coverRatio)}
@@ -101,7 +108,7 @@ export function ProjectHero({
       )}
 
       {facts.length > 0 && (
-        <dl className={s.meta}>
+        <dl data-reveal-item className={s.meta}>
           {facts.map((item) => (
             <div key={item.label} className={s.fact}>
               <dt className={cn('caption', s.label)}>{item.label}</dt>

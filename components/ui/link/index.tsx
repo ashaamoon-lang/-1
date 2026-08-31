@@ -18,6 +18,7 @@ import {
   localeFromPath,
   templateFromLocalizedPath,
 } from '@/lib/i18n/paths'
+import { announceNavigation } from '@/lib/motion/navigation-signal'
 
 type CustomLinkProps = Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
@@ -230,6 +231,20 @@ export function Link({
     'data-active': isActive || undefined,
     ...(opensNewTab && { target: '_blank', rel: 'noopener noreferrer' }),
     ...(onClick && { onClick }),
+    /*
+     * Tells `vault/motion/page-transition` a navigation has begun.
+     *
+     * `onNavigate` rather than `onClick` because Next only fires it for real
+     * client-side navigations: a cmd-click, a middle-click, a new-tab click
+     * and an external href all skip it. Doing this from `onClick` would mean
+     * re-deriving those cases here and getting one of them wrong — the
+     * failure being an overlay covering the page the reader stayed on.
+     *
+     * The signal is a `window` event (`lib/motion/navigation-signal.ts`), so
+     * this component knows nothing about animation and nothing listens when
+     * the overlay is absent under reduced motion.
+     */
+    onNavigate: announceNavigation,
     ...props,
   }
 

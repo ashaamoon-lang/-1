@@ -1,6 +1,9 @@
+'use client'
+
 import cn from 'clsx'
 
 import { SanityImage } from '@/components/ui/sanity-image'
+import { useReveal } from '@/lib/hooks/use-reveal'
 import {
   aspectRatioFor,
   type ImageSource,
@@ -83,10 +86,12 @@ interface ProjectGalleryProps {
 }
 
 export function ProjectGallery({ images, className }: ProjectGalleryProps) {
+  const ref = useReveal<HTMLUListElement>()
+
   if (images.length === 0) return null
 
   return (
-    <ul className={cn(s.gallery, className)}>
+    <ul ref={ref} className={cn(s.gallery, className)}>
       {images.map((image) => {
         const ratio = aspectRatioFor(image)
         const full = isFullWidth(ratio)
@@ -94,6 +99,7 @@ export function ProjectGallery({ images, className }: ProjectGalleryProps) {
         return (
           <li
             key={image._key}
+            data-reveal-item
             className={s.item}
             data-span={full ? 'full' : 'half'}
           >
