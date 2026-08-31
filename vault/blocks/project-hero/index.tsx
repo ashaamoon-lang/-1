@@ -6,7 +6,8 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
-import { cappedImageSizes, ratioStyle } from '@/lib/utils/image-sizes'
+import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
+import { isFullWidth } from '@/vault/blocks/project-gallery'
 
 import s from './project-hero.module.css'
 
@@ -57,19 +58,36 @@ export function ProjectHero({
       item.value !== null && item.value !== undefined && item.value !== ''
   )
 
+  const coverRatio = cover ? aspectRatioFor(cover) : undefined
+  const coverIsFull = isFullWidth(coverRatio ?? null)
+
   return (
     <header className={cn(s.hero, className)}>
       <h1 className={cn('h1', s.title)}>{title}</h1>
 
-      {cover && (
-        // The ratio is set inline because it belongs to this asset, not to
-        // the component. Without it the height cap below shifts the page —
-        // see `aspectRatioFor`.
-        <div className={s.media} style={ratioStyle(aspectRatioFor(cover))}>
+      {coverRatio !== undefined && cover && (
+        /*
+         * The ratio is set inline because it belongs to this asset, not to
+         * the component; without it the box cannot be reserved before the
+         * file arrives and the page shifts — see `aspectRatioFor`.
+         *
+         * The span comes from the picture's shape, exactly as it does in the
+         * gallery, and for the same reason: a portrait cover given the full
+         * twelve columns stands 1748px tall at desktop, which is close to two
+         * screens of one image before the reader reaches a single fact about
+         * the work. Half the grid shows the same picture uncropped at a size
+         * a reader can take in — and it keeps every piece of media on this
+         * page on one of two widths.
+         */
+        <div
+          className={s.media}
+          data-span={coverIsFull ? 'full' : 'half'}
+          style={ratioStyle(coverRatio)}
+        >
           <SanityImage
             image={toImageSource(cover)}
             alt={coverAlt}
-            maxWidth={1440}
+            maxWidth={coverIsFull ? 1440 : 704}
             className={s.image}
             /*
              * The cover is this page's largest contentful paint. It shipped
@@ -77,10 +95,7 @@ export function ProjectHero({
              * image on the page that must never wait its turn.
              */
             preload
-            sizes={cappedImageSizes({
-              ratio: aspectRatioFor(cover),
-              trackVw: 92,
-            })}
+            sizes={trackImageSizes(coverIsFull ? 92 : 48)}
           />
         </div>
       )}

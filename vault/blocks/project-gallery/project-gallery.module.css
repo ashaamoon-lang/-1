@@ -37,26 +37,28 @@
   overflow: clip;
   background-color: var(--surface-2);
   /*
-   * The box is computed, never measured from the image.
+   * The box fills its grid track, and the height follows from the ratio.
    *
-   * `--ratio` is the asset's own width ÷ height, set inline by the component.
-   * `max-width` turns the height cap into a width cap through that ratio, so
-   * the box is `min(container, 78svh × ratio)` wide and `width / ratio` tall —
-   * both known before a single byte of the image arrives.
+   * `--ratio` is the asset's own width ÷ height (bounded by `boundedRatio` so
+   * one very tall upload cannot turn the page into a tunnel), set inline by
+   * the component. Both dimensions are known before a single byte of the
+   * image arrives, which is what keeps this free of layout shift.
    *
-   * Two earlier attempts both shifted the page, and both were measured:
-   * `max-height` on the image alone left the width undetermined until load
-   * (CLS 0.236), and `width: fit-content` made the box depend on the image's
-   * intrinsic size (CLS 0.174). Neither is visible in a screenshot; both move
-   * everything below the image when it loads.
+   * It used to also carry `max-width: calc(78svh * var(--ratio, 100))`, which
+   * capped height and let *width* fall out of each photo's proportions. That
+   * is what left a portrait 562px wide inside a 1398px track with 836px of
+   * dead page beside it, and gave the detail page six elements at six widths
+   * (`docs/stages/TAHAP-11.md` §2.2). The height is bounded by the ratio
+   * clamp now, not by shrinking the box away from its track.
    *
-   * The `100` fallback is deliberately absurd: with no ratio there is nothing
-   * to cap against, so `max-width` resolves large and the image simply fills
-   * its track.
+   * Two earlier attempts at reserving the box both shifted the page, and both
+   * were measured: `max-height` on the image alone left the width
+   * undetermined until load (CLS 0.236), and `width: fit-content` made the box
+   * depend on the image's intrinsic size (CLS 0.174). Neither is visible in a
+   * screenshot; both move everything below the image when it loads.
    */
   aspect-ratio: var(--ratio, auto);
   width: 100%;
-  max-width: calc(78svh * var(--ratio, 100));
 }
 
 /*
@@ -77,16 +79,19 @@
 .image {
   display: block;
   /*
-   * Capped by viewport height, exactly as the cover is.
+   * Fills the box `.media` reserved, which is the whole point of reserving it.
    *
-   * Without it a portrait gallery image at the full gutter is close to two
-   * screens tall, and a gallery of three becomes six screens of scrolling with
-   * nothing to read between them. 78svh means an image is always taken in as
-   * one thing rather than panned through.
+   * This rule existed and did nothing for the life of the block: the gallery
+   * never passed `className` to `SanityImage`, so the `<img>` carried only
+   * `components/ui/image`'s own `.block` (`width: auto`) and rendered at the
+   * intrinsic width of whichever srcset candidate was chosen — 1324px inside
+   * a 1398px box, leaving 73px of dead space on the right of every image
+   * (`docs/stages/TAHAP-11.md` §2.2). Dead CSS is worse than absent CSS,
+   * because it reads as a solved problem.
    *
-   * `width: auto` with `max-width: 100%` preserves the ratio, and the
-   * intrinsic dimensions `next/image` writes into the markup make the clamp
-   * known before the file arrives — no layout shift.
+   * `object-fit: cover` only ever trims when the ratio was bounded by
+   * `boundedRatio`; for every asset in the catalogue the box already has the
+   * picture's own proportions, so it crops nothing.
    */
   width: 100%;
   height: 100%;

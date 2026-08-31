@@ -6,7 +6,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
-import { cappedImageSizes, ratioStyle } from '@/lib/utils/image-sizes'
+import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
 
 import s from './project-gallery.module.css'
 
@@ -25,10 +25,11 @@ import s from './project-gallery.module.css'
  * own zoom. If a lightbox is added later it belongs in `components/ui/`
  * beside the other Base UI dialogs, not here.
  *
- * ## Alternating widths
+ * ## Two widths, chosen by the picture's own shape
  *
- * A column of identical full-width images reads as a contact sheet. The widths
- * are derived from position (see `isFullWidth`), so reordering the gallery in
+ * A column of identical full-width images reads as a contact sheet, so there
+ * are two spans — and which one an image gets is derived from the asset (see
+ * `isFullWidth`), never from an editor's choice, so reordering the gallery in
  * the Studio reflows it rather than breaking it.
  *
  * ## Accessibility
@@ -44,16 +45,36 @@ export interface GalleryImage extends ImageSource {
 }
 
 /**
- * Whether the image at `index` spans the full grid.
+ * Whether an image of this shape spans the full grid.
  *
- * Every third image is full width, which gives the sequence a rhythm without
- * asking an editor to choose a layout per image. The second clause covers a
- * trailing half that has nobody to pair with: without it a two-image gallery
- * renders one full image and one half-width image beside six empty columns,
- * which reads as a picture that failed to load. The same happens at 5, 8, 11.
+ * Landscape and square take the full width; portrait takes half. That is the
+ * only rule, and it replaces a positional one (every third image, plus a
+ * clause for a trailing odd half).
+ *
+ * ## Why position was the wrong authority
+ *
+ * The old rule chose the *track*, but the box did not fill its track: the
+ * container capped height at 78svh and let width follow the ratio, so what a
+ * reader actually saw was the asset's proportions, not the grid. Measured on
+ * `/en/work/panas-sore` at 1440×900 — three images, three widths, all in
+ * tracks that were 1398 or 691 wide:
+ *
+ *   ratio 0.80  ->  562px    ratio 1.33 -> 936px    ratio 1.60 -> 1123px
+ *
+ * A portrait sat with 836px of empty page beside it. Position decided a track
+ * the picture then ignored.
+ *
+ * Deriving the span from orientation makes the two agree: a portrait is given
+ * the half track it fits, a landscape the full one, and the box fills what it
+ * is given. It also lands the two on a similar optical height — at 1440, a
+ * 1.6 landscape is 874px tall and a 0.8 portrait 864px — so the sequence has
+ * a rhythm without any image being cropped to get one.
+ *
+ * A missing ratio (`null`) takes the full track: without dimensions there is
+ * nothing to reason about, and full width is the safe default for artwork.
  */
-export function isFullWidth(index: number, count: number) {
-  return index % 3 === 0 || (index === count - 1 && index % 3 === 1)
+export function isFullWidth(ratio: number | null): boolean {
+  return ratio === null || ratio >= 1
 }
 
 interface ProjectGalleryProps {
@@ -66,34 +87,37 @@ export function ProjectGallery({ images, className }: ProjectGalleryProps) {
 
   return (
     <ul className={cn(s.gallery, className)}>
-      {images.map((image, index) => (
-        <li
-          key={image._key}
-          className={s.item}
-          data-span={isFullWidth(index, images.length) ? 'full' : 'half'}
-        >
-          <figure className={s.figure}>
-            <div className={s.media} style={ratioStyle(aspectRatioFor(image))}>
-              <SanityImage
-                image={toImageSource(image)}
-                alt={image.alt ?? ''}
-                maxWidth={isFullWidth(index, images.length) ? 1440 : 704}
-                /*
-                 * Matched to the grid track. The derived default assumes an
-                 * image fills the viewport, so a half-width figure asked for
-                 * 1440px to render 562 — three times the pixels. Slightly
-                 * wide on purpose: too small is a blurry image, too large is
-                 * only bytes.
-                 */
-                sizes={cappedImageSizes({
-                  ratio: aspectRatioFor(image),
-                  trackVw: isFullWidth(index, images.length) ? 92 : 48,
-                })}
-              />
-            </div>
-          </figure>
-        </li>
-      ))}
+      {images.map((image) => {
+        const ratio = aspectRatioFor(image)
+        const full = isFullWidth(ratio)
+
+        return (
+          <li
+            key={image._key}
+            className={s.item}
+            data-span={full ? 'full' : 'half'}
+          >
+            <figure className={s.figure}>
+              <div className={s.media} style={ratioStyle(ratio)}>
+                <SanityImage
+                  image={toImageSource(image)}
+                  alt={image.alt ?? ''}
+                  className={s.image}
+                  maxWidth={full ? 1440 : 704}
+                  /*
+                   * Matched to the grid track, which the box now actually
+                   * fills. The derived default assumes an image fills the
+                   * viewport, so a half-width figure asked for 1440px to
+                   * render 691 — twice the pixels on the heaviest thing on
+                   * the page.
+                   */
+                  sizes={trackImageSizes(full ? 92 : 48)}
+                />
+              </div>
+            </figure>
+          </li>
+        )
+      })}
     </ul>
   )
 }

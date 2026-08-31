@@ -20,9 +20,26 @@
 }
 
 .body {
-  /* Running measure for prose. The gallery and hero span the full gutter;
-     text does not. */
-  max-width: 65ch;
+  /*
+   * A running measure that is also a grid column.
+   *
+   * This was `max-width: 65ch`, which is the right typographic instinct and
+   * the wrong number here: it rendered ~650px on a page whose media sat at
+   * 691px and 1398px, so the prose had a right edge that lined up with
+   * nothing (`docs/stages/TAHAP-11.md` §2.3). Six of the twelve columns is
+   * the half track a portrait image occupies, so the text now shares an edge
+   * with the pictures instead of floating near one.
+   *
+   * Measured against this element's own container, not the viewport:
+   * `--column-width` derives from `100vw`, which includes the scrollbar, and
+   * that five-pixel difference is what makes two edges almost line up rather
+   * than line up.
+   *
+   * The cost is honest and small: ~691px at desktop is about 70 characters
+   * rather than 65. Still inside the 45–75 band that measure guidance
+   * actually gives, and bought with an alignment the reader can see.
+   */
+  max-width: calc((100% - var(--gap) * 11) / 12 * 6 + var(--gap) * 5);
   display: flex;
   flex-direction: column;
   gap: mobile-vw(16px);

@@ -99,7 +99,8 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Export | Signature |
 |--------|-----------|
-| cappedImageSizes | `(options: { /** Width ÷ height of the asset, or `null` when it could not be read. */ ratio: number | null /** Share of the viewport the grid track occupies at desktop, e.g. `48`. */ trackVw: number /** The container's `max-height`, in vh. Defaults to the 78svh used by the * artwork blocks. */ capVh?: number }) => string` |
+| boundedRatio | `(ratio: number | null) => number | null` |
+| trackImageSizes | `(trackVw: number) => string` |
 | ratioStyle | `(ratio: number | null) => CSSProperties` |
 
 ### Math (`@/utils/math`)
