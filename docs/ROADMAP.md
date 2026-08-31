@@ -802,6 +802,40 @@ dipilah · kredensial Sanity belum dirotasi, atas permintaan user.
 
 ---
 
+## Tahap 11 — Mempercantik: dari benar menjadi indah 📝
+
+Spec penuh: **`docs/stages/TAHAP-11.md`**. **Direncanakan, belum dikerjakan.**
+
+Sepuluh tahap membuat situs ini benar. Tidak satu pun membuatnya indah. Tahap
+ini soal yang kedua, dan seperti biasa: tiap klaim diukur, tiap perbaikan
+datang dengan gate.
+
+Ritual `ui-ux-pro-max` dijalankan dan hasilnya dipakai sebagai **pembanding**,
+bukan perintah — palet near-black tanpa aksen kromatik ternyata **sepakat**
+dengan yang dikunci Tahap 1 (dua sumber independen, satu kesimpulan),
+sementara usul tipografi Archivo / Space Grotesk **ditolak** karena Syne
+dipilih atas alasan provenance dan Space Grotesk ada di daftar "AI-design
+tell" proyek ini. Hasilnya sengaja tidak di-`--persist`: itu akan menciptakan
+sumber kebenaran kedua yang bersaing dengan `docs/DESIGN-SYSTEM.md`.
+
+**Empat temuan terukur:** ritme spasial putus di satu tempat (`#work` 0px,
+`#studio` dan `#contact` 48px) · tepi kanan halaman detail bergerigi (enam
+elemen, enam lebar: 92/78/45/65/78/32%) · prosa 45% di samping gambar 78% ·
+dan seluruh `vault/motion/` — `page-transition`, `text-reveal` — dibangun di
+Phase C lalu **tidak pernah dipasang**, sehingga berpindah halaman terasa
+seperti memuat dokumen.
+
+**Satu yang diperiksa dan ternyata bukan cacat:** `<h1>` halaman detail tidak
+terpotong — `overflow: visible`, kotak mulai persis di induknya. Kerapatannya
+adalah leading 85% yang disengaja.
+
+Empat sub-tahap, diurut dari paling murah dan paling pasti: menegakkan ritme
+spasial · menegakkan tepi · memasang motion yang sudah dibangun · dan
+shared-element card→detail (GSAP Flip) yang ditandai **opsional** karena
+bersinggungan dengan cara Cache Components mengalirkan halaman.
+
+---
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap
