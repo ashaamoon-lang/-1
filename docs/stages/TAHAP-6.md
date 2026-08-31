@@ -301,7 +301,7 @@ bukan "kriterianya terpenuhi".
    darkroom.engineering dari footer, dan lisensi MIT Satūs meminta notice-nya
    dipertahankan.
 4. **`setup:lean` / integration-bundles belum diuji ulang.** Path-nya masih
-   menunjuk `app/(site)/` sejak restrukturisasi Tahap 0. Path-nya sudah
+   menunjuk `app/[locale]/` sejak restrukturisasi Tahap 0. Path-nya sudah
    diperbaiki di tahap ini, tetapi operasi AST-nya belum dijalankan terhadap
    layout yang sekarang. Ini tooling starter, bukan permukaan situs — dicatat
    di `PROD-README.md` sebagai tidak dijaga CI.

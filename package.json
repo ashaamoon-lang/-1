@@ -58,7 +58,6 @@
     "@sanity/asset-utils": "^2.3.0",
     "@sanity/client": "^7.26.2",
     "@sanity/image-url": "^2.1.1",
-    "@sanity/language-filter": "^5.0.18",
     "@theatre/core": "^0.7.2",
     "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",

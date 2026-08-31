@@ -5,16 +5,48 @@ import type { LenisOptions } from 'lenis'
 import 'lenis/dist/lenis.css'
 import type { LenisRef, LenisProps as ReactLenisProps } from 'lenis/react'
 import { ReactLenis } from 'lenis/react'
-import dynamic from 'next/dynamic'
-import { useRef } from 'react'
+import { type ComponentType, useEffect, useRef, useState } from 'react'
 import { useTempus } from 'tempus/react'
 
-const LenisScrollTriggerSync = dynamic(
-  () => import('./scroll-trigger').then((mod) => mod.LenisScrollTriggerSync),
-  {
-    ssr: false,
-  }
-)
+/**
+ * Loads the ScrollTrigger bridge only once a page has asked for it.
+ *
+ * This was `next/dynamic(() => import('./scroll-trigger'))`, which is lazy
+ * about *evaluating* the module and not about *fetching* it: a module-scope
+ * reference inside a client component puts the chunk in the page's graph, so
+ * GSAP core shipped to every route with a `<Wrapper>` — measured at 26.8KB
+ * gzipped on `/en/work/*`, which opts into neither `gsap` nor `webgl`, and
+ * whose own feature flag documents that "a site that never animates should
+ * not pay for it" (`docs/AUDIT-2026-08.md` §Tier 4).
+ *
+ * Identical shape to the fix in `lib/webgl/components/canvas` and
+ * `vault/webgl/scene-shell`; `e2e/route-budget.e2e.ts` holds all three.
+ */
+function useScrollTriggerSync(enabled: boolean): ComponentType | null {
+  const [Sync, setSync] = useState<ComponentType | null>(null)
+
+  useEffect(() => {
+    if (!enabled || Sync) return
+
+    let cancelled = false
+    import('./scroll-trigger')
+      .then(({ LenisScrollTriggerSync }) => {
+        // Thunk: `setState` treats a bare function as an updater.
+        if (!cancelled) setSync(() => LenisScrollTriggerSync)
+      })
+      .catch(() => {
+        // Degrade quietly. Without the bridge GSAP runs on its own ticker
+        // rather than in Tempus order — scrubbed ScrollTriggers may render a
+        // frame behind, which is the documented cost of not mounting it.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [enabled, Sync])
+
+  return Sync
+}
 
 interface LenisProps extends Omit<ReactLenisProps, 'ref'> {
   root: boolean
@@ -27,6 +59,8 @@ export function Lenis({
   options,
   syncScrollTrigger = false,
 }: LenisProps) {
+  const ScrollTriggerSync = useScrollTriggerSync(syncScrollTrigger && root)
+
   const lenisRef = useRef<LenisRef>(null)
 
   // order: 5 — Lenis writes scroll state; GSAP's updateRoot (order: 10, see
@@ -60,7 +94,14 @@ export function Lenis({
           node?.id === 'react-scan-root',
       }}
     >
-      {syncScrollTrigger && root && <LenisScrollTriggerSync />}
+      {ScrollTriggerSync && (
+        /*
+         * Not created during render: the module's own export, fetched once
+         * and held in state, so its identity is stable across renders.
+         */
+        // oxlint-disable-next-line react/static-components
+        <ScrollTriggerSync />
+      )}
     </ReactLenis>
   )
 }

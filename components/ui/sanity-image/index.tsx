@@ -32,6 +32,18 @@ interface SanityImageProps extends Omit<
       _type: 'reference'
     }
     alt?: string
+    /**
+     * Sanity's own low-quality image placeholder — a ~20px base64 JPEG of the
+     * actual artwork, projected by the queries as
+     * `"lqip": asset->metadata.lqip`.
+     *
+     * Optional because not every query asks for it. When it is absent
+     * `components/ui/image` falls back to a generated shimmer, which is a
+     * generic white gradient identical for every image — on this near-black
+     * ground it flashed white in front of a painting, and its animation was
+     * measured to not animate at all (`docs/AUDIT-2026-08.md` §Tier 4).
+     */
+    lqip?: string | null
     hotspot?: SanityImageHotspot
     crop?: SanityImageCrop
   }
@@ -109,6 +121,7 @@ export function SanityImage({
         .url()}
       alt={alt ?? image.alt ?? ''}
       aspectRatio={aspectRatio}
+      {...(image.lqip && { blurDataURL: image.lqip })}
       sizes={sizes ?? `(max-width: ${maxWidth}px) 100vw, ${maxWidth}px`}
       {...props}
     />

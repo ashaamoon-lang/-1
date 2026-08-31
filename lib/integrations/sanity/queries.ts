@@ -114,7 +114,7 @@ const projectCardFields = `
   span,
   featured,
   discipline,
-  cover,
+  cover{ ..., "lqip": asset->metadata.lqip },
   ${localizedTitle},
   ${localizedMedium},
   ${localizedCoverAlt}
@@ -206,6 +206,7 @@ export const projectQuery = defineQuery(`
     },
     gallery[]{
       ...,
+      "lqip": asset->metadata.lqip,
       "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)
     },
     // Metadata-only projections. See the note above this query.

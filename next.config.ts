@@ -196,6 +196,33 @@ const nextConfig: NextConfig = {
         },
       ],
     },
+    {
+      /*
+       * Build-generated images, which Next otherwise serves
+       * `max-age=0, must-revalidate`.
+       *
+       * Measured: `/icon.png` was refetched on every navigation — a full
+       * round trip for 3KB whose bytes only change when the build does — and
+       * the OpenGraph card was revalidated by every social crawler that
+       * looked at it (`docs/AUDIT-2026-08.md` §Tier 3). Nothing caught it
+       * because no gate in this project had ever read a response header;
+       * `e2e/response-headers.e2e.ts` does now.
+       *
+       * Not `immutable`, deliberately. These URLs are stable across builds,
+       * so an immutable response would pin a stale favicon in every cache
+       * that saw it. A day, with a week of stale-while-revalidate, removes
+       * the per-navigation cost and still self-heals — which matters because
+       * `bun run brand:assets` regenerates exactly these files.
+       */
+      source:
+        '/:file(icon|apple-icon|opengraph-image|twitter-image).:ext(png|jpg|jpeg)',
+      headers: [
+        {
+          key: 'Cache-Control',
+          value: 'public, max-age=86400, stale-while-revalidate=604800',
+        },
+      ],
+    },
   ],
   rewrites: async () =>
     STORYBOOK_PROXY_ENABLED

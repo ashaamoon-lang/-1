@@ -62,7 +62,7 @@ dan `/en`) dan itu persis ambiguitas yang diperingatkan file tersebut. Prefix
 simetris = satu bentuk canonical per halaman, tanpa kasus khusus di sitemap,
 llms.txt, maupun negosiasi Markdown.
 
-Implementasi: segmen `app/(site)/[locale]/` dengan `generateStaticParams`
+Implementasi: segmen `app/[locale]/[locale]/` dengan `generateStaticParams`
 mengembalikan `['en','id']`, plus redirect root.
 
 ## 1.2 Susunan home (single page)
@@ -277,7 +277,7 @@ menambal i18n belakangan berarti menyentuh ulang setiap komponen.
 
 **Kerja:**
 
-- Segmen `app/(site)/[locale]/`, `generateStaticParams` → `['en','id']`,
+- Segmen `app/[locale]/[locale]/`, `generateStaticParams` → `['en','id']`,
   redirect dari root.
 - Modul kamus bertipe (`lib/i18n/`): tipe locale, kamus, `getDictionary()`.
   Kunci hilang harus gagal saat typecheck, bukan diam-diam render kosong.
@@ -286,7 +286,7 @@ menambal i18n belakangan berarti menyentuh ulang setiap komponen.
   menjelaskan Next menggabungkan metadata secara dangkal, jadi semua rute
   memang harus lewat helper ini.
 - Ganti `locale: 'en_US'` yang di-hardcode di `lib/utils/metadata.ts:115` dan
-  `app/(site)/layout.tsx:65` menjadi sadar-locale.
+  `app/[locale]/layout.tsx:65` menjadi sadar-locale.
 - `lib/seo/route-catalog.ts`, `app/sitemap.ts`, dan `/llms.txt` menjadi
   sadar-locale (tiap rute muncul dua kali).
 - Skema Sanity: `localeString`/`localeText`/`localeRichText`, `project`,
@@ -675,15 +675,69 @@ tipe `page`/`article` · paginasi `/work`.
 
 ---
 
-## Tahap 9 — Gate yang bisa gagal, dan sisa hygiene
+## Tahap 9 — Gate yang bisa gagal ✅
 
-**Kerja:** lint CSS untuk aturan motion, sapuan header respons per kelas rute,
-spec tanpa-JS, anggaran byte per rute yang dibaca setelah idle, diff teks
-antar-locale · LQIP asli dari Sanity, `fetchpriority`, scoping GSAP/SanityLive
-· pembersihan 25 referensi basi, 93 export mati, dependency tanpa impor.
+Spec penuh: **`docs/stages/TAHAP-9.md`**.
 
-**Keluar:** tiap kelas cacat di `docs/AUDIT-2026-08.md` §Tier 3 punya gate yang
-sudah dibuktikan bisa merah.
+Tahap-tahap sebelumnya memperbaiki cacat lalu menambahkan gate yang
+menangkapnya. Tahap ini membalik urutannya: **memasang empat kelas gate yang
+belum pernah ada sama sekali**, lalu memperbaiki apa pun yang mereka temukan.
+
+| Kelas gate             | Yang tidak pernah dilihat siapa pun sebelumnya      |
+| ---------------------- | --------------------------------------------------- |
+| CSS yang kita tulis    | aturan motion #1–#4 dan #8 — nol penegakan otomatis |
+| Header respons         | `Cache-Control` di kelas rute mana pun              |
+| Tanpa JavaScript       | apa yang dilihat crawler yang tidak mengeksekusi JS |
+| Anggaran byte per rute | pustaka yang masuk lewat `import()` setelah hidrasi |
+
+**Temuan terbesarnya lebih luas dari yang dicatat audit.** Bukan hanya `/en`:
+**setiap** halaman yang lewat `<Wrapper>` hanya menampilkan 28 karakter tanpa
+JavaScript — header dan footernya sekalian. Penyebabnya satu file di tempat
+yang salah: `app/[locale]/loading.tsx` memasang Suspense boundary pada seluruh
+segmen `[locale]`, termasuk rute yang tidak membaca data request. Diturunkan ke
+empat segmen yang benar-benar memerlukannya, beranda jadi **28 → 1073
+karakter**, identik dengan versi ber-JS.
+
+**Gate CSS menemukan pelanggaran di 14 file**, bukan 2 seperti audit — karena
+audit membaca CSS _terkirim_, dan sebagian besar komponen Base UI itu belum
+dipakai rute mana pun. Bentuk pertama gate-nya pun salah: memindai output build
+menandai 7 pelanggaran milik Sanity Studio, 170 KB CSS pihak ketiga yang bukan
+wewenang kita.
+
+**Dan satu regresi yang menjelaskan seluruh tahap ini.** Memperbaiki tanpa-JS
+membuat `route-sweep` gagal `color-contrast` di `/en` dan `/id` — halaman yang
+**selalu** lulus axe, karena isinya dulu berada di dalam `<div hidden>` sehingga
+**axe memindai halaman yang praktis kosong**. Klaim "axe bersih" untuk beranda
+sama berongganya dengan klaim "terbaca tanpa JS", dan dari sebab yang sama.
+Memperbaiki satu cacat membuat sebuah gate bermakna dan flaky dalam commit yang
+sama.
+
+Test karakterisasi Tahap 4 juga gagal — dan itu memang instruksinya sendiri:
+_"kalau ini mulai gagal karena halamannya render penuh tanpa skrip, itu kabar
+baik."_
+
+**Diperbaiki di sepanjang jalan:** indikator tab dan ring kursor jadi komposit
+(`translate`/`scale`, `@property --ring-scale`) · LQIP asli dari Sanity
+menggantikan shimmer putih generik yang animasinya tidak menganimasikan apa pun
+· `fetchPriority="high"` pada elemen LCP · GSAP dan `@sanity/client` tidak lagi
+dikirim ke rute yang tidak meng-opt-in · header cache untuk aset build ·
+judul soft-404 (penjaganya dulu `toHaveTitle(/.+/)`, regex yang tidak bisa
+gagal) · rate limit pada `/api/draft-mode/enable` · `RESERVED_PATHS` yang
+mencadangkan rute terhapus alih-alih `/work`.
+
+**Baru:** `lib/styles/scripts/motion-rules.test.ts` ·
+`e2e/response-headers.e2e.ts` · `e2e/no-javascript.e2e.ts` ·
+`e2e/route-budget.e2e.ts` · token `--duration-micro`, `--stagger-*`,
+`--reveal-duration` · `components/ui/route-loading`.
+
+**Keluar:** `bun run check` (384 test) · `bun run build` · `build-storybook` ·
+`CI=true bun run test:e2e` (**174 lulus**, dua project).
+
+**Belum dikerjakan, eksplisit:** `/work` dan halaman proyek tetap tidak terbaca
+tanpa JS — keduanya membaca data request, dan menghilangkannya adalah keputusan
+bentuk URL, bukan pekerjaan gate · prosa `SITE` masih satu bahasa · 93 export
+tak dirujuk belum dipilah · `/studio` masih tanpa smoke test (sandbox ini tidak
+punya egress) · angka performa tetap byte, bukan waktu.
 
 ---
 

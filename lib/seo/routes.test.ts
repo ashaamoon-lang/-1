@@ -140,18 +140,25 @@ describe('buildRoutesFromDocuments', () => {
     expect(routes.some((route) => route.path === '/agent-content')).toBe(false)
   })
 
-  it('drops a document slugged `sanity` — the wiring tutorial owns that path', () => {
+  it('drops a document slugged `work` — the catalogue route owns that path', () => {
+    /*
+     * This asserted `sanity` until Tahap 9. That path belonged to a wiring
+     * tutorial Phase A deleted, so the test spent eight stages protecting a
+     * route that did not exist while blocking a slug an editor could
+     * legitimately want. `/work` is the real collision now: a project slugged
+     * `work` would shadow the page that lists every project.
+     */
     const docs = [
       {
         _type: 'page',
-        title: 'Sanity',
-        slug: { current: 'sanity' },
+        title: 'Work',
+        slug: { current: 'work' },
         _updatedAt: '2026-01-01T00:00:00.000Z',
       },
     ]
 
     const routes = buildRoutesFromDocuments(docs)
-    expect(routes.some((route) => route.path === '/sanity')).toBe(false)
+    expect(routes.some((route) => route.path === '/work')).toBe(false)
   })
 
   it('lists a `home` page at /home — `/` stays developer-owned', () => {

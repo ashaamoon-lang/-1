@@ -17,15 +17,37 @@
   place-items: center;
 }
 
+/*
+ * Registered so it interpolates. An unregistered custom property is a string
+ * to the animation engine and jumps between values; `@property` gives it a
+ * type, so the border below thickens smoothly instead of popping mid-scale.
+ */
+@property --ring-scale {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
 .ring {
+  /*
+   * One size, scaled — not three sizes animated.
+   *
+   * This transitioned `width` and `height` between 32, 56 and 80px, which is
+   * layout on every frame and breaks CLAUDE.md #4. `scale` is composited, and
+   * dividing the border weight by the same factor keeps the ring a hairline
+   * at every size instead of a 2.5px band at the largest.
+   */
+  --ring-scale: 1;
+
   display: block;
   width: 32px;
   height: 32px;
-  border: 1px solid var(--color-secondary);
+  border: calc(1px / var(--ring-scale)) solid var(--color-secondary);
   border-radius: 50%;
+  scale: var(--ring-scale);
   transition:
-    width var(--duration-fast) var(--ease-out-quart),
-    height var(--duration-fast) var(--ease-out-quart),
+    scale var(--duration-fast) var(--ease-out-quart),
+    --ring-scale var(--duration-fast) var(--ease-out-quart),
     background-color var(--duration-fast) var(--ease-out-quart),
     opacity var(--duration-fast) var(--ease-out-quart);
 }
@@ -42,15 +64,13 @@
 
 /* Over a link: grow and fill, so the ring reads as an active target. */
 .cursor[data-state='link'] .ring {
-  width: 56px;
-  height: 56px;
+  --ring-scale: 1.75;
   background-color: var(--color-secondary);
 }
 
 /* Over a project card: grow further and reveal the label. */
 .cursor[data-state='view'] .ring {
-  width: 80px;
-  height: 80px;
+  --ring-scale: 2.5;
   background-color: var(--color-secondary);
 }
 

@@ -100,42 +100,31 @@ test.describe('agent-readable HTML', () => {
     }
   })
 
-  test('CMS content ships in the response bytes but needs JS to be shown', async ({
+  test('the home page renders its content without JavaScript', async ({
     browser,
     request,
   }) => {
     /*
-     * A characterization test: it records what the architecture actually
-     * does, so a change either way is visible.
+     * This replaces a characterization test, and the swap is the point.
      *
-     * This used to assert that the homepage renders fully with JavaScript
-     * disabled, and it passed — because the dataset was empty. Against a
-     * seeded dataset it fails, and the same is true of the code as it stood
-     * two stages ago. Measured with scripts disabled:
+     * That test recorded a defect rather than a requirement: with scripts
+     * disabled `/en` rendered **28 characters** — "Skip to main content
+     * Loading" — while the real markup sat in the DOM inside a `<div hidden>`
+     * that only an inline script reveals. It ended with an instruction:
+     * "if this ever starts failing because the page renders fully without
+     * scripts, that is good news: delete the characterization and restore the
+     * original assertion." Tahap 9 made it fail. This is that restoration.
      *
-     *   /en/ai              1659 characters visible   (no CMS fetch)
-     *   /en                   28 characters visible   (CMS fetch)
-     *   /en/work/<slug>        7 characters visible   (CMS fetch)
+     * Its diagnosis was also half wrong, and correcting it matters more than
+     * the assertion. It blamed `defineLive` reading `draftMode()`. The home
+     * page had already stopped reading draft mode two stages earlier and
+     * still showed the shell. The actual cause was one file in the wrong
+     * place: `app/[locale]/loading.tsx` put a Suspense boundary around the
+     * whole `[locale]` segment, including routes that read no request data at
+     * all. Moving it down to the four segments that need it took this page
+     * from 28 characters to its full 1073.
      *
-     * The cause is not this project's code. `next-sanity`'s `defineLive`
-     * reads `draftMode()`, which under Cache Components is a request-time
-     * access, so anything awaiting it renders inside the segment's
-     * `loading.tsx` Suspense boundary. React streams the resolved content in
-     * a `<div hidden>` plus a script that moves it into place; without
-     * scripts that move never happens. Removing the boundary is not an option
-     * — the build fails, because `[...slug]` needs it for its own uncached
-     * data.
-     *
-     * What this costs and does not cost:
-     *
-     *   - Crawlers that execute JavaScript (Google, Bing) see the full page.
-     *   - Agents and plain HTTP clients get the complete content in the
-     *     response bytes, which the test above asserts, and this repo's
-     *     designed agent surfaces — `/llms.txt`, `/ai`, Markdown negotiation —
-     *     are unaffected.
-     *   - A person browsing with scripts disabled sees the loading state.
-     *     That is a real degradation and is why this is written down rather
-     *     than quietly dropped.
+     * `docs/stages/TAHAP-9.md` §1 carries the measurement.
      */
     const html = await (await request.get('/en')).text()
     expect(html).toContain('<h1')
@@ -148,16 +137,16 @@ test.describe('agent-readable HTML', () => {
       const response = await page.goto('/en')
       expect(response?.status()).toBe(200)
 
-      // The heading is in the DOM, and hidden — present but not exposed.
+      // Present *and* exposed. The old test asserted the opposite of the
+      // second line: one `h1` in the DOM, zero in the accessibility tree.
       expect(await page.locator('h1').count()).toBe(1)
-      await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0)
+      await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
 
-      // If this ever starts failing because the page renders fully without
-      // scripts, that is good news: delete the characterization and restore
-      // the original assertion above it.
+      const visible = (await page.locator('body').innerText()).trim()
       expect(
-        (await page.locator('body').innerText()).trim().length
-      ).toBeLessThan(500)
+        visible.length,
+        `only rendered: ${visible.slice(0, 60)}`
+      ).toBeGreaterThan(500)
     } finally {
       await context.close()
     }

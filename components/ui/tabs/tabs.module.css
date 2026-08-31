@@ -21,8 +21,8 @@
   font-family: inherit;
   opacity: 0.6;
   transition:
-    opacity 150ms ease,
-    color 150ms ease;
+    opacity var(--duration-micro) var(--ease-out-quart),
+    color var(--duration-micro) var(--ease-out-quart);
   position: relative;
 
   @media (--desktop) {
@@ -52,13 +52,26 @@
 }
 
 .indicator {
+  /*
+   * `translate` + `scale`, not `left` + `width`.
+   *
+   * CLAUDE.md #4 allows only compositable properties, and animating `left`
+   * and `width` runs layout on every frame of a 200ms slide. Base UI already
+   * publishes the geometry as custom properties, so the same movement is
+   * expressible as a transform with no layout at all.
+   */
   position: absolute;
   bottom: 0;
-  height: 2px;
+  left: 0;
+  inline-size: 1px;
+  block-size: 2px;
   background-color: var(--color-contrast);
+  transform-origin: left center;
+  translate: var(--active-tab-left, 0) 0;
+  scale: var(--active-tab-width, 0) 1;
   transition:
-    left 200ms ease-out,
-    width 200ms ease-out;
+    translate var(--duration-fast) var(--ease-out-quart),
+    scale var(--duration-fast) var(--ease-out-quart);
 }
 
 .panel {

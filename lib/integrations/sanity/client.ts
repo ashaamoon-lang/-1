@@ -20,7 +20,7 @@
 //      it does NOT disable draft mode. The "Disable Draft Mode" affordance is
 //      the DisableDraftMode component (lib/integrations/sanity/components/
 //      disable-draft-mode.tsx), wired into a page layout outside /studio
-//      (see app/(site)/(examples)/sanity/layout.tsx for the pattern).
+//      (see app/[locale]/layout.tsx for the pattern).
 //    app/studio/[[...tool]]/page.tsx:
 //      'use client'
 //      import { NextStudio } from 'next-sanity/studio'

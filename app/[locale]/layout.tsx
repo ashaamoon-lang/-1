@@ -243,10 +243,27 @@ export default async function AppLayout({ children }: PropsWithChildren) {
       */}
           <OptionalFeatures />
 
-          {/* Sanity Live - renders unconditionally when Sanity is configured for real-time updates.
-          includeDrafts subscribes the event stream to draft mutations so
-          Presentation-tool edits push to the preview without a manual refresh. */}
-          {sanityConfigured && <SanityLive includeDrafts={isDraftMode} />}
+          {/*
+            Draft mode only.
+            
+            This mounted whenever Sanity was configured, which put
+            `@sanity/client` (21.7KB gzipped) into every route — including
+            `/en/ai`, whose own comment says it carries "zero client
+            components ... server-only end to end"
+            (`docs/AUDIT-2026-08.md` §Tier 4).
+            
+            What it buys is a client-side live-query subscription, and the only
+            audience for that is an editor watching Presentation. A published
+            visitor's freshness comes from the publish webhook calling
+            `revalidateTag` on the server (`app/api/revalidate/route.ts`,
+            `docs/DEPLOYMENT.md` §4) — a different mechanism entirely, and one
+            that keeps working with this unmounted.
+            
+            The trade, stated: a published change no longer appears on an
+            already-open tab until the next navigation. It appears immediately
+            on the next request, which is what a visitor actually does.
+          */}
+          {sanityConfigured && isDraftMode && <SanityLive includeDrafts />}
 
           {/* Sanity Visual Editing - only when draft mode is enabled */}
           {sanityConfigured && isDraftMode && (

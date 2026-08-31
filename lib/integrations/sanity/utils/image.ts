@@ -36,6 +36,21 @@ export interface ImageSource {
   asset?: { _ref: string; _type: 'reference' }
   hotspot?: SanityImageHotspot
   crop?: SanityImageCrop
+  /**
+   * Sanity's low-quality image placeholder — a ~20px base64 JPEG of the
+   * artwork itself, projected as `"lqip": asset->metadata.lqip`.
+   *
+   * It has to travel through here or it never reaches the component: this
+   * helper rebuilds the object field by field, so anything not listed is
+   * dropped. That is how the real placeholder was queried, returned by the
+   * API, and then silently discarded one call before it was needed — leaving
+   * every image to fall back to a generic white shimmer
+   * (`docs/AUDIT-2026-08.md` §Tier 4).
+   *
+   * `| null` because that is what GROQ returns for an asset without one, and
+   * every consumer type is derived from the query result.
+   */
+  lqip?: string | null
 }
 
 /**
@@ -49,11 +64,13 @@ export function toImageSource(image: {
   asset?: { _ref: string; _type: 'reference' } | undefined
   hotspot?: SanityImageHotspot | undefined
   crop?: SanityImageCrop | undefined
+  lqip?: string | null | undefined
 }): ImageSource {
   return {
     ...(image.asset && { asset: image.asset }),
     ...(image.hotspot && { hotspot: image.hotspot }),
     ...(image.crop && { crop: image.crop }),
+    ...(image.lqip && { lqip: image.lqip }),
   }
 }
 

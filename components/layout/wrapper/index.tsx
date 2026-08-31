@@ -173,7 +173,21 @@ export function Wrapper({
         <Lenis
           root
           options={isLenisOptions(lenis) ? lenis : {}}
-          syncScrollTrigger
+          /*
+           * Follows the `gsap` prop rather than being always-on.
+           *
+           * `syncScrollTrigger` imports GSAP so Lenis can drive ScrollTrigger,
+           * and it was passed unconditionally — so 26.8KB gzipped of GSAP core
+           * reached `/en/work/*`, a route that opts into neither `gsap` nor
+           * `webgl`. `lib/features/index.tsx` states the principle in its own
+           * doc comment ("a site that never animates should not pay for it")
+           * and this line was quietly contradicting it
+           * (`docs/AUDIT-2026-08.md` §Tier 4).
+           *
+           * Nothing is lost when it is off: without ScrollTrigger there is no
+           * ScrollTrigger to keep in sync.
+           */
+          syncScrollTrigger={gsap}
         />
       )}
     </Theme>

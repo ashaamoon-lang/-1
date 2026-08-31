@@ -44,7 +44,7 @@
   border-radius: 1px;
   background-color: var(--color-secondary);
   opacity: 0.2;
-  animation: pulse 1.6s var(--ease-in-out-cubic) infinite;
+  animation: pulse var(--duration-slow) var(--ease-in-out-cubic) infinite;
 }
 
 /* Descending widths read as text loading rather than as a progress bar. */

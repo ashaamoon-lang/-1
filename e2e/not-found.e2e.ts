@@ -46,7 +46,7 @@ test.describe('branded 404', () => {
     // `networkidle` never settles here — the WebGL scene and the dev HMR
     // socket keep the connection busy — so anchor on web assertions instead.
     // Page renders: assert a non-empty document title (auto-waits).
-    await expect(page).toHaveTitle(/.+/)
+    await expect(page).toHaveTitle(/not found|tidak ditemukan/i)
     await expect(page.locator('body')).toBeVisible()
 
     // The noindex signal Next.js injects for a page resolved via notFound() —
@@ -63,7 +63,12 @@ test.describe('branded 404', () => {
     // message) that CSS uppercases visually via `text-transform: uppercase`.
     // Assert on the actual DOM text, not the rendered case.
     await expect(page.getByRole('heading', { name: '404' })).toBeVisible()
-    await expect(page.getByText('Page not found')).toBeVisible()
+    // Scoped to the rendered message. Since Tahap 9 the `<title>` also says
+    // "Page not found" — deliberately, because a soft 404 has no status code
+    // to signal with — and an unscoped text match now resolves to both.
+    await expect(
+      page.getByText('Page not found', { exact: true })
+    ).toBeVisible()
     /*
      * `/ai` is a page and carries the locale prefix; `/llms.txt` and
      * `/sitemap.xml` are static endpoints and must not.

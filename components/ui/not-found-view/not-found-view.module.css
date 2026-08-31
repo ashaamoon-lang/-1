@@ -119,8 +119,8 @@
   border: 1px solid var(--color-contrast);
   border-radius: calc(3 / 375 * 100vw);
   transition:
-    background var(--duration-fast) ease,
-    color var(--duration-fast) ease;
+    background var(--duration-fast) var(--ease-out-quart),
+    color var(--duration-fast) var(--ease-out-quart);
 
   &:hover {
     /* Inverts to the ground with a full-strength foreground: 17.24:1. */

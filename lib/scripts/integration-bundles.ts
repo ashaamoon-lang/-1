@@ -117,7 +117,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
     // must live and die with the bundle, or a fork that drops Sanity keeps
     // routes whose imports no longer exist and fails to build.
     //
-    // app/(site)/(examples)/sanity is NOT here: it's pruned unconditionally
+    // the Sanity example route (removed in Phase A) is NOT here: it's pruned unconditionally
     // by `setup:project` (see `pruneExampleRoutes` in setup-project.ts) so it
     // never ships to a scaffolded project regardless of whether Sanity is
     // kept — it's a wiring tutorial for this repo's own contributors, not
@@ -302,7 +302,7 @@ export const INTEGRATION_BUNDLES = defineBundles({
         ],
       },
       // app/[locale]/[...slug]/page.tsx is the in-chrome 404 handler (it
-      // REPLACES app/(site)/[...unmatched]/page.tsx) — it must survive with
+      // REPLACES app/[locale]/[...slug]/page.tsx) — it must survive with
       // or without Sanity, so instead of living in `folders` above, it's
       // stripped in place down to a lean `notFound()` stub, single-owner and
       // required (same reasoning as lib/seo/routes.ts above): this array

@@ -6,7 +6,7 @@
   backdrop-filter: blur(2px);
 
   /* Base UI animation states */
-  transition: opacity 150ms ease-out;
+  transition: opacity var(--duration-micro) var(--ease-out-quart);
   opacity: 1;
 
   &[data-starting-style],
@@ -31,8 +31,8 @@
 
   /* Base UI animation states */
   transition:
-    transform 150ms ease-out,
-    opacity 150ms ease-out;
+    transform var(--duration-micro) var(--ease-out-quart),
+    opacity var(--duration-micro) var(--ease-out-quart);
   opacity: 1;
 
   &[data-starting-style],
@@ -88,8 +88,8 @@
   cursor: pointer;
   border: none;
   transition:
-    background-color 150ms ease,
-    color 150ms ease;
+    background-color var(--duration-micro) var(--ease-out-quart),
+    color var(--duration-micro) var(--ease-out-quart);
 
   @media (--desktop) {
     padding: desktop-vw(8px) desktop-vw(16px);

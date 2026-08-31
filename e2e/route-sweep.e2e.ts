@@ -2,6 +2,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 import AxeBuilder from '@axe-core/playwright'
+import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 import { routing } from '../lib/i18n/routing'
@@ -128,6 +129,39 @@ function discoverRoutes(): string[] {
 
 const discoveredRoutes = discoverRoutes()
 
+/**
+ * Runs every scroll-triggered reveal to completion, so axe scans a settled page.
+ *
+ * Two reasons, and the second one only appeared in Tahap 9.
+ *
+ * `use-reveal` fades items in via IntersectionObserver, so anything below the
+ * fold sits at `opacity: 0` until it is scrolled to — and an element at zero
+ * opacity fails `color-contrast`, because axe cannot tell "will fade in" from
+ * "unreadable". Scrolling through first means the sweep covers content that
+ * was otherwise never scanned at all.
+ *
+ * It also removes a race. `page.goto` resolves on `load`, which can land
+ * mid-fade, and a half-faded element genuinely has low contrast for that
+ * instant. This did not surface before because the home page's content was
+ * inside a `<div hidden>` — the Suspense fallback described in
+ * `docs/stages/TAHAP-9.md` §1 — so axe had almost nothing to look at. Fixing
+ * that made the sweep meaningful and flaky in the same commit.
+ */
+async function settleReveals(page: Page) {
+  await page.evaluate(async () => {
+    const step = window.innerHeight
+    for (let y = 0; y < document.body.scrollHeight; y += step) {
+      window.scrollTo(0, y)
+      await new Promise((resolve) => setTimeout(resolve, 120))
+    }
+    window.scrollTo(0, 0)
+  })
+
+  // Longer than the slowest reveal (`--reveal-duration`, 700ms) plus the
+  // largest stagger, so nothing is still interpolating when axe reads it.
+  await page.waitForTimeout(1200)
+}
+
 test.describe('route sweep', () => {
   // A broken glob (wrong base dir, renamed `page.tsx` convention, etc.) must
   // fail loudly, not silently pass an empty suite — same paranoia as
@@ -181,6 +215,8 @@ test.describe('route sweep', () => {
        * The filter was not harmless while it lasted. It is exactly what let
        * four real defects sit in the suite while it reported green.
        */
+      await settleReveals(page)
+
       const results = await new AxeBuilder({ page })
         .withTags(axeTags())
         .analyze()

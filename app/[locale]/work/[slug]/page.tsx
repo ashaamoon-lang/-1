@@ -223,6 +223,25 @@ function ogImageFor(
   }
 }
 
+/**
+ * The title a soft 404 carries.
+ *
+ * Every unknown URL rendered `<title>Arth</title>` — a failure page
+ * indistinguishable from the home page in a tab strip, in history, and in a
+ * bookmark. The guard was `toHaveTitle(/.+/)`, a regex that matches any
+ * non-empty string and so could never fail (`docs/AUDIT-2026-08.md` §Tier 3).
+ *
+ * It matters more here than on a site that can return a real status: Cache
+ * Components force this to answer 200 (documented in `e2e/not-found.e2e.ts`),
+ * so the title is one of the few honest signals left. `not-found.tsx` itself
+ * cannot export metadata, so it has to come from the route that called
+ * `notFound()`.
+ */
+async function notFoundMetadata() {
+  const t = await getTranslations('notFound')
+  return { title: t('title') }
+}
+
 export async function generateMetadata({ params }: ProjectPageProps) {
   const { slug } = await params
 
@@ -232,7 +251,7 @@ export async function generateMetadata({ params }: ProjectPageProps) {
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
   const { project } = await fetchProjectForRequest(slug, locale)
-  if (!project) return
+  if (!project) return notFoundMetadata()
 
   const path = localizedPath(locale, `/work/${slug}`)
 

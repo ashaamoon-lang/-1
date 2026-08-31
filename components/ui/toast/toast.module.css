@@ -28,8 +28,8 @@
 
   /* Base UI animation states */
   transition:
-    transform 200ms ease-out,
-    opacity 200ms ease-out;
+    transform var(--duration-fast) var(--ease-out-quart),
+    opacity var(--duration-fast) var(--ease-out-quart);
   opacity: 1;
   transform: translateX(0);
 
@@ -93,7 +93,7 @@
   font-size: 1.25rem;
   line-height: 1;
   padding: 0;
-  transition: opacity 150ms ease;
+  transition: opacity var(--duration-micro) var(--ease-out-quart);
 
   @media (--hover) {
     &:hover {

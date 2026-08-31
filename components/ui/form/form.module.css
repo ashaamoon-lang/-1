@@ -68,7 +68,7 @@
       color: var(--color-secondary);
 
       &::before {
-        transition: 1000ms clip-path var(--ease-gleasing);
+        transition: clip-path var(--duration-slow) var(--ease-gleasing);
         clip-path: circle(100%);
       }
     }

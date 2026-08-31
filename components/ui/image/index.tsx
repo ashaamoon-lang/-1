@@ -175,6 +175,18 @@ function generateBlurDataURL(
 
   const shimmerSvg = generateShimmer(700, Math.round(700 / aspectRatio))
   return `data:image/svg+xml;base64,${toBase64(shimmerSvg)}`
+  /*
+   * NOTE: this is the fallback, used when a caller supplies no `blurDataURL`.
+   *
+   * It is a generic white gradient, identical for every image, and its
+   * `<animate>` was verified not to produce any movement at all — four frames
+   * 260ms apart hash identically, in both motion preferences. On a near-black
+   * ground it also flashes *white* in front of a painting, which is the
+   * opposite of what a blur placeholder is for.
+   *
+   * `SanityImage` now passes the asset's real LQIP, so this only applies to
+   * images that have none. See `docs/AUDIT-2026-08.md` §Tier 4.
+   */
 }
 
 // Helper to determine final placeholder value
@@ -345,6 +357,19 @@ export function Image({
       {...(finalPlaceholder && { placeholder: finalPlaceholder })}
       {...(blurDataURL && { blurDataURL })}
       preload={preload}
+      /*
+       * `preload` alone was not enough, and that was measured.
+       *
+       * Tahap 5 fixed the LCP cover shipping as `loading="lazy"` and added
+       * `preload`. The comment it left implies both problems were solved; only
+       * the first was. Every `<img>` on every route still reported
+       * `fetchpriority: null`, and the one `fetchPriority` anywhere in the
+       * document was Next's own `low` on a script preload
+       * (`docs/AUDIT-2026-08.md` §Tier 4). A `<link rel=preload as=image>`
+       * without high priority queues behind the page's other requests, which
+       * on localhost is invisible and on 4G is not.
+       */
+      {...(preload && { fetchPriority: 'high' as const })}
       {...props}
     />
   )

@@ -4,7 +4,7 @@ Conditionally loaded features for the app layout.
 
 ## Overview
 
-`OptionalFeatures` is mounted in `app/(site)/layout.tsx` and conditionally loads heavy dependencies based on usage. This prevents unused features from bloating the client bundle.
+`OptionalFeatures` is mounted in `app/[locale]/layout.tsx` and conditionally loads heavy dependencies based on usage. This prevents unused features from bloating the client bundle.
 
 ## Features
 
@@ -14,7 +14,7 @@ Conditionally loaded features for the app layout.
 | WebGL Canvas | Always mounted (shared strategy)             | Persistent Three.js canvas (no-op on non-WebGL devices) |
 | Dev Tools    | Development mode                             | Orchestra debug panel                                   |
 
-`OptionalFeatures({ gsap = false, webgl, ... })` keeps the GSAP runtime off by default, saving the ~43 KB it adds to the client bundle on sites that never animate with GSAP. `app/(site)/layout.tsx` passes `<OptionalFeatures gsap />`, which turns it on for every page under that layout. Drop the `gsap` prop only if no page under that layout uses `useGSAP` or ScrollTrigger — otherwise scrubbed animations end up a frame behind Tempus. This file is the single source of truth for that default; other docs should link here instead of restating it.
+`OptionalFeatures({ gsap = false, webgl, ... })` keeps the GSAP runtime off by default, saving the ~43 KB it adds to the client bundle on sites that never animate with GSAP. `app/[locale]/layout.tsx` passes `<OptionalFeatures gsap />`, which turns it on for every page under that layout. Drop the `gsap` prop only if no page under that layout uses `useGSAP` or ScrollTrigger — otherwise scrubbed animations end up a frame behind Tempus. This file is the single source of truth for that default; other docs should link here instead of restating it.
 
 ## WebGL
 
@@ -50,7 +50,7 @@ Automatically enabled in development. Access with `Cmd/Ctrl + O`.
 ## How It Works
 
 ```tsx
-// app/(site)/layout.tsx - already configured
+// app/[locale]/layout.tsx - already configured
 <OptionalFeatures gsap />
 ```
 

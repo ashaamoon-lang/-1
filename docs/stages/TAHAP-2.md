@@ -301,7 +301,7 @@ menang bila ada.
 - `.storybook/preview.tsx` masih menawarkan tema `red` yang sudah tidak ada.
 - JSDoc `Wrapper` masih menulis `'dark' | 'light' | 'red'`.
 - `components/layout/README.md` masih mendeskripsikan `app/layout.tsx` dan
-  `app/(site)/layout.tsx` — struktur yang dihapus di Tahap 0.
+  `app/[locale]/layout.tsx` — struktur yang dihapus di Tahap 0.
 
 Semuanya diperbaiki.
 

@@ -32,7 +32,7 @@ Enabled per page through `<Wrapper lenis>` (`components/layout/wrapper/index.tsx
 
 ### Optional Features Pattern
 
-The app layout (`app/(site)/layout.tsx`) conditionally loads features:
+The app layout (`app/[locale]/layout.tsx`) conditionally loads features:
 
 ```tsx
 import { OptionalFeatures } from '@/lib/features'

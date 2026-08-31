@@ -39,39 +39,34 @@ export interface ContentRoute {
  * `sitemap.xml`/`llms.txt`. See `RESERVED_PATHS` below for routes that must
  * be excluded from CMS dedup without being advertised themselves.
  *
- * The `(examples)` route group (`/sanity`) is a Sanity wiring tutorial for
- * developers, not real site content — excluded here so it never appears in
- * the sitemap or the `/ai` machine view. Indexability is enforced on the
- * page itself: `app/(site)/(examples)/sanity/page.tsx` sets `robots: {
- * index: false, follow: false }`. A `robots.txt` disallow would defeat that
- * — it blocks the crawl a noindex directive needs in order to be read.
- */
-// Compares TEMPLATES, not localized paths: a CMS slug is locale-free, so
-// matching it against `/en/ai` would never collide and the guard would
-// silently stop working the moment routing gained a locale prefix.
-const staticPaths = new Set(STATIC_ROUTE_TEMPLATES.map((route) => route.path))
-
-/**
- * Literal first-path-segment routes that live outside the `[...slug]`
- * catch-all and win over it at request time, but that have no
- * `sitemap.xml`/`llms.txt` presence of their own — so unlike `STATIC_ROUTES`
- * they are never emitted, only used to exclude colliding CMS slugs below.
- *
- * - `/studio` — `app/studio/[[...tool]]/page.tsx`, Sanity Studio.
- * - `/sanity` — `app/(site)/(examples)/sanity/page.tsx`, a Sanity wiring
- *   tutorial for developers, not real site content.
+ * - `/studio` — `app/(chrome)/studio/[[...tool]]/page.tsx`, Sanity Studio.
+ * - `/work` — `app/[locale]/work/page.tsx`, the catalogue added in Tahap 8.
+ *   A project slugged `work` would otherwise shadow the page that lists it.
  * - `/agent-content` — the internal Markdown negotiation handler proxy.ts
  *   rewrites to (`app/agent-content/route.ts`); a CMS doc slugged
  *   `agent-content` would otherwise be advertised in the sitemap/`/ai` while
  *   direct requests to it still 404 (see `MACHINE_PATHS` in `proxy.ts`).
  *
- * Without this, a CMS document slugged `studio` or `sanity` would resolve to
- * `/studio` or `/sanity` via `urlForReference` and get emitted into the
+ * Without this, a CMS document slugged `studio` or `work` would resolve to
+ * `/studio` or `/work` via `urlForReference` and get emitted into the
  * sitemap/llms.txt, even though the real route at that path serves something
- * else entirely. (`/api` needs no entry: there's no page/route at that root
+ * else entirely. `/sanity` used to be listed here for a wiring-tutorial route
+ * Phase A deleted, so it blocked a legitimate slug for eight stages. (`/api` needs no entry: there's no page/route at that root
  * segment, so it already falls through to the catch-all untouched.)
  */
-const RESERVED_PATHS = new Set(['/studio', '/sanity', MARKDOWN_HANDLER_PATH])
+/** Static routes already advertised, so a CMS slug cannot duplicate one. */
+const staticPaths = new Set(STATIC_ROUTE_TEMPLATES.map((route) => route.path))
+
+/*
+ * Paths a CMS slug may not claim.
+ *
+ * `/sanity` used to be here for a wiring-tutorial route that Phase A deleted,
+ * so a work legitimately slugged `sanity` was blocked for a page that has not
+ * existed for eight stages (`docs/AUDIT-2026-08.md` §Tier 4). `/work` is new
+ * and real: the catalogue route added in Tahap 8 would otherwise be shadowed
+ * by a project whose slug happened to be `work`.
+ */
+const RESERVED_PATHS = new Set(['/studio', '/work', MARKDOWN_HANDLER_PATH])
 
 /**
  * Every document type with a `slug` — kept permissive (`nullable()` fields)
@@ -203,7 +198,7 @@ export interface CmsRoutesResult {
  *
  * `'use cache'` is required: `sanityFetch` calls `cacheTag()` internally,
  * which Cache Components (`cacheComponents: true`) only allows inside a
- * `'use cache'` boundary — see `app/(site)/(examples)/sanity/page.tsx` for
+ * `'use cache'` boundary — see `app/[locale]/[...slug]/page.tsx` for
  * the same constraint applied to a page-level fetch. `perspective`/`stega`
  * are hardcoded to the published, non-stega variant: crawlers never see
  * draft content, so there's no request-level (draft mode) state to branch

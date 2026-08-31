@@ -42,9 +42,28 @@ html {
   --line: color-mix(in oklab, var(--color-secondary) 14%, transparent);
   --line-strong: color-mix(in oklab, var(--color-secondary) 28%, transparent);
 
+  /*
+   * Three durations, and the bands they belong to (CLAUDE.md #3):
+   * 150-250ms micro, 300-600ms standard, 800-1200ms choreographed.
+   */
+  --duration-micro: 150ms;
   --duration-fast: 200ms;
   --duration: 400ms;
   --duration-slow: 800ms;
+
+  /*
+   * Stagger between siblings in a revealed group.
+   *
+   * These existed only in `vault/motion/tokens.ts`, which CSS cannot read —
+   * so `project-grid.module.css` hardcoded `70ms` and left a comment saying
+   * where the real value lived. Two sources for one number, and changing the
+   * TypeScript one silently did nothing (`docs/AUDIT-2026-08.md` §Tier 3).
+   */
+  --stagger-words: 50ms;
+  --stagger-cards: 70ms;
+
+  /* Per-item reveal duration; overridable per group. */
+  --reveal-duration: 700ms;
 
   /*
    * Minimum hit area for anything tappable.
@@ -160,8 +179,8 @@ html.screenshot {
   opacity: 0;
   transform: var(--reveal-transform, translateY(16px));
   transition:
-    opacity var(--reveal-duration, 700ms) var(--ease-out-expo),
-    transform var(--reveal-duration, 700ms) var(--ease-out-expo);
+    opacity var(--reveal-duration) var(--ease-out-expo),
+    transform var(--reveal-duration) var(--ease-out-expo);
   transition-delay: calc(var(--reveal-index, 0) * var(--reveal-stagger, 60ms));
 }
 
@@ -181,6 +200,9 @@ html.screenshot {
   *::after {
     animation-duration: 0.01ms;
     animation-iteration-count: 1;
+    /* motion-exempt: the standard reduced-motion kill switch. A token would
+       defeat it — the value has to be "effectively instant", not "the
+       project's fast duration". */
     transition-duration: 0.01ms;
     scroll-behavior: auto;
   }
@@ -188,6 +210,9 @@ html.screenshot {
   /* Higher specificity than the [data-reveal] base rule above, so reveal
      items never animate even though that rule sets a `transition` shorthand. */
   [data-reveal] [data-reveal-item] {
+    /* motion-exempt: the standard reduced-motion kill switch. A token would
+       defeat it — the value has to be "effectively instant", not "the
+       project's fast duration". */
     transition-duration: 0.01ms;
   }
 }

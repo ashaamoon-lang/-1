@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import type { PortableTextBlock } from 'next-sanity'
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
@@ -110,6 +111,25 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 }
 
 // https://nextjs.org/docs/app/api-reference/functions/generate-metadata
+/**
+ * The title a soft 404 carries.
+ *
+ * Every unknown URL rendered `<title>Arth</title>` — a failure page
+ * indistinguishable from the home page in a tab strip, in history, and in a
+ * bookmark. The guard was `toHaveTitle(/.+/)`, a regex that matches any
+ * non-empty string and so could never fail (`docs/AUDIT-2026-08.md` §Tier 3).
+ *
+ * It matters more here than on a site that can return a real status: Cache
+ * Components force this to answer 200 (documented in `e2e/not-found.e2e.ts`),
+ * so the title is one of the few honest signals left. `not-found.tsx` itself
+ * cannot export metadata, so it has to come from the route that called
+ * `notFound()`.
+ */
+async function notFoundMetadata() {
+  const t = await getTranslations('notFound')
+  return { title: t('title') }
+}
+
 export async function generateMetadata({ params }: ArticlePageProps) {
   const { slug } = await params
 
@@ -117,7 +137,7 @@ export async function generateMetadata({ params }: ArticlePageProps) {
 
   const { data } = await fetchArticleForRequest(slug)
 
-  if (!data) return
+  if (!data) return notFoundMetadata()
 
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale

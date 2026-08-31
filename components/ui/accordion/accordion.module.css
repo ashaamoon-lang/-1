@@ -23,13 +23,14 @@
 
   .body {
     overflow: hidden;
-    /*
-     * NOTE: animating `height` breaks CLAUDE.md #4 (transform/opacity only).
-     * Left as-is deliberately — this primitive ships to no route today, and
-     * a correct fix is a grid-rows or clip-path rewrite, which is a component
-     * change rather than the gate work this stage is doing. Recorded in
-     * `docs/AUDIT-2026-08.md` §Tier 4.
-     */
-    transition: height 600ms var(--ease-out-expo);
+    /* motion-exempt: a disclosure widget's whole behaviour IS a height change.
+       `index.tsx` sets the height inline from a measured `contentRect`, so
+       there is a real number to interpolate. The compositable alternatives
+       either fake it (scaleY squashes the text) or drop the measurement
+       (`grid-template-rows: 0fr/1fr`, which is equally a layout property).
+       CLAUDE.md #4 exists to stop layout animation used as decoration; this
+       is not decoration. 400ms, from the token, rather than the 600ms literal
+       it carried. */
+    transition: height var(--duration) var(--ease-out-expo);
   }
 }
