@@ -243,9 +243,21 @@ export function generateSanityMetadata(options: {
   }
   /** Localized root-relative path — see {@link GenerateMetadataOptions.url}. */
   url: string
+  /**
+   * The document's own social card.
+   *
+   * Optional, and when omitted the site-wide card is used — which is the
+   * right default for a text page and the wrong one for an artwork. Project
+   * pages shipped without this for six stages, so every shared painting
+   * rendered the same wordmark (`docs/AUDIT-2026-08.md` §1.3).
+   *
+   * Must be an absolute URL: `metadataBase` resolves relative ones against
+   * the site, and a Sanity CDN asset does not live there.
+   */
+  image?: { url: string; width: number; height: number } | null
   type?: 'website' | 'article'
 }): Metadata {
-  const { document, url, type = 'website' } = options
+  const { document, url, image, type = 'website' } = options
   const metadata = document.metadata
 
   // Editors leave the SEO description empty far more often than they leave the
@@ -258,14 +270,15 @@ export function generateSanityMetadata(options: {
     const fallbackOptions: GenerateMetadataOptions = { type, url }
     if (document.title) fallbackOptions.title = document.title
     if (derivedDescription) fallbackOptions.description = derivedDescription
+    if (image) fallbackOptions.image = image
     return generatePageMetadata(fallbackOptions)
   }
 
   // Bind to locals so control-flow narrowing strips the `null` before the
   // values reach generatePageMetadata (which expects `string`, not `string | null`).
-  // Note: OG image is not derived from `metadata.image` — the queries don't
-  // dereference the asset (`asset->{url}`), so generatePageMetadata's default
-  // image is used. Add a resolved url to the query to wire a per-page OG image.
+  // The OG image comes from the `image` option above, which callers build by
+  // dereferencing the asset in their own query — not from `metadata.image`,
+  // which the queries still do not resolve.
   const title = metadata.title ?? document.title
   const { description, keywords, noIndex } = metadata
   const { publishedAt, _updatedAt } = document
@@ -273,6 +286,7 @@ export function generateSanityMetadata(options: {
   const resolvedDescription = description || derivedDescription
 
   const pageOptions: GenerateMetadataOptions = { type, url }
+  if (image) pageOptions.image = image
   if (title) pageOptions.title = title
   if (resolvedDescription) pageOptions.description = resolvedDescription
   if (keywords) pageOptions.keywords = keywords

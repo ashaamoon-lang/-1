@@ -70,6 +70,43 @@ test.describe('sitemap and page metadata agree', () => {
     }
   })
 
+  test('every artwork page carries its own card, not the site card', async ({
+    request,
+  }) => {
+    /*
+     * Tahap 6 fixed canonical, og:url and og:locale in this file and stopped
+     * there. Two tags over: every project page shipped no description at all
+     * and the site-wide wordmark as `og:image`, so a shared painting looked
+     * identical to a shared home page — while `schemas/project.ts` told the
+     * editor the cover *was* the OpenGraph image.
+     *
+     * The assertion is per URL rather than a single spot check because the
+     * defect was uniform: checking one project would have looked the same as
+     * checking none.
+     */
+    const sitemap = await request.get('/sitemap.xml')
+    const workUrls = [
+      ...(await sitemap.text()).matchAll(/<loc>([^<]+)<\/loc>/g),
+    ]
+      .map((match) => new URL(match[1] ?? '').pathname)
+      .filter((path) => path.includes('/work/'))
+
+    expect(workUrls.length).toBeGreaterThan(0)
+
+    for (const path of workUrls) {
+      const html = await (await request.get(path)).text()
+
+      const image = meta(html, 'og:image')
+      expect(image, `og:image of ${path}`).not.toContain('/opengraph-image')
+
+      const description = meta(html, 'og:description')
+      expect(
+        description?.length ?? 0,
+        `og:description of ${path}`
+      ).toBeGreaterThan(0)
+    }
+  })
+
   test('og:locale follows the URL prefix, in OpenGraph spelling', async ({
     request,
   }) => {

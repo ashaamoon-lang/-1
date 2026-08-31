@@ -551,6 +551,97 @@ belum diuji ulang sejak restrukturisasi Tahap 0.
 
 ---
 
+## Tahap 7 — Cacat yang dilihat pengunjung ✅
+
+Spec penuh: **`docs/stages/TAHAP-7.md`**. Sumbernya Tier 1
+`docs/AUDIT-2026-08.md`.
+
+Tahap pertama yang bentuknya bukan "bangun sesuatu" melainkan **perbaiki hal
+yang sudah dinyatakan selesai** — empat kriteria keluar bertanda ✅ yang
+ternyata tidak benar. Aturannya satu: tidak ada perbaikan di-commit tanpa gate
+yang **terbukti merah lebih dulu**.
+
+| Yang diukur                           | Sebelum                    | Sesudah       |
+| ------------------------------------- | -------------------------- | ------------- |
+| `<h1>` `/id` luber pada 320–768px     | 7 dari 7 lebar             | **0**         |
+| Piksel gambar vs kebutuhan (dpr 2–3)  | 0,51–0,66×                 | **≥ 1,0×**    |
+| `target-size` gagal                   | 10 dari 10 rute × viewport | **0**         |
+| three.js, reduced-motion & ponsel     | 859,2 KB                   | **0 KB**      |
+| Total chunk `/en`, reduced-motion     | 2038,6 KB                  | **1054,9 KB** |
+| Halaman karya dengan kartu OG sendiri | 0 dari 6                   | **6 dari 6**  |
+| Test e2e                              | 123                        | **144**       |
+
+**Empat cacat, dan satu lubang gate yang menutupi semuanya:**
+
+1. **Judul `/id` terpotong di setiap lebar ≤768px.** `overflow-wrap:
+break-word` tidak mengurangi kontribusi min-content — hanya `anywhere` yang
+   begitu — jadi jaring pengaman yang komentarnya sebut "should never fire"
+   memang tidak pernah bisa menyala. Sekaligus terungkap bahwa aturan ukuran
+   `h1` di `typography.ts` hanya pernah diukur untuk bahasa Inggris:
+   "memperhatikan" 8,59em vs "Commissioned" 7,97em, jadi 42 → **38**.
+2. **Lukisan di-upscale.** `maxWidth` memikul dua peran — plafon piksel Sanity
+   dan lebar layout — sehingga di dpr ≥ 2 browser meminta `w=2560` dan hanya
+   menerima 1440. Situs yang seluruh proposisinya reproduksi lukisan
+   menampilkannya di setengah resolusi di setiap MacBook dan ponsel modern.
+3. **Kartu share tiap karya generik dan tanpa description**, padahal skema
+   memberi tahu editor bahwa cover dipakai sebagai gambar OpenGraph.
+4. **three.js 859 KB ke setiap pengunjung `/en`**, termasuk ponsel dan
+   reduced-motion yang tidak pernah merender kanvas. Dua jalur impor statis
+   menyebabkannya (`<Canvas>` dan `SceneShell`); memperbaiki salah satu saja
+   tidak mengubah apa pun.
+
+**Lubang gate-nya:** suite e2e hanya merender **satu viewport, 1280×720**, dan
+axe **tidak pernah menjalankan aturan WCAG 2.2** (opt-in lewat tag). Keduanya
+ditutup di tahap ini — sekarang dua project Playwright, dan satu daftar tag
+bersama di `e2e/axe-tags.ts`.
+
+**Dua gate gagal dalam bentuk pertamanya, dan itu pelajarannya.** Gate luberan
+berbasis `scrollWidth` lolos padahal teksnya terpotong (`overflow: clip`
+menyembunyikannya dari metrik dokumen); gate WebGL berbasis ukuran menandai
+chunk React dan Next yang sah. **Gate yang bentuknya salah menghasilkan ✅, dan
+itu lebih berbahaya daripada tidak ada gate** — hal yang sama yang membuat
+metode gambar Tahap 5 tidak bisa melihat cacat #2.
+
+**Baru:** `e2e/responsive.e2e.ts` · `e2e/image-resolution.e2e.ts` ·
+`e2e/webgl-budget.e2e.ts` · `e2e/axe-tags.ts` · project Playwright kedua
+(390×844 dpr3) · token `--tap-target`.
+
+**Keluar:** `bun run check` (380 test) · `bun run build` · `build-storybook` ·
+`CI=true bun run test:e2e` (**144 lulus**, dua project) · halaman dilihat
+langsung di 390×844 dan 1440×900, kedua bahasa.
+
+**Belum dikerjakan, eksplisit:** dampak waktu dari 859 KB yang dihemat tidak
+diukur (tidak ada latensi maupun profiler di sini) · `fetchpriority` pada LCP ·
+`transition: height` pada accordion · lint CSS dan sapuan header respons —
+ketiganya ke Tahap 9.
+
+---
+
+## Tahap 8 — Halaman indeks karya & janji yang tidak ditepati
+
+**Kerja:** halaman `/[locale]/work` beserta field `discipline` (keputusan
+user), status listed/archived yang nyata, skip-link yang benar-benar
+memindahkan fokus, lokalisasi `/id/ai` + 404/error, fallback judul saat satu
+bahasa kosong, error boundary yang bergaya, CSP + smoke test `/studio`,
+koreksi `PANDUAN-STUDIO.md`.
+
+**Keluar:** agen tidak lagi diarahkan ke 404 · tiap karya punya pintu masuk ·
+skip-link lolos uji tekan-Enter · nol string Inggris di rute `/id`.
+
+---
+
+## Tahap 9 — Gate yang bisa gagal, dan sisa hygiene
+
+**Kerja:** lint CSS untuk aturan motion, sapuan header respons per kelas rute,
+spec tanpa-JS, anggaran byte per rute yang dibaca setelah idle, diff teks
+antar-locale · LQIP asli dari Sanity, `fetchpriority`, scoping GSAP/SanityLive
+· pembersihan 25 referensi basi, 93 export mati, dependency tanpa impor.
+
+**Keluar:** tiap kelas cacat di `docs/AUDIT-2026-08.md` §Tier 3 punya gate yang
+sudah dibuktikan bisa merah.
+
+---
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap

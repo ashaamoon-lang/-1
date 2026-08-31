@@ -84,13 +84,23 @@
    */
   max-width: 9em;
   /*
-   * Last resort, and it should never fire. The `h1` scale is sized so the
-   * longest word in this site's copy fits the narrowest supported line — but
-   * copy is written by people, not by the scale. Breaking a word is ugly;
-   * `overflow: clip` on the hero silently swallowing half of it, which is what
-   * happened before, is worse.
+   * `anywhere`, and the difference from `break-word` is the whole point.
+   *
+   * This said `break-word` and carried a comment claiming it was a last
+   * resort that "should never fire". It could not fire. `break-word` does not
+   * reduce an element's **min-content** contribution, so the h1 box was still
+   * forced as wide as its longest word — the browser was allowed to break the
+   * word only after the box had already been sized to fit it unbroken. Only
+   * `anywhere` shrinks the min-content width.
+   *
+   * The result shipped for six stages: at every width from 320 to 768px, the
+   * Indonesian headline ("memperhatikan") pushed the box past the viewport
+   * and `overflow: clip` above swallowed the end of it. English fit at every
+   * width, so it was invisible in the language this file was written in.
+   *
+   * `e2e/responsive.e2e.ts` now asserts this per element, in both locales.
    */
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .subline {

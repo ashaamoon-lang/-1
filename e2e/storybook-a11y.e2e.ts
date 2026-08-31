@@ -25,6 +25,8 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { z } from 'zod'
 
+import { axeTags } from './axe-tags'
+
 const ROOT = join(import.meta.dirname, '..', 'storybook-static')
 const INDEX = join(ROOT, 'index.json')
 
@@ -179,7 +181,9 @@ test.describe('Storybook a11y', () => {
        * about the component. Those rules are checked where they mean
        * something: on real pages, in `route-sweep.e2e.ts`.
        */
-      const results = await new AxeBuilder({ page }).analyze()
+      const results = await new AxeBuilder({ page })
+        .withTags(axeTags())
+        .analyze()
       const blocking = results.violations.filter(
         (violation) =>
           violation.impact === 'critical' || violation.impact === 'serious'

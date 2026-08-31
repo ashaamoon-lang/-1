@@ -171,6 +171,34 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   )
 }
 
+/** Social-card width. 1200 is what every platform samples at. */
+const OG_WIDTH = 1200
+
+/**
+ * Turns the project's cover asset into a social card.
+ *
+ * Width only, no crop. A 1.91:1 crop is the convention, and it is the wrong
+ * convention for a painting: platforms letterbox an off-ratio image, which
+ * shows the whole work, while a crop silently removes part of the
+ * composition. The height is computed from the asset's real dimensions so
+ * `og:image:height` is not a lie.
+ */
+function ogImageFor(
+  asset: {
+    url: string | null
+    width: number | null
+    height: number | null
+  } | null
+) {
+  if (!asset?.url || !asset.width || !asset.height) return null
+
+  return {
+    url: `${asset.url}?w=${OG_WIDTH}&auto=format`,
+    width: OG_WIDTH,
+    height: Math.round((OG_WIDTH * asset.height) / asset.width),
+  }
+}
+
 export async function generateMetadata({ params }: ProjectPageProps) {
   const { slug } = await params
 
@@ -198,6 +226,7 @@ export async function generateMetadata({ params }: ProjectPageProps) {
   return generateSanityMetadata({
     document: project,
     url: path,
+    image: ogImageFor(project.ogImage),
     type: 'article',
   })
 }

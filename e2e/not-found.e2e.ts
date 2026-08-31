@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
+import { axeTags } from './axe-tags'
+
 /**
  * The `/ai` route's generic smoke (render, console errors, a11y) is now
  * covered by `e2e/route-sweep.e2e.ts` — it's a static page like any other.
@@ -95,7 +97,7 @@ test.describe('branded 404', () => {
     // Every violation, at every impact. See the note in `route-sweep.e2e.ts`:
     // the starter's critical+serious filter is gone now that these routes
     // measure clean at the full severity level.
-    const results = await new AxeBuilder({ page }).analyze()
+    const results = await new AxeBuilder({ page }).withTags(axeTags()).analyze()
     expect(
       results.violations.map(
         (v) => `${v.impact}: ${v.id} (${v.nodes.length} node(s))`

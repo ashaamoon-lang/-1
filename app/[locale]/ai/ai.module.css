@@ -1,0 +1,24 @@
+/*
+ * The machine view stays deliberately plain — but plain is not an excuse for
+ * an unusable hit target.
+ *
+ * Its links were bare inline anchors inside a `text-sm` list, so each box was
+ * about 100x21px: `target-size` *serious* on six nodes, on a route that is in
+ * the sitemap and that both `/llms.txt` and the JSON-LD point people at.
+ * Nobody saw it because axe was never asked for WCAG 2.2 rules.
+ *
+ * A CSS module rather than utilities, deliberately: this project resets
+ * Tailwind's `--spacing-*` scale to `initial`, so `py-1` and friends do not
+ * exist here and fail silently — exactly the defect `app/[locale]/error.tsx`
+ * still carries (`docs/AUDIT-2026-08.md` §2.7).
+ */
+.doc a {
+  display: inline-block;
+  /*
+   * 24px, not `--tap-target`. This is WCAG 2.5.8 AA applied to dense running
+   * prose, where a 44px box per inline link would tear the paragraph apart.
+   * Standalone controls elsewhere still get the full 44.
+   */
+  min-block-size: 24px;
+  padding-block: 2px;
+}

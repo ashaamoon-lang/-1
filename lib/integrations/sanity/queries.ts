@@ -133,7 +133,27 @@ export const featuredProjectsQuery = defineQuery(`
   }
 `)
 
-/** One project, with everything the detail page renders. */
+/**
+ * One project, with everything the detail page renders — plus two projections
+ * that exist only for metadata, and that were both missing.
+ *
+ * `excerpt`: `generateSanityMetadata` derives a description from a field of
+ * that name, and only `article` had one. So every project page shipped with
+ * no `<meta name="description">` and no `og:description`, and a search engine
+ * invented a snippet for the whole portfolio. `pt::text` flattens the Portable
+ * Text body to a plain string, which is what `truncateDescription` wants.
+ *
+ * `ogImage`: `schemas/project.ts` tells the editor the cover is "used in the
+ * work grid **and as the OpenGraph image**". It was not — the queries never
+ * dereferenced the asset, so every shared artwork link rendered the same
+ * generic wordmark card. On a site made of paintings that is the most direct
+ * loss there is. See `docs/AUDIT-2026-08.md` §1.3.
+ *
+ * Note for anyone extending this: GROQ has `//` line comments and **no** block
+ * comments. A `/* *\/` inside the template literal is a syntax error that
+ * typegen reports as "Unexpected end of query" at an unrelated position, and
+ * the query then silently vanishes from `sanity.types.ts`.
+ */
 export const projectQuery = defineQuery(`
   *[_type == "project" && slug.current == $slug][0] {
     ${projectCardFields},
@@ -154,6 +174,15 @@ export const projectQuery = defineQuery(`
     gallery[]{
       ...,
       "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)
+    },
+    // Metadata-only projections. See the note above this query.
+    "excerpt": pt::text(
+      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)
+    ),
+    "ogImage": cover.asset->{
+      url,
+      "width": metadata.dimensions.width,
+      "height": metadata.dimensions.height
     }
   }
 `)

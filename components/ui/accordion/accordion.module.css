@@ -1,6 +1,35 @@
 .accordion {
+  /*
+   * `.button` is referenced by `index.tsx` and was never defined here, so
+   * `s.button` resolved to `undefined` and the trigger shipped with no styles
+   * at all — including no hit area. axe rates that `target-size` *serious*,
+   * and it went unseen because WCAG 2.2 rules are opt-in by tag and this
+   * suite never asked for them (`docs/AUDIT-2026-08.md` §Tier 3).
+   *
+   * Layout only. Colour and type still come from wherever the consumer puts
+   * this, which is why a primitive has no palette of its own.
+   */
+  .button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    inline-size: 100%;
+    min-block-size: var(--tap-target);
+    background: none;
+    border: 0;
+    text-align: start;
+    cursor: pointer;
+  }
+
   .body {
     overflow: hidden;
+    /*
+     * NOTE: animating `height` breaks CLAUDE.md #4 (transform/opacity only).
+     * Left as-is deliberately — this primitive ships to no route today, and
+     * a correct fix is a grid-rows or clip-path rewrite, which is a component
+     * change rather than the gate work this stage is doing. Recorded in
+     * `docs/AUDIT-2026-08.md` §Tier 4.
+     */
     transition: height 600ms var(--ease-out-expo);
   }
 }

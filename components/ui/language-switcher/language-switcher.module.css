@@ -7,21 +7,34 @@
   display: flex;
   align-items: center;
   /*
-   * The gap doubles as the separator. A literal "/" between two languages is
-   * one more glyph competing with the wordmark for the same corner, and it
-   * has to be hidden from screen readers to avoid being read as punctuation.
+   * No gap. The separator is now the tap padding on `.link` below, which is
+   * wider than the 10px gap this used to carry — a literal "/" between two
+   * languages would be one more glyph competing with the wordmark for the
+   * same corner, and it has to be hidden from screen readers to avoid being
+   * read as punctuation.
    */
-  gap: mobile-vw(10px);
   list-style: none;
   margin: 0;
   padding: 0;
-
-  @media (--desktop) {
-    gap: desktop-vw(10px);
-  }
 }
 
 .link {
+  /*
+   * The box is the hit area; the type is unchanged.
+   *
+   * These were bare inline anchors, so their box was exactly their glyphs —
+   * 12.6x14px, which axe rates `target-size` *serious* and which no thumb
+   * can hit reliably. The fix is padding, not a bigger typeface: the caption
+   * size is a Tahap 1 decision and is not relitigated here.
+   *
+   * `grid` + `place-items` rather than `inline-flex` so the glyphs stay
+   * optically centred in a box much larger than they are.
+   */
+  display: grid;
+  place-items: center;
+  min-inline-size: var(--tap-target);
+  min-block-size: var(--tap-target);
+
   /*
    * Inactive languages sit back rather than disappearing. Below roughly 50%
    * against the ground this stops reading as a control at all; 55% keeps it
@@ -47,8 +60,12 @@
   }
 
   &:focus-visible {
+    /*
+     * Negative offset: the box is now 44px around ~13px of type, so an
+     * outward ring would float far from the glyphs it is meant to mark.
+     */
     outline: 2px solid var(--color-contrast);
-    outline-offset: 3px;
+    outline-offset: -6px;
     border-radius: 1px;
   }
 }

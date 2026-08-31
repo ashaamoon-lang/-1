@@ -46,7 +46,7 @@
 	font-weight: 700;
 	line-height: 85%;
 	letter-spacing: -0.04em;
-	font-size: calc(((42 * 100) / var(--device-width)) * 1vw);
+	font-size: calc(((38 * 100) / var(--device-width)) * 1vw);
 	@variant dt { font-size: calc(((120 * 100) / var(--device-width)) * 1vw); }
 }
 @utility h2 {

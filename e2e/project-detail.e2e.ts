@@ -24,6 +24,8 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
+import { axeTags } from './axe-tags'
+
 /** Slugs of published projects, read from the site's own sitemap. */
 async function publishedSlugs(request: {
   get: (url: string) => Promise<{ text: () => Promise<string> }>
@@ -122,7 +124,7 @@ test.describe('project detail', () => {
 
     await page.goto(`/en/work/${slugs[0]}`, { waitUntil: 'domcontentloaded' })
 
-    const results = await new AxeBuilder({ page }).analyze()
+    const results = await new AxeBuilder({ page }).withTags(axeTags()).analyze()
     expect(
       results.violations.map(
         (v) => `${v.impact}: ${v.id} (${v.nodes.length} node(s))`

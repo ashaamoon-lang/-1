@@ -45,6 +45,18 @@ html {
   --duration-fast: 200ms;
   --duration: 400ms;
   --duration-slow: 800ms;
+
+  /*
+   * Minimum hit area for anything tappable.
+   *
+   * A constant, not a design value: WCAG 2.5.8 (AA) asks 24x24 and 2.5.5
+   * (AAA) asks 44x44, and `docs/DESIGN-SYSTEM.md` already commits this
+   * project to 44. It lives here because it was previously written nowhere —
+   * so the language switcher shipped at 12.6x14px on every page, in both
+   * locales, and axe never said a word because WCAG 2.2 rules are opt-in by
+   * tag (`docs/AUDIT-2026-08.md` §Tier 3).
+   */
+  --tap-target: 44px;
 }
 
 html.overflow-hidden {

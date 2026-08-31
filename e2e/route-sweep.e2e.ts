@@ -5,6 +5,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
 import { routing } from '../lib/i18n/routing'
+import { axeTags } from './axe-tags'
 
 /**
  * Route sweep — auto-discovered smoke coverage for every static page.
@@ -180,7 +181,9 @@ test.describe('route sweep', () => {
        * The filter was not harmless while it lasted. It is exactly what let
        * four real defects sit in the suite while it reported green.
        */
-      const results = await new AxeBuilder({ page }).analyze()
+      const results = await new AxeBuilder({ page })
+        .withTags(axeTags())
+        .analyze()
       expect(
         results.violations.map(
           (v) => `${v.impact}: ${v.id} (${v.nodes.length} node(s))`

@@ -1,12 +1,13 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import {
+  type ComponentType,
   createContext,
   type PropsWithChildren,
   use,
   useEffect,
   useId,
+  useState,
   useSyncExternalStore,
 } from 'react'
 
@@ -24,12 +25,54 @@ import {
 } from '@/lib/webgl/store'
 import type { tunnel } from '@/webgl/utils/tunnel'
 
-const WebGLCanvas = dynamic(
-  () => import('./webgl').then(({ WebGLCanvas }) => WebGLCanvas),
-  {
-    ssr: false,
-  }
-)
+type WebGLCanvasComponent = ComponentType<
+  Omit<CanvasProps, 'root' | 'force' | 'children'>
+>
+
+/**
+ * Loads the WebGL surface **after** the client has decided it will be shown.
+ *
+ * This was `next/dynamic(() => import('./webgl'), { ssr: false })`, which is
+ * lazy about *evaluating* the module and not about *fetching* it: the import
+ * sits at module scope in a client component that is in the page graph, so
+ * Next emitted the chunk as a parser-initiated `<script async>` in the HTML.
+ * Measured on `/en`: 245.6 KB gzip (931 KB raw) of three.js and R3F — 47% of
+ * the page's script bytes — downloaded by phones and by
+ * `prefers-reduced-motion` visitors, both of whom render no `<canvas>` at all.
+ * What those bytes buy is a two-colour gradient that the CSS fallback already
+ * draws identically (`docs/AUDIT-2026-08.md` §1.4).
+ *
+ * A bare `import()` inside an effect has no module-scope reference, so nothing
+ * is fetched until `isMounting` is true. `e2e/webgl-budget.e2e.ts` holds it.
+ */
+function useWebGLCanvasComponent(
+  enabled: boolean
+): WebGLCanvasComponent | null {
+  const [component, setComponent] = useState<WebGLCanvasComponent | null>(null)
+
+  useEffect(() => {
+    if (!enabled || component) return
+
+    let cancelled = false
+    import('./webgl')
+      .then(({ WebGLCanvas }) => {
+        // Wrapped in a thunk: `setState` calls a bare function argument as an
+        // updater, and a component *is* a function.
+        if (!cancelled) setComponent(() => WebGLCanvas)
+      })
+      .catch(() => {
+        // Degrade, do not throw. `component` stays null, nothing mounts, and
+        // the page keeps whatever non-WebGL path it already renders —
+        // `CLAUDE.md` #14: the site must never depend on 3D to be usable.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [enabled, component])
+
+  return component
+}
 
 /**
  * Reads the Orchestra dev panel's 🧊 WebGL toggle (persisted in the same
@@ -175,6 +218,7 @@ export function Canvas({
   const canMount = contextValue.active && shouldRender
   const isPrimary = canMount && claimPrimary(id)
   const isMounting = isPrimary
+  const WebGLCanvas = useWebGLCanvasComponent(isMounting)
 
   useEffect(() => {
     if (!canMount) return
@@ -187,7 +231,17 @@ export function Canvas({
 
   return (
     <CanvasContext.Provider value={contextValue}>
-      {isMounting && <WebGLCanvas {...props} {...(simTypes && { simTypes })} />}
+      {isMounting &&
+        WebGLCanvas && (
+          /*
+           * Not created during render. This is the module's own export,
+           * fetched once and held in state, so its identity is stable across
+           * every subsequent render — holding it is exactly what keeps the
+           * import() out of the page's initial graph.
+           */
+          // oxlint-disable-next-line react/static-components
+          <WebGLCanvas {...props} {...(simTypes && { simTypes })} />
+        )}
       {children}
     </CanvasContext.Provider>
   )

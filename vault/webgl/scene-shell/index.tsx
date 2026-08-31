@@ -49,12 +49,13 @@
  */
 
 import cn from 'clsx'
+import { type ComponentType, useEffect, useState } from 'react'
 
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
-import { GradientScene } from './scene'
+import type { GradientScene as GradientSceneType } from './scene'
 
 import s from './scene-shell.module.css'
 
@@ -71,6 +72,50 @@ interface SceneShellProps {
   className?: string | undefined
 }
 
+/**
+ * Fetches the R3F scene only once this component has decided to show it.
+ *
+ * `./scene` imports `@react-three/fiber` and `three`. A static import here put
+ * both into the page's client graph, so `/en` emitted a parser-initiated
+ * `<script async>` of 245.6 KB gzip / 931 KB raw — downloaded by phones and by
+ * `prefers-reduced-motion` visitors, who then render the CSS fallback below
+ * and never see a canvas.
+ *
+ * `<Canvas>` had the same shape and was fixed the same way; both paths had to
+ * change, because either one alone still dragged three.js in. The type import
+ * above is erased at build time and does not create a runtime reference.
+ *
+ * `e2e/webgl-budget.e2e.ts` fails if this regresses.
+ */
+function useGradientScene(
+  enabled: boolean
+): ComponentType<React.ComponentProps<typeof GradientSceneType>> | null {
+  const [Scene, setScene] = useState<ComponentType<
+    React.ComponentProps<typeof GradientSceneType>
+  > | null>(null)
+
+  useEffect(() => {
+    if (!enabled || Scene) return
+
+    let cancelled = false
+    import('./scene')
+      .then(({ GradientScene }) => {
+        // Thunk: `setState` treats a bare function as an updater.
+        if (!cancelled) setScene(() => GradientScene)
+      })
+      .catch(() => {
+        // Degrade to the CSS gradient below, which is the same design. A
+        // failed chunk must not leave an empty box where the hero was.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [enabled, Scene])
+
+  return Scene
+}
+
 export function SceneShell({
   colorA = '#0d0d0d',
   colorB = '#242527',
@@ -83,8 +128,9 @@ export function SceneShell({
   // Mirrors the condition inside `<Canvas>`: if the canvas will not mount,
   // this component must render the fallback instead of an empty box.
   const canRenderWebGL = isWebGL && !prefersReducedMotion
+  const GradientScene = useGradientScene(canRenderWebGL === true)
 
-  if (!canRenderWebGL) {
+  if (!canRenderWebGL || !GradientScene) {
     return (
       <div
         className={cn(s.fallback, className)}
@@ -101,6 +147,10 @@ export function SceneShell({
   return (
     <div className={cn(s.shell, className)} aria-hidden="true">
       <WebGLTunnel>
+        {/* oxlint-disable-next-line react/static-components -- not created
+            during render: the module's own export, fetched once and held in
+            state, so its identity is stable. Holding it is what keeps three.js
+            out of the initial graph. */}
         <GradientScene
           colorA={colorA}
           colorB={colorB}

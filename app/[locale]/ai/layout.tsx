@@ -1,5 +1,7 @@
 import type { PropsWithChildren } from 'react'
 
+import s from './ai.module.css'
+
 /**
  * Own layout for the machine view, deliberately bypassing the app's normal
  * chrome: no `<Wrapper>`, no header, no footer, no WebGL canvas, and no
@@ -25,7 +27,9 @@ import type { PropsWithChildren } from 'react'
  */
 export default function AiLayout({ children }: PropsWithChildren) {
   return (
-    <div className="max-w-3xl px-6 py-16 text-sm leading-relaxed mx-auto min-h-dvh font-mono">
+    <div
+      className={`${s.doc} max-w-3xl px-6 py-16 text-sm leading-relaxed mx-auto min-h-dvh font-mono`}
+    >
       {/* Matches the skip-link target in the root layout — this route
           bypasses <Wrapper>, which is what normally provides the id. */}
       <main id="main-content">{children}</main>
