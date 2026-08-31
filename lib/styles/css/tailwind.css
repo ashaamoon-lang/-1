@@ -20,6 +20,7 @@
 	--spacing-safe: var(--safe);
 	--spacing-gap: var(--gap);
   --spacing-header-height: var(--header-height);
+	--spacing-section-lead: var(--section-lead);
 
   --font-*: initial;
   --font-display: var(--next-font-display);

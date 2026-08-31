@@ -47,6 +47,10 @@ export default defineConfig({
         '**/promises.e2e.ts',
         '**/no-javascript.e2e.ts',
         '**/route-budget.e2e.ts',
+        // The rhythm token resolves to a different number per breakpoint
+        // (32px mobile, 48px desktop), so "one rhythm per page" is a claim
+        // that has to hold at both widths, not just the one it was written at.
+        '**/spatial-rhythm.e2e.ts',
       ],
       use: {
         browserName: 'chromium',

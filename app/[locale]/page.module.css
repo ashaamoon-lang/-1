@@ -24,6 +24,21 @@
 }
 
 .section {
+  /*
+   * The header-to-body rhythm every section shares.
+   *
+   * `#work` composes `SectionHeader` + `ProjectGrid` as plain children, so
+   * without this it had no gap at all: measured 0px, against 48px on
+   * `#studio` and `#contact`, which carry the same token inside their own
+   * blocks. The heading sat flush against the first cover and read as its
+   * caption rather than as a section title.
+   *
+   * Harmless on the blocks that already handle their own internals — they
+   * are a single flex child here, and a gap needs two.
+   */
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
   /* Matches the site gutter used by the header and footer, so a section edge
      lines up with the wordmark above it rather than nearly lining up. */
   padding-inline: var(--safe);
