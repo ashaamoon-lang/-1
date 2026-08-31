@@ -83,6 +83,18 @@ export interface Project {
 interface ProjectCardProps {
   project: Project
   /**
+   * Overrides the project's own `span`.
+   *
+   * A work's `span` is a *composition* choice — it says how this piece should
+   * sit among a handful of curated neighbours on the home page. That is the
+   * wrong authority for a catalogue, which lists everything and wants one
+   * rhythm; see `ProjectGrid`'s `layout` prop for the measurement that forced
+   * the split. Passing it here rather than reading `project.span` directly
+   * keeps the image request width, the `sizes` attribute and the crop all
+   * agreeing with the column the card is actually placed in.
+   */
+  span?: 6 | 12 | undefined
+  /**
    * Preload this card's image. Set it on the cards above the fold only —
    * marking every card is the same as marking none. `preload`, not the
    * deprecated `priority`: `components/ui/image` documents the rename.
@@ -93,9 +105,11 @@ interface ProjectCardProps {
 
 export function ProjectCard({
   project,
+  span: spanOverride,
   preload = false,
   className,
 }: ProjectCardProps) {
+  const span = spanOverride ?? project.span ?? 6
   const slug = project.slug?.current
   // A project without a slug has no page to link to. The schema requires one,
   // so this only happens on an unpublished draft — rendering a dead link
@@ -120,7 +134,7 @@ export function ProjectCard({
    * roughly four times the bytes. 704 is one half of the 12-column grid at
    * the 1440 desktop width in `lib/styles/layout.mjs`, rounded up.
    */
-  const maxWidth = project.span === 12 ? 1440 : 704
+  const maxWidth = span === 12 ? 1440 : 704
 
   // Client and year read as one line of metadata, and either may be absent.
   const meta = [project.medium, project.client, project.year]
@@ -128,7 +142,7 @@ export function ProjectCard({
     .join(' · ')
 
   return (
-    <article className={cn(s.card, className)} data-span={project.span ?? 6}>
+    <article className={cn(s.card, className)} data-span={span}>
       <Link href={href} className={s.link} data-cursor="view">
         <div className={s.media}>
           {project.cover && (
@@ -137,7 +151,7 @@ export function ProjectCard({
               alt={project.coverAlt ?? ''}
               maxWidth={maxWidth}
               sizes={
-                project.span === 12
+                span === 12
                   ? '(max-width: 800px) 100vw, 96vw'
                   : '(max-width: 800px) 100vw, 48vw'
               }

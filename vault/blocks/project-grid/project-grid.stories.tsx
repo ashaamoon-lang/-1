@@ -11,6 +11,10 @@ import { type Project, ProjectGrid } from './index'
  * behaviour: mixed 6/12 spans on desktop, every card full-width on mobile,
  * and `minmax(0, 1fr)` tracks that shrink instead of forcing horizontal
  * scroll when a title runs long.
+ *
+ * Compare `Default` with `Catalogue` side by side — that pair is the whole
+ * point of the `layout` prop, and the difference is much easier to see here
+ * than on the site.
  */
 const meta = {
   title: 'Blocks/ProjectGrid',
@@ -55,11 +59,21 @@ export const Default: Story = {
   args: { projects },
 }
 
-/** A uniform grid is what makes a portfolio read as a spreadsheet. */
-export const UniformSpans: Story = {
-  args: {
-    projects: projects.map((project) => ({ ...project, span: 6 as const })),
-  },
+/**
+ * `layout="catalogue"` — what `/[locale]/work` and the discipline views use.
+ *
+ * Same five works, same data, one rhythm. The editorial layout above is right
+ * for a curated selection and wrong for a full listing: with these spans it
+ * puts `Tenun` on a row of its own and strands half a row of empty space on
+ * either side of it. On the real catalogue that measured 3802px of page for
+ * three works, with ~700px of dead gutter in two of the three rows.
+ *
+ * The span is overridden at placement rather than in the data, so the card's
+ * image request width, its `sizes` attribute and its crop all follow the
+ * column it actually lands in.
+ */
+export const Catalogue: Story = {
+  args: { projects, layout: 'catalogue' },
 }
 
 /** One work is a legitimate state, not an edge case to hide. */

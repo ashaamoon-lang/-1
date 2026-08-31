@@ -133,7 +133,17 @@ export async function Catalogue({ locale, discipline }: CatalogueProps) {
         {projects.length > 0 ? (
           <>
             <p className="caption">{t('count', { count: projects.length })}</p>
-            <ProjectGrid projects={projects} className={s.grid} />
+            {/*
+            `catalogue`, not the default `editorial` layout. A work's `span`
+            composes the home page's curated selection; applied to a full
+            listing it leaves holes. `vault/blocks/project-grid` carries the
+            measurement.
+          */}
+            <ProjectGrid
+              projects={projects}
+              layout="catalogue"
+              className={s.grid}
+            />
           </>
         ) : (
           /*

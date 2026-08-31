@@ -30,6 +30,24 @@
  * content's intrinsic width and is the usual cause of horizontal scroll on
  * mobile when a title runs long.
  *
+ * ### Two layouts, because a selection and a catalogue are different jobs
+ *
+ * `editorial` honours each work's own `span`: the studio composes the home
+ * page by deciding which piece runs full width. That is the block's original
+ * job and stays the default.
+ *
+ * `catalogue` ignores `span` and gives every work the same half-width column.
+ * This exists because the editorial layout was measured on `/en/work` and
+ * does not survive contact with a full listing. With three works spanning
+ * 6, 12 and 6, auto-placement produced three separate rows — 691px, 1398px,
+ * 691px — because a `span 12` cannot sit beside a `span 6`. Two of the three
+ * rows carried ~700px of dead space, and the page ran 3802px tall for three
+ * pieces. Twenty works would run past 18,000px with the same holes.
+ *
+ * `grid-auto-flow: dense` would backfill those holes, and is the wrong fix: a
+ * catalogue is ordered (`order asc, publishedAt desc`), and dense placement
+ * reorders what the reader sees away from what the studio arranged.
+ *
  * ## Accessibility
  *
  * The grid is a `<ul>` of `<li>`, so a screen reader announces how many works
@@ -49,6 +67,11 @@ export type { Project }
 interface ProjectGridProps {
   projects: Project[]
   /**
+   * `editorial` (default) honours each work's `span`; `catalogue` gives every
+   * work the same column. See the layout note above for the measurement.
+   */
+  layout?: 'editorial' | 'catalogue' | undefined
+  /**
    * How many leading cards are preloaded. Two is what fits above the fold at
    * desktop width; raising it to cover the whole grid defeats the point.
    */
@@ -58,6 +81,7 @@ interface ProjectGridProps {
 
 export function ProjectGrid({
   projects,
+  layout = 'editorial',
   preloadCount = 2,
   className,
 }: ProjectGridProps) {
@@ -68,16 +92,24 @@ export function ProjectGrid({
 
   return (
     <ul ref={ref} className={cn(s.grid, className)}>
-      {projects.map((project, index) => (
-        <li
-          key={project._id}
-          data-reveal-item
-          className={s.item}
-          data-span={project.span ?? 6}
-        >
-          <ProjectCard project={project} preload={index < preloadCount} />
-        </li>
-      ))}
+      {projects.map((project, index) => {
+        const span = layout === 'catalogue' ? 6 : (project.span ?? 6)
+
+        return (
+          <li
+            key={project._id}
+            data-reveal-item
+            className={s.item}
+            data-span={span}
+          >
+            <ProjectCard
+              project={project}
+              span={span}
+              preload={index < preloadCount}
+            />
+          </li>
+        )
+      })}
     </ul>
   )
 }
