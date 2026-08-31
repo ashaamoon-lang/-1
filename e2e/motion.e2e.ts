@@ -4,6 +4,24 @@ import { expect, test } from '@playwright/test'
 import { routing } from '../lib/i18n/routing'
 
 /**
+ * Handles the in-page probes write to and this file reads back.
+ *
+ * Declared rather than asserted at each use: `globalThis as unknown as {…}`
+ * twice over is the assertion chain the anti-slop rules reject, and rightly —
+ * the shape is known here, so it belongs in a declaration where it is stated
+ * once and checked everywhere.
+ */
+declare global {
+  var __morph: {
+    calls: number
+    names: string[]
+    pseudo: string[]
+    durations: number[]
+  }
+  var __states: string[]
+}
+
+/**
  * The site animates, and every animation ends somewhere legible.
  *
  * ## What this is guarding
@@ -156,6 +174,143 @@ test.describe('motion', () => {
         await context.close()
       }
     })
+  })
+
+  /*
+   * Instruments `document.startViewTransition` and reports what the browser
+   * actually built: the names it applied, the pseudo-elements it animated,
+   * and how long the morph group ran.
+   *
+   * Every one of those is invisible after the fact — React removes
+   * `view-transition-name` when the transition ends, so reading it afterwards
+   * always says `none`. A test that checked the settled DOM would pass
+   * whether or not a morph ever happened.
+   */
+  async function captureMorph(page: Page, from: string, to: string) {
+    await page.goto(from)
+    await page.waitForTimeout(1500)
+
+    await page.evaluate(() => {
+      const record: typeof globalThis.__morph = {
+        calls: 0,
+        names: [],
+        pseudo: [],
+        durations: [],
+      }
+      globalThis.__morph = record
+
+      const original = document.startViewTransition.bind(document)
+      document.startViewTransition = (callback) => {
+        record.calls += 1
+        const transition = original(callback)
+        const started = performance.now()
+        const sample = () => {
+          for (const element of document.querySelectorAll('*')) {
+            const name = getComputedStyle(element).viewTransitionName
+            if (name && name !== 'none') record.names.push(name)
+          }
+          for (const animation of document.getAnimations()) {
+            const effect = animation.effect
+            // `pseudoElement` is declared on KeyframeEffect, not on the
+            // AnimationEffect base — and a view transition's animations are
+            // always keyframe effects.
+            const pseudo =
+              effect instanceof KeyframeEffect ? effect.pseudoElement : null
+            if (!pseudo) continue
+            record.pseudo.push(pseudo)
+            if (pseudo.includes('group(work-cover')) {
+              record.durations.push(
+                Number(effect?.getComputedTiming().duration ?? 0)
+              )
+            }
+          }
+          if (performance.now() - started < 900) requestAnimationFrame(sample)
+        }
+        requestAnimationFrame(sample)
+        return transition
+      }
+    })
+
+    await page.locator(`a[href="${to}"]`).first().click()
+    await page.waitForURL(`**${to.replace(/^\/[a-z]{2}/, '')}`)
+    await page.waitForTimeout(1800)
+
+    return page.evaluate(() => {
+      const record = globalThis.__morph
+      return {
+        calls: record.calls,
+        names: [...new Set(record.names)],
+        pseudo: [...new Set(record.pseudo)],
+        durations: [...new Set(record.durations)],
+      }
+    })
+  }
+
+  test('a work card morphs into its project page', async ({ page }) => {
+    const morph = await captureMorph(page, '/en/work', '/en/work/panas-sore')
+
+    expect(morph.calls, 'no view transition was started').toBeGreaterThan(0)
+    expect(morph.names, 'the shared name was never applied').toContain(
+      'work-cover-panas-sore'
+    )
+
+    /*
+     * The assertion that proves a *pair* formed rather than a lone element
+     * crossfading. A `group` pseudo-element only exists when the browser
+     * matched an old and a new element under the same name — which is the
+     * difference between the cover moving and the cover being replaced.
+     */
+    const group = morph.pseudo.filter((p) =>
+      p.includes('view-transition-group(work-cover-panas-sore)')
+    )
+    expect(
+      group.length,
+      `no morph pair formed; pseudo-elements seen: ${morph.pseudo.join(', ')}`
+    ).toBeGreaterThan(0)
+
+    for (const half of ['old', 'new']) {
+      expect(
+        morph.pseudo.some((p) =>
+          p.includes(`view-transition-${half}(work-cover-panas-sore)`)
+        ),
+        `the ${half} half of the pair is missing`
+      ).toBe(true)
+    }
+  })
+
+  test('the overlay stands aside for a morph', async ({ page }) => {
+    /*
+     * The two are mutually exclusive: a morph is only legible if the reader
+     * can see both states, and the cover exists to stop them seeing either.
+     * Without this the panel would sweep over the exact thing it is meant to
+     * be revealing.
+     */
+    await page.goto('/en/work')
+    await page.waitForTimeout(800)
+
+    await page.evaluate(() => {
+      const seen: string[] = []
+      globalThis.__states = seen
+      const overlay = document.querySelector('[class*="page-transition"]')
+      const started = performance.now()
+      const tick = () => {
+        const state = overlay?.getAttribute('data-state')
+        if (state) seen.push(state)
+        if (performance.now() - started < 2500) requestAnimationFrame(tick)
+      }
+      requestAnimationFrame(tick)
+    })
+
+    await page.locator('a[href="/en/work/panas-sore"]').first().click()
+    await page.waitForURL('**/panas-sore')
+    await page.waitForTimeout(1800)
+
+    const states = await page.evaluate(() => [...new Set(globalThis.__states)])
+
+    expect(
+      states,
+      `overlay animated during a morph: ${states.join(', ')}`
+    ).toEqual(['idle'])
   })
 
   test('the route-change overlay covers, then always uncovers', async ({

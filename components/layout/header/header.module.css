@@ -119,7 +119,7 @@
    * Measured pairs are in `lib/styles/scripts/contrast-baseline.json`, which
    * is empty — nothing here is an accepted exception.
    */
-  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  color: var(--text-muted);
   transition: color var(--duration-fast) var(--ease-out-expo);
 
   @media (--hover) {

@@ -140,7 +140,7 @@
 .label {
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: color-mix(in oklab, var(--color-secondary) 55%, transparent);
+  color: var(--text-muted);
 }
 
 .value {

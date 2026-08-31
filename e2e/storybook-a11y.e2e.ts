@@ -17,7 +17,14 @@
  * the gate is real there.
  */
 
-import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
+import type { Dirent } from 'node:fs'
+import {
+  createReadStream,
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+} from 'node:fs'
 import { createServer, type Server } from 'node:http'
 import { extname, join, normalize } from 'node:path'
 
@@ -70,6 +77,59 @@ interface StoryEntry {
   id: string
   title: string
   name: string
+}
+
+/**
+ * The most recently modified file among the sources Storybook renders.
+ *
+ * Deliberately narrow: the component source and the style layer Storybook
+ * actually renders — not the whole repo, and not the build tooling beside it.
+ * A change to an `app/` route, to a doc, or to `lib/styles/scripts/` (which
+ * generates tokens rather than being rendered) cannot alter a story. Making
+ * those invalidate the build would train everyone to ignore the check, which
+ * is the failure mode this check exists to end.
+ */
+const GENERATED = new Set(['root.css', 'tailwind.css'])
+
+function newestSourceChange(): { path: string; mtimeMs: number } {
+  const roots = ['components', 'vault', 'lib/styles']
+  let newest = { path: 'none', mtimeMs: 0 }
+
+  const walk = (dir: string) => {
+    let entries: Dirent[]
+    try {
+      entries = readdirSync(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        // Build tooling, not rendered output.
+        if (entry.name === 'scripts') continue
+        walk(full)
+        continue
+      }
+      // Tests describe the components; they do not change what renders.
+      if (entry.name.includes('.test.')) continue
+      /*
+       * Generated, not authored — and regenerated *during* the Storybook
+       * build, so their mtime is always newer than the build output that
+       * consumed them. Comparing against them makes the check fail forever,
+       * which is how a staleness check becomes noise and then gets deleted.
+       * The inputs that produce them (`lib/styles/layout.mjs`,
+       * `colors.ts`, `typography.ts`) are scanned, and those are what a
+       * person actually edits.
+       */
+      if (GENERATED.has(entry.name)) continue
+      if (!/\.(tsx?|css|mjs)$/.test(entry.name)) continue
+      const { mtimeMs } = statSync(full)
+      if (mtimeMs > newest.mtimeMs) newest = { path: full, mtimeMs }
+    }
+  }
+
+  for (const root of roots) walk(join(import.meta.dirname, '..', root))
+  return newest
 }
 
 function readStories(): StoryEntry[] {
@@ -153,6 +213,29 @@ test.describe('Storybook a11y', () => {
       'storybook-static/index.json not found — run `bun run build-storybook` first'
     )
     expect(stories.length).toBeGreaterThan(0)
+  })
+
+  test('the built Storybook is not older than the components it checks', () => {
+    /*
+     * `bun run test:e2e` does not build Storybook, so this spec happily
+     * checks whatever `storybook-static/` last contained.
+     *
+     * That is not hypothetical. A contrast defect in `ProjectHero`'s metadata
+     * labels — muted text at 4.07:1 on the light theme, below AA — sat green
+     * across several stages because every run measured a build made before
+     * the components changed. It surfaced only when the directory happened to
+     * be rebuilt (`docs/stages/TAHAP-11.md` §3c). A gate that checks a stale
+     * artefact is worse than no gate: it reports on code that is not shipping.
+     */
+    test.skip(stories.length === 0, 'no built Storybook')
+
+    const builtAt = statSync(INDEX).mtimeMs
+    const newest = newestSourceChange()
+
+    expect(
+      builtAt >= newest.mtimeMs,
+      `storybook-static is older than ${newest.path} — run \`bun run build-storybook\``
+    ).toBe(true)
   })
 
   for (const story of stories) {

@@ -64,7 +64,7 @@
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: color-mix(in oklab, var(--color-secondary) 55%, transparent);
+  color: var(--text-muted);
 }
 
 .socialsList {
@@ -82,7 +82,7 @@
 
 .social {
   text-decoration: none;
-  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  color: var(--text-muted);
   transition: color var(--duration-fast) var(--ease-out-expo);
 
   @media (--hover) {

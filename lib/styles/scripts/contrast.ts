@@ -40,7 +40,7 @@ export type Measurement = {
  * Token pairs taken from real usage in `components/`, `app/`, and `global.css`,
  * rather than every combination the palette allows.
  */
-const PAIRS: { label: string; bg: string; fg: Role; min: number }[] = [
+const PAIRS: { label: string; bg: string; fg: string; min: number }[] = [
   {
     label: 'secondary on primary',
     bg: 'primary',
@@ -71,6 +71,28 @@ const PAIRS: { label: string; bg: string; fg: Role; min: number }[] = [
     label: 'contrast on surface-2',
     bg: 'surface-2',
     fg: 'contrast',
+    min: AA_TEXT,
+  },
+  /*
+   * Muted text — the pair that was missing, and the reason `--text-muted`
+   * exists as a token at all.
+   *
+   * Seven components each wrote their own `color-mix(… 55%, transparent)`
+   * inline in a CSS module, where `readDerivedTokens` (which parses
+   * `global.css`) could not see it. Measured after the fact: **4.11:1** on
+   * the light theme, against AA's 4.5. It never surfaced on the live site
+   * because every page ships `theme="dark"`, and it surfaced in Storybook
+   * only once the static build was regenerated — the suite had been checking
+   * a stale one.
+   *
+   * Measured against `primary` specifically, because that is the ground the
+   * token is composited over: mixing into `transparent` gives a colour that
+   * has no contrast value until something sits behind it.
+   */
+  {
+    label: 'muted text on primary',
+    bg: 'primary',
+    fg: 'text-muted',
     min: AA_TEXT,
   },
   {

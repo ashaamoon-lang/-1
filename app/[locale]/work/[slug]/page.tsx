@@ -16,6 +16,7 @@ import {
   projectSlugsQuery,
   projectsQuery,
 } from '@/lib/integrations/sanity/queries'
+import { transitionName } from '@/lib/motion/transition-name'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
@@ -232,6 +233,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           title={project.title || humanizeSlug(slug)}
           cover={project.cover}
           coverAlt={project.coverAlt ?? ''}
+          // Pairs this cover with the catalogue card the reader came from, so
+          // the browser morphs one into the other. Both ends derive the name
+          // from `lib/motion/transition-name.ts` — a mismatch produces no
+          // error, just a morph that silently stops happening.
+          transitionName={transitionName(slug)}
           meta={[
             { label: t('client'), value: project.client },
             { label: t('year'), value: project.year },

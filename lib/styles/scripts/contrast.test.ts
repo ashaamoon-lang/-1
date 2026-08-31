@@ -53,6 +53,7 @@ describe('WCAG 2.1 AA contrast (blocking)', () => {
       'line-strong',
       'surface',
       'surface-2',
+      'text-muted',
     ])
   })
 

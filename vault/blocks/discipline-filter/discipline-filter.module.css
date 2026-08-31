@@ -29,7 +29,7 @@
   padding-inline: mobile-vw(16px);
   border: 1px solid var(--line-strong);
   border-radius: calc(var(--tap-target) / 2);
-  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  color: var(--text-muted);
   text-decoration: none;
   white-space: nowrap;
   transition:

@@ -802,9 +802,9 @@ dipilah · kredensial Sanity belum dirotasi, atas permintaan user.
 
 ---
 
-## Tahap 11 — Mempercantik: dari benar menjadi indah 📝
+## Tahap 11 — Mempercantik: dari benar menjadi indah ✅
 
-Spec penuh: **`docs/stages/TAHAP-11.md`**. **Direncanakan, belum dikerjakan.**
+Spec penuh: **`docs/stages/TAHAP-11.md`**.
 
 Sepuluh tahap membuat situs ini benar. Tidak satu pun membuatnya indah. Tahap
 ini soal yang kedua, dan seperti biasa: tiap klaim diukur, tiap perbaikan
@@ -829,10 +829,31 @@ seperti memuat dokumen.
 terpotong — `overflow: visible`, kotak mulai persis di induknya. Kerapatannya
 adalah leading 85% yang disengaja.
 
-Empat sub-tahap, diurut dari paling murah dan paling pasti: menegakkan ritme
-spasial · menegakkan tepi · memasang motion yang sudah dibangun · dan
-shared-element card→detail (GSAP Flip) yang ditandai **opsional** karena
-bersinggungan dengan cara Cache Components mengalirkan halaman.
+**Keempat sub-tahap dikerjakan.** Ritme spasial jadi satu token
+(`--section-lead`); tepi media dari enam lebar jadi dua (1398px / 691px);
+`page-transition` dipasang setelah **dua bug** di dalamnya diperbaiki — ia
+berjalan dari perubahan `usePathname()`, yaitu setelah rute baru sudah render,
+dan ia menagih GSAP di rute yang tidak memuat GSAP.
+
+Sub-tahap terakhir tidak memakai GSAP Flip seperti rencananya: React
+`<ViewTransition>` bekerja di App Router **tanpa konfigurasi**, jadi morphnya
+nol pustaka. Terbukti di browser — `::view-transition-group(work-cover-…)`
+dengan kedua paruh `old` dan `new`. Satu konflik yang seharusnya terlihat di
+rencana: 11c mengirim penutup satu layar penuh, dan morph hanya terbaca kalau
+pembaca melihat kedua keadaan. `Link` kini mengumumkan niat dan overlay
+menyingkir.
+
+**Dua cacat ditemukan di luar rencana, keduanya lebih serius darinya.** Teks
+redup di tujuh komponen berada **di bawah WCAG AA** pada tema terang (4.11:1)
+— tak terlihat karena tiap halaman mengirim `theme="dark"`, dan tak terukur
+karena gate kontras hanya membaca token dari `global.css` sementara ketujuhnya
+menulis `color-mix` sendiri di modulnya. Dijadikan token `--text-muted`, dan
+nilainya ditetapkan APCA (Lc 60 pada ~11px), bukan WCAG: **75%**. Kedua: suite
+menguji **Storybook yang basi** — `test:e2e` tidak membangunnya, jadi cacat itu
+hijau selama beberapa tahap. Sekarang ada gate untuk itu.
+
+**Angka:** `#work` 0px → 48px · lebar media 6 → 2 · teks redup 4.11:1 → 9.08:1
+(APCA Lc 35.3 → 60.6) · e2e 195 → **211**.
 
 ---
 

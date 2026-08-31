@@ -139,7 +139,12 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
   useEffect(() => {
     if (prefersReducedMotion) return
 
-    return subscribeNavigation(() => {
+    return subscribeNavigation((intent) => {
+      // A navigation that morphs a shared element must not be covered: the
+      // whole point of the morph is that the reader watches one object move
+      // between two pages, and a panel over the top hides exactly that.
+      if (intent === 'morph') return
+
       covering.current = true
       setState('covering')
       if (safety.current) clearTimeout(safety.current)

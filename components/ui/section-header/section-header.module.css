@@ -17,7 +17,7 @@
    */
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -48,6 +48,6 @@
 }
 
 .aside {
-  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  color: var(--text-muted);
   flex: 0 0 auto;
 }

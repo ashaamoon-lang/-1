@@ -33,6 +33,22 @@
 const NAVIGATION_START = 'arth:navigation-start'
 
 /**
+ * How a navigation should be dressed.
+ *
+ * `cover` is the default: a panel sweeps across and hides the swap, which is
+ * right for a link between two unrelated pages.
+ *
+ * `morph` means the destination shares an element with this page — a work's
+ * cover, going from the catalogue card to the project page — and React's
+ * `<ViewTransition>` will animate it across. The two are mutually exclusive
+ * by construction: a morph is only legible if the reader can *see* both
+ * states, and a cover exists precisely to stop them seeing either. Announcing
+ * the intent is what lets the overlay stand aside for the handful of
+ * navigations that have something better to show.
+ */
+export type NavigationIntent = 'cover' | 'morph'
+
+/**
  * Announce that a client-side navigation has begun.
  *
  * No `typeof window` guard, and that is a claim about the call sites rather
@@ -40,8 +56,15 @@ const NAVIGATION_START = 'arth:navigation-start'
  * which is a user gesture. The server renders the handler as a reference and
  * never invokes it.
  */
-export function announceNavigation(): void {
-  window.dispatchEvent(new CustomEvent(NAVIGATION_START))
+export function announceNavigation(intent: NavigationIntent = 'cover'): void {
+  window.dispatchEvent(
+    new CustomEvent<NavigationIntent>(NAVIGATION_START, { detail: intent })
+  )
+}
+
+/** Announces a navigation whose destination shares an element with this page. */
+export function announceMorphNavigation(): void {
+  announceNavigation('morph')
 }
 
 /**
@@ -49,7 +72,17 @@ export function announceNavigation(): void {
  * drops straight into a `useEffect` — which is also the only place it is
  * called from, and why it needs no environment guard either.
  */
-export function subscribeNavigation(listener: () => void): () => void {
-  window.addEventListener(NAVIGATION_START, listener)
-  return () => window.removeEventListener(NAVIGATION_START, listener)
+export function subscribeNavigation(
+  listener: (intent: NavigationIntent) => void
+): () => void {
+  const handler = (event: Event) => {
+    // SAFETY: the only dispatcher of this event name is `announceNavigation`
+    // above, which always constructs it as a `CustomEvent<NavigationIntent>`.
+    // The `?? 'cover'` covers a stray same-named event from anywhere else by
+    // falling back to the safe, always-correct behaviour.
+    const custom = event as CustomEvent<NavigationIntent>
+    listener(custom.detail ?? 'cover')
+  }
+  window.addEventListener(NAVIGATION_START, handler)
+  return () => window.removeEventListener(NAVIGATION_START, handler)
 }

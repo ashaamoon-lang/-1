@@ -40,6 +40,7 @@
  */
 
 import cn from 'clsx'
+import { ViewTransition } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -47,6 +48,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { transitionName } from '@/lib/motion/transition-name'
 
 import s from './project-card.module.css'
 
@@ -143,23 +145,36 @@ export function ProjectCard({
 
   return (
     <article className={cn(s.card, className)} data-span={span}>
-      <Link href={href} className={s.link} data-cursor="view">
-        <div className={s.media}>
-          {project.cover && (
-            <SanityImage
-              image={toImageSource(project.cover)}
-              alt={project.coverAlt ?? ''}
-              maxWidth={maxWidth}
-              sizes={
-                span === 12
-                  ? '(max-width: 800px) 100vw, 96vw'
-                  : '(max-width: 800px) 100vw, 48vw'
-              }
-              className={s.image}
-              preload={preload}
-            />
-          )}
-        </div>
+      <Link
+        href={href}
+        className={s.link}
+        data-cursor="view"
+        // Stands the route-change overlay down for this navigation so the
+        // cover below can morph into the project page's hero instead.
+        transition="morph"
+      >
+        <ViewTransition
+          name={transitionName(slug)}
+          share="morph"
+          default="none"
+        >
+          <div className={s.media}>
+            {project.cover && (
+              <SanityImage
+                image={toImageSource(project.cover)}
+                alt={project.coverAlt ?? ''}
+                maxWidth={maxWidth}
+                sizes={
+                  span === 12
+                    ? '(max-width: 800px) 100vw, 96vw'
+                    : '(max-width: 800px) 100vw, 48vw'
+                }
+                className={s.image}
+                preload={preload}
+              />
+            )}
+          </div>
+        </ViewTransition>
         <div className={s.caption}>
           <h3 className={cn('p-big', s.title)}>{project.title}</h3>
           {meta && <p className={cn('caption', s.meta)}>{meta}</p>}

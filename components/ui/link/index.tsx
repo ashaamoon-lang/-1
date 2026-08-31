@@ -18,7 +18,10 @@ import {
   localeFromPath,
   templateFromLocalizedPath,
 } from '@/lib/i18n/paths'
-import { announceNavigation } from '@/lib/motion/navigation-signal'
+import {
+  announceNavigation,
+  type NavigationIntent,
+} from '@/lib/motion/navigation-signal'
 
 type CustomLinkProps = Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
@@ -44,6 +47,17 @@ type CustomLinkProps = Omit<
      * proxied Storybook route).
      */
     newTab?: boolean | undefined
+    /**
+     * How this navigation should be dressed.
+     *
+     * `cover` (the default) lets `vault/motion/page-transition` sweep a panel
+     * over the swap. Pass `morph` when the destination shares an element with
+     * this page — a work's cover going from a catalogue card to its project
+     * page — so the overlay stands aside and React's `<ViewTransition>` can
+     * animate the shared element across instead. The two cannot both run: a
+     * morph is only legible if the reader can see both states.
+     */
+    transition?: NavigationIntent | undefined
   }
 
 /**
@@ -165,6 +179,7 @@ export function Link({
   onClick,
   scroll = false, // Default to false to prevent scroll restoration warnings with fixed/sticky elements
   newTab = false,
+  transition = 'cover',
   ...props
 }: CustomLinkProps) {
   // next-intl's `usePathname`, not the one from `next/navigation`: it returns
@@ -244,7 +259,7 @@ export function Link({
      * this component knows nothing about animation and nothing listens when
      * the overlay is absent under reduced motion.
      */
-    onNavigate: announceNavigation,
+    onNavigate: () => announceNavigation(transition),
     ...props,
   }
 

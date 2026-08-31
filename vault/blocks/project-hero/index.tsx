@@ -1,6 +1,7 @@
 'use client'
 
 import cn from 'clsx'
+import { ViewTransition } from 'react'
 
 import { SanityImage } from '@/components/ui/sanity-image'
 import { useReveal } from '@/lib/hooks/use-reveal'
@@ -46,6 +47,17 @@ interface ProjectHeroProps {
   /** Localized by GROQ (`coverAlt`); the schema marks it required. */
   coverAlt: string
   meta: readonly ProjectMeta[]
+  /**
+   * Pairs this cover with the catalogue card the reader arrived from, so the
+   * browser morphs one into the other instead of swapping them.
+   *
+   * A name, not a slug: the block has no business knowing about routing, and
+   * `lib/motion/transition-name.ts` owns the string both ends must agree on.
+   * Omit it and the cover simply does not morph — which is the right
+   * behaviour for a hero with no card to come from, and the reason it is
+   * optional rather than required.
+   */
+  transitionName?: string | undefined
   className?: string | undefined
 }
 
@@ -54,6 +66,7 @@ export function ProjectHero({
   cover,
   coverAlt,
   meta,
+  transitionName,
   className,
 }: ProjectHeroProps) {
   const facts = meta.filter(
@@ -85,26 +98,34 @@ export function ProjectHero({
          * a reader can take in — and it keeps every piece of media on this
          * page on one of two widths.
          */
-        <div
-          data-reveal-item
-          className={s.media}
-          data-span={coverIsFull ? 'full' : 'half'}
-          style={ratioStyle(coverRatio)}
+        <ViewTransition
+          {...(transitionName && {
+            name: transitionName,
+            share: 'morph' as const,
+            default: 'none' as const,
+          })}
         >
-          <SanityImage
-            image={toImageSource(cover)}
-            alt={coverAlt}
-            maxWidth={coverIsFull ? 1440 : 704}
-            className={s.image}
-            /*
-             * The cover is this page's largest contentful paint. It shipped
-             * as `loading="lazy"` with no fetch priority, which is the one
-             * image on the page that must never wait its turn.
-             */
-            preload
-            sizes={trackImageSizes(coverIsFull ? 92 : 48)}
-          />
-        </div>
+          <div
+            data-reveal-item
+            className={s.media}
+            data-span={coverIsFull ? 'full' : 'half'}
+            style={ratioStyle(coverRatio)}
+          >
+            <SanityImage
+              image={toImageSource(cover)}
+              alt={coverAlt}
+              maxWidth={coverIsFull ? 1440 : 704}
+              className={s.image}
+              /*
+               * The cover is this page's largest contentful paint. It shipped
+               * as `loading="lazy"` with no fetch priority, which is the one
+               * image on the page that must never wait its turn.
+               */
+              preload
+              sizes={trackImageSizes(coverIsFull ? 92 : 48)}
+            />
+          </div>
+        </ViewTransition>
       )}
 
       {facts.length > 0 && (

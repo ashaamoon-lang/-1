@@ -78,7 +78,7 @@
    * By-Kin and darkroom.engineering. Size comes from the `caption` class.
    */
   margin: 0;
-  color: color-mix(in oklab, var(--color-secondary) 62%, transparent);
+  color: var(--text-muted);
 }
 
 @media (--desktop) {

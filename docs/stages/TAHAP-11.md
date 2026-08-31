@@ -248,17 +248,145 @@ Ditulis supaya tidak ada agen berikutnya yang "memperbaiki" ini:
 
 ---
 
-## 5. Kriteria keluar
+## 5. Yang benar-benar terjadi
 
-| Kriteria                                                      | Cara membuktikan                                |
-| ------------------------------------------------------------- | ----------------------------------------------- |
-| Jarak header→isi satu nilai di semua section, semua rute      | gate spasial, merah dulu terhadap `#work`       |
-| Elemen media halaman detail ≤ 2 lebar berbeda                 | gate tepi, merah dulu terhadap 6 lebar sekarang |
-| `vault/motion` terpasang atau dihapus — tidak menganggur      | inventaris impor, sama seperti §2.4             |
-| Tiap gerakan punya keadaan akhir benar di reduced-motion      | render reduced-motion, bukan pembacaan kode     |
-| `bun run check`, `build`, `test:e2e`, `build-storybook` hijau | seperti tiap tahap                              |
-| Tiap halaman **dilihat**, dua bahasa, dua viewport            | screenshot, bukan hanya gerbang hijau           |
+### 11a — ritme spasial
 
-Kriteria terakhir ada karena tahap sebelumnya baru saja membuktikan kenapa:
-katalog lolos axe, lolos tanpa-JS, lolos header, dan tetap salah bentuk sampai
-seseorang melihat gambarnya.
+`--section-lead` masuk ke `customSizes` (`lib/styles/layout.mjs`), jadi ia
+dibangkitkan per breakpoint lewat jalur yang sama dengan `--header-height`.
+Angkanya dulu ditulis literal di dalam `StudioNote` dan `ContactBlock`, dan
+**tidak ada sama sekali** di section `#work` halaman depan. Tiga salinan dan
+satu lubang jadi satu definisi.
+
+Gate `e2e/spatial-rhythm.e2e.ts` menuntut **satu ritme**, bukan 48px — mematok
+angkanya akan membuat tes gagal tiap kali studio menyetel ritmenya, dan itu
+keputusan desain, bukan urusan tes. Merah dulu, dengan diagnostiknya sendiri:
+`sections disagree on the rhythm: work=0px, studio=43px, contact=43px`.
+
+### 11b — tepi media
+
+Tiga sebab terpisah, tak satu pun terlihat di diff:
+
+1. `max-width: calc(78svh * var(--ratio))` membatasi **tinggi** dan membiarkan
+   lebar jatuh dari proporsi tiap foto.
+2. `ProjectGallery` tidak pernah meneruskan `className` ke `SanityImage`, jadi
+   aturan `.image` miliknya **tidak pernah sekali pun berlaku** — `<img>`
+   render di lebar intrinsik kandidat srcset, 1324px di dalam kotak 1398px.
+   **CSS mati lebih buruk daripada CSS yang tidak ada**: ia terbaca seperti
+   masalah yang sudah selesai.
+3. `--column-width` diturunkan dari `100vw`, yang **termasuk scrollbar**, jadi
+   setengah-track hitungan tangan keluar 696px melawan 691px milik grid. Lima
+   piksel: tak terlihat sendirian, dan persis jenis nyaris-meleset yang tahap
+   ini ada untuk menghapus.
+
+Span galeri sekarang diturunkan dari bentuk gambarnya (lanskap penuh, potret
+setengah), jadi track dan gambar akhirnya sepakat. Hasil: tiap elemen karya
+**1398px atau 691px**.
+
+### 11c — animasi yang dibangun lalu tidak dipasang
+
+`page-transition` punya **dua** bug, dan keduanya tidak mungkin terlihat
+karena komponennya tidak pernah dirender:
+
+- **Ia berjalan di saat yang salah.** Seluruh urutan dipicu dari perubahan
+  `usePathname()` — yaitu saat rute **baru** sudah selesai render. Pembaca
+  akan menonton halaman yang mereka minta ditutupi lalu dibuka lagi.
+  `lib/motion/navigation-signal.ts` menyediakan momen yang hilang, dari
+  `onNavigate` milik Next 16.
+- **Ia menagih GSAP untuk pekerjaan yang bisa dilakukan CSS.** GSAP di-opt-in
+  per halaman dan hanya beranda mengambilnya, jadi overlay ber-GSAP akan
+  beranimasi di tepat satu rute. Sekarang ia translate satu sumbu — aman
+  diinterupsi, nol pustaka.
+
+Terukur: `idle → covering (klik) → revealing (rute commit) → idle`.
+
+### 11d — morph, dan yang ditemukannya
+
+Rencananya menyebut GSAP Flip. Yang dipakai **bukan** itu: React
+`<ViewTransition>` bekerja di App Router tanpa konfigurasi, jadi morphnya nol
+pustaka. Terbukti di browser, bukan diasumsikan — `::view-transition-group(
+work-cover-panas-sore)` dengan **kedua** paruh `old` dan `new` hadir, yang
+berarti pasangannya benar-benar terbentuk.
+
+**Konflik yang seharusnya saya lihat di rencana:** 11c mengirim penutup satu
+layar penuh, dan morph hanya terbaca kalau pembaca **melihat** kedua keadaan.
+Keduanya tidak bisa jalan bersama. Jadi `Link` sekarang mengumumkan niat, dan
+overlay menyingkir untuk navigasi yang morph.
+
+---
+
+## 6. Cacat yang ditemukan tahap ini, di luar rencananya
+
+Dua, dan keduanya lebih serius daripada apa pun di rencana awal.
+
+### 6a. Teks redup di bawah AA — dan gate warnanya tidak bisa melihatnya
+
+`lib/styles/scripts/contrast.test.ts` mengukur token turunan yang bisa ia
+**parse dari `global.css`**. Tujuh komponen masing-masing menulis
+`color-mix(… 55%, transparent)` sendiri di dalam modul CSS-nya, di mana gate
+itu buta. Terukur di tema terang: **4.11:1** melawan 4.5 yang diminta AA —
+axe menaruhnya di 4.07 pada label `<dt>` milik `ProjectHero`.
+
+Tidak pernah muncul di situs karena tiap halaman mengirim `theme="dark"`.
+Komponennya mendukung dua tema, jadi "situsnya kebetulan tidak memakai yang
+gagal" bukan pembelaan.
+
+Perbaikannya bukan menyunting tujuh persentase melainkan **menjadikannya
+token** (`--text-muted`) di tempat yang gate-nya sudah membaca. Nilainya
+ditetapkan **APCA, bukan WCAG**:
+
+| mix | WCAG (gelap) | APCA Lc (gelap) |
+| --- | ------------ | --------------- |
+| 55% | 4.98         | 35.3            |
+| 62% | 6.20         | 43.6            |
+| 75% | 9.08         | **60.6**        |
+
+62% lolos WCAG dua kali lipat dan tetap terbaca tipis, karena WCAG memodelkan
+terang-di-atas-gelap dengan buruk — dan itu persis arah tiap halaman di sini.
+Pada ~11px, tabel ukuran APCA meminta Lc 60. **75%**.
+
+### 6b. Suite menguji Storybook yang basi
+
+Cacat di atas hijau selama beberapa tahap karena `bun run test:e2e` **tidak
+membangun Storybook**, jadi `storybook-a11y.e2e.ts` memeriksa apa pun isi
+`storybook-static/` yang terakhir ada. Gate yang memeriksa artefak basi lebih
+buruk daripada tidak ada gate: ia melapor tentang kode yang tidak dikirim.
+
+Sekarang ada tes yang gagal kalau build lebih tua dari komponen yang
+diperiksanya — dengan cakupan sempit (bukan `app/`, bukan `lib/styles/scripts`,
+bukan file ter-generate), karena pemeriksa basi yang berteriak palsu akan
+diabaikan lalu dihapus.
+
+---
+
+## 7. Kriteria keluar
+
+| Kriteria                                           | Status | Bukti                                               |
+| -------------------------------------------------- | ------ | --------------------------------------------------- |
+| Jarak header→isi satu nilai di semua section       | ✅     | merah dulu di `#work` 0px; sekarang 48px × 3        |
+| Elemen media halaman detail ≤ 2 lebar              | ✅     | 6 lebar → 1398px / 691px                            |
+| `vault/motion` terpasang, tidak menganggur         | ✅     | `page-transition` terpasang; dua bug diperbaiki     |
+| Tiap gerakan berakhir benar di reduced-motion      | ✅     | dirender, bukan dibaca: 0 item terdampar, 0 overlay |
+| Morph kartu → halaman karya                        | ✅     | pasangan `old`+`new` terbukti di browser            |
+| Tiap halaman **dilihat**, dua bahasa, dua viewport | ✅     | screenshot tiap sub-tahap                           |
+
+**Gate:** `bun run check` (386 unit) · `build` · `build-storybook` ·
+`CI=true bun run test:e2e` (**211 lulus**, dari 195).
+
+---
+
+## 8. Yang **tidak** dikerjakan, dinyatakan terbuka
+
+1. **Morph hanya kartu → halaman karya.** Blok `next-project` menampilkan
+   sampul karya berikutnya dan bisa dipasangkan juga, tapi panduan skill
+   memperingatkan agar tidak lebih dari satu pasang per navigasi. Satu dulu,
+   dievaluasi nanti.
+2. **Morph bergantung pada rute tujuan yang sudah di-prefetch.** Kalau tujuan
+   suspend ke fallback lebih dulu, pasangannya tidak terbentuk dan isinya
+   masuk dengan animasi enter biasa. Prefetch di sini digerbangi Network
+   Information API, yang tidak ada di tiap browser.
+3. **`--text-muted` 75% mengubah tampilan sepuluh komponen.** Itu lebih
+   terang dari sebelumnya. Disengaja, dan alasannya di §6a — tapi ini
+   keputusan desain yang layak ditinjau studio, bukan sekadar perbaikan
+   teknis.
+4. **Belum ada profiling browser.** Tidak berubah dari Tahap 10.
