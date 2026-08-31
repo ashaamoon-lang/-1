@@ -196,7 +196,7 @@ export function generatePageMetadata(
  *
  * // 'use cache' is required: sanityFetch calls cacheTag() internally, which
  * // Cache Components only allow inside a 'use cache' boundary — see
- * // app/[locale]/articles/[slug]/page.tsx for the same pattern applied to a page.
+ * // app/[locale]/work/[slug]/page.tsx for the same pattern applied to a page.
  * async function fetchPage(
  *   slug: string,
  *   perspective: 'published' | 'drafts',

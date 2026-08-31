@@ -1,16 +1,22 @@
 import type { MetadataRoute } from 'next'
 
-import { SITE } from '@/lib/seo/site'
+import { siteFacts } from '@/lib/seo/site'
 import { themes } from '@/styles/colors'
 
 export default function manifest(): MetadataRoute.Manifest {
+  // One manifest per origin — there is no locale to read here, and the spec
+  // has no per-language variant. `siteFacts()` therefore resolves to the
+  // default locale; `lib/seo/site.ts` documents why that is the honest answer
+  // rather than a gap.
+  const facts = siteFacts()
+
   return {
     // From `lib/seo/site.ts`, not `package.json`. The installed-app name used
     // to read `@darkroom.engineering/satus` — a package identifier is not a
     // display name, and it is what a person sees on their home screen.
-    name: SITE.name,
-    short_name: SITE.name,
-    description: SITE.description,
+    name: facts.name,
+    short_name: facts.name,
+    description: facts.description,
     start_url: '/',
     display: 'standalone',
     // The ink. See the note on `themeColor` in app/[locale]/layout.tsx: this

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { DISCIPLINES } from '../lib/content/disciplines'
+
 /**
  * What the server actually puts in its headers.
  *
@@ -22,7 +24,20 @@ function cacheControl(headers: Record<string, string>): string {
 
 test.describe('response headers', () => {
   test('statically prerendered pages are cacheable', async ({ request }) => {
-    for (const path of ['/en', '/id', '/en/ai']) {
+    const paths = [
+      '/en',
+      '/id',
+      '/en/ai',
+      // The catalogue and its filter views. These were `no-store` until the
+      // route shape changed in Tahap 10 — the index because it read
+      // `searchParams`, so listing them here is the assertion that the query
+      // string does not come back.
+      '/en/work',
+      '/id/work',
+      ...DISCIPLINES.map((value) => `/en/work/discipline/${value}`),
+    ]
+
+    for (const path of paths) {
       const response = await request.get(path)
       expect(response.status(), path).toBe(200)
 
@@ -30,6 +45,25 @@ test.describe('response headers', () => {
       expect(value, `${path}: ${value}`).toMatch(/s-maxage=\d+/)
       expect(value, `${path} must not be no-store`).not.toContain('no-store')
     }
+  })
+
+  test('project pages are cacheable', async ({ request }) => {
+    // The most-shared page class on the site, and the one the audit caught
+    // being served `no-store` (§Tier 3). Discovered from the sitemap rather
+    // than hardcoded, so the test cannot pass against a slug that no longer
+    // exists.
+    const sitemap = await (await request.get('/sitemap.xml')).text()
+    const path = sitemap.match(
+      /<loc>[^<]*?(\/en\/work\/(?!discipline\/)[^<]+)<\/loc>/
+    )?.[1]
+    test.skip(!path, 'no published project in the sitemap to check')
+
+    const response = await request.get(path ?? '')
+    expect(response.status(), path).toBe(200)
+
+    const value = cacheControl(response.headers())
+    expect(value, `${path}: ${value}`).toMatch(/s-maxage=\d+/)
+    expect(value, `${path} must not be no-store`).not.toContain('no-store')
   })
 
   test('content-hashed build assets are immutable', async ({ request }) => {

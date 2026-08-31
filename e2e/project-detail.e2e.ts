@@ -31,34 +31,67 @@ async function publishedSlugs(request: {
   get: (url: string) => Promise<{ text: () => Promise<string> }>
 }): Promise<string[]> {
   const xml = await (await request.get('/sitemap.xml')).text()
-  return [...xml.matchAll(/<loc>[^<]*\/en\/work\/([^<]+)<\/loc>/g)]
-    .map((match) => match[1])
-    .filter((slug): slug is string => slug !== undefined)
+  return (
+    [...xml.matchAll(/<loc>[^<]*\/en\/work\/([^<]+)<\/loc>/g)]
+      .map((match) => match[1])
+      .filter((slug): slug is string => slug !== undefined)
+      // `/work/discipline/<value>` is a catalogue view sharing the prefix, not
+      // a project. Without this the tests below would assert a project page's
+      // shape against a filtered index.
+      .filter((slug) => !slug.startsWith('discipline/'))
+  )
 }
 
 test.describe('project detail', () => {
   test('an unknown slug resolves as not-found in both locales', async ({
     request,
   }) => {
+    /*
+     * Two different answers, and both are measured rather than assumed.
+     *
+     * A slug the server has never seen returns **200** with a noindex
+     * directive: Cache Components streams the prerendered shell and flushes
+     * the status line before the cached lookup resolves, so `notFound()` runs
+     * too late to change it. Once that miss is cached, the same URL returns a
+     * real **404** — the route knows the answer before it responds.
+     *
+     * Measured on a fresh `next start`, five unseen slugs and five repeats of
+     * one: unseen 200/200/200/200/200, repeated 200 then 404/404/404/404.
+     *
+     * Tahap 10 improved this — while the route read `draftMode()` it had no
+     * static shell at all and every unknown slug stayed 200 forever. It did
+     * not eliminate it, and this test says so rather than picking whichever
+     * status happens to make it pass. What holds in *both* states is the
+     * noindex directive, which is what a crawler actually reads, so that is
+     * asserted unconditionally.
+     */
     for (const path of ['/en/work/no-such-work', '/id/work/no-such-work']) {
-      const response = await request.get(path)
-      const html = await response.text()
+      const first = await request.get(path)
+      const html = await first.text()
 
-      /*
-       * 200, not 404, and that is not a bug in this route.
-       *
-       * Cache Components prerenders the static shell and flushes its 200
-       * status before the dynamic hole resolves; `notFound()` runs inside that
-       * hole, so the status line is already sent by the time the 404 is known.
-       * Every CMS route in this app behaves the same way —
-       * `e2e/not-found.e2e.ts` documents the same measurement for `[...slug]`.
-       * What a crawler actually reads is the noindex directive, so that is
-       * what this asserts.
-       */
-      expect(response.status(), `${path} status`).toBe(200)
+      expect([200, 404], `${path} status: ${first.status()}`).toContain(
+        first.status()
+      )
       expect(html, `${path} is missing the noindex signal`).toContain(
         'name="robots" content="noindex"'
       )
+
+      /*
+       * Whatever the first response was, the URL must *settle* on a real 404.
+       * This is the assertion that would have failed before Tahap 10, when
+       * the route stayed 200 forever.
+       *
+       * Polled rather than a single second request: the cache entry is
+       * written asynchronously, and the desktop and mobile projects request
+       * this same URL concurrently, so "the second response" is not a
+       * well-defined thing to assert on. Settling is.
+       */
+      await expect
+        .poll(async () => (await request.get(path)).status(), {
+          message: `${path} never settled on a 404`,
+          timeout: 10_000,
+        })
+        .toBe(404)
     }
   })
 

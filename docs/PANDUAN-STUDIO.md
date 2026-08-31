@@ -159,16 +159,51 @@ Semua karya yang **Listed publicly** tampil di halaman katalog, dan pengunjung
 bisa menyaringnya per disiplin. Alamatnya bisa dibagikan langsung:
 
 ```
-/id/work                          semua karya
-/id/work?discipline=mural         hanya mural
-/id/work?discipline=painting      hanya lukisan
-/id/work?discipline=illustration  hanya ilustrasi
+/id/work                              semua karya
+/id/work/discipline/mural             hanya mural
+/id/work/discipline/painting          hanya lukisan
+/id/work/discipline/illustration      hanya ilustrasi
 ```
 
 Yang menentukan sebuah karya masuk kelompok mana adalah field **Discipline** —
 bukan **Medium**. Medium adalah kalimat bebas ("Akrilik di atas kanvas");
 Discipline adalah satu dari tiga pilihan tetap. Sebuah disiplin hanya muncul
 sebagai tombol filter kalau ada karya di dalamnya.
+
+> **Satu slug yang tidak boleh dipakai: `discipline`.** Kata itu sudah menjadi
+> alamat filter di atas. Kalau sebuah karya diberi slug `discipline`, halaman
+> karyanya tidak akan pernah bisa dibuka. Studio akan menolaknya saat Publish,
+> jadi ini bukan sesuatu yang perlu diingat-ingat — cukup tahu kenapa
+> peringatannya muncul.
+
+---
+
+## 6c. Halaman berdiri sendiri (_Page_)
+
+Selain **Project** dan pengaturan studio, Studio punya satu tipe lagi:
+**Page**. Gunanya untuk halaman yang bukan karya — kebijakan privasi, syarat
+dan ketentuan, halaman "pameran", apa pun yang perlu alamat sendiri.
+
+Isi judul dan slug, lalu **Publish**. Halamannya langsung terbit di
+`/id/<slug>` dan `/en/<slug>`, dan otomatis masuk peta situs. Tidak perlu
+menghubungi siapa pun.
+
+Tiga hal yang perlu diketahui:
+
+- **Judul dan isi diisi dua bahasa**, sama seperti karya. Slug-nya satu, dipakai
+  bersama kedua bahasa.
+- **Slug-nya tidak boleh mengandung titik**, dengan alasan yang sama seperti di
+  §3.
+- **Halaman ini tidak muncul di menu apa pun secara otomatis.** Menu atas
+  ditentukan di kode, bukan di Studio. Kalau sebuah halaman perlu masuk menu,
+  itu permintaan ke pengembang — bukan sesuatu yang bisa diatur dari sini.
+
+> **Catatan.** Sampai Agustus 2026 Studio juga menampilkan dua tipe lain,
+> **Article** dan **Navigation**. Keduanya sudah dihapus. Article adalah tipe
+> blog yang tidak pernah direncanakan untuk situs ini, dan Navigation tidak
+> dirender di mana pun — apa pun yang diisi di situ tidak pernah muncul di
+> situs. Kalau Anda pernah mengisinya, tidak ada yang hilang: memang tidak
+> pernah tampil.
 
 ---
 

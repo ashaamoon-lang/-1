@@ -118,4 +118,64 @@ test.describe('locale parity', () => {
       `${identical} of ${en.length} visible strings are identical across locales`
     ).toBeLessThan(0.8)
   })
+
+  test('entity copy is stated in the language of the page', async ({
+    request,
+  }) => {
+    /*
+     * The half of a bilingual site a reader never sees.
+     *
+     * `lib/seo/site.ts` held one English string per fact until Tahap 10, so
+     * `/id` shipped an English `<meta name="description">` and an English
+     * `schema.org` `description` under `lang="id-ID"`. Nothing caught it: the
+     * test above reads *visible* strings, and axe's `html-has-lang` only
+     * checks the attribute exists.
+     *
+     * The assertion is that the two locales disagree, not that either says
+     * something particular — a wording change should not break this, a
+     * regression to one shared string must.
+     */
+    const read = async (path: string) => {
+      const html = await (await request.get(path)).text()
+
+      const meta = html.match(/<meta name="description" content="([^"]*)"/)?.[1]
+
+      const organization = [
+        ...html.matchAll(
+          /<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g
+        ),
+      ]
+        .map((match) => JSON.parse(match[1] ?? '{}'))
+        .find((node) => node['@type'] === 'Organization')
+
+      return {
+        meta,
+        description: organization?.description as string | undefined,
+        knowsAbout: JSON.stringify(organization?.knowsAbout),
+      }
+    }
+
+    const en = await read('/en')
+    const id = await read('/id')
+
+    expect(en.meta, 'no meta description on /en').toBeTruthy()
+    expect(en.description, 'no Organization description on /en').toBeTruthy()
+    expect(en.knowsAbout, 'no knowsAbout on /en').toBeTruthy()
+
+    expect(id.meta, 'meta description is not translated').not.toBe(en.meta)
+    expect(id.description, 'schema.org description is not translated').not.toBe(
+      en.description
+    )
+    expect(id.knowsAbout, 'knowsAbout is not translated').not.toBe(
+      en.knowsAbout
+    )
+
+    // The `@id` must NOT move: it is the same studio in both languages, and
+    // two ids would make two entities out of one.
+    const organizationId = async (path: string) => {
+      const html = await (await request.get(path)).text()
+      return html.match(/"@id":"([^"]*#organization)"/)?.[1]
+    }
+    expect(await organizationId('/id')).toBe(await organizationId('/en'))
+  })
 })

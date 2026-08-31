@@ -1,4 +1,6 @@
-import { SITE } from './site'
+import type { Locale } from '@/lib/i18n/routing'
+
+import { SITE, siteFacts } from './site'
 
 /**
  * Typed schema.org node builders for JSON-LD.
@@ -107,27 +109,39 @@ export type JsonLdSchema =
   | CollectionPageSchema
   | ArticleSchema
 
-export function organizationSchema(): OrganizationSchema {
+/**
+ * The Organization node, stated in one language.
+ *
+ * `locale` is not optional-for-convenience: `description`, `knowsAbout` and
+ * `areaServed` are the three properties an answer engine quotes back, and
+ * emitting the English ones on `/id` told every engine the studio describes
+ * itself in English only. The `@id` is deliberately *not* per-locale — it is
+ * the same organization in both languages, and splitting it would create two
+ * entities out of one.
+ */
+export function organizationSchema(locale?: Locale): OrganizationSchema {
+  const facts = siteFacts(locale)
+
   const schema: OrganizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': ORGANIZATION_ID,
-    name: SITE.name,
-    url: SITE.url,
-    logo: SITE.logo,
-    description: SITE.description,
+    name: facts.name,
+    url: facts.url,
+    logo: facts.logo,
+    description: facts.description,
   }
 
-  if (SITE.alternateNames.length) schema.alternateName = SITE.alternateNames
-  if (SITE.knowsAbout.length) schema.knowsAbout = SITE.knowsAbout
-  if (SITE.areaServed) schema.areaServed = SITE.areaServed
-  if (SITE.foundingDate) schema.foundingDate = SITE.foundingDate
-  if (SITE.email) schema.email = SITE.email
-  if (SITE.sameAs.length) schema.sameAs = SITE.sameAs
-  if (SITE.addressCountry) {
+  if (facts.alternateNames.length) schema.alternateName = facts.alternateNames
+  if (facts.knowsAbout.length) schema.knowsAbout = facts.knowsAbout
+  if (facts.areaServed) schema.areaServed = facts.areaServed
+  if (facts.foundingDate) schema.foundingDate = facts.foundingDate
+  if (facts.email) schema.email = facts.email
+  if (facts.sameAs.length) schema.sameAs = facts.sameAs
+  if (facts.addressCountry) {
     schema.address = {
       '@type': 'PostalAddress',
-      addressCountry: SITE.addressCountry,
+      addressCountry: facts.addressCountry,
     }
   }
 

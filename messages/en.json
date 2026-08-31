@@ -40,7 +40,13 @@
     "count": "{count, plural, one {# piece} other {# pieces}}",
     "emptyTitle": "Nothing in this discipline yet",
     "emptyBody": "The studio has not published work under this heading. See everything instead.",
-    "emptyAction": "See all work"
+    "emptyAction": "See all work",
+    "paintingTitle": "Painting",
+    "muralTitle": "Mural",
+    "illustrationTitle": "Illustration",
+    "paintingIntro": "Commissioned paintings — studies, portraits and panel work made to a brief.",
+    "muralIntro": "Commissioned murals — work painted onto the wall it was made for.",
+    "illustrationIntro": "Commissioned illustration — drawn work made to a brief, for print or screen."
   },
   "meta": {
     "client": "Client",

@@ -35,36 +35,6 @@ export const pageQuery = defineQuery(`
   }
 `)
 
-// Article queries
-export const articleQuery = defineQuery(`
-  *[_type == "article" && slug.current == $slug][0] {
-    _id,
-    title,
-    slug,
-    excerpt,
-    featuredImage,
-    ${richTextWithLinks},
-    categories,
-    tags,
-    author,
-    publishedAt,
-    metadata,
-    _updatedAt
-  }
-`)
-
-export const allArticlesQuery = defineQuery(`
-  *[_type == "article"] | order(publishedAt desc) {
-    _id,
-    title,
-    slug,
-    excerpt,
-    featuredImage,
-    categories,
-    publishedAt
-  }
-`)
-
 // ---------------------------------------------------------------------------
 // Localized content
 // ---------------------------------------------------------------------------

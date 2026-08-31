@@ -1,16 +1,30 @@
+import type { Locale } from '@/lib/i18n/routing'
 import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
 import type { ContentRoute } from '@/lib/seo/routes'
-import { SITE } from '@/lib/seo/site'
+import { SITE, siteFacts } from '@/lib/seo/site'
 
 export function absoluteSiteUrl(path: string): string {
   return new URL(path, `${SITE.url}/`).toString()
 }
 
-export function buildStaticRoutesMarkdown(): string {
-  return STATIC_ROUTES.map(
-    (route) =>
-      `- [${route.label}](${absoluteSiteUrl(route.path)}): ${route.description}`
-  ).join('\n')
+/**
+ * Every static route, as a Markdown list.
+ *
+ * `locale` filters rather than translates: `STATIC_ROUTES` already holds one
+ * entry per language with its prose resolved, so passing a locale lists that
+ * language's pages and omitting it lists both. `/llms.txt` wants both — it is
+ * one unlocalized document describing a bilingual site — while a Markdown
+ * representation of `/id/work` should not be half English.
+ */
+export function buildStaticRoutesMarkdown(locale?: Locale): string {
+  return STATIC_ROUTES.filter(
+    (route) => locale === undefined || route.locale === locale
+  )
+    .map(
+      (route) =>
+        `- [${route.label}](${absoluteSiteUrl(route.path)}): ${route.description}`
+    )
+    .join('\n')
 }
 
 export function buildCmsRoutesMarkdown(
@@ -25,8 +39,8 @@ export function buildCmsRoutesMarkdown(
   return `\n\n## Published content\n\n${links}`
 }
 
-export function buildAgentGuidanceMarkdown(): string {
-  const guidance = SITE.agentGuidance
+export function buildAgentGuidanceMarkdown(locale?: Locale): string {
+  const guidance = siteFacts(locale).agentGuidance
   if (!guidance) return ''
 
   const sections: string[] = []

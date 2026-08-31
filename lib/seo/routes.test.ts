@@ -35,7 +35,7 @@ describe('buildRoutesFromDocuments', () => {
         _updatedAt: '2026-01-01T00:00:00.000Z',
       },
       {
-        _type: 'article',
+        _type: 'project',
         title: 'Hello World',
         slug: { current: 'hello-world' },
         _updatedAt: '2026-02-01T00:00:00.000Z',
@@ -46,7 +46,7 @@ describe('buildRoutesFromDocuments', () => {
 
     expect(routes).toHaveLength(2)
     expect(routes.map((route) => route.path).sort()).toEqual(
-      ['/about', '/articles/hello-world'].sort()
+      ['/about', '/work/hello-world'].sort()
     )
   })
 
@@ -59,7 +59,7 @@ describe('buildRoutesFromDocuments', () => {
         _updatedAt: '2026-01-01T00:00:00.000Z',
       },
       {
-        _type: 'article',
+        _type: 'project',
         title: 'Hello World',
         slug: { current: 'hello-world' },
         _updatedAt: '2026-02-01T00:00:00.000Z',

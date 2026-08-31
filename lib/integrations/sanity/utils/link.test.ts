@@ -64,13 +64,13 @@ describe('urlForReference — internal document resolution', () => {
     }
   })
 
-  test('articles resolve under /articles', () => {
+  test('projects resolve under /work', () => {
     expect(
       urlForReference({
         linkType: 'internal',
-        internalLink: { _type: 'article', slug: { current: 'hello' } },
+        internalLink: { _type: 'project', slug: { current: 'hello' } },
       })
-    ).toBe('/articles/hello')
+    ).toBe('/work/hello')
   })
 
   test('rejects internal slugs that could escape the canonical route shape', () => {
@@ -179,7 +179,7 @@ describe('getLinkAttributes — locale prefixing', () => {
 describe('urlForReference — document type to path', () => {
   const cases = [
     ['page', 'about', '/about'],
-    ['article', 'a-post', '/articles/a-post'],
+
     ['project', 'panas-sore', '/work/panas-sore'],
   ] as const
 

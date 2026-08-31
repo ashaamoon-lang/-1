@@ -20,6 +20,14 @@ The site needs a Sanity token for exactly one thing: reading _draft_ content
 so the Presentation tool can preview unpublished work. Reading published
 content needs no token at all — the `production` dataset is public.
 
+**Since Tahap 10 that is a narrower job than it sounds.** The home page, the
+work catalogue and the project pages are all statically prerendered and read
+only published content, so Presentation previews _published_ edits live
+(through webhook revalidation) but no longer previews unpublished drafts of
+them. What the token still covers is drafts of `page` documents. The reasoning
+is in `docs/stages/TAHAP-10.md` §1.2; the practical effect is that the site is
+fully usable with no token at all.
+
 A Viewer token can only read. A developer or editor token can **write and
 delete your entire content library**. If the server is ever compromised, that
 difference is the whole story.
@@ -59,7 +67,7 @@ publishes `localhost` URLs to search engines.
 
 | Variable                   | Value              | Needed for                        |
 | -------------------------- | ------------------ | --------------------------------- |
-| `SANITY_API_WRITE_TOKEN`   | a **Viewer** token | Draft mode + Presentation preview |
+| `SANITY_API_WRITE_TOKEN`   | a **Viewer** token | Draft preview of `page` documents |
 | `SANITY_REVALIDATE_SECRET` | a random string    | The publish webhook (§4)          |
 
 Despite the name, `SANITY_API_WRITE_TOKEN` is only ever read — it is the
@@ -238,6 +246,21 @@ public anyway — but do not put anything private in it.
 
 **No performance measurement has been done.** Every performance figure in this
 repository is a budget, not a profiler result. See `docs/RESOURCES.md`.
+
+**The build needs Sanity to be reachable.** The catalogue, the three discipline
+views and every project page are prerendered from the CMS at build time, so a
+transient network failure fails the whole build rather than degrading one page.
+It happened once during Tahap 10 (`HTTP 503 — DNS resolution failed`) and
+passed on a retry. If a deploy fails with a Sanity 503, retry it before
+investigating anything else. This is the direct cost of those pages being
+static and cacheable, and it was taken deliberately.
+
+**The first request to a project URL that does not exist returns `200`, not
+`404`.** The static shell is flushed before the CMS lookup resolves, so the
+status line is already sent when `notFound()` runs. The response does carry
+`<meta name="robots" content="noindex">`, which is what a crawler acts on, and
+every subsequent request to the same URL returns a real `404`. Measured, not
+assumed — `docs/stages/TAHAP-10.md` §3b has the numbers.
 
 ---
 

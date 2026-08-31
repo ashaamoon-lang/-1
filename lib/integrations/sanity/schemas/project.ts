@@ -1,5 +1,7 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
+import { DISCIPLINE_SEGMENT } from '@/lib/content/disciplines'
+
 import { localeValue, requireEveryLocale } from '../utils/i18n-array'
 
 /**
@@ -59,6 +61,13 @@ export const project = defineType({
           // /llms.txt, and Markdown negotiation.
           if (slug?.current?.includes('.')) {
             return 'Slug cannot contain a dot ("."). Dotted paths are treated as static files and are excluded from the sitemap, llms.txt, and Markdown negotiation.'
+          }
+          // `/work/discipline/<value>` is a real route, and Next matches a
+          // static segment before a dynamic one. A project on this slug would
+          // be shadowed by the filter view and never render, with no error
+          // anywhere. See `lib/content/disciplines.ts`.
+          if (slug?.current === DISCIPLINE_SEGMENT) {
+            return `Slug cannot be "${DISCIPLINE_SEGMENT}". That path is reserved for the discipline filter (/work/${DISCIPLINE_SEGMENT}/mural), and a project using it would be unreachable.`
           }
           return true
         }),
@@ -135,8 +144,10 @@ export const project = defineType({
        *
        * The value is a key; the label is translated in `messages/*.json`.
        * Localizing the value would give one work two different filter URLs,
-       * and `?discipline=mural` would stop meaning the same thing in each
-       * language.
+       * and `/work/discipline/mural` would stop meaning the same thing in
+       * each language. The canonical list lives in
+       * `lib/content/disciplines.ts`; this `list` is the editor-facing half
+       * of it.
        */
       options: {
         list: [

@@ -1,3 +1,4 @@
+import { localeFromPath } from '@/lib/i18n/paths'
 import {
   absoluteSiteUrl,
   buildAgentGuidanceMarkdown,
@@ -12,7 +13,7 @@ import {
 import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
 import { getCmsRoutesResult } from '@/lib/seo/routes'
 import type { ContentRoute } from '@/lib/seo/routes'
-import { SITE } from '@/lib/seo/site'
+import { siteFacts } from '@/lib/seo/site'
 
 /**
  * `303` carries only a redirect location: the client asked for Markdown on
@@ -148,12 +149,26 @@ export function buildMarkdownDocumentFromRoutes(
       : buildMarkdownNotFound(path)
   }
 
+  /*
+   * The document speaks the language of the URL that was asked for.
+   *
+   * `/id/work.md` is a request for the Indonesian representation, and the
+   * locale is right there in the path — so unlike `/llms.txt` (one
+   * unlocalized file, default language) this surface has no reason to fall
+   * back. `route.label` and `route.description` are already resolved by
+   * `STATIC_ROUTES`; the entity prose and the agent guidance are resolved
+   * here. `localeFromPath` returns null only for unlocalized routes, which
+   * then take the default.
+   */
+  const locale = localeFromPath(path) ?? undefined
+  const facts = siteFacts(locale)
+
   return {
     status: 200,
     contentType: 'text/markdown; charset=utf-8',
-    body: `# ${route.label} | ${SITE.name}
+    body: `# ${route.label} | ${facts.name}
 
-> ${SITE.description}
+> ${facts.description}
 
 ## This page
 
@@ -163,7 +178,7 @@ This representation summarizes the route as the site owns it. It lists CMS pages
 
 ## Pages
 
-${buildStaticRoutesMarkdown()}${buildCmsRoutesMarkdown(cmsRoutes)}${buildAgentGuidanceMarkdown()}${buildDeveloperResourcesMarkdown()}
+${buildStaticRoutesMarkdown(locale)}${buildCmsRoutesMarkdown(cmsRoutes)}${buildAgentGuidanceMarkdown(locale)}${buildDeveloperResourcesMarkdown()}
 
 ## Agent files
 

@@ -128,7 +128,6 @@ export const INTEGRATION_BUNDLES = defineBundles({
     folders: [
       'lib/integrations/sanity',
       'components/ui/sanity-image',
-      'app/[locale]/articles',
       'app/studio',
     ],
     files: ['app/api/draft-mode/enable/route.ts'],

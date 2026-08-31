@@ -89,7 +89,13 @@ test.describe('sitemap and page metadata agree', () => {
       ...(await sitemap.text()).matchAll(/<loc>([^<]+)<\/loc>/g),
     ]
       .map((match) => new URL(match[1] ?? '').pathname)
-      .filter((path) => path.includes('/work/'))
+      // Artwork pages only. `/work/discipline/mural` shares the prefix but is
+      // a catalogue view, not a work: it has no cover of its own, so the
+      // site-wide card is the correct card for it and asserting otherwise
+      // would fail on a page that is behaving properly.
+      .filter(
+        (path) => path.includes('/work/') && !path.includes('/work/discipline/')
+      )
 
     expect(workUrls.length).toBeGreaterThan(0)
 

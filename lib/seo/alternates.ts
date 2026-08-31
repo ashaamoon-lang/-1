@@ -18,7 +18,7 @@ import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
  * `path` must be the same URL `app/sitemap.ts` submits for the route. A
  * canonical that disagrees with the sitemap asks a search engine to crawl
  * one URL and index another, and the engine picks — usually not the one you
- * wanted. Pass a root-relative path (`/articles/foo`); Next resolves it
+ * wanted. Pass a root-relative path (`/en/work/foo`); Next resolves it
  * against `metadataBase`.
  */
 export function routeAlternates(path: string): Metadata['alternates'] {

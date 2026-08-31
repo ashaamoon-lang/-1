@@ -121,8 +121,6 @@ function resolveDocumentUrl(documentType?: string, slug?: string): string {
     // document would link to a route that never serves it.
     case 'page':
       return `/${slug}`
-    case 'article':
-      return `/articles/${slug}`
     // Projects get their own namespace rather than sharing the `page`
     // catch-all: slugs are unique per type in Sanity, not across types, so a
     // work called "About" and a page called "About" would otherwise both

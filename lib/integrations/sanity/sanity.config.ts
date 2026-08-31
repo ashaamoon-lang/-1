@@ -41,8 +41,6 @@ function resolveHref(documentType?: string, slug?: string): string | undefined {
     // slug.
     case 'page':
       return slug ? `/${PREVIEW_LOCALE}/${slug}` : undefined
-    case 'article':
-      return slug ? `/${PREVIEW_LOCALE}/articles/${slug}` : undefined
     case 'project':
       return slug ? `/${PREVIEW_LOCALE}/work/${slug}` : undefined
     default:
@@ -88,10 +86,6 @@ export default projectId && dataset
                 filter: `_type == "project" && slug.current == $slug`,
               },
               {
-                route: '/:locale/articles/:slug',
-                filter: `_type == "article" && slug.current == $slug`,
-              },
-              {
                 route: '/:locale/:slug',
                 filter: `_type == "page" && slug.current == $slug`,
               },
@@ -111,7 +105,7 @@ export default projectId && dataset
                   ],
                 }),
               }),
-              article: defineLocations({
+              project: defineLocations({
                 select: {
                   title: 'title',
                   slug: 'slug.current',
@@ -119,8 +113,8 @@ export default projectId && dataset
                 resolve: (doc) => ({
                   locations: [
                     {
-                      title: doc?.title ?? 'Untitled Article',
-                      href: resolveHref('article', doc?.slug)!,
+                      title: doc?.title ?? 'Untitled Project',
+                      href: resolveHref('project', doc?.slug)!,
                     },
                   ],
                 }),

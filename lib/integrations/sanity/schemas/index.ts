@@ -2,31 +2,32 @@
  * Sanity Schema Types
  *
  * All schema definitions for Sanity CMS, organized in a flat structure.
+ *
+ * ## Every type here must be rendered somewhere
+ *
+ * `schema-coverage.test.ts` asserts it, because two types shipped that were
+ * not: `article` had a whole `/[locale]/articles/[slug]` route on a studio
+ * site with no writing, and `navigation` had no query, no component and no
+ * consumer at all — it appeared in the Studio sidebar inviting the studio to
+ * fill in a menu that nothing would ever read
+ * (`docs/stages/TAHAP-10.md` §1.3).
+ *
+ * A document type an editor can create but the site cannot show is worse than
+ * a missing feature: it costs the editor real work and silently discards it.
  */
 
 import type { SchemaTypeDefinition } from 'sanity'
 
-import { article } from './article'
 // Import all schema definitions
 import { link } from './link'
 import { metadata } from './metadata'
-import { navigation } from './navigation'
 import { page } from './page'
 import { project } from './project'
 import { richText } from './richText'
 import { studioSettings } from './studioSettings'
 
 // Re-export all schemas for convenience
-export {
-  article,
-  link,
-  metadata,
-  navigation,
-  page,
-  project,
-  richText,
-  studioSettings,
-}
+export { link, metadata, page, project, richText, studioSettings }
 
 // Schema collection for Sanity configuration
 export const schema = {
@@ -42,11 +43,9 @@ export const schema = {
 
     // Document types (content pages)
     page,
-    article,
     project,
 
     // Singleton types (one-off content)
-    navigation,
     studioSettings,
   ],
 } satisfies { types: SchemaTypeDefinition[] }

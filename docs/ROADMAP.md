@@ -741,6 +741,67 @@ punya egress) · angka performa tetap byte, bukan waktu.
 
 ---
 
+## Tahap 10 — Menutup yang tersisa ✅
+
+Spec penuh: **`docs/stages/TAHAP-10.md`**.
+
+Tahap 9 menutup daftar roadmap dan meninggalkan empat hal tertulis sebagai
+**belum dikerjakan**. Tahap ini mengerjakan semuanya, termasuk yang di
+spec-nya sendiri sempat diputuskan untuk **tidak** dikerjakan.
+
+**Keputusan yang dibalik, dan itu intinya.** §1.4 spec ini semula memutuskan
+mempertahankan `?discipline=mural`, dengan tiga alasan yang ditulis lengkap.
+Dua error build membatalkannya: di bawah `cacheComponents`, rute yang membaca
+`searchParams` **wajib** menaruh isinya di balik `<Suspense>`, dan
+`export const dynamic = 'force-dynamic'` ditolak mentah-mentah. Isi di balik
+Suspense hanya sampai ke pembaca lewat skrip inline — jadi `/en/work` tanpa
+JavaScript menampilkan judulnya, paragrafnya, kata _Loading_, dan **nol
+karya**. `lib/seo/site.ts` menyuruh setiap agen membuka halaman itu.
+
+Filternya jadi segmen path: `/work/discipline/mural`. Yang dibeli: setiap
+tampilan `○` statis, `s-maxage=31536000`, terbaca penuh tanpa JS, dan tiga
+halaman indeks tambahan per bahasa yang layak di-index sendiri. Yang dibayar:
+slug `discipline` jadi terlarang, ditegakkan di tiga tempat.
+
+**Prosa entitas jadi dua bahasa.** `SITE.description`, `services`,
+`knowsAbout`, `areaServed`, dan panduan agen berubah dari `string` menjadi
+`Record<Locale, …>`, dibaca lewat `siteFacts(locale)`. Ikut terbawa, dan tidak
+ada di rencana: `label`/`description` di `route-catalog.ts`, karena `/id/ai`
+adalah halaman Indonesia yang mendaftar deskripsi Inggris untuk halamannya
+sendiri.
+
+**Dua tipe dokumen dibuang.** `article` (tipe blog di situs studio karya
+pesanan, lengkap dengan rutenya) dan `navigation` (dirender **nol** tempat —
+editor mengisinya dan tidak ada yang berubah). `page` **tetap**, dan sekarang
+dijelaskan di panduan studio. `schemas/schema-coverage.test.ts` menahan yang
+berikutnya.
+
+**Dua gate lama gagal karena perilakunya membaik**, dan keduanya diperbarui
+alih-alih dilonggarkan — termasuk slug tak dikenal, yang sekarang **mengendap**
+jadi 404 sungguhan (permintaan pertama tetap 200; diukur, dan dinyatakan
+terbuka di §5 spec).
+
+**Baru:** `lib/content/disciplines.ts` · `app/[locale]/work/catalogue.tsx` ·
+`app/[locale]/work/discipline/[value]/` · `siteFacts()` ·
+`schemas/schema-coverage.test.ts`.
+
+**Angka:** `/en/work/rimbun` tanpa JS 28 → 498 karakter · `/en/work` "Loading"
+→ 513 karakter dan 6 tautan karya · `Cache-Control` halaman proyek `no-store`
+→ `s-maxage=31536000` · halaman indeks dapat di-index 2 → 8 · tipe dokumen
+tanpa jalur render 2 → 0.
+
+**Keluar:** `bun run check` (**385 test**) · `bun run build` ·
+`build-storybook` · `CI=true bun run test:e2e` (**189 lulus**, dua project).
+
+**Belum dikerjakan, eksplisit:** permintaan **pertama** ke slug tak dikenal
+tetap 200 + `noindex` (batas model streaming Cache Components, bukan kode
+rute) · build sekarang bergantung pada Sanity yang bisa dihubungi, dan sempat
+gagal sekali karena `HTTP 503 DNS resolution failed` · belum ada profiling
+browser, jadi tidak ada angka Core Web Vitals · 93 export tak dirujuk belum
+dipilah · kredensial Sanity belum dirotasi, atas permintaan user.
+
+---
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap

@@ -24,7 +24,7 @@ export const link = defineType({
       name: 'internalLink',
       title: 'Internal Link',
       type: 'reference',
-      to: [{ type: 'page' }, { type: 'article' }],
+      to: [{ type: 'page' }, { type: 'project' }],
       hidden: ({ parent }) => parent?.linkType !== 'internal',
       validation: (Rule) =>
         Rule.custom((value, context) => {

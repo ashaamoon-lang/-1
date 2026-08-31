@@ -1,5 +1,7 @@
+import type { Browser } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
+import { DISCIPLINES } from '../lib/content/disciplines'
 import { routing } from '../lib/i18n/routing'
 
 /**
@@ -14,57 +16,138 @@ import { routing } from '../lib/i18n/routing'
  *
  * The cause was a single `app/[locale]/loading.tsx`, which put a Suspense
  * boundary around every localized route including the ones that read no
- * request data at all. Moving it down to the four segments that genuinely
- * need it took the home page from 28 characters to its full 1073.
+ * request data at all. Moving it down to the segments that genuinely need it
+ * took the home page from 28 characters to its full 1073.
  *
- * ## What this deliberately does not assert
+ * ## The catalogue is covered here now, and that took a route change
  *
- * `/[locale]/work` reads `searchParams` and the project pages read
- * `draftMode()`. Both are request data by definition, so both keep the
- * boundary and still show the fallback without JavaScript. That is a real
- * limitation, recorded in `docs/stages/TAHAP-9.md` rather than hidden by
- * choosing softer routes here — every work is individually listed in the
- * sitemap, so nothing becomes undiscoverable.
+ * Tahap 9 exempted `/work` and `/work/[slug]` from this file, on the grounds
+ * that they read request data — `searchParams` and `draftMode()` — and
+ * therefore had to keep a Suspense boundary. The exemption was honest about
+ * the limitation and wrong about its necessity. Both reads were removable:
+ *
+ *   - `draftMode()` bought live preview of *unpublished* project edits, which
+ *     `docs/PANDUAN-STUDIO.md` never taught and nothing depended on;
+ *   - `searchParams` bought `?discipline=`, which is now three static routes.
+ *
+ * Measured before the change: `/en/work/rimbun` 28 characters,
+ * `/en/work` its heading plus the word *Loading* and not one project. After:
+ * 498 and 513, byte-identical to the JavaScript-enabled render. This file is
+ * what stops that regressing, so it asserts on **project links**, not only
+ * character counts — a fallback that grew a paragraph would satisfy a length
+ * check while still showing no work.
  */
 
 /** Enough text that the page is demonstrably rendering content, not a shell. */
 const MIN_CHARS = 400
 
+/**
+ * Renders `path` in a context with no JavaScript runtime and reports what a
+ * crawler would actually see.
+ */
+async function renderWithoutJavaScript(browser: Browser, path: string) {
+  const context = await browser.newContext({ javaScriptEnabled: false })
+  const page = await context.newPage()
+  try {
+    await page.goto(path, { waitUntil: 'domcontentloaded' })
+    return await page.evaluate(() => {
+      const text = (document.body.innerText || '').trim()
+      return {
+        chars: text.length,
+        headings: document.querySelectorAll('h1').length,
+        heading: document.querySelector('h1')?.textContent?.trim() ?? '',
+        // Links into a project detail page — the catalogue's actual payload.
+        // `/work/discipline/…` is a filter view, not a work, so it is excluded.
+        projectLinks: [
+          ...document.querySelectorAll<HTMLAnchorElement>('a[href*="/work/"]'),
+        ].filter((a) => !a.pathname.includes('/work/discipline/')).length,
+        // The chip the server marked active. Rendering this at all proves the
+        // filter state came from the route rather than from a client effect.
+        activeChip:
+          document
+            .querySelector('nav a[aria-current="true"]')
+            ?.getAttribute('href') ?? null,
+        text: text.slice(0, 120),
+      }
+    })
+  } finally {
+    await context.close()
+  }
+}
+
 test.describe('readable without JavaScript', () => {
   for (const locale of routing.locales) {
     test(`/${locale} renders its content server-side`, async ({ browser }) => {
-      const context = await browser.newContext({ javaScriptEnabled: false })
-      const page = await context.newPage()
-
-      await page.goto(`/${locale}`, { waitUntil: 'domcontentloaded' })
-
-      const rendered = await page.evaluate(() => ({
-        chars: (document.body.innerText || '').trim().length,
-        headings: document.querySelectorAll('h1').length,
-        text: (document.body.innerText || '').trim().slice(0, 80),
-      }))
-
-      await context.close()
+      const rendered = await renderWithoutJavaScript(browser, `/${locale}`)
 
       expect(rendered.chars, `only rendered: ${rendered.text}`).toBeGreaterThan(
         MIN_CHARS
       )
       expect(rendered.headings, 'exactly one h1').toBe(1)
     })
+
+    test(`/${locale}/work lists work server-side`, async ({ browser }) => {
+      const rendered = await renderWithoutJavaScript(browser, `/${locale}/work`)
+
+      expect(rendered.chars, `only rendered: ${rendered.text}`).toBeGreaterThan(
+        MIN_CHARS
+      )
+      expect(rendered.headings, 'exactly one h1').toBe(1)
+      // The assertion that matters. A Suspense fallback has a heading and
+      // prose; it has no links to individual works.
+      expect(
+        rendered.projectLinks,
+        `catalogue rendered no project links: ${rendered.text}`
+      ).toBeGreaterThan(0)
+    })
   }
 
-  test('/en/ai renders its content server-side', async ({ browser }) => {
-    const context = await browser.newContext({ javaScriptEnabled: false })
-    const page = await context.newPage()
+  for (const discipline of DISCIPLINES) {
+    test(`/en/work/discipline/${discipline} renders server-side`, async ({
+      browser,
+    }) => {
+      const rendered = await renderWithoutJavaScript(
+        browser,
+        `/en/work/discipline/${discipline}`
+      )
 
-    await page.goto('/en/ai', { waitUntil: 'domcontentloaded' })
-    const chars = await page.evaluate(
-      () => (document.body.innerText || '').trim().length
+      // No `projectLinks` assertion: a discipline the studio has not published
+      // under yet legitimately renders the empty state, and this gate must not
+      // fail on a truthful empty catalogue.
+      expect(rendered.headings, 'exactly one h1').toBe(1)
+      // What is asserted instead is the filter's own state. `aria-current` is
+      // set from the route segment during the server render, so finding it on
+      // the right chip proves both that this view is distinct from `/work`
+      // and that its selected state survives with no JavaScript at all — the
+      // property a client-side filter cannot have.
+      expect(rendered.activeChip, 'active chip marks this discipline').toBe(
+        `/en/work/discipline/${discipline}`
+      )
+    })
+  }
+
+  test('a project page renders server-side', async ({ browser, request }) => {
+    // Take a real slug from the sitemap rather than hardcoding one, so the
+    // test does not silently pass against a dataset that no longer has it.
+    const sitemap = await (await request.get('/sitemap.xml')).text()
+    const match = sitemap.match(
+      /<loc>[^<]*?(\/en\/work\/(?!discipline\/)[^<]+)<\/loc>/
     )
-    await context.close()
+    test.skip(!match, 'no published project in the sitemap to check')
+
+    const rendered = await renderWithoutJavaScript(browser, match?.[1] ?? '')
+
+    expect(rendered.chars, `only rendered: ${rendered.text}`).toBeGreaterThan(
+      MIN_CHARS
+    )
+    expect(rendered.headings, 'exactly one h1').toBe(1)
+  })
+
+  test('/en/ai renders its content server-side', async ({ browser }) => {
+    const rendered = await renderWithoutJavaScript(browser, '/en/ai')
 
     // The machine view is the site's AEO surface. If anything must survive
     // without a JavaScript runtime it is this.
-    expect(chars).toBeGreaterThan(MIN_CHARS)
+    expect(rendered.chars).toBeGreaterThan(MIN_CHARS)
   })
 })

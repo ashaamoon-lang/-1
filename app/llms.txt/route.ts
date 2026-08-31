@@ -6,7 +6,7 @@ import {
 } from '@/lib/seo/agent-content'
 import { mergeVary } from '@/lib/seo/content-negotiation'
 import { getCmsRoutes, localizedContentRoutes } from '@/lib/seo/routes'
-import { formatList, SITE } from '@/lib/seo/site'
+import { formatList, type ResolvedSiteFacts, siteFacts } from '@/lib/seo/site'
 
 /**
  * `/llms.txt` — the emerging convention for giving LLMs a plain-text site
@@ -28,15 +28,15 @@ import { formatList, SITE } from '@/lib/seo/site'
  * return value, and a `Response` instance is not a plain object.
  */
 
-function buildAbout(): string {
+function buildAbout(facts: ResolvedSiteFacts): string {
   const clauses: string[] = []
 
-  if (SITE.foundingDate) clauses.push(`Founded in ${SITE.foundingDate}.`)
-  if (SITE.locationName) clauses.push(`Based in ${SITE.locationName}.`)
-  if (SITE.services.length)
-    clauses.push(`Services: ${formatList(SITE.services)}.`)
-  if (SITE.knowsAbout.length)
-    clauses.push(`Areas of expertise: ${formatList(SITE.knowsAbout)}.`)
+  if (facts.foundingDate) clauses.push(`Founded in ${facts.foundingDate}.`)
+  if (facts.locationName) clauses.push(`Based in ${facts.locationName}.`)
+  if (facts.services.length)
+    clauses.push(`Services: ${formatList(facts.services)}.`)
+  if (facts.knowsAbout.length)
+    clauses.push(`Areas of expertise: ${formatList(facts.knowsAbout)}.`)
 
   // Fresh clone: no optional SITE fields are set yet. Say so plainly instead
   // of emitting an empty section or a sentence with a hole in it.
@@ -49,19 +49,31 @@ function buildAbout(): string {
 
 async function buildBody(): Promise<string> {
   'use cache'
+  /*
+   * Written in the default locale, and that is a decision rather than an
+   * oversight.
+   *
+   * `/llms.txt` is an unlocalized path by convention — the convention is the
+   * whole point, since a crawler looks for exactly this address — so there is
+   * no locale to read. What it must not do is *hide* the other language:
+   * `buildStaticRoutesMarkdown()` is called with no locale below, so the Key
+   * pages list carries `/en/…` and `/id/…` side by side and a crawler that
+   * only ever fetches this file still learns the site is bilingual.
+   */
+  const facts = siteFacts()
   // Expanded per locale, like the sitemap's. This file used to list the bare
   // template (`https://…/work/rimbun`), which is a URL that only 307s — on
   // the one surface whose entire purpose is handing a crawler the address to
   // record.
   const cmsRoutes = localizedContentRoutes(await getCmsRoutes())
 
-  return `# ${SITE.name}
+  return `# ${facts.name}
 
-> ${SITE.description}
+> ${facts.description}
 
 ## About
 
-${buildAbout()}
+${buildAbout(facts)}
 
 ## Key pages
 

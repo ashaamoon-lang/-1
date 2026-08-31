@@ -1,17 +1,21 @@
 import { getTranslations } from 'next-intl/server'
 import type { PortableTextBlock } from 'next-sanity'
-import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { Wrapper } from '@/components/layout/wrapper'
+import { DISCIPLINE_SEGMENT } from '@/lib/content/disciplines'
 import { nextProject } from '@/lib/content/next-project'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { RichText } from '@/lib/integrations/sanity/components/rich-text'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
-import { projectQuery, projectsQuery } from '@/lib/integrations/sanity/queries'
+import {
+  projectQuery,
+  projectSlugsQuery,
+  projectsQuery,
+} from '@/lib/integrations/sanity/queries'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
@@ -20,24 +24,48 @@ import { ProjectHero } from '@/vault/blocks/project-hero'
 import s from './page.module.css'
 
 /*
+ * Published content only, and deliberately no `draftMode()`.
+ *
  * `'use cache'` is required, not stylistic: `sanityFetch` calls `cacheTag()`
  * internally, and under Cache Components that is only legal inside a cached
- * function — draft mode included. Slug and locale are arguments so both are
- * part of the cache key.
+ * function. Slug and locale are arguments so both are part of the cache key.
+ *
+ * ## Why draft mode is gone
+ *
+ * Reading `draftMode()` is a request-time access, which pushes the whole page
+ * into a dynamic hole. Two things were measured as a result, and neither was
+ * a theory:
+ *
+ *   - with JavaScript off the page rendered 28 characters — the real markup
+ *     sat in a `<div hidden>` only an inline script reveals
+ *     (`docs/stages/TAHAP-9.md` §1);
+ *   - the response was `Cache-Control: no-store`, so every view of the most
+ *     shareable page class on the site hit the origin and Sanity
+ *     (`docs/AUDIT-2026-08.md` §Tier 1).
+ *
+ * `app/[locale]/page.tsx` justified keeping it by calling these routes
+ * "dynamic (◐) by nature and lose nothing". That sentence was wrong, and it
+ * is what this change corrects.
+ *
+ * ## What it costs, stated plainly
+ *
+ * The Presentation tool no longer previews *unpublished* edits to a project.
+ * It still previews published ones live, through `SanityLive` tag
+ * revalidation. Three things make that trade the right way round:
+ * `docs/PANDUAN-STUDIO.md` teaches the studio to publish and look — it never
+ * mentions preview at all; `docs/DEPLOYMENT.md` marks the token
+ * "Recommended", not required; and the home page made this exact trade in
+ * Tahap 3, so keeping project pages different would be two rules for one
+ * question.
  */
-async function fetchProject(
-  slug: string,
-  locale: string,
-  perspective: 'published' | 'drafts',
-  stega: boolean
-) {
+async function fetchProject(slug: string, locale: string) {
   'use cache'
   const [project, siblings] = await Promise.all([
     sanityFetch({
       query: projectQuery,
       params: { slug, locale },
-      perspective,
-      stega,
+      perspective: 'published',
+      stega: false,
     }),
     // The full ordered list, for "next project". Fetched here rather than in a
     // second cached function so both share one cache entry and one
@@ -45,18 +73,11 @@ async function fetchProject(
     sanityFetch({
       query: projectsQuery,
       params: { locale },
-      perspective,
-      stega,
+      perspective: 'published',
+      stega: false,
     }),
   ])
   return { project: project.data, siblings: siblings.data }
-}
-
-async function fetchProjectForRequest(slug: string, locale: string) {
-  const { isEnabled: isDraftMode } = await draftMode()
-  return isDraftMode
-    ? fetchProject(slug, locale, 'drafts', true)
-    : fetchProject(slug, locale, 'published', false)
 }
 
 /**
@@ -81,28 +102,77 @@ interface ProjectPageProps {
   params: Promise<{ slug: string }>
 }
 
-/*
- * There is deliberately no `generateStaticParams` here.
+/**
+ * A slug that matches no document, used only when the CMS is empty.
  *
- * The roadmap asked for one, and it cannot exist under Cache Components while
- * the dataset can be empty. Next rejects the build outright:
+ * Cache Components rejects a build where `generateStaticParams` returns
+ * nothing: "all `generateStaticParams` functions must return at least one
+ * result". A fresh clone has zero published projects, so something has to be
+ * returned.
  *
- *   When using Cache Components, all `generateStaticParams` functions must
- *   return at least one result. This is to ensure that we can perform
- *   build-time validation that there is no other dynamic accesses that would
- *   cause a runtime error.
- *
- * With zero published projects the list is empty, so the only ways to satisfy
- * it are to prerender a fabricated slug that 404s, or to require the CMS to
- * hold content before the repo can build. Both are worse than the alternative.
- *
- * So this route is Partial Prerender (`◐`), exactly like the sibling CMS
- * routes `[...slug]` and `articles/[slug]`, neither of which declares static
- * params either. The shell is prerendered, the project renders on first
- * request, and `'use cache'` plus SanityLive tag revalidation caches it from
- * there. `projectSlugsQuery` stays in `queries.ts` — `app/sitemap.ts` still
- * enumerates every project, which is what the exit criterion actually needs.
+ * This renders a 404. It is in no sitemap, linked from nowhere, and
+ * discoverable only by typing it — its entire job is to satisfy a build-time
+ * validation.
  */
+const EMPTY_DATASET_SENTINEL = '__no-projects__'
+
+/**
+ * Prerenders every published project.
+ *
+ * ## This reverses a decision, and the reason is measurement
+ *
+ * Tahap 4 concluded that `generateStaticParams` "cannot exist under Cache
+ * Components while the dataset can be empty", weighed a fabricated sentinel
+ * slug against staying dynamic, and called the sentinel "worse than the
+ * alternative". That judgment was sound given what was known — and what was
+ * known was wrong. The comment in `app/[locale]/page.tsx` asserted these
+ * routes are "dynamic (◐) by nature and lose nothing".
+ *
+ * They lost two things, both measured since:
+ *
+ *   - **28 characters without JavaScript.** The page's markup shipped inside
+ *     a `<div hidden>` that only an inline script reveals
+ *     (`docs/stages/TAHAP-9.md` §1).
+ *   - **`Cache-Control: no-store`.** Every view of the most shareable page
+ *     class hit the origin and Sanity (`docs/AUDIT-2026-08.md` §Tier 1).
+ *
+ * Against that, one unlisted 404 route on an empty dataset is cheap.
+ *
+ * ## What still works when the CMS changes
+ *
+ * `dynamicParams` defaults to true, so a project published after the last
+ * build still renders — on demand, then cached by `'use cache'` and
+ * revalidated by the publish webhook. Prerendering is an optimisation here,
+ * not a gate on content existing.
+ *
+ * Deliberately not locale-parameterised: a slug is shared across languages,
+ * so one list drives both locales' routes.
+ */
+async function fetchProjectSlugs() {
+  // `sanityFetch` calls `cacheTag()`, which is only legal inside a cached
+  // function — `generateStaticParams` is not one, so the fetch is wrapped.
+  'use cache'
+  const { data } = await sanityFetch({
+    query: projectSlugsQuery,
+    params: {},
+    perspective: 'published',
+    stega: false,
+  })
+  return data
+}
+
+export async function generateStaticParams() {
+  if (!isConfigured('sanity')) return [{ slug: EMPTY_DATASET_SENTINEL }]
+
+  const data = await fetchProjectSlugs()
+  const slugs = (data ?? []).filter(
+    (slug): slug is string => Boolean(slug) && slug !== DISCIPLINE_SEGMENT
+  )
+
+  return slugs.length > 0
+    ? slugs.map((slug) => ({ slug }))
+    : [{ slug: EMPTY_DATASET_SENTINEL }]
+}
 
 /**
  * Last-resort title when the CMS has none in either language.
@@ -132,12 +202,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params
 
   if (!isConfigured('sanity')) notFound()
+  // Belt and braces for the reserved segment. The router never routes
+  // `/work/discipline` here — the static segment wins — but `dynamicParams`
+  // means a document on this slug would otherwise be served at a URL that
+  // contradicts the discipline route one level down.
+  if (slug === DISCIPLINE_SEGMENT) notFound()
 
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
   const [{ project, siblings }, t] = await Promise.all([
-    fetchProjectForRequest(slug, locale),
+    fetchProject(slug, locale),
     getTranslations('project'),
   ])
 
@@ -250,7 +325,7 @@ export async function generateMetadata({ params }: ProjectPageProps) {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const { project } = await fetchProjectForRequest(slug, locale)
+  const { project } = await fetchProject(slug, locale)
   if (!project) return notFoundMetadata()
 
   const path = localizedPath(locale, `/work/${slug}`)

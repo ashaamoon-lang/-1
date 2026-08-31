@@ -75,7 +75,7 @@ const RESERVED_PATHS = new Set(['/studio', '/work', MARKDOWN_HANDLER_PATH])
  * failing the whole fetch.
  */
 const routableDocumentSchema = z.object({
-  _type: z.enum(['page', 'article', 'project']),
+  _type: z.enum(['page', 'project']),
   /*
    * Resolved to a plain string by the query's `select()`.
    *
@@ -111,7 +111,7 @@ const routableDocumentSchema = z.object({
  * while all three surfaces kept advertising it.
  */
 const routableContentQuery = defineQuery(`
-  *[_type in ["page", "article", "project"]
+  *[_type in ["page", "project"]
     && defined(slug.current)
     && (_type != "project" || listed != false)] {
     _type,
@@ -177,7 +177,7 @@ export interface CmsRoutesResult {
   routes: ContentRoute[]
   /**
    * True when the last fetch attempt failed (Sanity unreachable) rather
-   * than the CMS genuinely having zero published `page`/`article`
+   * than the CMS genuinely having zero published `page`/`project`
    * documents. `getCmsRoutes` collapses both cases to `[]` on purpose —
    * sitemap/llms.txt/`/ai` must always respond, degraded or not — but the
    * Markdown handler needs to tell them apart to avoid 404ing a route that
@@ -187,7 +187,7 @@ export interface CmsRoutesResult {
 }
 
 /**
- * Every published `page`/`article` document, resolved to the same URL
+ * Every published `page`/`project` document, resolved to the same URL
  * `urlForReference` (`@/integrations/sanity/utils/link`) uses for internal
  * links elsewhere in the app — so the sitemap and `/llms.txt` can never
  * disagree with on-page navigation about where a document lives.

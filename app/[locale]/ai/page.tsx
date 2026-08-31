@@ -2,13 +2,13 @@ import { getTranslations } from 'next-intl/server'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { localizedPath } from '@/lib/i18n/paths'
-import { isLocale, routing } from '@/lib/i18n/routing'
+import { isLocale, LOCALE_TAGS, routing } from '@/lib/i18n/routing'
 import {
   getCmsRoutes,
   localizedContentRoutes,
   STATIC_ROUTES,
 } from '@/lib/seo/routes'
-import { formatList, SITE } from '@/lib/seo/site'
+import { formatList, SITE, siteFacts } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 
 /**
@@ -74,12 +74,15 @@ export default async function AiPage() {
    * passes either way: `html-has-lang` checks the attribute exists, not that
    * the content matches it (`docs/AUDIT-2026-08.md` §2.4).
    *
-   * What stays untranslated is deliberate: the studio's name, its email, its
-   * URLs, and the agent-guidance prose in `lib/seo/site.ts` — proper nouns
-   * and one source of entity copy. `e2e/locale-parity.e2e.ts` measures the
-   * labels, which are the part that has to move.
+   * What stays untranslated is deliberate: the studio's name, its email and
+   * its URLs — proper nouns. Everything else now moves, including the entity
+   * prose: `lib/seo/site.ts` used to hold one English string per fact, so
+   * this page's own description, service list and agent instructions stayed
+   * English under `lang="id-ID"` even after the headings were translated.
+   * `e2e/promises.e2e.ts` §locale parity measures it.
    */
   const t = await getTranslations('machineView')
+  const facts = siteFacts(locale)
 
   // This page is itself locale-scoped, so its links carry its own locale.
   // They used to be the bare templates, which 307 to whichever locale the
@@ -89,55 +92,66 @@ export default async function AiPage() {
 
   return (
     <>
-      <h1>{SITE.name}</h1>
-      <p>{SITE.description}</p>
+      <h1>{facts.name}</h1>
+      <p>{facts.description}</p>
 
       <h2>{t('facts')}</h2>
       <dl>
-        {SITE.foundingDate && (
+        {facts.foundingDate && (
           <>
             <dt>{t('founded')}</dt>
-            <dd>{SITE.foundingDate}</dd>
+            <dd>{facts.foundingDate}</dd>
           </>
         )}
-        {SITE.locationName && (
+        {facts.locationName && (
           <>
             <dt>{t('location')}</dt>
-            <dd>{SITE.locationName}</dd>
+            <dd>{facts.locationName}</dd>
           </>
         )}
-        {SITE.areaServed && (
+        {facts.areaServed && (
           <>
             <dt>{t('areaServed')}</dt>
-            <dd>{SITE.areaServed}</dd>
+            <dd>{facts.areaServed}</dd>
           </>
         )}
-        {SITE.email && (
+        {facts.email && (
           <>
             <dt>{t('email')}</dt>
-            <dd>{SITE.email}</dd>
+            <dd>{facts.email}</dd>
           </>
         )}
-        {SITE.services.length > 0 && (
+        {facts.services.length > 0 && (
           <>
             <dt>{t('services')}</dt>
-            <dd>{formatList(SITE.services)}</dd>
+            <dd>{formatList(facts.services)}</dd>
           </>
         )}
-        {SITE.knowsAbout.length > 0 && (
+        {facts.knowsAbout.length > 0 && (
           <>
             <dt>{t('expertise')}</dt>
-            <dd>{formatList(SITE.knowsAbout)}</dd>
+            <dd>{formatList(facts.knowsAbout)}</dd>
           </>
         )}
       </dl>
 
       <h2>{t('pages')}</h2>
       <ul>
+        {/*
+          Both languages are listed, not just this page's own. The machine
+          view exists to hand a crawler every address the site has, and
+          `hrefLang` says which language each one is in — so an agent that
+          fetched `/id/ai` can still find and correctly label the English
+          catalogue. (The CMS links below *are* scoped to this locale: those
+          are per-document, and listing both would double every project.)
+        */}
         {STATIC_ROUTES.map((page) => (
           <li key={page.path}>
             {/* oxlint-disable-next-line react/forbid-elements -- this route is intentionally client-component-free; the Link component is 'use client', so a bare anchor keeps the whole page server-only (see file header) */}
-            <a href={page.path}>{page.label}</a>: {page.description}
+            <a href={page.path} hrefLang={LOCALE_TAGS[page.locale]}>
+              {page.label}
+            </a>
+            : {page.description}
           </li>
         ))}
         {cmsRoutes.map((page) => (
@@ -148,11 +162,11 @@ export default async function AiPage() {
         ))}
       </ul>
 
-      {SITE.agentGuidance?.whenToUse.length ? (
+      {facts.agentGuidance?.whenToUse.length ? (
         <>
           <h2>{t('whenToUse')}</h2>
           <ul>
-            {SITE.agentGuidance.whenToUse.map((useCase) => (
+            {facts.agentGuidance.whenToUse.map((useCase) => (
               <li key={useCase.name}>
                 <strong>{useCase.name}:</strong> {useCase.description}
               </li>
@@ -161,22 +175,22 @@ export default async function AiPage() {
         </>
       ) : null}
 
-      {SITE.agentGuidance?.howToUse.length ? (
+      {facts.agentGuidance?.howToUse.length ? (
         <>
           <h2>{t('howToUse')}</h2>
           <ol>
-            {SITE.agentGuidance.howToUse.map((instruction) => (
+            {facts.agentGuidance.howToUse.map((instruction) => (
               <li key={instruction}>{instruction}</li>
             ))}
           </ol>
         </>
       ) : null}
 
-      {SITE.developerResources?.length ? (
+      {facts.developerResources?.length ? (
         <>
           <h2>{t('developerResources')}</h2>
           <ul>
-            {SITE.developerResources.map((resource) => (
+            {facts.developerResources.map((resource) => (
               <li key={resource.url}>
                 {/* oxlint-disable-next-line react/forbid-elements -- external link, and this route is intentionally client-component-free (see file header) */}
                 <a href={resource.url}>{resource.name}</a>:{' '}

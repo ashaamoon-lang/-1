@@ -20,7 +20,7 @@ import { SanityLive } from '@/lib/integrations/sanity/live'
 import { routeAlternates } from '@/lib/seo/alternates'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
-import { SITE } from '@/lib/seo/site'
+import { SITE, siteFacts } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
 
@@ -39,7 +39,6 @@ import '@/lib/styles/css/index.css'
 const APP_NAME = SITE.name
 const APP_DEFAULT_TITLE = SITE.name
 const APP_TITLE_TEMPLATE = `%s — ${SITE.name}`
-const APP_DESCRIPTION = SITE.description
 
 /**
  * Locale-aware metadata.
@@ -52,6 +51,11 @@ const APP_DESCRIPTION = SITE.description
 export async function generateMetadata(): Promise<Metadata> {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
+  // The description is the one piece of this metadata that is prose, and it
+  // now follows the page's language. It was a module constant reading
+  // `SITE.description`, so `/id` shipped an English `<meta
+  // name="description">` and an English `og:description` under `lang="id"`.
+  const { description } = siteFacts(locale)
 
   const metadata: Metadata = {
     metadataBase: new URL(APP_BASE_URL),
@@ -60,7 +64,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
-    description: APP_DESCRIPTION,
+    description,
     alternates: {
       // Only this locale's home canonical. Child routes build their own through
       // `routeAlternates` — inheriting this one would canonicalize the whole
@@ -80,7 +84,7 @@ export async function generateMetadata(): Promise<Metadata> {
         default: APP_DEFAULT_TITLE,
         template: APP_TITLE_TEMPLATE,
       },
-      description: APP_DESCRIPTION,
+      description,
       // Localized, matching the canonical set above. A bare origin here told
       // every crawler that `/en` and `/id` were both the same URL.
       url: `${APP_BASE_URL}${localizedPath(locale, '/')}`,
@@ -109,7 +113,7 @@ export async function generateMetadata(): Promise<Metadata> {
         default: APP_DEFAULT_TITLE,
         template: APP_TITLE_TEMPLATE,
       },
-      description: APP_DESCRIPTION,
+      description,
     },
     // The site's author is the studio it belongs to. The starter's own credit
     // is kept where it belongs — the footer, as the MIT notice requires.
@@ -193,7 +197,7 @@ export default async function AppLayout({ children }: PropsWithChildren) {
         <NextIntlClientProvider locale={locale} messages={messages}>
           {/* Entity identity for search and answer engines, on every page — deep
           pages are landed on directly far more often than the homepage. */}
-          <JsonLd data={organizationSchema()} />
+          <JsonLd data={organizationSchema(locale)} />
           <JsonLd data={websiteSchema()} />
           {/*
             A native anchor, not `components/ui/link`.

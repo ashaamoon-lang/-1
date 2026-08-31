@@ -40,7 +40,13 @@
     "count": "{count, plural, other {# karya}}",
     "emptyTitle": "Belum ada karya di disiplin ini",
     "emptyBody": "Studio belum menerbitkan karya di bawah kategori ini. Lihat semuanya saja.",
-    "emptyAction": "Lihat semua karya"
+    "emptyAction": "Lihat semua karya",
+    "paintingTitle": "Lukisan",
+    "muralTitle": "Mural",
+    "illustrationTitle": "Ilustrasi",
+    "paintingIntro": "Lukisan pesanan — studi, potret, dan karya panel yang dibuat sesuai brief.",
+    "muralIntro": "Mural pesanan — karya yang dilukis langsung di dinding tempat ia dibuat.",
+    "illustrationIntro": "Ilustrasi pesanan — karya gambar sesuai brief, untuk cetak maupun layar."
   },
   "meta": {
     "client": "Klien",

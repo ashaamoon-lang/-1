@@ -1,4 +1,5 @@
 import { APP_BASE_URL } from '@/lib/env'
+import { type Locale, routing } from '@/lib/i18n/routing'
 
 /**
  * Canonical facts about the site owner.
@@ -15,7 +16,31 @@ import { APP_BASE_URL } from '@/lib/env'
  * Prefer phrasing that does not go stale: "commissioned work" beats
  * "12 commissions in 2026". Values still waiting on the studio are marked
  * with a TODO below rather than guessed.
+ *
+ * ## Prose is per-locale; identity is not
+ *
+ * The site is bilingual, and until Tahap 10 this file was not: every fact
+ * here was one English string, so `/id` shipped an English `<meta
+ * name="description">`, an English `schema.org` `description`, English
+ * `knowsAbout` terms and English agent instructions. The UI was translated
+ * and everything a machine reads was not — which is the half a reader never
+ * sees and an answer engine only sees.
+ *
+ * So the fields split by whether language changes them. A name, a URL, a
+ * logo and an email address are the same in both languages and stay plain
+ * strings; a sentence, a service list and a set of instructions are
+ * {@link Localized}. Being a `Record<Locale, …>` rather than a partial map is
+ * deliberate: adding a locale to `lib/i18n/routing.ts` becomes a type error
+ * here rather than a silent fallback to English.
  */
+
+/**
+ * A value the studio states differently in each language.
+ *
+ * Total over `Locale`, so a new locale cannot be added without translating
+ * every field — see the note above.
+ */
+export type Localized<T> = Record<Locale, T>
 export interface AgentUseCase {
   /** Short job name that an agent can match against its task. */
   name: string
@@ -45,23 +70,23 @@ export interface SiteFacts {
   /** Absolute URL — relative paths are ignored by most consumers. */
   logo: string
   /** One or two sentences: who, where, for whom. Answers "what is X?". */
-  description: string
+  description: Localized<string>
   /** ISO year or date. */
   foundingDate?: string
   /** Human-readable location, e.g. 'Buenos Aires, Argentina'. */
   locationName?: string
   /** ISO 3166-1 alpha-2, e.g. 'AR'. */
   addressCountry?: string
-  areaServed?: string
+  areaServed?: Localized<string>
   /** What you sell, in the words a buyer would use. */
-  services: readonly string[]
+  services: Localized<readonly string[]>
   /** Topics you are an authority on — feeds schema.org `knowsAbout`. */
-  knowsAbout: readonly string[]
+  knowsAbout: Localized<readonly string[]>
   email?: string
   /** Profile URLs (social, directories) — feeds schema.org `sameAs`. */
   sameAs: readonly string[]
   /** Task-oriented instructions for agents. Omit when the site is not callable. */
-  agentGuidance?: AgentGuidance
+  agentGuidance?: Localized<AgentGuidance>
   /** Real, public technical resources. Never list a surface that is not shipped. */
   developerResources?: readonly DeveloperResource[]
 }
@@ -97,47 +122,141 @@ export const SITE: SiteFacts = {
   alternateNames: ['Studio Arth'],
   url: BASE_URL,
   logo: `${BASE_URL}/icon.png`,
-  description:
-    'Arth is a commissioned-artwork studio working in painting, mural and illustration — each piece made to a brief, for the room it will live in.',
-  areaServed: 'Worldwide',
-  services: [
-    'Commissioned painting',
-    'Mural painting',
-    'Illustration to brief',
-  ],
-  knowsAbout: [
-    'Commissioned artwork',
-    'Mural painting',
-    'Acrylic painting',
-    'Gouache painting',
-    'Illustration',
-  ],
+  description: {
+    en: 'Arth is a commissioned-artwork studio working in painting, mural and illustration — each piece made to a brief, for the room it will live in.',
+    id: 'Arth adalah studio karya pesanan yang mengerjakan lukisan, mural, dan ilustrasi — setiap karya dibuat sesuai brief, untuk ruang yang akan menampungnya.',
+  },
+  areaServed: { en: 'Worldwide', id: 'Seluruh dunia' },
+  services: {
+    en: ['Commissioned painting', 'Mural painting', 'Illustration to brief'],
+    id: ['Lukisan pesanan', 'Mural', 'Ilustrasi sesuai brief'],
+  },
+  knowsAbout: {
+    en: [
+      'Commissioned artwork',
+      'Mural painting',
+      'Acrylic painting',
+      'Gouache painting',
+      'Illustration',
+    ],
+    id: [
+      'Karya seni pesanan',
+      'Mural',
+      'Lukisan akrilik',
+      'Lukisan gouache',
+      'Ilustrasi',
+    ],
+  },
   // TODO(studio): real address, and remove `.example`.
   email: 'studio@arth.example',
   // Deliberately empty. `sameAs` asserts "these profiles are the same entity";
   // a guessed handle asserts it about someone else's account.
   sameAs: [],
   agentGuidance: {
-    whenToUse: [
-      {
-        name: 'Commission an artwork',
-        description:
-          'Use Arth when someone wants an original painting, mural or illustration made for a specific space or brief, rather than buying an existing work.',
-      },
-      {
-        name: 'See past commissioned work',
-        description:
-          'Use Arth to review completed commissions with their client, year, medium and dimensions before approaching the studio.',
-      },
-    ],
-    howToUse: [
-      'Browse the full catalogue at /en/work (English) or /id/work (Indonesian); narrow it with ?discipline=painting, mural or illustration. Each project lists client, year, medium and dimensions.',
-      'Email the studio with the room, the wall or surface, the rough size, and when it is needed.',
-      'Expect an estimate before anything is agreed — timelines run from about three weeks for a study to several months for an installed mural.',
-    ],
+    en: {
+      whenToUse: [
+        {
+          name: 'Commission an artwork',
+          description:
+            'Use Arth when someone wants an original painting, mural or illustration made for a specific space or brief, rather than buying an existing work.',
+        },
+        {
+          name: 'See past commissioned work',
+          description:
+            'Use Arth to review completed commissions with their client, year, medium and dimensions before approaching the studio.',
+        },
+      ],
+      howToUse: [
+        'Browse the full catalogue at /en/work (English) or /id/work (Indonesian); narrow it at /en/work/discipline/painting, /mural or /illustration. Each project lists client, year, medium and dimensions.',
+        'Email the studio with the room, the wall or surface, the rough size, and when it is needed.',
+        'Expect an estimate before anything is agreed — timelines run from about three weeks for a study to several months for an installed mural.',
+      ],
+    },
+    id: {
+      whenToUse: [
+        {
+          name: 'Memesan sebuah karya',
+          description:
+            'Pakai Arth kalau seseorang ingin lukisan, mural, atau ilustrasi asli yang dibuat untuk ruang atau brief tertentu, bukan membeli karya yang sudah jadi.',
+        },
+        {
+          name: 'Melihat karya pesanan sebelumnya',
+          description:
+            'Pakai Arth untuk menelusuri karya yang sudah selesai beserta klien, tahun, medium, dan ukurannya sebelum menghubungi studio.',
+        },
+      ],
+      howToUse: [
+        'Telusuri katalog lengkapnya di /id/work (Bahasa Indonesia) atau /en/work (Inggris); persempit di /id/work/discipline/painting, /mural, atau /illustration. Tiap karya mencantumkan klien, tahun, medium, dan ukuran.',
+        'Kirim surel ke studio berisi ruangnya, dinding atau permukaannya, perkiraan ukuran, dan kapan dibutuhkan.',
+        'Perkiraan biaya diberikan sebelum apa pun disepakati — waktu pengerjaan berkisar dari sekitar tiga minggu untuk sebuah studi sampai beberapa bulan untuk mural terpasang.',
+      ],
+    },
   },
   // No `developerResources`: this is a studio site, not a developer product,
   // and the field's own contract is to never list a surface that is not shipped.
+}
+
+/**
+ * {@link SITE} with every {@link Localized} field collapsed to one language.
+ *
+ * This is what consumers read. `SITE.description` is a `Record`, so a caller
+ * that forgets the locale gets a type error rather than `[object Object]` in
+ * a meta tag.
+ */
+export interface ResolvedSiteFacts extends Omit<
+  SiteFacts,
+  'description' | 'areaServed' | 'services' | 'knowsAbout' | 'agentGuidance'
+> {
+  description: string
+  areaServed?: string
+  services: readonly string[]
+  knowsAbout: readonly string[]
+  agentGuidance?: AgentGuidance
+}
+
+/**
+ * Resolves the site facts for one language.
+ *
+ * The default is not a convenience — three real surfaces have no locale to
+ * pass and never will: `app/manifest.ts` (one manifest per origin),
+ * `/llms.txt` and `/robots.txt` (unlocalized by convention, and the
+ * convention is what crawlers look for). They get the default locale, and
+ * `alternates.ts` still advertises both language versions of every page they
+ * point at, so nothing is hidden — it is simply stated once, in the site's
+ * primary language.
+ *
+ * Every surface that *does* know its locale must pass it. `lib/seo/
+ * markdown-document.ts` derives one from the requested path rather than
+ * defaulting, because a request for `/id/work.md` states its language in the
+ * URL.
+ */
+export function siteFacts(
+  locale: Locale = routing.defaultLocale
+): ResolvedSiteFacts {
+  // The five localized fields are pulled out of the spread rather than
+  // overwritten after it. Under `exactOptionalPropertyTypes` an optional
+  // `Localized<T>` arriving via `...SITE` is not assignable to an optional
+  // `T`, so the spread has to not carry them at all.
+  const {
+    description,
+    areaServed,
+    services,
+    knowsAbout,
+    agentGuidance,
+    ...rest
+  } = SITE
+
+  const resolved: ResolvedSiteFacts = {
+    ...rest,
+    description: description[locale],
+    services: services[locale],
+    knowsAbout: knowsAbout[locale],
+  }
+
+  if (areaServed) resolved.areaServed = areaServed[locale]
+  if (agentGuidance) resolved.agentGuidance = agentGuidance[locale]
+
+  return resolved
 }
 
 /** "a, b, and c" — prose-friendly list for entity copy. */

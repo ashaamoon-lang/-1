@@ -99,26 +99,36 @@ export type InternationalizedArrayText = Array<
   } & InternationalizedArrayTextValue
 >;
 
-export type Navigation = {
-  _id: string;
-  _type: "navigation";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  title?: string;
-  socials?: Array<{
-    logo?: {
+export type RichText = Array<
+  | {
+      children?: Array<{
+        marks?: Array<string>;
+        text?: string;
+        _type: "span";
+        _key: string;
+      }>;
+      style?: "normal" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "blockquote";
+      listItem?: "bullet" | "number";
+      markDefs?: Array<
+        {
+          _key: string;
+        } & Link
+      >;
+      level?: number;
+      _type: "block";
+      _key: string;
+    }
+  | {
       asset?: SanityImageAssetReference;
       media?: unknown;
       hotspot?: SanityImageHotspot;
       crop?: SanityImageCrop;
+      alt?: string;
+      caption?: string;
       _type: "image";
-    };
-    socialMedia?: Link;
-    _type: "socialLink";
-    _key: string;
-  }>;
-};
+      _key: string;
+    }
+>;
 
 export type PageReference = {
   _ref: string;
@@ -127,17 +137,17 @@ export type PageReference = {
   [internalGroqTypeReferenceTo]?: "page";
 };
 
-export type ArticleReference = {
+export type ProjectReference = {
   _ref: string;
   _type: "reference";
   _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "article";
+  [internalGroqTypeReferenceTo]?: "project";
 };
 
 export type Link = {
   _type: "link";
   linkType?: "internal" | "external";
-  internalLink?: PageReference | ArticleReference;
+  internalLink?: PageReference | ProjectReference;
   externalUrl?: string;
   text?: string;
   openInNewTab?: boolean;
@@ -186,62 +196,6 @@ export type Slug = {
   _type: "slug";
   current?: string;
   source?: string;
-};
-
-export type RichText = Array<
-  | {
-      children?: Array<{
-        marks?: Array<string>;
-        text?: string;
-        _type: "span";
-        _key: string;
-      }>;
-      style?: "normal" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "blockquote";
-      listItem?: "bullet" | "number";
-      markDefs?: Array<
-        {
-          _key: string;
-        } & Link
-      >;
-      level?: number;
-      _type: "block";
-      _key: string;
-    }
-  | {
-      asset?: SanityImageAssetReference;
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      alt?: string;
-      caption?: string;
-      _type: "image";
-      _key: string;
-    }
->;
-
-export type Article = {
-  _id: string;
-  _type: "article";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  slug?: Slug;
-  author?: string;
-  publishedAt?: string;
-  metadata?: Metadata;
-  title?: string;
-  excerpt?: string;
-  featuredImage?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  };
-  content?: RichText;
-  categories?: Array<string>;
-  tags?: Array<string>;
 };
 
 export type Page = {
@@ -382,14 +336,12 @@ export type AllSanitySchemaTypes =
   | SanityImageHotspot
   | InternationalizedArrayRichText
   | InternationalizedArrayText
-  | Navigation
+  | RichText
   | PageReference
-  | ArticleReference
+  | ProjectReference
   | Link
   | Project
   | Slug
-  | RichText
-  | Article
   | Page
   | InternationalizedArrayRichTextValue
   | InternationalizedArrayTextValue
@@ -427,14 +379,14 @@ export type PageQueryResult = {
           linkType?: "external" | "internal";
           internalLink:
             | {
-                _type: "article";
+                _type: "page";
                 slug: Slug | null;
                 title: string | null;
               }
             | {
-                _type: "page";
+                _type: "project";
                 slug: Slug | null;
-                title: string | null;
+                title: InternationalizedArrayString | null;
               }
             | null;
           externalUrl?: string;
@@ -462,14 +414,14 @@ export type PageQueryResult = {
     linkType?: "external" | "internal";
     internalLink:
       | {
-          _type: "article";
+          _type: "page";
           slug: Slug | null;
           title: string | null;
         }
       | {
-          _type: "page";
+          _type: "project";
           slug: Slug | null;
-          title: string | null;
+          title: InternationalizedArrayString | null;
         }
       | null;
     externalUrl?: string;
@@ -480,97 +432,6 @@ export type PageQueryResult = {
   publishedAt: string | null;
   _updatedAt: string;
 } | null;
-
-// Source: queries.ts
-// Variable: articleQuery
-// Query: *[_type == "article" && slug.current == $slug][0] {    _id,    title,    slug,    excerpt,    featuredImage,      content[]{    ...,    markDefs[]{      ...,      _type == "link" => {        ...,        internalLink->{_type, slug, title}      }    }  },    categories,    tags,    author,    publishedAt,    metadata,    _updatedAt  }
-export type ArticleQueryResult = {
-  _id: string;
-  title: string | null;
-  slug: Slug | null;
-  excerpt: string | null;
-  featuredImage: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  } | null;
-  content: Array<
-    | {
-        children?: Array<{
-          marks?: Array<string>;
-          text?: string;
-          _type: "span";
-          _key: string;
-        }>;
-        style?:
-          "blockquote" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "normal";
-        listItem?: "bullet" | "number";
-        markDefs: Array<{
-          _key: string;
-          _type: "link";
-          linkType?: "external" | "internal";
-          internalLink:
-            | {
-                _type: "article";
-                slug: Slug | null;
-                title: string | null;
-              }
-            | {
-                _type: "page";
-                slug: Slug | null;
-                title: string | null;
-              }
-            | null;
-          externalUrl?: string;
-          text?: string;
-          openInNewTab?: boolean;
-        }> | null;
-        level?: number;
-        _type: "block";
-        _key: string;
-      }
-    | {
-        asset?: SanityImageAssetReference;
-        media?: unknown;
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        alt?: string;
-        caption?: string;
-        _type: "image";
-        _key: string;
-        markDefs: null;
-      }
-  > | null;
-  categories: Array<string> | null;
-  tags: Array<string> | null;
-  author: string | null;
-  publishedAt: string | null;
-  metadata: Metadata | null;
-  _updatedAt: string;
-} | null;
-
-// Source: queries.ts
-// Variable: allArticlesQuery
-// Query: *[_type == "article"] | order(publishedAt desc) {    _id,    title,    slug,    excerpt,    featuredImage,    categories,    publishedAt  }
-export type AllArticlesQueryResult = Array<{
-  _id: string;
-  title: string | null;
-  slug: Slug | null;
-  excerpt: string | null;
-  featuredImage: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  } | null;
-  categories: Array<string> | null;
-  publishedAt: string | null;
-}>;
 
 // Source: queries.ts
 // Variable: projectsQuery
@@ -698,14 +559,14 @@ export type ProjectQueryResult = {
           linkType?: "external" | "internal";
           internalLink:
             | {
-                _type: "article";
+                _type: "page";
                 slug: Slug | null;
                 title: string | null;
               }
             | {
-                _type: "page";
+                _type: "project";
                 slug: Slug | null;
-                title: string | null;
+                title: InternationalizedArrayString | null;
               }
             | null;
           externalUrl?: string;
@@ -783,8 +644,6 @@ import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult;
-    '\n  *[_type == "article" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    categories,\n    tags,\n    author,\n    publishedAt,\n    metadata,\n    _updatedAt\n  }\n': ArticleQueryResult;
-    '\n  *[_type == "article"] | order(publishedAt desc) {\n    _id,\n    title,\n    slug,\n    excerpt,\n    featuredImage,\n    categories,\n    publishedAt\n  }\n': AllArticlesQueryResult;
     '\n  *[_type == "project" && listed != false] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  discipline,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': ProjectsQueryResult;
     '\n  *[_type == "project" && listed != false && featured == true] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  discipline,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': FeaturedProjectsQueryResult;
     '\n  *[_type == "project" && listed != false && ($discipline == null || discipline == $discipline)]\n    | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  discipline,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': WorkIndexQueryResult;

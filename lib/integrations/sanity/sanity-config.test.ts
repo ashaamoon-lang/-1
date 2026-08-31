@@ -34,7 +34,7 @@ describe('sanity.config.ts locale wiring', () => {
 
     // Every page is served under a locale prefix. A route without `:locale`
     // never matches, and Presentation quietly loses its document mapping.
-    for (const route of ['/:locale/:slug', '/:locale/articles/:slug']) {
+    for (const route of ['/:locale/:slug', '/:locale/work/:slug']) {
       expect(source, `missing Presentation route ${route}`).toContain(
         `route: '${route}'`
       )
