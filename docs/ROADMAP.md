@@ -857,6 +857,58 @@ hijau selama beberapa tahap. Sekarang ada gate untuk itu.
 
 ---
 
+## Tahap 12 — Tata bahasa interaksi: dari indah menjadi hidup 🔜
+
+Spec penuh: **`docs/stages/TAHAP-12.md`**.
+
+Tahap 11 membuat halaman ini indah **saat diam**. Tahap ini soal apa yang
+terjadi ketika seseorang menyentuhnya.
+
+**Koreksi yang mengubah kalibrasi.** Arth adalah **agency high-ticket**
+(consulting, AI/data, komisi berbayar), bukan studio karya seni. Itu
+**membalik** alasan saya menolak palet v1 di Tahap 1: korpus `TEARDOWN.md`
+justru sepuluh agency yang menjual lewat demonstrasi kepiawaian. Palet,
+tipografi, kurva, dan grid **tetap** — alasannya berdiri sendiri di atas hasil
+ukur kontras. Yang berubah adalah standar yang berlaku.
+
+**Temuan intinya satu perintah:** `grep -rn ":active" --include=*.css` →
+**nol**. Delapan belas file memakai `:hover`; tidak satu pun elemen berubah
+saat ditekan. Antara "saya menyentuh ini" dan "halaman baru muncul", situs ini
+diam total. Itu bukan bug satu komponen — itu **kosakata yang hilang**, dan
+`MOTION-SPEC.md` memang tidak punya satu pun model state interaksi: ia
+mendefinisikan material (kurva, pita, stagger), bukan momen.
+
+**Yang dibangun: tata bahasa, bukan efek.**
+`REST → INTENT → COMMIT → TRANSPORT → SETTLE`, satu kalimat untuk lima kata
+benda (kartu, CTA, chip, nav, email). COMMIT — kompresi antisipasi ~120ms
+sebelum lepas — adalah yang membedakan animasi game dari transisi web, dan
+adalah state yang hari ini tidak ada. Ditulis sebagai **`MOTION-SPEC.md` §10**,
+memperluas dokumen yang sudah mengikat, bukan dokumen baru yang bersaing.
+
+**Anggaran momen epik: maksimal dua per halaman**, disebut namanya (kedatangan
+hero, kartu→halaman karya), dan **digerbangi**.
+
+**Temuan terukur lain:** hero mengisi 51% tinggi layarnya (456px tinta dari
+900px) tanpa isyarat bahwa dokumen 4385px ini berlanjut · `#studio`
+meninggalkan **748px kolom kosong** karena cabang `[data-has-portrait]` tidak
+pernah menyala · beranda memajang **dua** karya · seluruh situs punya **dua**
+rasio gambar, sehingga cabang persegi `project-gallery` tidak pernah dieksekusi.
+
+**Koreksi kedua, atas rencana tahap ini sendiri:** rencananya menulis "tiga
+section memakai kolom kiri sempit". Diukur per elemen daun alih-alih per
+section, yang benar **satu** — `#contact` sudah memakai kedua tepi dengan
+sengaja. Ketiga kalinya di proyek ini pengukuran yang salah bentuk menghasilkan
+angka meyakinkan yang menuntun ke perbaikan salah sasaran.
+
+**Prasyarat aset dummy sudah 90% ada**: `lib/scripts/seed-fixtures.ts`
+meng-generate, mengunggah ke Sanity, dan `--clean` menghapus dokumen **dan**
+asetnya. Tahap ini memperluasnya (6 karya, lima rasio, satu portrait), tidak
+menggantinya — dan sumber eksternal tetap ditolak dua kali oleh
+`remotePatterns` dan `img-src`.
+
+Lima sub-tahap: **12a** aset · **12b** tata bahasa + token · **12c** COMMIT
+terpasang · **12d** komposisi beranda · **12e** dua momen epik.
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap
