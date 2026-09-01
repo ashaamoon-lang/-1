@@ -88,6 +88,101 @@ test.describe('media edge', () => {
     }
   })
 
+  test('the track a work lands in follows its shape', async ({
+    page,
+    request,
+  }) => {
+    /*
+     * `isFullWidth()` proven all the way to the screen, not just as a function.
+     *
+     * The rule — ratio >= 1 takes the full track, below it takes the half —
+     * has been unit-tested since Tahap 11b and passing, including at the
+     * boundary (`isFullWidth(1)`). That is a claim about a function. It says
+     * nothing about whether the branch survives the CSS, the grid, and the
+     * image component between it and a reader, and the defect Tahap 11b
+     * actually found lived in exactly that gap: `ProjectGallery` never passed
+     * `className`, so its `.image` rule had never once applied.
+     *
+     * Until Tahap 12a the dataset held two ratios, 0.80 and 1.60, so no
+     * rendered page had ever carried a square asset and the boundary was
+     * untested anywhere a browser could see it. `ambang` is square on purpose.
+     *
+     * The assertion is relative — full is wider than half — rather than
+     * pinned to 1398px and 691px, for the same reason the test above is: those
+     * numbers are one viewport's, and the gutter is allowed to be tuned.
+     */
+    const sitemap = await (await request.get('/sitemap.xml')).text()
+    const paths = [
+      ...sitemap.matchAll(
+        /<loc>[^<]*?(\/en\/work\/(?!discipline\/)[^<]+)<\/loc>/g
+      ),
+    ].map((match) => match[1] ?? '')
+
+    test.skip(paths.length === 0, 'no published project to measure')
+
+    const everyRatio: number[] = []
+
+    for (const path of paths) {
+      await page.goto(path)
+
+      const artwork = await page.evaluate(() => {
+        const nextProject = document.querySelector('[class*="next-project"]')
+        return [...document.querySelectorAll<HTMLImageElement>('main img')]
+          .filter((img) => !nextProject?.contains(img) && img.naturalHeight > 0)
+          .map((img) => ({
+            // The *served* derivative's shape. Sanity keeps the source ratio
+            // unless a crop is requested, so this is what the layout reasoned
+            // about — and if a crop ever is requested, this catches that too.
+            ratio: img.naturalWidth / img.naturalHeight,
+            width: img.getBoundingClientRect().width,
+          }))
+      })
+
+      expect(artwork.length, `${path} renders no artwork`).toBeGreaterThan(0)
+      everyRatio.push(...artwork.map((item) => item.ratio))
+
+      const fulls = artwork.filter((item) => item.ratio >= 1)
+      const halves = artwork.filter((item) => item.ratio < 1)
+
+      const spread = (items: typeof artwork) =>
+        items.length === 0
+          ? 0
+          : Math.max(...items.map((i) => i.width)) -
+            Math.min(...items.map((i) => i.width))
+
+      expect(
+        spread(fulls),
+        `${path}: landscape and square works land on different widths`
+      ).toBeLessThanOrEqual(TOLERANCE)
+      expect(
+        spread(halves),
+        `${path}: portrait works land on different widths`
+      ).toBeLessThanOrEqual(TOLERANCE)
+
+      if (fulls.length > 0 && halves.length > 0) {
+        const full = Math.min(...fulls.map((i) => i.width))
+        const half = Math.max(...halves.map((i) => i.width))
+        expect(
+          half,
+          `${path}: a portrait work is not narrower than a landscape one (${Math.round(half)}px vs ${Math.round(full)}px)`
+        ).toBeLessThan(full - TOLERANCE)
+      }
+    }
+
+    /*
+     * And the boundary itself reached a page.
+     *
+     * Without this the test above passes on a dataset that never exercises
+     * `ratio === 1` — which is precisely the state this project shipped in for
+     * eleven stages. A gate that cannot see the case it exists for is not a
+     * gate.
+     */
+    expect(
+      everyRatio.some((ratio) => Math.abs(ratio - 1) < 0.01),
+      `no square work in the dataset; ratios seen: ${[...new Set(everyRatio.map((r) => r.toFixed(2)))].join(', ')}`
+    ).toBe(true)
+  })
+
   test('every artwork box is filled by its image', async ({
     page,
     request,

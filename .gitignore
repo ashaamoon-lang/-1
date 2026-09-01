@@ -98,3 +98,4 @@ README.original.md
 # setup:project concurrency lock (P-B3) — removed on exit, but ignore it in
 # case a crash left it behind.
 .setup-project.lock
+.fixtures-preview/

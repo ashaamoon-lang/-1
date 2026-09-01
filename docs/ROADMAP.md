@@ -892,7 +892,8 @@ hero, kartu→halaman karya), dan **digerbangi**.
 900px) tanpa isyarat bahwa dokumen 4385px ini berlanjut · `#studio`
 meninggalkan **748px kolom kosong** karena cabang `[data-has-portrait]` tidak
 pernah menyala · beranda memajang **dua** karya · seluruh situs punya **dua**
-rasio gambar, sehingga cabang persegi `project-gallery` tidak pernah dieksekusi.
+rasio gambar, sehingga aturan persegi `project-gallery` terbukti sebagai fungsi
+tapi tidak pernah terbukti sampai ke layar.
 
 **Koreksi kedua, atas rencana tahap ini sendiri:** rencananya menulis "tiga
 section memakai kolom kiri sempit". Diukur per elemen daun alih-alih per

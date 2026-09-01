@@ -234,9 +234,17 @@ Rasio sumber gambar di seluruh situs: **dua saja.**
 | cover ×1 | 2000×1250 | 1,60                                     |
 | galeri   | 2000×1500 | 1,33 (tidak pernah tampil sebagai cover) |
 
-`vault/blocks/project-gallery` bercabang pada orientasi (landscape/persegi =
-penuh, potret = separuh). Dengan dua rasio, cabang **persegi** tidak pernah
-dilewati sama sekali.
+`vault/blocks/project-gallery` bercabang pada orientasi (`isFullWidth`:
+landscape/persegi = penuh, potret = separuh).
+
+> **Koreksi, dituliskan sebelum kodenya ditulis.** Draf pertama bagian ini
+> menyimpulkan "cabang persegi tidak pernah dilewati sama sekali". Salah:
+> `project-gallery.test.ts` **sudah** menguji `isFullWidth(1)` dan lulus. Yang
+> benar dan lebih sempit: **tidak ada satu pun halaman terender** yang pernah
+> memuat aset persegi, jadi aturan itu terbukti sebagai fungsi dan tidak pernah
+> terbukti **sampai ke layar**. Itu persis kelas cacat yang ditemukan Tahap 11b
+> — aturan `.image` yang benar, `className` yang tidak pernah diteruskan, dan
+> nol gate yang bisa melihatnya.
 
 ### 3.4 Temuan intinya: state COMMIT tidak ada di mana pun
 
@@ -363,8 +371,8 @@ bukan yang dikirim.
 - Naik dari 3 ke **6 karya**, cukup untuk grid dua baris dan untuk membedakan
   "beranda menampilkan pilihan" dari "katalog menampilkan semuanya".
 - Rasio sengaja beragam: **16:9, 4:3, 1:1, 4:5, 3:2** — supaya ketiga cabang
-  `isFullWidth()` benar-benar dilewati, termasuk cabang persegi yang hari ini
-  tidak pernah dieksekusi (§3.3).
+  `isFullWidth()` benar-benar dilewati **pada halaman terender**, termasuk
+  persegi, yang hari ini hanya terbukti di unit test (§3.3).
 - Gambar dengan **subjek dan arah cahaya**, bukan gradien rata: gradien tidak
   punya titik fokus, jadi tidak bisa dipakai menilai crop atau keseimbangan.
 - Satu fixture **dengan portrait** untuk `studioSettings`, supaya cabang
@@ -444,18 +452,18 @@ gerakan lain micro/standard. Gate anggaran (§6.4) menegakkannya.
 Aturan proyek sejak Tahap 7. Sebuah gate yang lahir hijau tidak membuktikan
 apa pun kecuali dirinya sendiri.
 
-| Gate                   | File                              | Yang dijaga                                                                                            | Cara dibuktikan merah                                                       |
-| ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| **6.1 COMMIT ada**     | `e2e/motion.e2e.ts`               | tiap kata benda yang bisa ditekan berubah saat `:active`                                               | jalankan sebelum 12c — nol `:active` di seluruh proyek (§3.4)               |
-| **6.2 Interupsi**      | `e2e/motion.e2e.ts`               | klik ganda dan Back di tengah TRANSPORT tidak meninggalkan overlay tersangkut atau konten `opacity: 0` | jalankan dengan `maxWait` dinaikkan sementara                               |
-| **6.3 Keyboard**       | `e2e/keyboard-focus.e2e.ts`       | tiap momen tercapai `Tab` + `Enter`, bukan hanya kursor                                                | jalankan sebelum 12c                                                        |
-| **6.4 Anggaran epik**  | `e2e/motion.e2e.ts`               | ≤ 2 gerakan pita choreographed per halaman                                                             | tambahkan satu tween 1000ms ketiga sementara                                |
-| **6.5 Rasio beragam**  | `e2e/media-edge.e2e.ts`           | ≥ 4 rasio sumber berbeda; cabang persegi dilewati                                                      | jalankan sebelum 12a — 2 rasio (§3.3)                                       |
-| **6.6 Reduced-motion** | `e2e/motion.e2e.ts`               | tiap state berakhir benar; nol konten terdampar                                                        | fixture harus **membuktikan emulasinya berlaku** dulu — pelajaran Tahap 11c |
-| **6.7 Tanpa JS**       | `e2e/no-javascript.e2e.ts`        | REST tetap keadaan terender                                                                            | sudah ada, tidak boleh turun                                                |
-| **6.8 Aturan gerak**   | `lib/styles/motion-rules.test.ts` | nol `cubic-bezier` mentah; hanya `transform`/`opacity`                                                 | sudah ada                                                                   |
-| **6.9 Bobot rute**     | `e2e/route-budget.e2e.ts`         | kenaikan bobot `/` harus keputusan tercatat                                                            | sudah ada                                                                   |
-| **6.10 WebGL**         | `e2e/webgl-budget.e2e.ts`         | reduced-motion dan mobile tetap nol 3D                                                                 | sudah ada                                                                   |
+| Gate                            | File                              | Yang dijaga                                                                                            | Cara dibuktikan merah                                                                            |
+| ------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **6.1 COMMIT ada**              | `e2e/motion.e2e.ts`               | tiap kata benda yang bisa ditekan berubah saat `:active`                                               | jalankan sebelum 12c — nol `:active` di seluruh proyek (§3.4)                                    |
+| **6.2 Interupsi**               | `e2e/motion.e2e.ts`               | klik ganda dan Back di tengah TRANSPORT tidak meninggalkan overlay tersangkut atau konten `opacity: 0` | jalankan dengan `maxWait` dinaikkan sementara                                                    |
+| **6.3 Keyboard**                | `e2e/keyboard-focus.e2e.ts`       | tiap momen tercapai `Tab` + `Enter`, bukan hanya kursor                                                | jalankan sebelum 12c                                                                             |
+| **6.4 Anggaran epik**           | `e2e/motion.e2e.ts`               | ≤ 2 gerakan pita choreographed per halaman                                                             | tambahkan satu tween 1000ms ketiga sementara                                                     |
+| **6.5 Persegi sampai ke layar** | `e2e/media-edge.e2e.ts`           | sebuah aset **persegi** mengambil track penuh pada halaman terender, bukan hanya di unit test          | jalankan sebelum 12a — tidak ada aset persegi, jadi gate `skip`, dan gate yang `skip` bukan gate |
+| **6.6 Reduced-motion**          | `e2e/motion.e2e.ts`               | tiap state berakhir benar; nol konten terdampar                                                        | fixture harus **membuktikan emulasinya berlaku** dulu — pelajaran Tahap 11c                      |
+| **6.7 Tanpa JS**                | `e2e/no-javascript.e2e.ts`        | REST tetap keadaan terender                                                                            | sudah ada, tidak boleh turun                                                                     |
+| **6.8 Aturan gerak**            | `lib/styles/motion-rules.test.ts` | nol `cubic-bezier` mentah; hanya `transform`/`opacity`                                                 | sudah ada                                                                                        |
+| **6.9 Bobot rute**              | `e2e/route-budget.e2e.ts`         | kenaikan bobot `/` harus keputusan tercatat                                                            | sudah ada                                                                                        |
+| **6.10 WebGL**                  | `e2e/webgl-budget.e2e.ts`         | reduced-motion dan mobile tetap nol 3D                                                                 | sudah ada                                                                                        |
 
 ---
 
@@ -519,3 +527,152 @@ Ditambah, karena hijau bukan bukti:
 3. **Penyelarasan kosakata konten ke agency.** §0.
 4. **Aset dummy adalah utang.** Komposisi wajib ditinjau ulang saat materi nyata
    masuk, dan `--clean` ada supaya itu satu perintah.
+
+---
+
+## 10. Hasil — 12a: aset dummy
+
+### 10.1 Yang berubah
+
+`lib/scripts/seed-fixtures.ts` diperluas, **bukan** diganti (§2.2). Yang baru:
+
+- **`Plate`** menggantikan `makeImage`. Tiap pelat punya cakrawala, sebuah
+  massa yang duduk di atasnya dan diarsir menjauhi cahaya, sebuah cahaya
+  dengan posisi yang dinyatakan, dan **satu tepi keras** supaya sebuah crop
+  terlihat sebagai crop. Versi lama adalah dua gradien radial di atas isian
+  rata: cukup untuk membuktikan _pipeline_ gambar (yang memang tugas Tahap 4),
+  tidak cukup untuk menilai _tata letak_ — gradien tidak punya subjek, jadi
+  crop tidak bisa salah di atasnya dan kolom tidak bisa timpang di sebelahnya.
+- Grain dikomposisikan oleh sharp, bukan digambar sebagai `feTurbulence`.
+  Dukungan filter di rasteriser SVG yang di-link sharp tidak merata, dan
+  kegagalannya **diam**: pelat tanpa grain tetap terlihat wajar.
+- **Enam karya, bukan tiga**; empat `featured`. Beranda jadi _pilihan_ dan
+  katalog jadi _semuanya_ — dua halaman yang sebelumnya nyaris sama.
+- **Dua karya per disiplin**, sehingga `/work/discipline/<value>` menjadi
+  penyaring yang menyaring, bukan rute dengan satu hasil.
+- **Sebuah portrait** untuk `studioSettings`. Ini yang menyalakan cabang
+  `[data-has-portrait]` di `#studio`.
+- `PROJECTS` diberi tipe `FixtureProject`, sehingga nama pelat yang salah ketik
+  menjadi error tipe, bukan referensi aset menggantung yang me-render kotak
+  kosong — yang di layar tidak bisa dibedakan dari gambar yang lambat.
+
+### 10.2 Terukur, sebelum → sesudah
+
+|                                     | Sebelum             | Sesudah                                                    |
+| ----------------------------------- | ------------------- | ---------------------------------------------------------- |
+| Karya di `/en/work`                 | 3                   | **6**                                                      |
+| Karya di `/en` (beranda)            | 2                   | **4**                                                      |
+| Rasio sumber berbeda, seluruh situs | **2** (0,80 · 1,60) | **7** (0,67 · 0,75 · 0,80 · **1,00** · 1,33 · 1,50 · 1,78) |
+| Aset persegi pada halaman terender  | **0**               | 1 (`ambang`, track penuh 1398px)                           |
+| Karya per disiplin                  | 1 · 1 · 1           | 2 · 2 · 2                                                  |
+| `studioSettings.portrait`           | tidak ada           | ada                                                        |
+
+Nilai rasio di kolom "sesudah" adalah keluaran pesan gagal gate itu sendiri,
+bukan hitungan tangan.
+
+### 10.3 Gate baru, dan bukti ia bukan hiasan
+
+`e2e/media-edge.e2e.ts` → **"the track a work lands in follows its shape"**.
+Ia menegaskan aturan `isFullWidth()` **sampai ke layar**: yang rasionya ≥ 1
+mendarat di track penuh, yang di bawahnya di track separuh, dan setidaknya
+satu aset persegi benar-benar ada di halaman.
+
+Dibuktikan bisa gagal dengan dua mutasi, keduanya dijalankan:
+
+| Mutasi                                                          | Hasil                                                                                              |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Klausa batas dicari di `2,35` alih-alih `1,00`                  | **gagal** — `no square work in the dataset; ratios seen: 1.00, 1.78, 1.50, 1.33, 0.75, 0.80, 0.67` |
+| `isFullWidth` diubah `ratio >= 1` → `ratio > 1` (satu karakter) | **gagal** — `/en/work/ambang: landscape and square works land on different widths`                 |
+
+Mutasi kedua adalah yang penting: dua tes lama di file yang sama **lulus**
+pada regresi itu. Aturan batasnya sudah diuji unit sejak Tahap 11b dan lulus
+selama ini — tapi itu klaim tentang sebuah fungsi, bukan tentang sebuah
+halaman, dan jarak antara keduanya persis tempat cacat Tahap 11b hidup.
+
+### 10.4 Ditemukan di luar rencana: rebuild tidak memungut perubahan konten
+
+Setelah menyemai enam karya dan menjalankan `bun run build`, situs terbangun
+menyajikan **tiga**. Tidak ada peringatan: build hijau, dan log build
+mendaftarkan slug yang **lama**.
+
+Sebabnya `'use cache'` menyimpan hasil fetch-nya di `.next/cache`, dan
+`next build` memakai ulang cache itu. `rm -rf .next/cache` lalu build ulang
+memunculkan keenamnya.
+
+Ini **tidak** memengaruhi siklus sunting-dan-terbit biasa — webhook
+`/api/revalidate` membatalkan berdasarkan tag dan server berjalan memungutnya
+dalam hitungan detik. Ia penting di dua tempat, dan keduanya kini tertulis di
+`docs/DEPLOYMENT.md` §7: **lokal** setelah menyemai fixture, dan **di host yang
+memulihkan build cache antar-deploy** (Vercel), di mana deploy yang hanya
+mengubah konten bisa menyajikan konten sebelumnya.
+
+Kelas yang sama dengan pelajaran berulang proyek ini: bukan sesuatu yang gagal,
+melainkan sesuatu yang **hijau sambil salah**.
+
+### 10.5 Dilihat, lalu diperbaiki — dua kali
+
+Halaman dibuka, bukan hanya diuji. Dua hal yang tidak akan pernah ditangkap
+gate mana pun:
+
+**1. Bidang di bawah horizon terbaca sebagai letterbox, bukan permukaan.**
+Versi pertama mengecatnya rata: warna ground pada 0,92 ditambah 0,34 hitam di
+atasnya. Di halaman yang latarnya sendiri near-black, hasilnya adalah pita
+hitam di bawah tiap gambar — sepertiga tiap pelat tidak membawa informasi apa
+pun, dan setiap keputusan crop yang dinilai di atasnya dinilai terhadap bingkai
+yang sebagian hilang. Sekarang bidang itu **memantulkan cahaya**, paling terang
+di garis horizon dan meredup ke tepi bawah, yang juga yang dilakukan lantai.
+Nilai `ground` kesepuluh pelat ikut dinaikkan, karena semuanya dipilih terhadap
+lapisan hitam yang kini sudah tidak ada.
+
+**2. Portrait terlalu gelap untuk tempatnya.** Ia duduk di `#studio` di samping
+prosa, bukan di dalam kisi karya, jadi ia harus bertahan di sebelah teks —
+bukan bersaing dengan karya-karyanya. Dinaikkan tersendiri.
+
+Untuk membuat putaran itu murah, skrip mendapat **`--preview`**: merender
+kesepuluh pelat ke `.fixtures-preview/` lalu berhenti. Tidak menyentuh jaringan,
+tidak butuh token. Menemukan "warna ini terlalu gelap" lewat unggah sepuluh
+aset → build → muat ulang halaman adalah cara yang sangat lambat untuk
+menemukannya.
+
+> **Catatan metode, dan hampir menjadi kesalahan keempat.** Tangkapan layar
+> `fullPage` pertama menunjukkan kotak portrait **kosong**, dan saya nyaris
+> mendiagnosisnya sebagai cacat data. Ia bukan: `loading="lazy"` berarti gambar
+> di bawah lipatan belum dimuat saat tangkapan diambil. Terbukti dengan
+> mengambil aset yang benar-benar disajikan dan mengukur rata-ratanya —
+> RGB (107, 95, 82), sebuah mid-tone, bukan hitam. Tangkapan layar berikutnya
+> menggulir halaman lebih dulu. Bentuk yang sama dengan pelajaran berulang
+> proyek ini, kali ini pada alat ukurnya sendiri.
+
+### 10.6 `--clean` dibuktikan, bukan diasumsikan
+
+Siklus penuh dijalankan:
+
+```
+clean  → Deleted 7 document(s) and 10 asset(s).
+verify → count(fixture docs) + count(fixture assets) = 0
+seed   → Seeded 6 projects, 10 assets, and one studio document.
+```
+
+Tujuh dokumen, bukan enam: enam karya plus `studioSettings`.
+
+### 10.7 Efek samping terukur di `#studio`
+
+Cabang `[data-has-portrait]` menyala untuk pertama kalinya, dan §3.2 berubah:
+
+|                      | Sebelum           | Sesudah                                            |
+| -------------------- | ----------------- | -------------------------------------------------- |
+| Prosa `#studio`      | 16 → 666px        | 16 → 666px (tidak berubah, dan memang benar)       |
+| Kolom kanan          | **kosong, 748px** | portrait 845 → 1414px (569px isi + 179px gap kisi) |
+| Tinggi dokumen `/en` | 4385px            | 5749px                                             |
+
+Ini **bukan** pekerjaan komposisi 12d — tata letaknya sudah ada di CSS sejak
+Tahap 3 dan hanya kekurangan data. Yang dilakukan 12a adalah membedakan cacat
+tata letak dari kekosongan data, yang hanya bisa dilakukan dengan memasok
+datanya. Naiknya tinggi dokumen jadi 5749px justru mempertegas pekerjaan 12d:
+gulir sepanjang itu butuh jangkar per section.
+
+### 10.8 Yang belum dikerjakan di sub-tahap ini
+
+**Komposisi pelat belum dinilai sebagai tata letak**, hanya sebagai gambar.
+Itu pekerjaan 12d, dan menilainya sekarang berarti menilai susunan yang memang
+akan dibongkar.

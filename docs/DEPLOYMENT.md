@@ -255,6 +255,23 @@ passed on a retry. If a deploy fails with a Sanity 503, retry it before
 investigating anything else. This is the direct cost of those pages being
 static and cacheable, and it was taken deliberately.
 
+**A rebuild alone does not pick up a content change — the build cache has to
+go with it.** Pages under `'use cache'` keep their fetch results in
+`.next/cache`, and `next build` reuses that cache. Measured during Tahap 12a:
+the CMS held six projects, the rebuilt site served three, and nothing warned
+about it — the build log was green and listed the _old_ slugs. Deleting
+`.next/cache` and rebuilding brought all six through.
+
+This does **not** affect a normal edit-and-publish cycle, which is what §4's
+webhook is for: `/api/revalidate` invalidates by tag and the running server
+picks the change up in seconds, no build involved. It matters in two places:
+
+- **locally**, after seeding or changing fixtures — clear `.next/cache`, or
+  you will spend an hour debugging a page that is simply the previous build;
+- **on a host that restores the build cache between deploys** (Vercel does),
+  where a deploy that changes _only_ content can serve the previous content.
+  Redeploying without the build cache is the fix.
+
 **The first request to a project URL that does not exist returns `200`, not
 `404`.** The static shell is flushed before the CMS lookup resolves, so the
 status line is already sent when `notFound()` runs. The response does carry
