@@ -267,7 +267,7 @@ Ini bukan bug satu komponen. Ini **kosakata yang hilang**.
 
 ---
 
-## 4. Tata bahasa interaksi — yang akan ditulis sebagai `MOTION-SPEC.md` §10
+## 4. Tata bahasa interaksi — yang akan ditulis sebagai `MOTION-SPEC.md` §9
 
 Memperluas dokumen yang sudah mengikat, **bukan** dokumen baru yang bersaing
 dengannya. Alasannya sama dengan alasan tidak mem-`--persist` hasil skill.
@@ -386,7 +386,10 @@ bukan yang dikirim.
 
 **File:**
 
-- `docs/MOTION-SPEC.md` → **§10 baru** (isi §4 di atas).
+- `docs/MOTION-SPEC.md` → **§9 baru** (isi §4 di atas). Ia mendarat sebagai
+  §9, bukan §10: checklist review tetap menjadi bagian terakhir dokumen, karena
+  ia mengacu ke semua yang di atasnya — termasuk empat butir baru dari tata
+  bahasa ini.
 - `vault/motion/tokens.ts` → tambah `interaction`, satu objek yang memetakan
   tiap state ke `{ duration, easing }` dari token yang **sudah ada**. Bukan
   nilai baru — pemetaan.
@@ -676,3 +679,96 @@ gulir sepanjang itu butuh jangkar per section.
 **Komposisi pelat belum dinilai sebagai tata letak**, hanya sebagai gambar.
 Itu pekerjaan 12d, dan menilainya sekarang berarti menilai susunan yang memang
 akan dibongkar.
+
+---
+
+## 11. Hasil — 12b: tata bahasa ditulis dan diberi gigi
+
+### 11.1 Ia mendarat sebagai §9, bukan §10
+
+Checklist review tetap bagian terakhir `MOTION-SPEC.md`, karena ia mengacu ke
+semua yang di atasnya. Tata bahasa masuk sebagai **§9**, dan checklist-nya
+bertambah empat butir yang sebelumnya tidak bisa ditanyakan:
+
+- tiap elemen yang bisa ditekan menjawab tekanan — COMMIT, bukan sekadar `:hover`
+- tiap momen tercapai dengan Tab + Enter, bukan hanya kursor
+- tidak lebih dari dua gerakan pita choreographed per halaman, keduanya disebut
+- interupsi di tengah TRANSPORT tidak meninggalkan apa pun tersangkut
+
+### 11.2 COMMIT jadi 150ms, bukan 120ms — koreksi atas rencana saya sendiri
+
+Rencana tahap ini (dan §4.1 di atas) menulis COMMIT ~120ms. **Itu salah**, dan
+salahnya bukan soal selera: `MOTION-SPEC.md` §2 menaruh pita micro di
+150–250ms, jadi 120ms akan menjadi **durasi pertama di proyek ini yang berada
+di luar pita mana pun** — persis pergeseran ad-hoc yang membuat pita itu ada.
+
+150ms adalah lantai pita, dan ia **sudah ada** di CSS sebagai
+`--duration-micro`, dipakai sepuluh stylesheet komponen. Terhadap `out-quart`,
+sebagian besar gerakannya selesai dalam ~60ms pertama, jadi ia tetap terbaca
+seketika.
+
+Tidak ada token durasi baru yang ditambahkan untuk COMMIT. Itu hasil yang
+lebih baik daripada rencananya.
+
+### 11.3 Temuan: modul yang menjaga dua kosakata ternyata sudah bergeser
+
+`vault/motion/tokens.ts` ada untuk satu alasan, tertulis di kepala filenya:
+gerak yang sama diucapkan dua kali — sekali di CSS, sekali di GSAP — dan
+dibiarkan sendiri keduanya menyimpang.
+
+Tidak ada yang memeriksa bahwa keduanya sepakat. `bun run check` menjalankan
+oxlint, oxfmt, tsc, dan unit test; tidak satu pun membaca custom property CSS.
+Dan keduanya **sudah** menyimpang, ke dua arah sekaligus:
+
+| Kosakata   | Punya                     | Yang satunya                                                                        |
+| ---------- | ------------------------- | ----------------------------------------------------------------------------------- |
+| CSS        | `--duration-micro: 150ms` | TypeScript tidak tahu nilainya — padahal 10 stylesheet memakainya                   |
+| TypeScript | `choreographed: 1.2`      | CSS tidak punya tokennya — gerak choreographed di CSS tidak punya yang bisa dirujuk |
+
+Keduanya ditutup. Tidak satu pun terlihat di diff; keduanya kelas cacat yang
+muncul berbulan-bulan kemudian sebagai "rasanya agak meleset".
+
+### 11.4 Gate baru: `vault/motion/tokens.test.ts`
+
+Sembilan tes. Yang dijaga:
+
+- tiap durasi TypeScript punya token CSS dengan nilai **sama**;
+- tiap stagger yang punya token CSS sepakat dengannya (`chars` dan `items`
+  sengaja tidak, dan itu dinyatakan, bukan dilewatkan);
+- tiap easing menunjuk custom property yang benar-benar dideklarasikan
+  `easings.css`;
+- tiap easing **cocok dengan bezier yang didokumentasikannya** — kalau tidak,
+  katalog Storybook menampilkan satu kurva dan situs mengirim kurva lain;
+- tiap state tata bahasa jatuh di dalam pita;
+- tiap state memakai satu dari empat kurva token;
+- `css` dan `seconds` tiap state sepakat;
+- urutannya **menanjak**: COMMIT terpendek, SETTLE terpanjang. Tata bahasa yang
+  settle-nya lebih cepat dari transport-nya bukan tata bahasa, melainkan empat
+  tween tak berhubungan yang berbagi nama.
+
+### 11.5 Dibuktikan bisa gagal — tiga mutasi
+
+| Mutasi                                                                    | Hasil                                                                                                                   |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `--duration-choreographed` dihapus (yaitu **keadaan sebelum commit ini**) | **gagal**, 8 pass / 1 fail                                                                                              |
+| COMMIT dikembalikan ke 120ms sesuai rencana                               | **gagal** dua kali: `commit: 120ms is in no band` dan `micro: tokens.ts says 120ms, --duration-micro says 150ms`        |
+| `--ease-out-quart` digeser dari `…0.44, 1` ke `…0.44, 0.98`               | **gagal**: `outQuart: documents cubic-bezier(0.165, 0.84, 0.44, 1), CSS declares cubic-bezier(0.165, 0.84, 0.44, 0.98)` |
+
+Mutasi pertama adalah yang membuktikan gate ini bukan hiasan: ia gagal pada
+keadaan repositori sebelum sub-tahap ini.
+
+### 11.6 Keputusan yang dicatat: COMMIT ditulis di CSS
+
+`:active`, bukan handler `pointerdown`. Ia menyala untuk Enter dan Space pada
+`<a>` dan `<button>`, sehingga aturan "bisa dicapai keyboard" menjadi **gratis**
+alih-alih sesuatu yang harus diingat. Sebuah handler pointer akan menjadi mesin
+state kedua yang harus disinkronkan dengan yang pertama — bentuk kesalahan yang
+sama dengan RAF loop kedua.
+
+### 11.7 Belum dipasang
+
+12b hanya menulis dan menggerbangi kosakatanya. **Nol komponen memakainya
+sampai 12c** — dan sampai itu terjadi, `grep -rn ":active"` masih mengembalikan
+nol. Itu dinyatakan, bukan disembunyikan di balik test yang hijau.
+
+**Angka:** unit 386 → **395**.

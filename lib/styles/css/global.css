@@ -87,6 +87,16 @@ html {
   --duration-fast: 200ms;
   --duration: 400ms;
   --duration-slow: 800ms;
+  /*
+   * The band's ceiling, and the only value a page may spend twice
+   * (`MOTION-SPEC.md` §9.5 — two choreographed moves per page, named).
+   *
+   * It lived only in `vault/motion/tokens.ts`, which CSS cannot read, so a
+   * choreographed move written in CSS had no token to reach for. The same
+   * shape of gap `--stagger-*` was added to close, and `tokens.test.ts` now
+   * fails on it rather than leaving it to be found.
+   */
+  --duration-choreographed: 1200ms;
 
   /*
    * Stagger between siblings in a revealed group.

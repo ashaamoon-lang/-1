@@ -102,13 +102,28 @@ export type EasingName = keyof typeof easing
  * notably *not* the 300ms that ships as a default in most UI kits.
  */
 export const duration = {
+  /**
+   * 150ms — the micro band's floor. Anticipation on press, and the small
+   * state flips in `components/ui/` that want to feel instant rather than
+   * merely fast. CSS: `--duration-micro`.
+   *
+   * It existed in CSS and not here. Ten component stylesheets use
+   * `--duration-micro`; this module — whose entire job is to keep the two
+   * vocabularies in step — did not know the value, so anything written in
+   * GSAP against it had to guess. `tokens.test.ts` now fails on that class of
+   * gap rather than leaving it to be noticed.
+   */
+  micro: 0.15,
   /** 200ms — hover, focus, colour, small state flips. CSS: `--duration-fast`. */
   fast: 0.2,
   /** 400ms — the default. Enter/exit, reveals, menus. CSS: `--duration`. */
   base: 0.4,
   /** 800ms — page transitions, hero sequences. CSS: `--duration-slow`. */
   slow: 0.8,
-  /** 1200ms — the longest sanctioned move. Measured as By-Kin's dominant value. */
+  /**
+   * 1200ms — the longest sanctioned move. Measured as By-Kin's dominant value.
+   * CSS: `--duration-choreographed`.
+   */
   choreographed: 1.2,
 } as const
 
@@ -138,3 +153,88 @@ export const stagger = {
 } as const
 
 export type StaggerName = keyof typeof stagger
+
+/**
+ * The interaction grammar — `docs/MOTION-SPEC.md` §9.
+ *
+ * ## What this is for
+ *
+ * Everything above describes **materials**: which curve, how long, how far
+ * apart. None of it says what a *moment* is made of. That gap is why a site
+ * can obey every rule in this file and still feel like a document — the
+ * curves are right and nothing ever answers a press.
+ *
+ * So this is the one sentence the whole site speaks, and every pressable noun
+ * — a project card, the hero's call to action, a discipline chip, a nav item,
+ * the contact address — speaks the same one:
+ *
+ * ```
+ * REST ─▶ INTENT ─▶ COMMIT ─▶ TRANSPORT ─▶ SETTLE ─▶ REST′
+ *         hover     press      release      arrival
+ *         focus     Enter      navigate     assembled
+ * ```
+ *
+ * Five different effects would be five things to keep consistent. One sentence
+ * with five nouns is one thing, and it is the same restraint this project
+ * already applies to colour and type: two families, three weights, no chromatic
+ * accent.
+ *
+ * ## COMMIT is the state that did not exist
+ *
+ * `grep -rn ":active" --include=*.css` returned **zero** across the whole
+ * project before Tahap 12; eighteen stylesheets used `:hover`. Between "I
+ * touched this" and "a new page appeared" the site was silent.
+ *
+ * COMMIT is a single beat of anticipation — a small compression before the
+ * release. That beat is most of what separates game animation from a web
+ * transition: without it a movement reads as *announced* rather than *done*.
+ *
+ * ## Why 150ms and not 120
+ *
+ * The plan for this stage called for ~120ms. That would have been the first
+ * duration in the project outside a declared band (§2 puts micro at 150–250ms),
+ * and inventing an out-of-band value is exactly the ad-hoc drift the bands
+ * exist to prevent. 150ms is the band's floor, it already exists in CSS as
+ * `--duration-micro`, and against `outQuart` most of the movement lands in the
+ * first 60ms — so it reads as immediate anyway.
+ *
+ * ## Overshoot, rejected on the record
+ *
+ * `ui-ux-pro-max` recommends `back.out(1.4)` and `elastic.out(1, 0.4)` for
+ * interactions at this tier. Both are raw curves, which `CLAUDE.md` #1
+ * forbids in a component, and a bounce is the wrong register for this site —
+ * rejected for the same reason in Tahap 11c. Settling happens through
+ * `outExpo`.
+ *
+ * `css` is the custom property to use in a stylesheet, `seconds` the value to
+ * hand GSAP. They are asserted equal by `tokens.test.ts`, so the drift this
+ * module exists to prevent is now checked rather than intended.
+ */
+export const interaction = {
+  /** The element declares itself alive. Hover, or `:focus-visible`. */
+  intent: {
+    seconds: duration.fast,
+    css: 'var(--duration-fast)',
+    easing: easing.outQuart,
+  },
+  /** Anticipation. `:active`, which fires for Enter and Space too. */
+  commit: {
+    seconds: duration.micro,
+    css: 'var(--duration-micro)',
+    easing: easing.outQuart,
+  },
+  /** The pressed element becomes the stage. The route swap happens here. */
+  transport: {
+    seconds: duration.base,
+    css: 'var(--duration)',
+    easing: easing.outExpo,
+  },
+  /** The destination assembles around what arrived. */
+  settle: {
+    seconds: duration.slow,
+    css: 'var(--duration-slow)',
+    easing: easing.outExpo,
+  },
+} as const
+
+export type InteractionState = keyof typeof interaction

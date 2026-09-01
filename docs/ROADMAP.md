@@ -882,7 +882,7 @@ mendefinisikan material (kurva, pita, stagger), bukan momen.
 `REST → INTENT → COMMIT → TRANSPORT → SETTLE`, satu kalimat untuk lima kata
 benda (kartu, CTA, chip, nav, email). COMMIT — kompresi antisipasi ~120ms
 sebelum lepas — adalah yang membedakan animasi game dari transisi web, dan
-adalah state yang hari ini tidak ada. Ditulis sebagai **`MOTION-SPEC.md` §10**,
+adalah state yang hari ini tidak ada. Ditulis sebagai **`MOTION-SPEC.md` §9**,
 memperluas dokumen yang sudah mengikat, bukan dokumen baru yang bersaing.
 
 **Anggaran momen epik: maksimal dua per halaman**, disebut namanya (kedatangan

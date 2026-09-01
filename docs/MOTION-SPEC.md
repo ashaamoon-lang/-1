@@ -200,7 +200,112 @@ be labelled as one.
 
 ---
 
-## 9. Review checklist
+## 9. The interaction grammar
+
+Sections 1–8 describe **materials**: which curve, how long, how far apart,
+what may move. None of them says what a **moment** is made of. A site can obey
+every rule above and still feel like a document, because the curves are right
+and nothing ever answers a press.
+
+This section is the missing half. It was added in Tahap 12 after one command
+made the gap concrete:
+
+```bash
+grep -rn ":active" --include=*.css app components vault lib
+# → 0
+```
+
+Zero. Eighteen stylesheets used `:hover`; not one element in the site changed
+when it was pressed. Between "I touched this" and "a new page appeared", the
+site was silent.
+
+### 9.1 One sentence, five nouns
+
+Every pressable thing — a project card, the hero's call to action, a
+discipline chip, a nav item, the contact address — moves through the **same**
+sequence:
+
+```
+REST ──▶ INTENT ──▶ COMMIT ──▶ TRANSPORT ──▶ SETTLE ──▶ REST′
+         hover      press       release       arrival
+         focus      Enter       navigate      assembled
+```
+
+| State         | Band (§2)     | Token                      | Curve              | What happens                                               |
+| ------------- | ------------- | -------------------------- | ------------------ | ---------------------------------------------------------- |
+| **REST**      | —             | —                          | —                  | The rendered state. This is what ships without JavaScript. |
+| **INTENT**    | micro         | `--duration-fast` (200ms)  | `--ease-out-quart` | The element declares itself alive.                         |
+| **COMMIT**    | micro         | `--duration-micro` (150ms) | `--ease-out-quart` | **Anticipation** — a compression before the release.       |
+| **TRANSPORT** | standard      | `--duration` (400ms)       | `--ease-out-expo`  | The pressed element becomes the stage.                     |
+| **SETTLE**    | choreographed | `--duration-slow` (800ms)  | `--ease-out-expo`  | The destination assembles around what arrived.             |
+
+Five separate effects would be five things to keep consistent. One sentence
+with five nouns is one thing — the same restraint this project already applies
+to colour and type.
+
+The tokens live in `vault/motion/tokens.ts` as `interaction`, with the CSS
+custom property and the GSAP value side by side. `vault/motion/tokens.test.ts`
+asserts they agree, that every duration sits inside a band, and that the
+sequence escalates (COMMIT shortest; SETTLE longest).
+
+### 9.2 COMMIT is the state that matters
+
+Anticipation is most of what separates game animation from a web transition.
+Without a beat of compression before the release, a movement reads as
+**announced** rather than **done**.
+
+It is one beat, not a move: 150ms, the floor of the micro band. The plan for
+Tahap 12 called for ~120ms; that would have been the first duration in this
+project outside a declared band, which is exactly the ad-hoc drift the bands
+exist to prevent. Against `out-quart` most of the movement lands in the first
+60ms, so 150ms reads as immediate anyway.
+
+**Write COMMIT in CSS, with `:active`.** It fires for Enter and Space on a
+link or a button as well as for a pointer, which makes rule 3 below free
+rather than something to remember. A `pointerdown` handler would be a second
+state machine to keep in step with the first — the same shape of mistake as a
+second RAF loop (§6).
+
+### 9.3 Overshoot, rejected on the record
+
+`ui-ux-pro-max` recommends `back.out(1.4)` and `elastic.out(1, 0.4)` for
+interactions at this tier. Both are rejected, for two reasons that each stand
+alone: they are raw curves, which rule #1 forbids in a component, and a bounce
+is the wrong register for this site — rejected for the same reason in Tahap
+11c. Settling happens through `--ease-out-expo`.
+
+### 9.4 Five rules, binding
+
+1. **Interruptible, with a defined resolution.** A double click, or Back
+   pressed mid-TRANSPORT, must never leave a stuck screen. This is a failure
+   mode this project has already had; `vault/motion/page-transition` carries a
+   `maxWait` because of it.
+2. **Reachable by keyboard.** `:focus-visible` is INTENT, Enter and Space are
+   COMMIT. A moment reachable only by cursor is not grammar, it is decoration.
+3. **Reduced motion changes the duration, not the outcome.** States still
+   change; the transitions become instant. Content always ends up correct.
+4. **REST is the rendered state.** With JavaScript off, REST is what shows.
+   The whole grammar is additive — which is what keeps the no-JS gate green.
+5. **One shared-element morph per navigation.** More than one pair is not
+   legible and is very hard to time.
+
+### 9.5 The epic-moment budget
+
+Award sites do not make everything epic. They make **one or two** things epic
+and keep everything else quiet.
+
+**At most two choreographed-band movements per page, and both are named.**
+
+On the home page:
+
+1. **The hero's arrival** — once per load.
+2. **A card becoming a project page** — TRANSPORT plus SETTLE in full.
+
+Everything else is micro or standard. A filter chip does not get 1200ms.
+
+---
+
+## 10. Review checklist
 
 Before any motion work is considered done:
 
@@ -212,3 +317,7 @@ Before any motion work is considered done:
 - [ ] Stagger total ≤ 600 ms (UI) / 900 ms (hero)
 - [ ] No second RAF loop introduced
 - [ ] Keyboard focus order unaffected by the animation
+- [ ] Every pressable element answers a press — §9 COMMIT, not just `:hover`
+- [ ] Every moment is reachable with Tab and Enter, not only with a cursor
+- [ ] No more than two choreographed-band movements on the page, and both named
+- [ ] Interrupting mid-TRANSPORT (double click, Back) leaves nothing stuck
