@@ -160,7 +160,15 @@ export default async function Home() {
              anchor, same reasoning as the header nav: a same-page hash must
              scroll with the browser's own handling so it still works with
              JavaScript disabled, which is a stated Tahap 3 exit criterion. */
-          <a href={hasWork ? '#work' : '#contact'} className={s.heroCta}>
+          <a
+            href={hasWork ? '#work' : '#contact'}
+            className={s.heroCta}
+            // Both attributes on one element: this control is its own
+            // acknowledgment (the fill inverts on hover), so INTENT and
+            // COMMIT live in the same place. `MOTION-SPEC.md` §9.
+            data-press="cta"
+            data-intent=""
+          >
             {hasWork ? t('heroCta') : t('heroCtaContact')}
           </a>
         }

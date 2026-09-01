@@ -55,6 +55,9 @@ export function NextProject({
         href={`/work/${slug}`}
         className={s.link}
         data-cursor="view"
+        // `MOTION-SPEC.md` §9. The image is `aria-hidden` decoration, so the
+        // acknowledgment is marked on it while the noun is this link.
+        data-press="next"
       >
         {cover && (
           <div className={s.media} aria-hidden="true">
@@ -63,6 +66,7 @@ export function NextProject({
               alt=""
               maxWidth={704}
               className={s.image}
+              data-intent=""
               sizes="(max-width: 800px) 100vw, 33vw"
             />
           </div>

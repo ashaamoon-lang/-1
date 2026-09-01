@@ -149,6 +149,11 @@ export function ProjectCard({
         href={href}
         className={s.link}
         data-cursor="view"
+        // The interaction grammar, `docs/MOTION-SPEC.md` §9. `data-press`
+        // names the noun so the gate can say which control went silent
+        // rather than "an element"; `data-intent` below marks what actually
+        // acknowledges hover, which is the image and not this link.
+        data-press="card"
         // Stands the route-change overlay down for this navigation so the
         // cover below can morph into the project page's hero instead.
         transition="morph"
@@ -170,6 +175,7 @@ export function ProjectCard({
                     : '(max-width: 800px) 100vw, 48vw'
                 }
                 className={s.image}
+                data-intent=""
                 preload={preload}
               />
             )}

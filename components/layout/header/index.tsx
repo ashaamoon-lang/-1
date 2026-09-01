@@ -109,6 +109,9 @@ export function Header({
                 className={cn('caption', s.navLink)}
                 href={`#${section.id}`}
                 onClick={() => setMenuOpen(false)}
+                // `MOTION-SPEC.md` §9.
+                data-press="nav"
+                data-intent=""
                 /*
                  * `location`, not `page`. `aria-current="page"` marks the
                  * current page within a set of links; `location` marks the

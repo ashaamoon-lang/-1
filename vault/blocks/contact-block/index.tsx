@@ -56,6 +56,9 @@ export function ContactBlock({
           href={`mailto:${email}`}
           aria-label={emailLabel}
           className={cn('h2', s.email)}
+          // `MOTION-SPEC.md` §9.
+          data-press="email"
+          data-intent=""
         >
           {email}
         </Link>

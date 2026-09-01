@@ -32,9 +32,11 @@
   color: var(--text-muted);
   text-decoration: none;
   white-space: nowrap;
+  /* INTENT already in band; `transform` added for COMMIT (§9). */
   transition:
     color var(--duration-fast) var(--ease-out-quart),
-    border-color var(--duration-fast) var(--ease-out-quart);
+    border-color var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-micro) var(--ease-out-quart);
 
   @media (--desktop) {
     padding-inline: desktop-vw(16px);
@@ -63,7 +65,10 @@
     border-color: var(--color-secondary);
   }
 
+  /* INTENT from the keyboard — same state as hover. See `header.module.css`. */
   &:focus-visible {
+    color: var(--color-secondary);
+    border-color: var(--color-secondary);
     outline: 2px solid var(--color-contrast);
     outline-offset: 2px;
   }

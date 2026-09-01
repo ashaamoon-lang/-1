@@ -120,7 +120,10 @@
    * is empty — nothing here is an accepted exception.
    */
   color: var(--text-muted);
-  transition: color var(--duration-fast) var(--ease-out-expo);
+  /* INTENT already in band; `transform` added for COMMIT (§9). */
+  transition:
+    color var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-micro) var(--ease-out-quart);
 
   @media (--hover) {
     &:hover {
@@ -133,7 +136,17 @@
     color: var(--color-secondary);
   }
 
+  /*
+   * INTENT, reached from the keyboard.
+   *
+   * The outline below is a *focus indicator* — a separate obligation, and one
+   * axe already checks. It is not the acknowledgment: §9 says INTENT is one
+   * state reachable two ways, and a keyboard reader who only ever gets a ring
+   * is reading a different page from a pointer user. Outside the `--hover`
+   * query on purpose: focus happens on every device.
+   */
   &:focus-visible {
+    color: var(--color-secondary);
     outline: 2px solid var(--color-contrast);
     outline-offset: 4px;
     border-radius: 1px;

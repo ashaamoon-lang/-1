@@ -265,6 +265,82 @@ html.screenshot {
 }
 
 /*
+ * The interaction grammar — `docs/MOTION-SPEC.md` §9.
+ *
+ * `data-press="<noun>"` marks a control; `data-intent` marks whatever
+ * visibly acknowledges hover or focus, when that is not the control itself.
+ * Two attributes, so the grammar is inspectable in devtools and addressable
+ * from `e2e/interaction-grammar.e2e.ts` — a gate that had to guess which
+ * descendant of a card carries the acknowledgment is a gate that quietly
+ * stops checking the first time the markup moves.
+ *
+ * ## Why COMMIT is `:active` and not a `pointerdown` handler
+ *
+ * `:active` is applied by the platform for Enter and Space on a link or a
+ * button as well as for a pointer, so "reachable by keyboard" comes for free
+ * rather than being something to remember. A handler would be a second state
+ * machine to keep in step with the first — the same shape of mistake as a
+ * second RAF loop.
+ *
+ * ## Why only half of this is shared
+ *
+ * The `:active` transform lives here, once. The *transition* cannot: CSS
+ * `transition` is a single declaration, not an additive list, so a rule here
+ * would replace the colour and border transitions each component already
+ * declares rather than joining them. Each control therefore adds
+ * `transform var(--duration-micro) var(--ease-out-quart)` to its own
+ * transition, and the gate asserts that it did — including that `transform`
+ * is actually among the properties, which is the failure that would otherwise
+ * show up as an instant snap nobody notices.
+ *
+ * ## Reduced motion
+ *
+ * Nothing is disabled here on purpose. §9.4 rule 3: the state still changes,
+ * the transition becomes instant — and the kill switch above already collapses
+ * every duration to 0.01ms. A `transform: none` here would break the rule by
+ * removing the outcome as well as the motion.
+ */
+[data-press] {
+  /*
+   * How far a press compresses. Large surfaces take less: 3% of a 700px card
+   * is 21px of travel and reads as a lurch, while 3% of a 40px chip is barely
+   * over a pixel. Overridden per control, never per instance.
+   */
+  --press-scale: 0.97;
+}
+
+[data-press]:active {
+  transform: scale(var(--press-scale));
+}
+
+@media (--reduced-motion) {
+  /*
+   * The doubled attribute is a specificity bump, not a typo.
+   *
+   * The `*` kill switch above is 0,0,0 and loses to any component class, so
+   * it does not in fact neutralise a `transition` declared in a CSS module —
+   * every component in this project handles reduced motion in its own
+   * `@media (--reduced-motion)` block instead, and `MOTION-SPEC.md` §5's
+   * printed baseline carries `!important` while the shipped one does not.
+   * Measured under emulation, the only elements still transitioning were the
+   * four cards this stage had just marked.
+   *
+   * `[data-press][data-press]` is 0,2,0, which beats a single class, so any
+   * control that adopts the grammar gets the correct behaviour from the
+   * shared rule rather than from a block someone has to remember to write.
+   *
+   * §9.4 rule 3 is why this collapses the duration and does not remove the
+   * transform: the state still changes, it just arrives at once.
+   */
+  [data-press][data-press] {
+    /* motion-exempt: the reduced-motion kill switch. A token would defeat it —
+       the value has to be "effectively instant", not "the project's fast
+       duration". */
+    transition-duration: 0.01ms;
+  }
+}
+
+/*
  * Shared-element morphs (React `<ViewTransition>`).
  *
  * `share="morph"` puts the pair in the `morph` view-transition class, which

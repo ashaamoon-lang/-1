@@ -9,6 +9,16 @@
   gap: mobile-vw(12px);
   text-decoration: none;
   color: inherit;
+  /*
+   * COMMIT (`MOTION-SPEC.md` §9). `global.css` supplies the transform on
+   * `:active`; the transition has to be declared here, because `transition`
+   * in a shared rule replaces an element's own rather than joining it.
+   *
+   * 0.99, not the 0.97 default: three percent of a 700px tile is 21px of
+   * travel and reads as a lurch. Large surface, small compression.
+   */
+  --press-scale: 0.99;
+  transition: transform var(--duration-micro) var(--ease-out-quart);
 
   @media (--desktop) {
     gap: desktop-vw(12px);
@@ -43,7 +53,16 @@
    * layout. 1.03 is deliberately small: a large zoom reads as a stock
    * template effect, a small one reads as the page responding.
    */
-  transition: scale var(--duration-slow) var(--ease-out-quart);
+  /*
+   * INTENT, brought into the micro band.
+   *
+   * This was `--duration-slow` — 800ms, the choreographed band, four times
+   * what §9 gives INTENT, and it was the card's *only* hover feedback. So the
+   * acknowledgment that a tile is live took most of a second to arrive while
+   * a filter chip beside it answered in 200ms: two controls speaking two
+   * different sentences. The whole point of the grammar is that there is one.
+   */
+  transition: scale var(--duration-fast) var(--ease-out-quart);
 }
 
 /* Focus shares the hover treatment so a keyboard user sees the same response. */

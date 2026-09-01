@@ -84,6 +84,10 @@ export function DisciplineFilter({
               <Link
                 href={chip.href}
                 className={cn('caption', s.chip)}
+                // `MOTION-SPEC.md` §9. Both roles on one element: a chip is
+                // its own acknowledgment.
+                data-press="chip"
+                data-intent=""
                 // The accessible state, which the CSS then styles from — so
                 // the visual and the announced state cannot desynchronise.
                 {...(isActive && { 'aria-current': 'true' })}

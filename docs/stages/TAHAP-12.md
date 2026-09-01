@@ -772,3 +772,167 @@ sampai 12c** — dan sampai itu terjadi, `grep -rn ":active"` masih mengembalika
 nol. Itu dinyatakan, bukan disembunyikan di balik test yang hijau.
 
 **Angka:** unit 386 → **395**.
+
+---
+
+## 12. Hasil — 12c: tata bahasa dipasang
+
+### 12.1 Enam kata benda, satu kalimat
+
+| Kata benda       | `data-press` | Di mana                          | `--press-scale` |
+| ---------------- | ------------ | -------------------------------- | --------------- |
+| Kartu karya      | `card`       | `vault/blocks/project-card`      | 0,99            |
+| CTA hero         | `cta`        | `app/[locale]/page.tsx`          | 0,97 (default)  |
+| Chip disiplin    | `chip`       | `vault/blocks/discipline-filter` | 0,97            |
+| Tautan nav       | `nav`        | `components/layout/header`       | 0,97            |
+| Alamat email     | `email`      | `vault/blocks/contact-block`     | 0,99            |
+| Karya berikutnya | `next`       | `vault/blocks/next-project`      | 0,99            |
+
+Permukaan besar dikompres lebih sedikit: 3% dari kartu 700px adalah 21px
+perjalanan dan terbaca sebagai sentakan, sementara 3% dari chip 40px hanya
+sekitar satu piksel.
+
+### 12.2 Setengahnya dibagi, setengahnya tidak — dan alasannya CSS
+
+`transform` pada `:active` tinggal sekali di `global.css`. **Transisinya tidak
+bisa**: `transition` di CSS adalah satu deklarasi, bukan daftar yang menumpuk,
+jadi aturan bersama akan **mengganti** transisi warna dan border yang sudah
+dideklarasikan tiap komponen, bukan bergabung dengannya.
+
+Maka tiap kontrol menambahkan `transform var(--duration-micro)
+var(--ease-out-quart)` ke transisinya sendiri — dan gate memeriksa bahwa ia
+benar melakukannya. Kegagalan yang dijaga itu **senyap secara konstruksi**:
+kontrol yang ditandai `data-press` tapi lupa menambahkan `transform` tetap
+berubah saat ditekan, hanya seketika tanpa easing, dan setiap asersi lain di
+file itu tetap lulus.
+
+### 12.3 Dua INTENT di luar pita — diperbaiki
+
+Dipindai dari 37 deklarasi transisi yang memakai token durasi:
+
+| Kontrol               | Sebelum   | Sesudah | Pita                  |
+| --------------------- | --------- | ------- | --------------------- |
+| Gambar kartu karya    | **800ms** | 200ms   | choreographed → micro |
+| Gambar `next-project` | **800ms** | 200ms   | choreographed → micro |
+| Isian CTA hero        | **400ms** | 200ms   | standard → micro      |
+
+Skala gambar kartu adalah **satu-satunya** umpan balik hover kartu, jadi
+pengakuan bahwa sebuah petak hidup butuh hampir satu detik untuk tiba —
+sementara chip di sebelahnya menjawab dalam 200ms. Dua kontrol, dua kalimat.
+Seluruh gunanya tata bahasa adalah bahwa kalimatnya satu.
+
+Ini keputusan desain yang layak ditinjau studio: kartu terasa lebih tegas
+sekarang, bukan lebih lamban.
+
+### 12.4 Temuan: fokus keyboard hanya mendapat cincin, bukan INTENT
+
+Gate menemukan bahwa `nav`, `cta`, `chip`, dan `email` mengubah keadaan untuk
+kursor tetapi tidak untuk keyboard: `:focus-visible` mereka hanya menggambar
+outline.
+
+Outline adalah **indikator fokus** — kewajiban terpisah yang sudah dijaga
+`e2e/keyboard-focus.e2e.ts` dan axe. Ia bukan pengakuan. §9.4 aturan 2
+mengatakan INTENT adalah satu keadaan yang bisa dicapai dua jalan, dan pembaca
+keyboard yang hanya pernah mendapat cincin sedang membaca halaman yang berbeda
+dari pengguna penunjuk.
+
+Keempatnya kini berbagi perlakuan hover pada `:focus-visible` — di **luar**
+`@media (--hover)`, karena fokus terjadi di semua perangkat. Kartu sudah benar
+sejak awal, dan komentarnya sendiri yang menyebut alasannya.
+
+### 12.5 Temuan: kill switch reduced-motion tidak mematikan apa pun
+
+`global.css` menjalankan `*, *::before, *::after { transition-duration: 0.01ms }`
+di bawah `prefers-reduced-motion`. Selektor `*` berspesifisitas **0,0,0**,
+sehingga ia **kalah dari kelas CSS module mana pun**. Baseline yang dicetak
+`MOTION-SPEC.md` §5 membawa `!important`; yang dikirim tidak.
+
+Diukur di bawah emulasi: dari 217 elemen di `/en`, yang masih bertransisi
+adalah **4** — keempat kartu yang baru saja ditandai tahap ini. Selebihnya
+aman bukan karena kill switch itu, melainkan karena tiap komponen menulis blok
+`@media (--reduced-motion)`-nya sendiri.
+
+Jadi kill switch itu selama ini adalah komentar, bukan mekanisme, dan
+satu-satunya celah nyata adalah yang baru saya buat.
+
+Diperbaiki di kontraknya, bukan di enam komponen: `[data-press][data-press]`
+(0,2,0) mengalahkan kelas tunggal, sehingga kontrol mana pun yang mengadopsi
+tata bahasa mendapat perilaku benar dari aturan bersama — bukan dari blok yang
+harus diingat seseorang untuk menulisnya.
+
+### 12.6 Gate: `e2e/interaction-grammar.e2e.ts`, delapan tes
+
+Semuanya **dibuktikan merah lebih dulu** — dijalankan sebelum satu baris pun
+implementasi ditulis, dan keenam yang ada saat itu gagal:
+
+```
+✘ /en marks every pressable noun            → nothing carries data-press="nav" — found []
+✘ /en/work marks every pressable noun       → found []
+✘ every pressable noun answers a press      → /en has nothing marked pressable
+✘ INTENT is reachable from the keyboard     → (lihat 12.7)
+✘ COMMIT and INTENT stay inside micro band  → nothing to measure
+✘ reduced motion keeps the state change     → nothing to measure
+```
+
+Dan setelah implementasi, gate **`:active` bersama dinetralkan** untuk
+membuktikan ia bukan hiasan:
+
+```
+MUTATION ([data-press]:active { transform: none }) → silent: nav, nav, nav,
+cta, card, card, card, card, email
+```
+
+Sembilan kontrol jatuh. Gate hidup.
+
+### 12.7 Dua kali alat ukurnya sendiri yang salah, bukan produknya
+
+Keduanya dicatat karena keduanya nyaris menjadi "perbaikan" atas cacat yang
+tidak ada.
+
+**Pertama: tekanan tidak pernah sampai ke kartu.** Gate melaporkan
+`card, card, card, card` diam. CSS-nya benar. Sebabnya
+`scrollIntoViewIfNeeded()` menempatkan kartu rata dengan tepi atas viewport —
+persis tempat **header tetap** menutupinya, sehingga `elementFromPoint` di
+titik itu mengembalikan `HEADER` dan `mouse.down()` menekan header.
+Terbukti dengan memeriksa `node.matches(':active')`, yang `false`.
+
+Diperbaiki dua kali: memakai `hover()` milik Playwright, yang menggulir ke
+tempat elemen benar-benar bisa menerima peristiwa dan **melempar** alih-alih
+mengukur benda yang salah; dan menambahkan asersi `:active` sehingga gate
+tidak bisa lagi mengacaukan "kontrol ini tidak punya COMMIT" dengan "tekanannya
+tidak pernah sampai".
+
+**Kedua: snapshot terlalu sempit.** Versi pertama membandingkan `transform`,
+`scale`, dan `opacity` saja, lalu melaporkan `nav` dan `cta` mengakui kursor
+tapi bukan keyboard. Keduanya mengakuinya — dengan **warna**, yang memang yang
+mereka ubah saat hover juga. Snapshot kini membaca tujuh properti terlihat.
+
+Tiga kali dalam satu tahap, dan pola yang sama: **pengukuran yang salah bentuk
+menghasilkan angka meyakinkan yang menuntun ke perbaikan salah sasaran.**
+
+### 12.8 Gerakan direkam, bukan disimpulkan
+
+Sampel `requestAnimationFrame` dari `transform` kartu selama satu tekanan
+nyata di build produksi:
+
+```
+   ms   scaleX
+    3   1
+  107   1
+  202   0,9906
+  291   0,99
+  385   0,99
+gerakan pertama 158ms · mencapai 0,99 pada 248ms  (≈90ms setelah tekan)
+```
+
+### 12.9 Yang sengaja tidak diasersikan
+
+**COMMIT dari keyboard.** `:active` dipakai justru karena platform
+menerapkannya pada Enter dan Space di sebuah link atau tombol — itulah argumen
+memilih CSS daripada handler `pointerdown`. Ia tidak bisa diamati di sini:
+Enter pada `<a>` menavigasi pada tick yang sama, jadi tidak ada frame untuk
+mengukur kompresinya. INTENT dari keyboard **diasersikan**, dan itu paruh yang
+bisa menelantarkan pembaca.
+
+**Angka:** e2e 212 → **220** · unit 395 · `:active` di seluruh proyek 0 → **1
+aturan bersama + 6 kata benda**.

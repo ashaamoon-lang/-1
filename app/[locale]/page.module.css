@@ -69,9 +69,17 @@
      wrapper's transform has nothing to fight. */
   outline: 1px solid var(--color-secondary);
   outline-offset: -1px;
+  /*
+   * INTENT and COMMIT, `MOTION-SPEC.md` §9.
+   *
+   * The fill was 400ms — the standard band, twice what §9 gives INTENT. A
+   * call to action that takes 400ms to acknowledge a pointer is the one
+   * control on the page that most needs to feel answered.
+   */
   transition:
-    background-color var(--duration) var(--ease-gleasing),
-    color var(--duration) var(--ease-gleasing);
+    background-color var(--duration-fast) var(--ease-gleasing),
+    color var(--duration-fast) var(--ease-gleasing),
+    transform var(--duration-micro) var(--ease-out-quart);
 
   @media (--desktop) {
     font-size: desktop-vw(14px);
@@ -85,7 +93,11 @@
     }
   }
 
+  /* INTENT from the keyboard — the same state hover produces, not just a
+     ring. See the note in `header.module.css`. */
   &:focus-visible {
+    background-color: var(--color-secondary);
+    color: var(--color-primary);
     outline: 2px solid var(--color-contrast);
     outline-offset: 4px;
   }

@@ -32,7 +32,16 @@
   min-width: 0;
   /* Underline on hover only, drawn from the text's own colour — a permanent
      underline at display size reads as a rule, not a link. */
-  transition: opacity var(--duration-fast) var(--ease-out-expo);
+  /*
+   * INTENT already in band; `transform` added for COMMIT (§9).
+   *
+   * 0.99 rather than the 0.97 default: this is set at display size, and three
+   * percent of a heading is a visible jump rather than a press.
+   */
+  --press-scale: 0.99;
+  transition:
+    opacity var(--duration-fast) var(--ease-out-expo),
+    transform var(--duration-micro) var(--ease-out-quart);
 
   @media (--hover) {
     &:hover {
@@ -42,7 +51,11 @@
     }
   }
 
+  /* INTENT from the keyboard — same state as hover. See `header.module.css`. */
   &:focus-visible {
+    opacity: 0.7;
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
     outline: 2px solid var(--color-contrast);
     outline-offset: 4px;
   }

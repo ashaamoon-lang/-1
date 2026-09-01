@@ -9,6 +9,9 @@
   padding-block: mobile-vw(32px);
   text-decoration: none;
   color: inherit;
+  /* COMMIT (`MOTION-SPEC.md` §9). Large surface, small compression. */
+  --press-scale: 0.99;
+  transition: transform var(--duration-micro) var(--ease-out-quart);
 
   @media (--desktop) {
     flex-direction: row;
@@ -40,7 +43,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: scale var(--duration-slow) var(--ease-out-quart);
+  /* INTENT in the micro band — same correction as `project-card`. */
+  transition: scale var(--duration-fast) var(--ease-out-quart);
 }
 
 .link:hover .image,
