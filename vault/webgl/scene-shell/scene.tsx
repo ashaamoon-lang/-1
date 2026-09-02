@@ -77,14 +77,37 @@ export function GradientScene({
   // plain JS and are garbage-collected normally. Nothing here allocates a GPU
   // texture, so there is no manual dispose to do — stated explicitly because
   // "did you dispose?" is the first question any R3F review should ask.
+  /*
+   * `renderOrder={-1}` and `depthWrite={false}` are what make this a
+   * *background* rather than merely the first thing drawn.
+   *
+   * This mesh is scaled to the whole viewport and sits at z = 0 — the same
+   * depth every DOM-anchored content mesh occupies, because `useWebGLRect`
+   * and `vault/webgl/material-image` both place their meshes at z = 0. With
+   * this quad writing depth across the entire screen, whichever of the two
+   * drew first won, and the plates lost: the home page's covers rendered as
+   * empty boxes with no error anywhere.
+   *
+   * Writing no depth means anything drawn afterwards passes the test against
+   * the cleared buffer, which is the correct behaviour for a background: it
+   * is a ground for the scene, not an occluder in it.
+   *
+   * This was briefly reverted during Tahap 14 on the evidence of an A/B that
+   * showed no difference. The A/B was run while a second, independent defect
+   * (`vault/webgl/material-image/scene.tsx` was reading Lenis' eased scroll
+   * instead of the real one) blanked the plates either way, so it could not
+   * have shown a difference. Two bugs, each hiding the other's fix —
+   * `docs/stages/TAHAP-14.md` §11.5.
+   */
   return (
-    <mesh scale={[viewport.width, viewport.height, 1]}>
+    <mesh scale={[viewport.width, viewport.height, 1]} renderOrder={-1}>
       <planeGeometry args={[1, 1]} />
       <shaderMaterial
         ref={materialRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms}
+        depthWrite={false}
       />
     </mesh>
   )

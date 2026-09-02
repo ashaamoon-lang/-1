@@ -54,6 +54,15 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
    */
   webgl?: boolean
   /**
+   * Which GPU simulations the root canvas mounts. Only meaningful together
+   * with `webgl`, which is what mounts the canvas in the first place.
+   *
+   * Opt-in on purpose: a simulation with no consumer still costs a render
+   * pass every frame and a window pointer listener. Pass what a scene on this
+   * page actually reads — `['flowmap']` for `vault/webgl/material-image`.
+   */
+  simTypes?: ('fluid' | 'flowmap')[] | undefined
+  /**
    * In-page sections this page rendered, in document order, for the header's
    * anchor nav.
    *
@@ -138,6 +147,7 @@ export function Wrapper({
   className,
   lenis = true,
   webgl = false,
+  simTypes,
   gsap = false,
   sections,
   ...props
@@ -146,7 +156,7 @@ export function Wrapper({
     <Theme theme={theme} global>
       {/* Header is rendered here - do NOT add another in layout.tsx */}
       <Header {...(sections && { sections })} />
-      <Canvas root={webgl}>
+      <Canvas root={webgl} {...(simTypes && { simTypes })}>
         <main
           id="main-content"
           /*

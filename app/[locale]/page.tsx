@@ -22,6 +22,13 @@ import { StudioNote } from '@/vault/blocks/studio-note'
 import s from './page.module.css'
 
 /*
+ * Hoisted so the array identity is stable across renders — an inline literal
+ * would be a new array every time and would re-run `FlowmapProvider`'s
+ * effects on each one.
+ */
+const FLOWMAP_SIM: ('fluid' | 'flowmap')[] = ['flowmap']
+
+/*
  * Same `'use cache'` + draftMode shape as `app/[locale]/[...slug]/page.tsx`.
  *
  * The fetch calls `cacheTag()` internally, which under Cache Components is
@@ -155,6 +162,14 @@ export default async function Home() {
       lenis={{ anchors: true }}
       sections={sections}
       webgl
+      /*
+       * The velocity field the work grid's material reads
+       * (`vault/webgl/material-image`). Opt-in, because a simulation with no
+       * consumer still costs a GPU pass per frame and a window pointer
+       * listener — `lib/webgl/components/flowmap-provider` defaults to none
+       * for exactly that reason, and had no consumer at all until Tahap 14.
+       */
+      simTypes={FLOWMAP_SIM}
       gsap
     >
       <Hero
@@ -203,7 +218,7 @@ export default async function Home() {
               title={t('workTitle')}
               aside={t('workCount', { count: projects.length })}
             />
-            <ProjectGrid projects={projects} />
+            <ProjectGrid projects={projects} material />
           </section>
         )}
 

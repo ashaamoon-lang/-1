@@ -76,6 +76,18 @@ interface ProjectGridProps {
    * desktop width; raising it to cover the whole grid defeats the point.
    */
   preloadCount?: number | undefined
+  /**
+   * Give every cover in this grid a material surface —
+   * `vault/webgl/material-image`.
+   *
+   * Off by default, and deliberately not derived from `layout`. The two
+   * happen to coincide today (only the home page's editorial grid opts in),
+   * but they answer different questions: `layout` is composition, this is
+   * which route is allowed to pay for three.js. Tying them would mean a
+   * future editorial grid on another route silently blew
+   * `e2e/route-budget.e2e.ts`.
+   */
+  material?: boolean | undefined
   className?: string | undefined
 }
 
@@ -83,6 +95,7 @@ export function ProjectGrid({
   projects,
   layout = 'editorial',
   preloadCount = 2,
+  material = false,
   className,
 }: ProjectGridProps) {
   // Flips [data-reveal] on the container; CSS animates [data-reveal-item]
@@ -106,6 +119,7 @@ export function ProjectGrid({
               project={project}
               span={span}
               preload={index < preloadCount}
+              material={material}
             />
           </li>
         )

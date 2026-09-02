@@ -44,6 +44,25 @@
   background-color: var(--surface-2);
 }
 
+/*
+ * While a material is drawing, the plate's box is a hole through to the
+ * canvas.
+ *
+ * The WebGL surface is one fixed layer *behind* `<main>` (see
+ * `lib/webgl/components/canvas/webgl.module.css`), so a mesh standing in for
+ * this image is only visible if nothing opaque sits over its box. The
+ * placeholder above is exactly that: measured `oklab(0.23 …)` covering the
+ * mesh completely, with no error and no failing gate.
+ *
+ * It stays for every other case — the reserved box is what keeps the grid
+ * from reflowing as assets arrive — and is removed only while
+ * `[data-material]` is present, which is only while a mesh is actually on
+ * screen in its place.
+ */
+.media:has([data-material]) {
+  background-color: transparent;
+}
+
 .image {
   width: 100%;
   height: 100%;

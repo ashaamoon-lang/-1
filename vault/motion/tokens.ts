@@ -238,3 +238,57 @@ export const interaction = {
 } as const
 
 export type InteractionState = keyof typeof interaction
+
+/**
+ * The material layer — `docs/MOTION-SPEC.md` §11, `docs/stages/TAHAP-14.md` §5.
+ *
+ * ## Why these are here and not in CSS
+ *
+ * Every other token in this file has a CSS twin, because every other kind of
+ * motion here is expressible in both vocabularies. These are not: they are
+ * shader uniforms, and CSS has no way to say "offset this texture's UV by a
+ * velocity field". Putting them in a component would still be a hardcoded
+ * design value (`CLAUDE.md` #8), so they live here — the file whose job is
+ * being the one place a motion value is written down.
+ *
+ * ## Why the numbers are this small
+ *
+ * `ui-ux-pro-max` (`--domain gsap`, "image displacement hover") returns
+ * *"Keep displacement under 2px so it reads as feedback not motion"*. That
+ * guidance is for translating a DOM element, and it does not transfer
+ * literally: warping a texture's UVs by 2px on a 704px plate is
+ * sub-perceptual, so obeying the number would produce nothing at all.
+ *
+ * What does transfer is the principle. `displacement` is expressed in UV
+ * space, so its pixel amplitude scales with the plate: at the 704px half-column
+ * width this project's grid uses, 0.008 is ~5.6px of maximum warp, and that
+ * only at the peak of a fast pointer sweep. The deviation from the skill's
+ * literal figure is recorded here rather than silently taken.
+ *
+ * `MAX_DISPLACEMENT` is the ceiling `tokens.test.ts` enforces. It exists
+ * because this is the one value in the project that is tempting to raise: a
+ * bigger number is more obviously "doing something", and it is exactly how a
+ * material becomes an effect.
+ */
+export const material = {
+  /**
+   * Peak UV offset driven by the pointer velocity field, 0–1. The flowmap
+   * decays toward zero, so this is a maximum reached only in motion — a still
+   * pointer renders the plate undistorted.
+   */
+  displacement: 0.008,
+  /**
+   * Ambient UV drift amplitude, 0–1. Roughly a quarter of `displacement`:
+   * enough that a plate is not frozen when nobody is touching it, not enough
+   * to read as an animation of its own.
+   */
+  drift: 0.002,
+  /** Seconds for one full ambient drift cycle. Slow on purpose. */
+  driftPeriod: 12,
+  /**
+   * Hard ceiling for `displacement`. Above this the warp stops reading as the
+   * surface of a material and starts reading as an effect applied to a
+   * picture.
+   */
+  MAX_DISPLACEMENT: 0.012,
+} as const

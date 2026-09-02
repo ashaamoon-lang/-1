@@ -40,7 +40,7 @@
  */
 
 import cn from 'clsx'
-import { ViewTransition } from 'react'
+import { useState, ViewTransition } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -49,6 +49,7 @@ import {
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
 import { transitionName } from '@/lib/motion/transition-name'
+import { MaterialImage } from '@/vault/webgl/material-image'
 
 import s from './project-card.module.css'
 
@@ -102,6 +103,16 @@ interface ProjectCardProps {
    * deprecated `priority`: `components/ui/image` documents the rename.
    */
   preload?: boolean | undefined
+  /**
+   * Give this card's cover a material surface — `vault/webgl/material-image`.
+   *
+   * Off by default, and the default is the important half. Opting in pulls
+   * three.js into the route that renders it, and `e2e/route-budget.e2e.ts`
+   * allows that on exactly one route. The home page's curated selection opts
+   * in; `/en/work`'s catalogue and the detail page's `next-project` do not,
+   * which is the Tahap 7 decision this must not quietly undo.
+   */
+  material?: boolean | undefined
   className?: string | undefined
 }
 
@@ -109,8 +120,24 @@ export function ProjectCard({
   project,
   span: spanOverride,
   preload = false,
+  material = false,
   className,
 }: ProjectCardProps) {
+  /*
+   * COMMIT stands the material down — `docs/MOTION-SPEC.md` §11.
+   *
+   * While a mesh is drawing this card's cover, the DOM image is at
+   * `opacity: 0`. A `<ViewTransition>` photographs real DOM, so a morph that
+   * started in that state would carry an empty box to the project page and
+   * the whole moment would read as a fade to nothing. Raising this at
+   * COMMIT — the press, before the navigation — hands the surface back so
+   * TRANSPORT morphs real pixels.
+   *
+   * Declared before the `!slug` return below because hooks cannot be
+   * conditional.
+   */
+  const [released, setRelease] = useState(false)
+
   const span = spanOverride ?? project.span ?? 6
   const slug = project.slug?.current
   // A project without a slug has no page to link to. The schema requires one,
@@ -138,6 +165,11 @@ export function ProjectCard({
    */
   const maxWidth = span === 12 ? 1440 : 704
 
+  const sizes =
+    span === 12
+      ? '(max-width: 800px) 100vw, 96vw'
+      : '(max-width: 800px) 100vw, 48vw'
+
   // Client and year read as one line of metadata, and either may be absent.
   const meta = [project.engagement, project.client, project.year]
     .filter((part) => part !== null && part !== '')
@@ -162,6 +194,29 @@ export function ProjectCard({
         // Stands the route-change overlay down for this navigation so the
         // cover below can morph into the project page's hero instead.
         transition="morph"
+        /*
+         * Both COMMIT paths, because a keyboard user reaches TRANSPORT
+         * without ever producing a pointer event. `onKeyDown` fires before
+         * the click the browser synthesises from Enter, which is what makes
+         * it early enough.
+         */
+        onPointerDown={material ? () => setRelease(true) : undefined}
+        onKeyDown={
+          material
+            ? (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  setRelease(true)
+                }
+              }
+            : undefined
+        }
+        /*
+         * Restore on leave, not on pointerup. A press that does not navigate
+         * — a right-click, a drag that ends elsewhere, a cancelled tap —
+         * would otherwise leave the plate inert for the rest of the visit.
+         */
+        onPointerLeave={material ? () => setRelease(false) : undefined}
+        onBlur={material ? () => setRelease(false) : undefined}
       >
         <ViewTransition
           name={transitionName(slug)}
@@ -169,21 +224,29 @@ export function ProjectCard({
           default="none"
         >
           <div className={s.media}>
-            {project.cover && (
-              <SanityImage
-                image={toImageSource(project.cover)}
-                alt={project.coverAlt ?? ''}
-                maxWidth={maxWidth}
-                sizes={
-                  span === 12
-                    ? '(max-width: 800px) 100vw, 96vw'
-                    : '(max-width: 800px) 100vw, 48vw'
-                }
-                className={s.image}
-                data-intent=""
-                preload={preload}
-              />
-            )}
+            {project.cover &&
+              (material ? (
+                <MaterialImage
+                  image={toImageSource(project.cover)}
+                  alt={project.coverAlt ?? ''}
+                  maxWidth={maxWidth}
+                  sizes={sizes}
+                  className={s.image}
+                  data-intent=""
+                  preload={preload}
+                  released={released}
+                />
+              ) : (
+                <SanityImage
+                  image={toImageSource(project.cover)}
+                  alt={project.coverAlt ?? ''}
+                  maxWidth={maxWidth}
+                  sizes={sizes}
+                  className={s.image}
+                  data-intent=""
+                  preload={preload}
+                />
+              ))}
           </div>
         </ViewTransition>
         <div className={s.caption}>

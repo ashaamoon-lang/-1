@@ -1,0 +1,58 @@
+/*
+ * The plate's box. Positioning and the handover — no design values of its own.
+ *
+ * The mesh is drawn by the shared canvas, which is a separate fixed layer;
+ * this element is what tells the scene *where*, via `useWebGLElement`. That
+ * is also why the consumer's `className` goes to the `<img>` and never here:
+ * restyling this box would move the mesh.
+ */
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /*
+   * The handover lives here, not on the image.
+   *
+   * `transition` is a single declaration, not an additive list, so putting an
+   * opacity transition on the `<img>` would replace the consumer's own — on a
+   * project card that is the INTENT scale, which would silently stop
+   * animating. `global.css` documents the same trap for `:active`. One
+   * element, one transition, and the two concerns kept on two elements.
+   *
+   * `--duration-micro` is the COMMIT beat from `MOTION-SPEC.md` §9: the same
+   * length as the press that triggers the handover.
+   */
+  transition: opacity var(--duration-micro) var(--ease-out-quart);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * `opacity`, not `visibility` or `display`.
+ *
+ * The image must stay laid out: `useWebGLElement` reads this box every frame
+ * and a `display: none` element has none. It must also stay in the
+ * accessibility tree — the mesh carries no alt text, so hiding the image from
+ * assistive technology would leave the work undescribed.
+ */
+.root[data-material] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * Belt and braces. Under reduced motion the component's own gate is already
+   * false, so `[data-material]` never lands — but a stylesheet must not depend
+   * on a component's gate to keep content visible.
+   */
+  .root[data-material] {
+    opacity: 1;
+  }
+
+  .root {
+    transition: none;
+  }
+}
