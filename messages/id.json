@@ -11,10 +11,10 @@
   },
   "home": {
     "workEyebrow": "Karya pilihan",
-    "workTitle": "Pesanan terakhir",
-    "workCount": "{count, plural, other {# karya}}",
+    "workTitle": "Penugasan terakhir",
+    "workCount": "{count, plural, other {# penugasan}}",
     "studioEyebrow": "Studio",
-    "studioTitle": "Bagaimana karyanya dikerjakan",
+    "studioTitle": "Bagaimana kami bekerja",
     "contactEyebrow": "Pesanan",
     "contactTitle": "Mulai percakapan",
     "emailLabel": "Kirim surel ke {name}",
@@ -33,22 +33,22 @@
   "workIndex": {
     "title": "Karya",
     "eyebrow": "Katalog",
-    "intro": "Karya pesanan yang sudah selesai. Saring per disiplin, atau lihat semuanya.",
-    "filterLabel": "Saring per disiplin",
+    "intro": "Penugasan yang sudah selesai. Saring per praktik, atau lihat semuanya.",
+    "filterLabel": "Saring per praktik",
     "all": "Semua",
-    "painting": "Lukisan",
-    "mural": "Mural",
-    "illustration": "Ilustrasi",
-    "count": "{count, plural, other {# karya}}",
-    "emptyTitle": "Belum ada karya di disiplin ini",
-    "emptyBody": "Studio belum menerbitkan karya di bawah kategori ini. Lihat semuanya saja.",
+    "count": "{count, plural, other {# penugasan}}",
+    "emptyTitle": "Belum ada di praktik ini",
+    "emptyBody": "Belum ada pekerjaan yang diterbitkan pada praktik ini. Lihat semuanya saja.",
     "emptyAction": "Lihat semua karya",
-    "paintingTitle": "Lukisan",
-    "muralTitle": "Mural",
-    "illustrationTitle": "Ilustrasi",
-    "paintingIntro": "Lukisan pesanan — studi, potret, dan karya panel yang dibuat sesuai brief.",
-    "muralIntro": "Mural pesanan — karya yang dilukis langsung di dinding tempat ia dibuat.",
-    "illustrationIntro": "Ilustrasi pesanan — karya gambar sesuai brief, untuk cetak maupun layar."
+    "consulting": "Konsultasi",
+    "ai-data": "AI & Data",
+    "commission": "Pesanan",
+    "consultingTitle": "Konsultasi",
+    "consultingIntro": "Penugasan konsultasi — strategi, arsitektur, dan keputusan yang datang sebelum pembangunan.",
+    "ai-dataTitle": "AI & Data",
+    "ai-dataIntro": "Pekerjaan AI dan data — evaluasi, pipeline, dan sistem yang harus bertahan di produksi.",
+    "commissionTitle": "Pesanan",
+    "commissionIntro": "Karya pesanan — penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief."
   },
   "meta": {
     "client": "Klien",
@@ -69,9 +69,9 @@
   "project": {
     "client": "Klien",
     "year": "Tahun",
-    "medium": "Medium",
-    "dimensions": "Dimensi",
-    "nextProject": "Karya berikutnya"
+    "nextProject": "Karya berikutnya",
+    "engagement": "Keterlibatan",
+    "scope": "Lingkup"
   },
   "notFound": {
     "label": "Galat",

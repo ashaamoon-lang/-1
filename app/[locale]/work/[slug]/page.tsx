@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { Wrapper } from '@/components/layout/wrapper'
-import { DISCIPLINE_SEGMENT } from '@/lib/content/disciplines'
 import { nextProject } from '@/lib/content/next-project'
+import { PRACTICE_SEGMENT } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -167,7 +167,7 @@ export async function generateStaticParams() {
 
   const data = await fetchProjectSlugs()
   const slugs = (data ?? []).filter(
-    (slug): slug is string => Boolean(slug) && slug !== DISCIPLINE_SEGMENT
+    (slug): slug is string => Boolean(slug) && slug !== PRACTICE_SEGMENT
   )
 
   return slugs.length > 0
@@ -204,10 +204,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   if (!isConfigured('sanity')) notFound()
   // Belt and braces for the reserved segment. The router never routes
-  // `/work/discipline` here — the static segment wins — but `dynamicParams`
+  // `/work/practice` here — the static segment wins — but `dynamicParams`
   // means a document on this slug would otherwise be served at a URL that
-  // contradicts the discipline route one level down.
-  if (slug === DISCIPLINE_SEGMENT) notFound()
+  // contradicts the practice route one level down.
+  if (slug === PRACTICE_SEGMENT) notFound()
 
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
@@ -241,8 +241,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           meta={[
             { label: t('client'), value: project.client },
             { label: t('year'), value: project.year },
-            { label: t('medium'), value: project.medium },
-            { label: t('dimensions'), value: project.dimensions },
+            { label: t('engagement'), value: project.engagement },
+            { label: t('scope'), value: project.scope },
           ]}
         />
 

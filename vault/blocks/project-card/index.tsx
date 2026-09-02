@@ -66,7 +66,7 @@ export interface Project {
   title: string | null
   /** Resolved for the active locale by the query; the schema makes it required. */
   coverAlt: string | null
-  medium: string | null
+  engagement: string | null
   year: number | null
   client: string | null
   /** Half (6) or full (12) of the 12 desktop columns. */
@@ -139,7 +139,7 @@ export function ProjectCard({
   const maxWidth = span === 12 ? 1440 : 704
 
   // Client and year read as one line of metadata, and either may be absent.
-  const meta = [project.medium, project.client, project.year]
+  const meta = [project.engagement, project.client, project.year]
     .filter((part) => part !== null && part !== '')
     .join(' · ')
 

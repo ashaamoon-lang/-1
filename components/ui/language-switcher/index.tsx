@@ -23,7 +23,7 @@ import s from './language-switcher.module.css'
  * ## It keeps the reader on the page they are reading
  *
  * `usePathname` here is next-intl's, which returns the path with the locale
- * prefix stripped (`/work/mural`, not `/id/work/mural`). Handing that
+ * prefix stripped (`/work/ai-data`, not `/id/work/ai-data`). Handing that
  * template back to next-intl's `Link` with an explicit `locale` re-prefixes
  * it for the target language, so switching language on a project page lands
  * on the same project — not on the home page, which is what a naive

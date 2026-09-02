@@ -1,10 +1,10 @@
 import type { MetadataRoute } from 'next'
 
 import {
-  DISCIPLINES,
-  type Discipline,
-  disciplineTemplate,
-} from '@/lib/content/disciplines'
+  PRACTICES,
+  type Practice,
+  practiceTemplate,
+} from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { type Locale, routing } from '@/lib/i18n/routing'
 import { type Localized, SITE } from '@/lib/seo/site'
@@ -48,7 +48,7 @@ export interface LocalizedStaticRoute extends Omit<
  * `lib/i18n/paths.ts` for why the two are deliberately kept distinct.
  */
 /*
- * Labels and descriptions for the discipline views.
+ * Labels and descriptions for the practice views.
  *
  * Deliberately not read from `messages/*.json`. This catalogue feeds
  * `/llms.txt`, `/ai` and the sitemap, all of which are assembled outside any
@@ -57,26 +57,26 @@ export interface LocalizedStaticRoute extends Omit<
  * page's own `<h1>` does come from the message files, which is why these read
  * as descriptions of a listing rather than as page titles.
  */
-const DISCIPLINE_LABELS = {
-  painting: { en: 'Painting commissions', id: 'Lukisan pesanan' },
-  mural: { en: 'Mural commissions', id: 'Mural pesanan' },
-  illustration: { en: 'Illustration commissions', id: 'Ilustrasi pesanan' },
-} satisfies Record<Discipline, Localized<string>>
+const PRACTICE_LABELS = {
+  consulting: { en: 'Consulting', id: 'Konsultasi' },
+  'ai-data': { en: 'AI and data', id: 'AI dan data' },
+  commission: { en: 'Commissioned work', id: 'Karya pesanan' },
+} satisfies Record<Practice, Localized<string>>
 
-const DISCIPLINE_DESCRIPTIONS = {
-  painting: {
-    en: 'Commissioned paintings — studies, portraits and panel work made to a brief.',
-    id: 'Lukisan pesanan — studi, potret, dan karya panel yang dibuat sesuai brief.',
+const PRACTICE_DESCRIPTIONS = {
+  consulting: {
+    en: 'Consulting engagements — strategy, architecture and the decisions that come before a build.',
+    id: 'Penugasan konsultasi — strategi, arsitektur, dan keputusan yang datang sebelum pembangunan.',
   },
-  mural: {
-    en: 'Commissioned murals — work painted onto the wall it was made for.',
-    id: 'Mural pesanan — karya yang dilukis langsung di dinding tempat ia dibuat.',
+  'ai-data': {
+    en: 'AI and data work — evaluation, pipelines and systems that have to hold up in production.',
+    id: 'Pekerjaan AI dan data — evaluasi, pipeline, dan sistem yang harus bertahan di produksi.',
   },
-  illustration: {
-    en: 'Commissioned illustration — drawn work made to a brief, for print or screen.',
-    id: 'Ilustrasi pesanan — karya gambar sesuai brief, untuk cetak maupun layar.',
+  commission: {
+    en: 'Commissioned work — scoped, paid engagements delivered to a brief.',
+    id: 'Karya pesanan — penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief.',
   },
-} satisfies Record<Discipline, Localized<string>>
+} satisfies Record<Practice, Localized<string>>
 
 export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
   {
@@ -90,8 +90,8 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
     path: '/ai',
     label: { en: 'Agent index', id: 'Indeks untuk agen' },
     description: {
-      en: 'Server-rendered studio facts, every page link, and guidance for agents handling a commission enquiry.',
-      id: 'Fakta studio yang dirender di server, tautan ke seluruh halaman, dan panduan untuk agen yang menangani permintaan pesanan.',
+      en: 'Server-rendered agency facts, every page link, and guidance for agents handling an enquiry.',
+      id: 'Fakta agency yang dirender di server, tautan ke seluruh halaman, dan panduan untuk agen yang menangani permintaan masuk.',
     },
     changeFrequency: 'monthly',
     priority: 0.5,
@@ -100,28 +100,28 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
     path: '/work',
     label: { en: 'Work', id: 'Karya' },
     description: {
-      en: 'The full catalogue of completed commissions, with client, year, medium and dimensions for each.',
-      id: 'Katalog lengkap karya pesanan yang sudah selesai, lengkap dengan klien, tahun, medium, dan ukurannya.',
+      en: 'The full catalogue of completed engagements, with client, year, engagement and scope for each.',
+      id: 'Katalog lengkap penugasan yang sudah selesai, lengkap dengan klien, tahun, bentuk keterlibatan, dan lingkupnya.',
     },
     changeFrequency: 'weekly',
     priority: 0.9,
   },
   /*
-   * One entry per discipline.
+   * One entry per practice.
    *
    * These are not filter permutations of `/work` — they are `○` static pages
    * with their own `<h1>`, their own description and their own canonical, and
    * they are the pages that should rank for "commissioned mural" rather than
    * the generic index. `app/[locale]/work/catalogue.tsx` records why the
-   * filter is a route at all instead of `?discipline=`.
+   * filter is a route at all instead of `?practice=`.
    *
    * Generated from the same constant the route's `generateStaticParams` uses,
    * so the sitemap cannot list a view that is not built, or omit one that is.
    */
-  ...DISCIPLINES.map((value): StaticRoute => ({
-    path: disciplineTemplate(value),
-    label: DISCIPLINE_LABELS[value],
-    description: DISCIPLINE_DESCRIPTIONS[value],
+  ...PRACTICES.map((value): StaticRoute => ({
+    path: practiceTemplate(value),
+    label: PRACTICE_LABELS[value],
+    description: PRACTICE_DESCRIPTIONS[value],
     changeFrequency: 'weekly',
     priority: 0.7,
   })),

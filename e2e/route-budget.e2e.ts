@@ -35,7 +35,7 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
   // The only page with a scene, and the only one that animates.
   { path: '/en', allow: ['three', 'gsap'], maxKb: 2100 },
   { path: '/en/work', allow: [], maxKb: 900 },
-  { path: '/en/work/rimbun', allow: [], maxKb: 900 },
+  { path: '/en/work/arus-balik', allow: [], maxKb: 900 },
   // The machine view. Its layout comment promises zero client components.
   { path: '/en/ai', allow: [], maxKb: 850 },
 ]

@@ -1,7 +1,7 @@
 import type { Browser } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
-import { DISCIPLINES } from '../lib/content/disciplines'
+import { PRACTICES } from '../lib/content/practices'
 import { routing } from '../lib/i18n/routing'
 
 /**
@@ -28,9 +28,9 @@ import { routing } from '../lib/i18n/routing'
  *
  *   - `draftMode()` bought live preview of *unpublished* project edits, which
  *     `docs/PANDUAN-STUDIO.md` never taught and nothing depended on;
- *   - `searchParams` bought `?discipline=`, which is now three static routes.
+ *   - `searchParams` bought `?practice=`, which is now three static routes.
  *
- * Measured before the change: `/en/work/rimbun` 28 characters,
+ * Measured before the change: `/en/work/arus-balik` 28 characters,
  * `/en/work` its heading plus the word *Loading* and not one project. After:
  * 498 and 513, byte-identical to the JavaScript-enabled render. This file is
  * what stops that regressing, so it asserts on **project links**, not only
@@ -57,10 +57,10 @@ async function renderWithoutJavaScript(browser: Browser, path: string) {
         headings: document.querySelectorAll('h1').length,
         heading: document.querySelector('h1')?.textContent?.trim() ?? '',
         // Links into a project detail page — the catalogue's actual payload.
-        // `/work/discipline/…` is a filter view, not a work, so it is excluded.
+        // `/work/practice/…` is a filter view, not a work, so it is excluded.
         projectLinks: [
           ...document.querySelectorAll<HTMLAnchorElement>('a[href*="/work/"]'),
-        ].filter((a) => !a.pathname.includes('/work/discipline/')).length,
+        ].filter((a) => !a.pathname.includes('/work/practice/')).length,
         // The chip the server marked active. Rendering this at all proves the
         // filter state came from the route rather than from a client effect.
         activeChip:
@@ -102,16 +102,16 @@ test.describe('readable without JavaScript', () => {
     })
   }
 
-  for (const discipline of DISCIPLINES) {
-    test(`/en/work/discipline/${discipline} renders server-side`, async ({
+  for (const practice of PRACTICES) {
+    test(`/en/work/practice/${practice} renders server-side`, async ({
       browser,
     }) => {
       const rendered = await renderWithoutJavaScript(
         browser,
-        `/en/work/discipline/${discipline}`
+        `/en/work/practice/${practice}`
       )
 
-      // No `projectLinks` assertion: a discipline the studio has not published
+      // No `projectLinks` assertion: a practice the studio has not published
       // under yet legitimately renders the empty state, and this gate must not
       // fail on a truthful empty catalogue.
       expect(rendered.headings, 'exactly one h1').toBe(1)
@@ -120,8 +120,8 @@ test.describe('readable without JavaScript', () => {
       // the right chip proves both that this view is distinct from `/work`
       // and that its selected state survives with no JavaScript at all — the
       // property a client-side filter cannot have.
-      expect(rendered.activeChip, 'active chip marks this discipline').toBe(
-        `/en/work/discipline/${discipline}`
+      expect(rendered.activeChip, 'active chip marks this practice').toBe(
+        `/en/work/practice/${practice}`
       )
     })
   }
@@ -131,7 +131,7 @@ test.describe('readable without JavaScript', () => {
     // test does not silently pass against a dataset that no longer has it.
     const sitemap = await (await request.get('/sitemap.xml')).text()
     const match = sitemap.match(
-      /<loc>[^<]*?(\/en\/work\/(?!discipline\/)[^<]+)<\/loc>/
+      /<loc>[^<]*?(\/en\/work\/(?!practice\/)[^<]+)<\/loc>/
     )
     test.skip(!match, 'no published project in the sitemap to check')
 

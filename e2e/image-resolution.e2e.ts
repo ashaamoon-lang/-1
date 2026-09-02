@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { FEATURED_WORK } from './fixtures'
+
 /**
  * Images carry enough real pixels for the density they are displayed at.
  *
@@ -30,7 +32,7 @@ import { expect, test } from '@playwright/test'
 /** Below this, the image is being upscaled on screen. */
 const MIN_RATIO = 0.95
 
-const ROUTES = ['/en', '/en/work/rimbun']
+const ROUTES = ['/en', `/en/work/${FEATURED_WORK}`]
 
 test.describe('images are not upscaled', () => {
   for (const route of ROUTES) {

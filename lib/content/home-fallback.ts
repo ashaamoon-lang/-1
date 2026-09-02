@@ -14,8 +14,8 @@ import type { Locale } from '@/lib/i18n/routing'
  * `docs/stages/TAHAP-3.md` §0). A home page fed entirely from an empty CMS
  * renders with no `<h1>` and almost no text, which fails
  * `e2e/agent-readiness.e2e.ts` and cannot be judged by anyone. The two
- * alternatives were worse: shipping a blank page, or writing invented artwork
- * into the studio's real content library.
+ * alternatives were worse: shipping a blank page, or writing invented engagements
+ * into the agency's real content library.
  *
  * ## Why it is not in `messages/*.json`
  *
@@ -40,21 +40,22 @@ interface HomeCopy {
 
 const FALLBACK_COPY = {
   en: {
-    headline: 'Commissioned work for people who notice',
-    subline: 'Painting, mural and illustration, made to a brief and to a wall.',
+    headline: 'Work that has to hold up',
+    subline:
+      'Consulting, AI and data, and commissioned build — scoped to a brief and delivered against it.',
     statement: [
-      'Arth works to commission. Every piece starts from a conversation about the room it will live in — its light, its scale, what it is already doing — and not from a catalogue of available styles.',
-      'The work is mostly acrylic and gouache, at sizes from a single sheet to a full wall. Timelines run from three weeks for a study to several months for an installed mural, and the estimate is given before anything is agreed rather than after.',
+      'Arth works to a brief. Every engagement starts from the constraint that makes the problem hard — the deadline, the legacy system, the decision that cannot be reversed — and not from a menu of services.',
+      'The work runs from a two-week architecture review to a build carried for several months. The scope and the estimate are agreed before anything starts rather than after, and what is delivered is measured against them.',
     ],
     portraitCaption: 'The studio',
   },
   id: {
-    headline: 'Karya pesanan untuk mereka yang memperhatikan',
+    headline: 'Karya yang harus bertahan',
     subline:
-      'Lukisan, mural, dan ilustrasi, dikerjakan sesuai brief dan sesuai dindingnya.',
+      'Konsultasi, AI dan data, serta pengerjaan pesanan — dengan lingkup sesuai brief dan dikerjakan sesuai itu.',
     statement: [
-      'Arth bekerja berdasarkan pesanan. Setiap karya dimulai dari percakapan tentang ruang yang akan menampungnya — cahayanya, ukurannya, apa yang sudah dilakukannya — bukan dari katalog gaya yang tersedia.',
-      'Materialnya sebagian besar akrilik dan guas, dengan ukuran dari satu lembar sampai satu dinding penuh. Waktu pengerjaan berkisar tiga minggu untuk studi hingga beberapa bulan untuk mural terpasang, dan perkiraannya diberikan sebelum apa pun disepakati, bukan sesudah.',
+      'Arth bekerja sesuai brief. Tiap penugasan dimulai dari kendala yang membuat masalahnya sulit — tenggatnya, sistem lamanya, keputusan yang tidak bisa ditarik kembali — bukan dari daftar layanan.',
+      'Pekerjaannya berkisar dari tinjauan arsitektur dua minggu sampai pengerjaan yang berjalan beberapa bulan. Lingkup dan perkiraannya disepakati sebelum apa pun dimulai, bukan sesudah, dan hasilnya diukur terhadap keduanya.',
     ],
     portraitCaption: 'Studio',
   },

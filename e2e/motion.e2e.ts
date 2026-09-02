@@ -2,6 +2,7 @@ import type { Browser, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 import { routing } from '../lib/i18n/routing'
+import { FEATURED_WORK } from './fixtures'
 
 /**
  * Handles the in-page probes write to and this file reads back.
@@ -148,7 +149,7 @@ async function strandedItems(page: Page) {
 }
 
 test.describe('motion', () => {
-  for (const path of ['/en', '/en/work', '/en/work/rimbun']) {
+  for (const path of ['/en', '/en/work', `/en/work/${FEATURED_WORK}`]) {
     test(`${path} strands no content invisible`, async ({ page }) => {
       await installLiveRoot(page)
       await installLiveRoot(page)
@@ -224,12 +225,12 @@ test.describe('motion', () => {
     }
 
     for (const locale of routing.locales) {
-      test(`/${locale}/work/rimbun renders everything immediately`, async ({
+      test(`/${locale}/work/arus-balik renders everything immediately`, async ({
         browser,
       }) => {
         const { context, page } = await reducedMotionPage(
           browser,
-          `/${locale}/work/rimbun`
+          `/${locale}/work/${FEATURED_WORK}`
         )
         try {
           // No scrolling: under the preference the hook reveals on mount and
@@ -276,8 +277,11 @@ test.describe('motion', () => {
 
         // And navigation still works without it — the overlay is decoration,
         // never a step in the journey.
-        await page.locator('a[href="/en/work/panas-sore"]').first().click()
-        await page.waitForURL('**/work/panas-sore')
+        await page
+          .locator(`a[href="/en/work/${FEATURED_WORK}"]`)
+          .first()
+          .click()
+        await page.waitForURL(`**/work/${FEATURED_WORK}`)
         await expect(page.locator(OVERLAY)).toHaveCount(0)
       } finally {
         await context.close()
@@ -356,11 +360,15 @@ test.describe('motion', () => {
   }
 
   test('a work card morphs into its project page', async ({ page }) => {
-    const morph = await captureMorph(page, '/en/work', '/en/work/panas-sore')
+    const morph = await captureMorph(
+      page,
+      '/en/work',
+      `/en/work/${FEATURED_WORK}`
+    )
 
     expect(morph.calls, 'no view transition was started').toBeGreaterThan(0)
     expect(morph.names, 'the shared name was never applied').toContain(
-      'work-cover-panas-sore'
+      `work-cover-${FEATURED_WORK}`
     )
 
     /*
@@ -370,7 +378,7 @@ test.describe('motion', () => {
      * difference between the cover moving and the cover being replaced.
      */
     const group = morph.pseudo.filter((p) =>
-      p.includes('view-transition-group(work-cover-panas-sore)')
+      p.includes(`view-transition-group(work-cover-${FEATURED_WORK})`)
     )
     expect(
       group.length,
@@ -380,7 +388,7 @@ test.describe('motion', () => {
     for (const half of ['old', 'new']) {
       expect(
         morph.pseudo.some((p) =>
-          p.includes(`view-transition-${half}(work-cover-panas-sore)`)
+          p.includes(`view-transition-${half}(work-cover-${FEATURED_WORK})`)
         ),
         `the ${half} half of the pair is missing`
       ).toBe(true)
@@ -411,8 +419,8 @@ test.describe('motion', () => {
       requestAnimationFrame(tick)
     })
 
-    await page.locator('a[href="/en/work/panas-sore"]').first().click()
-    await page.waitForURL('**/panas-sore')
+    await page.locator(`a[href="/en/work/${FEATURED_WORK}"]`).first().click()
+    await page.waitForURL(`**/${FEATURED_WORK}`)
     await page.waitForTimeout(1800)
 
     const states = await page.evaluate(() => [...new Set(globalThis.__states)])
@@ -525,8 +533,8 @@ test.describe('motion', () => {
     const overlay = page.locator(OVERLAY)
     await expect(overlay).toHaveAttribute('data-state', 'idle')
 
-    await page.locator('a[href="/en/work/panas-sore"]').first().click()
-    await page.waitForURL('**/work/panas-sore')
+    await page.locator(`a[href="/en/work/${FEATURED_WORK}"]`).first().click()
+    await page.waitForURL(`**/work/${FEATURED_WORK}`)
 
     // The terminal state is the assertion. Whatever happens in between — a
     // fast prefetched route, a slow one, an interrupted cover — the panel has

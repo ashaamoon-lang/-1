@@ -41,7 +41,8 @@ const action = (
 export const Default: Story = {
   args: {
     headline: 'Commissioned work for people who notice',
-    subline: 'Painting, mural and illustration, made to a brief and to a wall.',
+    subline:
+      'Consulting, AI and data, and commissioned build — scoped to a brief and delivered against it.',
     action,
   },
 }
@@ -59,7 +60,7 @@ export const HeadlineOnly: Story = {
 export const LongHeadline: Story = {
   args: {
     headline:
-      'Commissioned painting, mural and illustration for people who notice what a room is doing',
+      'Consulting, AI and data, and commissioned build for teams that have to live with the decision',
     subline: 'Working to brief, at any scale, since 2019.',
     action,
   },

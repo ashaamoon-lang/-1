@@ -1,6 +1,8 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
+import { FEATURED_WORK } from './fixtures'
+
 /**
  * The in-page sampler's handle, declared rather than asserted at each use —
  * the same reasoning as the `__morph` handle in `motion.e2e.ts`.
@@ -56,7 +58,7 @@ const MICRO = { low: 0.15, high: 0.25 }
 const EXPECTED = {
   '/en': ['nav', 'cta', 'card', 'email'],
   '/en/work': ['chip', 'card'],
-  '/en/work/panas-sore': ['next'],
+  [`/en/work/${FEATURED_WORK}`]: ['next'],
 } satisfies Record<string, readonly string[]>
 
 /**

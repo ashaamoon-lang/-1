@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test'
 
-import { DISCIPLINES } from '../lib/content/disciplines'
+import { PRACTICES } from '../lib/content/practices'
 
 /**
  * What the server actually puts in its headers.
  *
  * No gate in this project had ever read one. `bun run check` and the rest of
  * the e2e suite look at markup; `Cache-Control` is invisible to all of them,
- * which is how `/en/work/rimbun` came to be served `no-store` — every view of
+ * which is how `/en/work/arus-balik` came to be served `no-store` — every view of
  * the most-shared page class hitting the origin — while hashed, immutable
  * build assets were served `max-age=0` and refetched on every navigation
  * (`docs/AUDIT-2026-08.md` §Tier 3).
@@ -34,7 +34,7 @@ test.describe('response headers', () => {
       // string does not come back.
       '/en/work',
       '/id/work',
-      ...DISCIPLINES.map((value) => `/en/work/discipline/${value}`),
+      ...PRACTICES.map((value) => `/en/work/practice/${value}`),
     ]
 
     for (const path of paths) {
@@ -54,7 +54,7 @@ test.describe('response headers', () => {
     // exists.
     const sitemap = await (await request.get('/sitemap.xml')).text()
     const path = sitemap.match(
-      /<loc>[^<]*?(\/en\/work\/(?!discipline\/)[^<]+)<\/loc>/
+      /<loc>[^<]*?(\/en\/work\/(?!practice\/)[^<]+)<\/loc>/
     )?.[1]
     test.skip(!path, 'no published project in the sitemap to check')
 

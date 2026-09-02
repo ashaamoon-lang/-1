@@ -30,10 +30,10 @@ import s from './project-hero.module.css'
  *
  * ## The meta list is a description list, not a table
  *
- * Client, year, medium and dimensions are label/value pairs about one subject,
+ * Client, year, engagement and scope are label/value pairs about one subject,
  * which is exactly what `<dl>` describes. A table would claim a relationship
  * between rows that does not exist. Any pair whose value is missing is dropped
- * rather than rendered blank — an editor who has not filled in dimensions
+ * rather than rendered blank — an editor who has not filled in the scope
  * should not produce a "Dimensions —" row.
  */
 export interface ProjectMeta {

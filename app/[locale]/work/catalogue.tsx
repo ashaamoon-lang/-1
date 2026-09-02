@@ -2,27 +2,27 @@ import { getTranslations } from 'next-intl/server'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
-import { DISCIPLINES, type Discipline } from '@/lib/content/disciplines'
+import { PRACTICES, type Practice } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import type { Locale } from '@/lib/i18n/routing'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import {
-  disciplinesQuery,
+  practicesQuery,
   workIndexQuery,
 } from '@/lib/integrations/sanity/queries'
-import { DisciplineFilter } from '@/vault/blocks/discipline-filter'
+import { PracticeFilter } from '@/vault/blocks/practice-filter'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
 
-import { disciplineHref } from './hrefs'
+import { practiceHref } from './hrefs'
 
 import s from './page.module.css'
 
 /**
- * The catalogue body, shared by `/work` and `/work/discipline/[value]`.
+ * The catalogue body, shared by `/work` and `/work/practice/[value]`.
  *
  * ## Why the two routes are separate pages rather than one page and a query
  *
- * Tahap 8 built this as a single route reading `?discipline=`, and Tahap 10
+ * Tahap 8 built this as a single route reading `?practice=`, and Tahap 10
  * §1.4 initially decided to keep that shape. Two build errors overturned it,
  * and both are reproducible:
  *
@@ -42,7 +42,7 @@ import s from './page.module.css'
  * `lib/seo/site.ts` instructs agents to browse `/en/work`, and an answer
  * engine fetching it over plain HTTP would have found an empty catalogue.
  *
- * Path segments cost one reserved slug (`lib/content/disciplines.ts`) and buy:
+ * Path segments cost one reserved slug (`lib/content/practices.ts`) and buy:
  * every view fully server-rendered, `Cache-Control: s-maxage=31536000`, no
  * Suspense fallback, and three extra indexable landing pages per locale in
  * `sitemap.xml`.
@@ -51,60 +51,60 @@ import s from './page.module.css'
 /**
  * `'use cache'` is required, not stylistic: `sanityFetch` calls `cacheTag()`
  * internally, and under Cache Components that is only legal inside a cached
- * function. Locale and discipline are arguments so both are part of the key.
+ * function. Locale and practice are arguments so both are part of the key.
  *
  * Published perspective only, and no `draftMode()` — for the reasons set out
  * at length in `work/[slug]/page.tsx`. Reading the draft cookie is a
  * request-time access, and it would put this page straight back into the
  * dynamic hole the route shape above exists to escape.
  */
-async function fetchCatalogue(locale: string, discipline: Discipline | null) {
+async function fetchCatalogue(locale: string, practice: Practice | null) {
   'use cache'
-  const [projects, disciplines] = await Promise.all([
+  const [projects, practices] = await Promise.all([
     sanityFetch({
       query: workIndexQuery,
-      params: { locale, discipline },
+      params: { locale, practice },
       perspective: 'published',
       stega: false,
     }),
     sanityFetch({
-      query: disciplinesQuery,
+      query: practicesQuery,
       params: {},
       perspective: 'published',
       stega: false,
     }),
   ])
-  return { projects: projects.data, disciplines: disciplines.data }
+  return { projects: projects.data, practices: practices.data }
 }
 
 interface CatalogueProps {
   locale: Locale
-  /** The discipline this view is narrowed to, or `null` for everything. */
-  discipline: Discipline | null
+  /** The practice this view is narrowed to, or `null` for everything. */
+  practice: Practice | null
 }
 
-export async function Catalogue({ locale, discipline }: CatalogueProps) {
-  const [{ projects, disciplines }, t] = await Promise.all([
-    fetchCatalogue(locale, discipline),
+export async function Catalogue({ locale, practice }: CatalogueProps) {
+  const [{ projects, practices }, t] = await Promise.all([
+    fetchCatalogue(locale, practice),
     getTranslations('workIndex'),
   ])
 
   const basePath = localizedPath(locale, '/work')
 
-  // Only offer a chip for a discipline that has listed work behind it. An
+  // Only offer a chip for a practice that has listed work behind it. An
   // option that always returns nothing is a dead end wearing a control's
   // clothes.
-  // SAFETY: `disciplines` is typed as literal unions by TypeGen because the
+  // SAFETY: `practices` is typed as literal unions by TypeGen because the
   // query projects a closed schema list. Widening to `(string | null)[]` only
   // relaxes the element type for this membership check — the values are
-  // compared, not mutated, and `DISCIPLINES` stays the authority on which
+  // compared, not mutated, and `PRACTICES` stays the authority on which
   // ones are offered.
-  const present = disciplines as readonly (string | null)[]
-  const available = DISCIPLINES.filter((value) => present.includes(value)).map(
+  const present = practices as readonly (string | null)[]
+  const available = PRACTICES.filter((value) => present.includes(value)).map(
     (value) => ({
       value,
       label: t(value),
-      href: disciplineHref(locale, value),
+      href: practiceHref(locale, value),
     })
   )
 
@@ -114,19 +114,19 @@ export async function Catalogue({ locale, discipline }: CatalogueProps) {
         <header className={s.header}>
           <p className="caption">{t('eyebrow')}</p>
           <h1 className="h1">
-            {discipline ? t(`${discipline}Title`) : t('title')}
+            {practice ? t(`${practice}Title`) : t('title')}
           </h1>
           <p className={s.intro}>
-            {discipline ? t(`${discipline}Intro`) : t('intro')}
+            {practice ? t(`${practice}Intro`) : t('intro')}
           </p>
         </header>
 
-        <DisciplineFilter
+        <PracticeFilter
           className={s.filter}
           allLabel={t('all')}
           allHref={basePath}
           options={available}
-          active={discipline}
+          active={practice}
           label={t('filterLabel')}
         />
 
@@ -151,11 +151,11 @@ export async function Catalogue({ locale, discipline }: CatalogueProps) {
            * screen — the `ui-ux-pro-max` Empty States guideline, which asks
            * for "a helpful message and action".
            *
-           * Reachable now in a way it was not before: a discipline route is
+           * Reachable now in a way it was not before: a practice route is
            * prerendered for all three values whether or not the studio has
-           * published anything under them, so `/en/work/discipline/mural` on
-           * a catalogue with no murals lands here. That is the right answer —
-           * a 404 would say the discipline does not exist, which is a
+           * published anything under them, so `/en/work/practice/ai-data` on
+           * a catalogue with no such work lands here. That is the right answer —
+           * a 404 would say the practice does not exist, which is a
            * different claim from "no work under it yet".
            */
           <div className={s.empty}>

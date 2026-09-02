@@ -32,8 +32,9 @@ const statement = (
       and not from a catalogue of available styles.
     </p>
     <p className="p-big">
-      The work is mostly acrylic and gouache, at sizes from a single sheet to a
-      full wall.
+      The work runs from a two-week architecture review to a build carried for
+      several months. The scope and the estimate are agreed before anything
+      starts rather than after, and what is delivered is measured against them.
     </p>
   </>
 )

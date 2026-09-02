@@ -1,5 +1,5 @@
 /**
- * DisciplineFilter — the work index's category chips.
+ * PracticeFilter — the work index's category chips.
  *
  * ## Links to pages, not to query strings
  *
@@ -7,7 +7,7 @@
  * the server. Four things follow, and the first three came out of the
  * `ui-ux-pro-max` ritual recorded in `docs/stages/TAHAP-8.md` §1:
  *
- *  - **Deep Linking** — `/id/work/discipline/mural` is a URL worth sending
+ *  - **Deep Linking** — `/id/work/practice/mural` is a URL worth sending
  *    someone. A client-side filter would leave every view at the same address.
  *  - **Fast loading essential** (the Portfolio Grid pattern's own conversion
  *    note) — this ships zero client JavaScript. No state, no handlers, no
@@ -17,7 +17,7 @@
  *    this page should not become a second instance of that.
  *  - Each view is `○` static and separately indexable.
  *
- * The fourth is why the chips point at paths and not at `?discipline=`, which
+ * The fourth is why the chips point at paths and not at `?practice=`, which
  * is what Tahap 8 shipped. Under Cache Components a route that reads
  * `searchParams` must put its content behind a Suspense boundary, and that
  * content then reaches the reader only via an inline script — so the
@@ -35,7 +35,7 @@ import cn from 'clsx'
 
 import { Link } from '@/components/ui/link'
 
-import s from './discipline-filter.module.css'
+import s from './practice-filter.module.css'
 
 export interface DisciplineOption {
   /** Stored value. Unlocalized — see `schemas/project.ts`. */
@@ -46,27 +46,27 @@ export interface DisciplineOption {
   href: string
 }
 
-interface DisciplineFilterProps {
+interface PracticeFilterProps {
   /** Label for the "no filter" chip. */
   allLabel: string
   /** Where the "no filter" chip points — the work index for this locale. */
   allHref: string
   options: DisciplineOption[]
-  /** The active discipline, or `null` for all. */
+  /** The active practice, or `null` for all. */
   active: string | null
   /** Accessible name for the group. */
   label: string
   className?: string | undefined
 }
 
-export function DisciplineFilter({
+export function PracticeFilter({
   allLabel,
   allHref,
   options,
   active,
   label,
   className,
-}: DisciplineFilterProps) {
+}: PracticeFilterProps) {
   // One chip fewer than two is not a filter, it is a label. Render nothing
   // rather than a control that cannot change anything.
   if (options.length < 2) return null

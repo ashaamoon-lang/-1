@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 
+import { PRACTICE_SEGMENT } from '../lib/content/practices'
 import { LOCALE_TAGS, ogLocale, routing } from '../lib/i18n/routing'
 
 /**
@@ -9,8 +10,8 @@ import { LOCALE_TAGS, ogLocale, routing } from '../lib/i18n/routing'
  * all from the same root cause — a locale-free path handed to a helper that
  * needed a localized one:
  *
- *  - `og:url` said `/work/panas-sore` while the canonical said
- *    `/en/work/panas-sore`. Two URLs for one page, from one function.
+ *  - `og:url` said `/work/arus-balik` while the canonical said
+ *    `/en/work/arus-balik`. Two URLs for one page, from one function.
  *  - `og:locale` reported `en_US` on every Indonesian page, because the
  *    locale was read from a path that had no locale in it.
  *  - `/en/ai` and `/id/ai` both declared `canonical: /ai` — a URL this app
@@ -89,12 +90,14 @@ test.describe('sitemap and page metadata agree', () => {
       ...(await sitemap.text()).matchAll(/<loc>([^<]+)<\/loc>/g),
     ]
       .map((match) => new URL(match[1] ?? '').pathname)
-      // Artwork pages only. `/work/discipline/mural` shares the prefix but is
+      // Work pages only. `/work/practice/ai-data` shares the prefix but is
       // a catalogue view, not a work: it has no cover of its own, so the
       // site-wide card is the correct card for it and asserting otherwise
       // would fail on a page that is behaving properly.
       .filter(
-        (path) => path.includes('/work/') && !path.includes('/work/discipline/')
+        (path) =>
+          path.includes('/work/') &&
+          !path.includes(`/work/${PRACTICE_SEGMENT}/`)
       )
 
     expect(workUrls.length).toBeGreaterThan(0)

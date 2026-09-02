@@ -39,7 +39,7 @@ export const Indonesian: Story = {
 export const LongTitle: Story = {
   args: {
     eyebrow: 'Next project',
-    title: 'A commissioned mural for the west wall of Kedai Sembilan',
+    title: 'A six-month retainer across three teams at Kedai Sembilan',
     slug: 'rimbun',
   },
 }

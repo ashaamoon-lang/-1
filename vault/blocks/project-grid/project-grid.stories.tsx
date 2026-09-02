@@ -32,14 +32,14 @@ function fixture(
   title: string,
   year: number,
   span: 6 | 12,
-  medium: string
+  engagement: string
 ): Project {
   return {
     _id: id,
     slug: { current: id },
     title,
-    coverAlt: `${title} — ${medium}`,
-    medium,
+    coverAlt: `${title} — ${engagement}`,
+    engagement,
     year,
     client: null,
     span,
@@ -48,9 +48,9 @@ function fixture(
 }
 
 const projects: Project[] = [
-  fixture('panas-sore', 'Panas Sore', 2025, 6, 'Acrylic on linen'),
-  fixture('rimbun', 'Rimbun', 2025, 6, 'Gouache on paper'),
-  fixture('tenun', 'Tenun', 2024, 12, 'Mural, exterior'),
+  fixture('arus-balik', 'Arus Balik', 2025, 6, 'Architecture review'),
+  fixture('takar', 'Takar', 2025, 6, 'Data pipeline'),
+  fixture('pusat-beban', 'Pusat Beban', 2024, 12, 'Retainer, six months'),
   fixture('senja-ungu', 'Senja Ungu', 2024, 6, 'Oil on board'),
   fixture('lipat', 'Lipat', 2023, 6, 'Ink and collage'),
 ]

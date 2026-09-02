@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { DISCIPLINES } from '../lib/content/disciplines'
+import { PRACTICES } from '../lib/content/practices'
 import { routing } from '../lib/i18n/routing'
 
 /**
@@ -33,7 +33,7 @@ import { routing } from '../lib/i18n/routing'
 
 const CATALOGUE_ROUTES = [
   ...routing.locales.map((locale) => `/${locale}/work`),
-  ...DISCIPLINES.map((value) => `/en/work/discipline/${value}`),
+  ...PRACTICES.map((value) => `/en/work/practice/${value}`),
 ]
 
 test.describe('catalogue layout', () => {

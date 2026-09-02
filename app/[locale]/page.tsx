@@ -4,8 +4,8 @@ import { locale as localeRootParam } from 'next/root-params'
 import type { SectionLink } from '@/components/layout/header'
 import { Wrapper } from '@/components/layout/wrapper'
 import { SectionHeader } from '@/components/ui/section-header'
-import { DISCIPLINES } from '@/lib/content/disciplines'
 import { resolveHomeContent } from '@/lib/content/home-fallback'
+import { PRACTICES } from '@/lib/content/practices'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { RichText } from '@/lib/integrations/sanity/components/rich-text'
@@ -111,9 +111,9 @@ export default async function Home() {
   const [{ settings, projects }, t, tWork] = await Promise.all([
     fetchHomeForRequest(locale),
     getTranslations('home'),
-    // The discipline labels are already localized for the catalogue's filter
+    // The practice labels are already localized for the catalogue's filter
     // chips. Reading them from there rather than adding a second set keeps
-    // the hero and `/work/discipline/<value>` naming the same three things.
+    // the hero and `/work/practice/<value>` naming the same three things.
     getTranslations('workIndex'),
   ])
 
@@ -167,13 +167,13 @@ export default async function Home() {
          * elements of descending width down the left edge, and nothing at all
          * saying a 5749px document followed.
          *
-         * The disciplines are the honest content for it — they are what the
-         * studio does, they are already a route (`/work/discipline/<value>`),
-         * and they come from one vocabulary (`lib/content/disciplines.ts`).
+         * The practices are the honest content for it — they are what the
+         * studio does, they are already a route (`/work/practice/<value>`),
+         * and they come from one vocabulary (`lib/content/practices.ts`).
          */
         index={{
           label: t('heroIndexLabel'),
-          items: DISCIPLINES.map((discipline) => tWork(discipline)),
+          items: PRACTICES.map((practice) => tWork(practice)),
         }}
         cue={t('scrollCue')}
         action={

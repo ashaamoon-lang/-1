@@ -8,8 +8,8 @@ import { ProjectHero } from './index'
  * `cover` is `null` in every story — `SanityImage` builds its URL through
  * `urlForImage`, and a fabricated asset ref would render a broken image. What
  * these do exercise is the part that varies per project: which facts exist.
- * An editor who has not filled in dimensions must not produce a
- * "Dimensions —" row, and a project with no client at all must not leave a
+ * An editor who has not filled in the scope must not produce a
+ * "Scope —" row, and a project with no client at all must not leave a
  * gap in the meta grid.
  */
 const meta = {
@@ -26,12 +26,12 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   args: {
     title: 'Panas Sore',
-    coverAlt: 'Acrylic painting, three figures under a low orange sun',
+    coverAlt: 'A system diagram, one mass lit from the left',
     meta: [
       { label: 'Client', value: 'Rumah Tanjung' },
       { label: 'Year', value: 2025 },
-      { label: 'Medium', value: 'Acrylic on linen' },
-      { label: 'Dimensions', value: '120 × 90 cm' },
+      { label: 'Engagement', value: 'Architecture review, six weeks' },
+      { label: 'Scope', value: '2 teams · 6 weeks' },
     ],
   },
 }
@@ -40,12 +40,12 @@ export const Default: Story = {
 export const PartialMetadata: Story = {
   args: {
     title: 'Senja Ungu',
-    coverAlt: 'Gouache study in violet and amber',
+    coverAlt: 'A tall violet frame lit from below',
     meta: [
       { label: 'Client', value: null },
       { label: 'Year', value: 2024 },
-      { label: 'Medium', value: 'Gouache on paper' },
-      { label: 'Dimensions', value: undefined },
+      { label: 'Engagement', value: 'Data pipeline, fixed scope' },
+      { label: 'Scope', value: undefined },
     ],
   },
 }
@@ -59,7 +59,7 @@ export const NoMetadata: Story = {
       { label: 'Client', value: null },
       { label: 'Year', value: null },
       { label: 'Medium', value: '' },
-      { label: 'Dimensions', value: null },
+      { label: 'Scope', value: null },
     ],
   },
 }
@@ -71,7 +71,7 @@ export const NoMetadata: Story = {
  */
 export const LongTitle: Story = {
   args: {
-    title: 'A commissioned mural for the west wall of Kedai Sembilan',
+    title: 'A six-month retainer across three teams at Kedai Sembilan',
     coverAlt: '',
     meta: [{ label: 'Year', value: 2025 }],
   },
@@ -82,7 +82,7 @@ export const ReducedMotion: Story = {
   args: {
     title: 'Panas Sore',
     coverAlt: '',
-    meta: [{ label: 'Medium', value: 'Acrylic on linen' }],
+    meta: [{ label: 'Engagement', value: 'Architecture review, six weeks' }],
   },
   parameters: { chromatic: { prefersReducedMotion: 'reduce' } },
 }

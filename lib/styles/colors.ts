@@ -6,7 +6,7 @@
  * `docs/TEARDOWN.md` carries exactly one high-chroma accent. That reasoning
  * was right about creative *studios* and wrong about this site.
  *
- * Arth shows commissioned artwork — paintings, murals, illustration. The work
+ * Arth is an agency, and its case studies carry the colour on these pages. The work
  * is the colour. A saturated accent competes with every image on the page,
  * and two independent sources say so:
  *

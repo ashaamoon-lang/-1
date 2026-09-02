@@ -69,7 +69,7 @@ export const pageQuery = defineQuery(`
  * `lib/i18n/routing.ts`. `queries.test.ts` asserts the two stay in step.
  */
 const localizedTitle = `"title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value)`
-const localizedMedium = `"medium": coalesce(medium[_key == $locale][0].value, medium[_key == "en"][0].value)`
+const localizedEngagement = `"engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value)`
 const localizedCoverAlt = `"coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)`
 const localizedHeadline = `"headline": coalesce(headline[_key == $locale][0].value, headline[_key == "en"][0].value)`
 const localizedSubline = `"subline": coalesce(subline[_key == $locale][0].value, subline[_key == "en"][0].value)`
@@ -83,10 +83,10 @@ const projectCardFields = `
   client,
   span,
   featured,
-  discipline,
+  practice,
   cover{ ..., "lqip": asset->metadata.lqip },
   ${localizedTitle},
-  ${localizedMedium},
+  ${localizedEngagement},
   ${localizedCoverAlt}
 `
 
@@ -119,21 +119,21 @@ export const featuredProjectsQuery = defineQuery(`
 `)
 
 /**
- * The work index, optionally narrowed to one discipline.
+ * The work index, optionally narrowed to one practice.
  *
- * `$discipline` is null for the unfiltered view, and GROQ's `||` short-circuits
+ * `$practice` is null for the unfiltered view, and GROQ's `||` short-circuits
  * so the comparison is skipped entirely rather than matching nothing.
  */
 export const workIndexQuery = defineQuery(`
-  *[${isListed} && ($discipline == null || discipline == $discipline)]
+  *[${isListed} && ($practice == null || practice == $practice)]
     | order(order asc, publishedAt desc) {
     ${projectCardFields}
   }
 `)
 
-/** Which disciplines actually have listed work, for the filter chips. */
-export const disciplinesQuery = defineQuery(`
-  array::unique(*[${isListed} && defined(discipline)].discipline)
+/** Which practices actually have listed work, for the filter chips. */
+export const practicesQuery = defineQuery(`
+  array::unique(*[${isListed} && defined(practice)].practice)
 `)
 
 /**
@@ -160,7 +160,7 @@ export const disciplinesQuery = defineQuery(`
 export const projectQuery = defineQuery(`
   *[_type == "project" && slug.current == $slug][0] {
     ${projectCardFields},
-    dimensions,
+    scope,
     publishedAt,
     metadata,
     _updatedAt,

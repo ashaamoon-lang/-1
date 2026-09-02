@@ -25,7 +25,7 @@ import { Catalogue } from './catalogue'
  *
  * No `searchParams`, no `draftMode()`, no `<Suspense>`. That is what makes it
  * `○` static and fully present in the HTML for a reader or an agent that runs
- * no JavaScript. The filter lives at `/work/discipline/[value]` instead;
+ * no JavaScript. The filter lives at `/work/practice/[value]` instead;
  * `catalogue.tsx` records the two build errors that forced the change.
  */
 export default async function WorkPage() {
@@ -34,7 +34,7 @@ export default async function WorkPage() {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  return <Catalogue locale={locale} discipline={null} />
+  return <Catalogue locale={locale} practice={null} />
 }
 
 export async function generateMetadata() {

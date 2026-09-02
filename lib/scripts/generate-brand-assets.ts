@@ -47,8 +47,8 @@ const MEDIA_DIR = '.next/static/media'
  * stage was about.
  */
 const WORDMARK = SITE.name
-const EYEBROW = 'Commissioned artwork'
-const MEDIUMS = 'Painting · Mural · Illustration'
+const EYEBROW = 'Agency'
+const PRACTICES_LINE = 'Consulting · AI & Data · Commission'
 
 interface InlineFont {
   family: string
@@ -159,7 +159,7 @@ function ogCard(fonts: readonly InlineFont[]): string {
   </div>
   <div class="wordmark">${WORDMARK}</div>
   <div class="row">
-    <span class="mediums">${MEDIUMS}</span>
+    <span class="mediums">${PRACTICES_LINE}</span>
     <span class="rule"></span>
   </div>`
 }

@@ -6,7 +6,7 @@
  * assets they reference. It exists because two of Tahap 4's exit criteria —
  * an end-to-end test against a real slug, and a sitemap containing every
  * project — cannot be checked against an empty dataset, and inventing
- * permanent artwork in the studio's own content library is not an option.
+ * permanent engagements in the agency's own content library is not an option.
  *
  * The intended cycle is: seed, verify, `--clean`. Leaving fixtures behind puts
  * work nobody made into a real portfolio, so `--clean` removes the assets too,
@@ -373,7 +373,7 @@ async function clean() {
  * page a test can look at.
  */
 const PLATES = {
-  'panas-sore': {
+  'arus-balik': {
     width: 1440,
     height: 1800, // 0.80 — portrait, half track
     ground: '#3a2a1e',
@@ -384,7 +384,7 @@ const PLATES = {
     horizon: 0.68,
     subjectX: 0.38,
   },
-  rimbun: {
+  'pusat-beban': {
     width: 2400,
     height: 1350, // 1.78 — 16:9, full track
     ground: '#1a3229',
@@ -395,9 +395,9 @@ const PLATES = {
     horizon: 0.74,
     subjectX: 0.6,
   },
-  ambang: {
+  'bacaan-mesin': {
     width: 1600,
-    height: 1600, // 1.00 — the boundary
+    height: 1600, // 1.00 — the boundary `isFullWidth` turns on
     ground: '#2a2734',
     mass: '#4a4a6b',
     light: '#e8dfc8',
@@ -406,7 +406,7 @@ const PLATES = {
     horizon: 0.62,
     subjectX: 0.44,
   },
-  'senja-ungu': {
+  takar: {
     width: 1200,
     height: 1800, // 0.67 — the narrowest portrait
     ground: '#281c38',
@@ -417,7 +417,7 @@ const PLATES = {
     horizon: 0.58,
     subjectX: 0.46,
   },
-  gerimis: {
+  pelabuhan: {
     width: 1800,
     height: 1200, // 1.50 — 3:2
     ground: '#36271b',
@@ -476,8 +476,8 @@ const PLATES = {
     width: 1440,
     height: 1800, // studioSettings.portrait — 4:5
     // Lighter than the works on purpose. It sits in `#studio` beside body
-    // text rather than in a grid of artwork, so it has to hold its own next
-    // to prose on a near-black page instead of competing with the pieces.
+    // text rather than in a grid of work, so it has to hold its own next to
+    // prose on a near-black page instead of competing with the engagements.
     ground: '#4a4038',
     mass: '#8a7256',
     light: '#f4ead6',
@@ -505,10 +505,10 @@ interface FixtureProject {
   featured: boolean
   year: number
   client: string | null
-  discipline: 'painting' | 'mural' | 'illustration'
+  practice: 'consulting' | 'ai-data' | 'commission'
   title: ReturnType<typeof i18n>
-  medium: ReturnType<typeof i18n>
-  dimensions: string
+  engagement: ReturnType<typeof i18n>
+  scope: string
   cover: PlateName
   gallery: readonly PlateName[]
   alt: ReturnType<typeof i18n>
@@ -518,7 +518,7 @@ interface FixtureProject {
 /**
  * Six works, and the shape of the set is deliberate.
  *
- * - **Two per discipline**, so `/work/discipline/<value>` is a filter with
+ * - **Two per practice**, so `/work/practice/<value>` is a filter with
  *   something to filter rather than a route with one result.
  * - **Four featured, six total**, so the home page shows a *selection* and the
  *   catalogue shows everything. With three works and two featured, the two
@@ -527,115 +527,139 @@ interface FixtureProject {
  *   different rhythms — had almost nothing to demonstrate.
  * - **Spans mixed**, so the 6/12 column rule appears on both pages.
  */
+/**
+ * Six engagements, and the shape of the set is deliberate.
+ *
+ * - **Two per practice**, so `/work/practice/<value>` is a filter with
+ *   something to filter rather than a route with one result.
+ * - **Four featured, six total**, so the home page shows a *selection* and the
+ *   catalogue shows everything — `ProjectGrid`'s `layout` split exists exactly
+ *   because a curated wall and a catalogue want different rhythms.
+ * - **Spans mixed**, so the 6/12 column rule appears on both pages.
+ *
+ * The prose is mine, not the agency's, and the page says so — `home
+ * .placeholderNote` marks the stand-in copy in the reader's own view. What is
+ * *structural* here is real: the practices, the engagement shapes and the
+ * scopes are the vocabulary the schema and the routes now speak.
+ */
 const PROJECTS: readonly FixtureProject[] = [
   {
-    slug: 'panas-sore',
+    slug: 'arus-balik',
     order: 1,
     span: 6,
     featured: true,
     year: 2025,
     client: 'Rumah Tanjung',
-    discipline: 'painting',
-    title: i18n('Panas Sore', 'Panas Sore'),
-    medium: i18n('Acrylic on linen', 'Akrilik di atas linen'),
-    dimensions: '120 × 90 cm',
-    cover: 'panas-sore',
+    practice: 'consulting',
+    title: i18n('Arus Balik', 'Arus Balik'),
+    engagement: i18n(
+      'Architecture review, six weeks',
+      'Tinjauan arsitektur, enam minggu'
+    ),
+    scope: '2 teams · 6 weeks',
+    cover: 'arus-balik',
     gallery: ['plate-wide', 'plate-tall'],
     alt: i18n(
-      'Acrylic painting, a low sun behind a dark mass',
-      'Lukisan akrilik, matahari rendah di balik massa gelap'
+      'Diagram of a system under review, one mass lit from the left',
+      'Diagram sistem yang sedang ditinjau, satu massa disinari dari kiri'
     ),
     body: i18nRich(
-      'A commission for a west-facing room that spends four hours a day in direct light. The palette was chosen against that light rather than against a screen, and the piece was painted on site for the last two weeks.',
-      'Pesanan untuk ruang menghadap barat yang menerima cahaya langsung empat jam sehari. Paletnya dipilih terhadap cahaya itu, bukan terhadap layar, dan dua minggu terakhir dikerjakan langsung di lokasi.'
+      'A checkout that had been rewritten twice already. The brief asked for a third rewrite; the review recommended against it, and named the two coupling points that had made both earlier attempts fail.',
+      'Sebuah alur checkout yang sudah dua kali ditulis ulang. Briefnya meminta penulisan ulang ketiga; tinjauannya justru menyarankan sebaliknya, dan menyebut dua titik kopling yang membuat kedua percobaan sebelumnya gagal.'
     ),
   },
   {
-    slug: 'rimbun',
+    slug: 'pusat-beban',
     order: 2,
     span: 12,
     featured: true,
     year: 2025,
     client: 'Kedai Sembilan',
-    discipline: 'mural',
-    title: i18n('Rimbun', 'Rimbun'),
-    medium: i18n('Mural, exterior', 'Mural, eksterior'),
-    dimensions: '4.2 × 2.6 m',
-    cover: 'rimbun',
+    practice: 'consulting',
+    title: i18n('Pusat Beban', 'Pusat Beban'),
+    engagement: i18n('Retainer, six months', 'Retainer, enam bulan'),
+    scope: '3 teams · 6 months',
+    cover: 'pusat-beban',
     gallery: ['plate-tall', 'plate-wide'],
     alt: i18n(
-      'Exterior mural in deep greens across a two-storey wall',
-      'Mural eksterior berwarna hijau tua di dinding dua lantai'
+      'A load spread across a wide frame, lit from the upper right',
+      'Beban yang tersebar di bingkai lebar, disinari dari kanan atas'
     ),
     body: i18nRich(
-      'Painted over eleven days in the dry season. The wall had been resurfaced twice before, so the first three days were preparation rather than paint.',
-      'Dikerjakan sebelas hari pada musim kemarau. Dindingnya sudah dua kali dilapis ulang, jadi tiga hari pertama adalah persiapan, bukan pengecatan.'
+      'Six months alongside three teams that each owned part of the same queue. Most of the work was not technical: it was agreeing which team was allowed to say no.',
+      'Enam bulan mendampingi tiga tim yang masing-masing memiliki bagian dari antrean yang sama. Sebagian besar pekerjaannya bukan soal teknis: ia soal menyepakati tim mana yang berhak berkata tidak.'
     ),
   },
   {
-    slug: 'ambang',
+    slug: 'bacaan-mesin',
     order: 3,
     span: 6,
     featured: true,
     year: 2025,
     client: 'Koperasi Tirta',
-    discipline: 'painting',
-    title: i18n('Ambang', 'Ambang'),
-    medium: i18n('Oil on board', 'Cat minyak di atas papan'),
-    dimensions: '100 × 100 cm',
-    cover: 'ambang',
+    practice: 'ai-data',
+    title: i18n('Bacaan Mesin', 'Bacaan Mesin'),
+    engagement: i18n(
+      'Evaluation build, ten weeks',
+      'Pembangunan evaluasi, sepuluh minggu'
+    ),
+    scope: '1 team · 10 weeks',
+    cover: 'bacaan-mesin',
     gallery: ['plate-square', 'plate-wide'],
     alt: i18n(
-      'Square oil painting, a pale mass on a threshold of light',
-      'Lukisan minyak persegi, massa pucat di ambang cahaya'
+      'A square frame, a pale mass on a threshold of light',
+      'Bingkai persegi, massa pucat di ambang cahaya'
     ),
     body: i18nRich(
-      'Square, and the squareness is the argument: the room it hangs in has no long wall, so a landscape would have been hung by default rather than by choice.',
-      'Persegi, dan kepersegiannya adalah argumennya: ruang tempatnya digantung tidak punya dinding panjang, jadi format lanskap akan terpasang karena kebiasaan, bukan karena pilihan.'
+      'An evaluation harness for a model that was already in production and already trusted. The first week was spent establishing that nobody could say what it was doing well.',
+      'Sebuah rangka evaluasi untuk model yang sudah berjalan di produksi dan sudah dipercaya. Minggu pertama habis untuk memastikan bahwa tidak ada yang bisa mengatakan apa yang sebenarnya ia lakukan dengan baik.'
     ),
   },
   {
-    slug: 'gerimis',
+    slug: 'takar',
     order: 4,
     span: 6,
     featured: true,
     year: 2024,
     client: 'Penerbit Lintas',
-    discipline: 'illustration',
-    title: i18n('Gerimis', 'Gerimis'),
-    medium: i18n('Gouache and ink', 'Guas dan tinta'),
-    dimensions: '59 × 42 cm',
-    cover: 'gerimis',
-    gallery: ['plate-wide', 'plate-square'],
+    practice: 'ai-data',
+    title: i18n('Takar', 'Takar'),
+    engagement: i18n(
+      'Data pipeline, fixed scope',
+      'Pipeline data, lingkup tetap'
+    ),
+    scope: '1 team · 8 weeks',
+    cover: 'takar',
+    gallery: ['plate-tall', 'plate-square'],
     alt: i18n(
-      'Gouache illustration in warm reds under a late light',
-      'Ilustrasi guas dalam warna merah hangat di bawah cahaya senja'
+      'A tall violet frame lit from below',
+      'Bingkai tinggi berwarna ungu yang disinari dari bawah'
     ),
     body: i18nRich(
-      'One of nine plates for a reissued collection. The brief asked for the weather rather than the scene, which is a harder instruction than it sounds.',
-      'Satu dari sembilan pelat untuk terbitan ulang sebuah kumpulan. Briefnya meminta cuacanya, bukan pemandangannya — instruksi yang lebih sulit daripada kedengarannya.'
+      'Nine sources into one table. The hard part was not the joins — it was deciding, in writing, which source wins when two of them disagree.',
+      'Sembilan sumber menjadi satu tabel. Bagian sulitnya bukan penggabungannya — melainkan memutuskan, secara tertulis, sumber mana yang menang ketika dua di antaranya berbeda.'
     ),
   },
   {
-    slug: 'senja-ungu',
+    slug: 'pelabuhan',
     order: 5,
     span: 6,
     featured: false,
     year: 2024,
     client: null,
-    discipline: 'illustration',
-    title: i18n('Senja Ungu', 'Senja Ungu'),
-    medium: i18n('Gouache on paper', 'Guas di atas kertas'),
-    dimensions: '42 × 59 cm',
-    cover: 'senja-ungu',
-    gallery: ['plate-tall', 'plate-square'],
+    practice: 'commission',
+    title: i18n('Pelabuhan', 'Pelabuhan'),
+    engagement: i18n('Commissioned build', 'Pengerjaan pesanan'),
+    scope: '1 team · 12 weeks',
+    cover: 'pelabuhan',
+    gallery: ['plate-wide', 'plate-square'],
     alt: i18n(
-      'Gouache study in violet and amber',
-      'Studi guas dalam warna ungu dan kuning tua'
+      'A warm red mass under a late light',
+      'Massa merah hangat di bawah cahaya senja'
     ),
     body: i18nRich(
-      'A study, not a commission. It is here because two later pieces came out of it.',
-      'Sebuah studi, bukan pesanan. Ia ada di sini karena dua karya berikutnya lahir darinya.'
+      'Built to a fixed scope for a client who had been quoted twice by others and asked, both times, for a number before a plan.',
+      'Dikerjakan dengan lingkup tetap untuk klien yang sudah dua kali menerima penawaran dari pihak lain, dan dua kali diminta angka sebelum rencana.'
     ),
   },
   {
@@ -645,19 +669,22 @@ const PROJECTS: readonly FixtureProject[] = [
     featured: false,
     year: 2023,
     client: 'Griya Sembada',
-    discipline: 'mural',
+    practice: 'commission',
     title: i18n('Lantai Dua', 'Lantai Dua'),
-    medium: i18n('Mural, interior stairwell', 'Mural, tangga interior'),
-    dimensions: '6.0 × 3.1 m',
+    engagement: i18n(
+      'Commissioned build, phased',
+      'Pengerjaan pesanan, bertahap'
+    ),
+    scope: '2 teams · 5 months',
     cover: 'lantai-dua',
     gallery: ['plate-wide', 'plate-tall'],
     alt: i18n(
-      'Interior stairwell mural in cool blues',
-      'Mural tangga interior dalam warna biru dingin'
+      'A cool blue mass, lit from the left across a wide frame',
+      'Massa biru dingin, disinari dari kiri di bingkai lebar'
     ),
     body: i18nRich(
-      'Read from below and from the side, never straight on, so the composition was set out on the landing rather than on paper.',
-      'Dibaca dari bawah dan dari samping, tidak pernah dari depan, jadi komposisinya ditata di bordes, bukan di atas kertas.'
+      'Delivered in three phases because the second one could not start until a decision the client had been deferring for a year was finally made.',
+      'Dikerjakan dalam tiga tahap karena tahap kedua tidak bisa dimulai sebelum sebuah keputusan yang setahun ditunda klien akhirnya diambil.'
     ),
   },
 ]
@@ -713,9 +740,9 @@ async function seed() {
           })),
           ...(project.client && { client: project.client }),
           year: project.year,
-          discipline: project.discipline,
-          medium: project.medium,
-          dimensions: project.dimensions,
+          practice: project.practice,
+          engagement: project.engagement,
+          scope: project.scope,
           body: project.body,
           order: project.order,
           featured: project.featured,
@@ -732,13 +759,10 @@ async function seed() {
         _id: `${PREFIX}studioSettings`,
         _type: 'studioSettings',
         name: 'Arth',
-        headline: i18n(
-          'Commissioned work for people who notice',
-          'Karya pesanan untuk mereka yang memperhatikan'
-        ),
+        headline: i18n('Work that has to hold up', 'Karya yang harus bertahan'),
         subline: i18nText(
-          'Painting, mural and illustration, made to a brief and to a wall.',
-          'Lukisan, mural, dan ilustrasi, dikerjakan sesuai brief dan sesuai dindingnya.'
+          'Consulting, AI and data, and commissioned build — scoped to a brief and delivered against it.',
+          'Konsultasi, AI dan data, serta pengerjaan pesanan — dengan lingkup sesuai brief dan dikerjakan sesuai itu.'
         ),
         /*
          * A portrait, which the dataset did not have before.

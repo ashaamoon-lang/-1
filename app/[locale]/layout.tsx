@@ -98,7 +98,7 @@ export async function generateMetadata(): Promise<Metadata> {
           // ground with one line of mediums under it. Pasting the whole
           // site description here made a 150-character alt that repeated
           // the name twice and described nothing visible.
-          alt: `${SITE.name} — commissioned artwork: painting, mural, illustration`,
+          alt: `${SITE.name} — agency: consulting, AI and data, commissioned work`,
         },
       ],
       // Underscore, not the hyphenated tag `<html lang>` takes below.

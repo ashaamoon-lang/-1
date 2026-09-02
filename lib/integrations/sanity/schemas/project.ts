@@ -1,6 +1,6 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
-import { DISCIPLINE_SEGMENT } from '@/lib/content/disciplines'
+import { PRACTICE_SEGMENT } from '@/lib/content/practices'
 
 import { localeValue, requireEveryLocale } from '../utils/i18n-array'
 
@@ -19,8 +19,8 @@ const DEFAULT_LOCALE = 'en'
  * A commissioned work.
  *
  * The core content type: everything the site shows is a project, plus the
- * studio's own copy. Images are the medium here (illustration, painting,
- * mural), so the schema is built around still imagery rather than video.
+ * agency's own copy. Case-study imagery carries the page, so the schema is
+ * built around still imagery rather than video.
  */
 export const project = defineType({
   name: 'project',
@@ -62,12 +62,12 @@ export const project = defineType({
           if (slug?.current?.includes('.')) {
             return 'Slug cannot contain a dot ("."). Dotted paths are treated as static files and are excluded from the sitemap, llms.txt, and Markdown negotiation.'
           }
-          // `/work/discipline/<value>` is a real route, and Next matches a
+          // `/work/practice/<value>` is a real route, and Next matches a
           // static segment before a dynamic one. A project on this slug would
           // be shadowed by the filter view and never render, with no error
-          // anywhere. See `lib/content/disciplines.ts`.
-          if (slug?.current === DISCIPLINE_SEGMENT) {
-            return `Slug cannot be "${DISCIPLINE_SEGMENT}". That path is reserved for the discipline filter (/work/${DISCIPLINE_SEGMENT}/mural), and a project using it would be unreachable.`
+          // anywhere. See `lib/content/practices.ts`.
+          if (slug?.current === PRACTICE_SEGMENT) {
+            return `Slug cannot be "${PRACTICE_SEGMENT}". That path is reserved for the practice filter (/work/${PRACTICE_SEGMENT}/mural), and a project using it would be unreachable.`
           }
           return true
         }),
@@ -127,52 +127,54 @@ export const project = defineType({
     }),
 
     defineField({
-      name: 'discipline',
-      title: 'Discipline',
+      name: 'practice',
+      title: 'Practice',
       type: 'string',
       description:
         'Which kind of work this is. Drives the filter on /work and the structured data.',
       /*
        * A closed list, and deliberately NOT localized.
        *
-       * `medium` below is free prose and stays that way — "Acrylic on canvas"
-       * is a description, not a category. But `lib/seo/site.ts` advertises
-       * exactly three disciplines in three places (`services`, `knowsAbout`,
+       * `engagement` below is free prose and stays that way — "Retainer, six
+       * months" is a description, not a category. But `lib/seo/site.ts` advertises
+       * exactly three practices in three places (`services`, `knowsAbout`,
        * `description`) and nothing in the schema could express which one a
        * work belongs to, so neither a visitor nor an agent could act on the
        * claim.
        *
        * The value is a key; the label is translated in `messages/*.json`.
        * Localizing the value would give one work two different filter URLs,
-       * and `/work/discipline/mural` would stop meaning the same thing in
+       * and `/work/practice/mural` would stop meaning the same thing in
        * each language. The canonical list lives in
-       * `lib/content/disciplines.ts`; this `list` is the editor-facing half
+       * `lib/content/practices.ts`; this `list` is the editor-facing half
        * of it.
        */
       options: {
         list: [
-          { title: 'Painting', value: 'painting' },
-          { title: 'Mural', value: 'mural' },
-          { title: 'Illustration', value: 'illustration' },
+          { title: 'Consulting', value: 'consulting' },
+          { title: 'AI & Data', value: 'ai-data' },
+          { title: 'Commission', value: 'commission' },
         ],
         layout: 'radio',
       },
       validation: (Rule) => Rule.required(),
-      initialValue: 'painting',
+      initialValue: 'consulting',
     }),
 
     defineField({
-      name: 'medium',
-      title: 'Medium',
+      name: 'engagement',
+      title: 'Engagement',
       type: 'internationalizedArrayString',
-      description: 'e.g. "Acrylic on canvas" / "Akrilik di atas kanvas".',
+      description:
+        'The shape of the work — e.g. "Retainer, six months" / "Retainer, enam bulan".',
     }),
 
     defineField({
-      name: 'dimensions',
-      title: 'Dimensions',
+      name: 'scope',
+      title: 'Scope',
       type: 'string',
-      description: 'e.g. 120 × 90 cm. Unlocalized — units read the same.',
+      description:
+        'The size of it — e.g. "3 teams · 14 weeks". Unlocalized: numbers and units read the same in both languages.',
     }),
 
     defineField({

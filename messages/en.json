@@ -11,10 +11,10 @@
   },
   "home": {
     "workEyebrow": "Selected work",
-    "workTitle": "Recent commissions",
-    "workCount": "{count, plural, one {# piece} other {# pieces}}",
+    "workTitle": "Recent engagements",
+    "workCount": "{count, plural, one {# engagement} other {# engagements}}",
     "studioEyebrow": "Studio",
-    "studioTitle": "How the work is made",
+    "studioTitle": "How we work",
     "contactEyebrow": "Commissions",
     "contactTitle": "Start a conversation",
     "emailLabel": "Email {name}",
@@ -33,22 +33,22 @@
   "workIndex": {
     "title": "Work",
     "eyebrow": "Catalogue",
-    "intro": "Commissions completed to date. Filter by discipline, or see everything.",
-    "filterLabel": "Filter by discipline",
+    "intro": "Engagements completed to date. Filter by practice, or see everything.",
+    "filterLabel": "Filter by practice",
     "all": "All",
-    "painting": "Painting",
-    "mural": "Mural",
-    "illustration": "Illustration",
-    "count": "{count, plural, one {# piece} other {# pieces}}",
-    "emptyTitle": "Nothing in this discipline yet",
-    "emptyBody": "The studio has not published work under this heading. See everything instead.",
+    "count": "{count, plural, one {# engagement} other {# engagements}}",
+    "emptyTitle": "Nothing in this practice yet",
+    "emptyBody": "The agency has not published work under this practice. See everything instead.",
     "emptyAction": "See all work",
-    "paintingTitle": "Painting",
-    "muralTitle": "Mural",
-    "illustrationTitle": "Illustration",
-    "paintingIntro": "Commissioned paintings — studies, portraits and panel work made to a brief.",
-    "muralIntro": "Commissioned murals — work painted onto the wall it was made for.",
-    "illustrationIntro": "Commissioned illustration — drawn work made to a brief, for print or screen."
+    "consulting": "Consulting",
+    "ai-data": "AI & Data",
+    "commission": "Commission",
+    "consultingTitle": "Consulting",
+    "consultingIntro": "Consulting engagements — strategy, architecture and the decisions that come before a build.",
+    "ai-dataTitle": "AI & Data",
+    "ai-dataIntro": "AI and data work — evaluation, pipelines and systems that have to hold up in production.",
+    "commissionTitle": "Commission",
+    "commissionIntro": "Commissioned work — scoped, paid engagements delivered to a brief."
   },
   "meta": {
     "client": "Client",
@@ -69,9 +69,9 @@
   "project": {
     "client": "Client",
     "year": "Year",
-    "medium": "Medium",
-    "dimensions": "Dimensions",
-    "nextProject": "Next project"
+    "nextProject": "Next project",
+    "engagement": "Engagement",
+    "scope": "Scope"
   },
   "notFound": {
     "label": "Error",

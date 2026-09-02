@@ -255,6 +255,23 @@ passed on a retry. If a deploy fails with a Sanity 503, retry it before
 investigating anything else. This is the direct cost of those pages being
 static and cacheable, and it was taken deliberately.
 
+**Renaming a schema field orphans the data in it.** Tahap 13 renamed three:
+`discipline` → `practice`, `medium` → `engagement`, `dimensions` → `scope`. The
+dataset held only fixtures at the time, so the migration was
+`seed-fixtures.ts --clean` followed by a reseed. **On a dataset with real
+content that is not enough** — Sanity keeps the old keys and the queries stop
+finding them, so the fields read as empty rather than erroring. A real rename
+needs a migration (`sanity migration create`), run before the deploy that
+changes the schema.
+
+**`sanity schema extract` refuses to overwrite, and `typegen` does not care.**
+The extract exits non-zero when `schema.json` already exists, but
+`bun run sanity:typegen` is a separate script — run one after the other by
+hand, types are generated from the **previous** schema and `tsc` passes on a
+shape that no longer exists. `sanity:extract` now passes `--force`, which is
+the correct behaviour for a generated file. Found in Tahap 13 by watching the
+extract fail and the typegen succeed in the same terminal.
+
 **A rebuild alone does not pick up a content change — the build cache has to
 go with it.** Pages under `'use cache'` keep their fetch results in
 `.next/cache`, and `next build` reuses that cache. Measured during Tahap 12a:

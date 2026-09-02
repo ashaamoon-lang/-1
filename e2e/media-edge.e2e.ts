@@ -1,11 +1,13 @@
 import { expect, test } from '@playwright/test'
 
+import { PRACTICE_SEGMENT } from '../lib/content/practices'
+
 /**
  * A project page has an edge a reader can follow.
  *
  * ## What this caught
  *
- * Measured on `/en/work/panas-sore` at 1440×900, before the fix:
+ * Measured on `/en/work/arus-balik` at 1440×900, before the fix:
  *
  *   cover        562px      ratio 0.80
  *   gallery 1    936px      ratio 1.33
@@ -43,6 +45,25 @@ import { expect, test } from '@playwright/test'
  * accommodate it would let the real thing regress.
  */
 
+/**
+ * Published works in the sitemap, excluding the practice filter.
+ *
+ * The exclusion is built from `PRACTICE_SEGMENT` rather than typed out. It was
+ * typed out — as `(?!discipline/)` — and Tahap 13 renamed the segment to
+ * `practice`, so the lookahead stopped excluding anything and these tests
+ * started measuring `/en/work/practice/consulting` as if it were one work.
+ * The failure was real and unhelpful: "a portrait work is not narrower than a
+ * landscape one (614px vs 614px)", which describes a filtered catalogue
+ * correctly and a defect not at all.
+ */
+const WORK_LOC_ALL = new RegExp(
+  String.raw`<loc>[^<]*?(/en/work/(?!${PRACTICE_SEGMENT}/)[^<]+)</loc>`,
+  'g'
+)
+const WORK_LOC = new RegExp(
+  String.raw`<loc>[^<]*?(/en/work/(?!${PRACTICE_SEGMENT}/)[^<]+)</loc>`
+)
+
 /** Sub-pixel rounding; two widths this close are the same width. */
 const TOLERANCE = 1.5
 
@@ -51,11 +72,9 @@ test.describe('media edge', () => {
     // A real slug from the sitemap rather than a hardcoded one, so this
     // cannot pass against a dataset that no longer holds it.
     const sitemap = await (await request.get('/sitemap.xml')).text()
-    const paths = [
-      ...sitemap.matchAll(
-        /<loc>[^<]*?(\/en\/work\/(?!discipline\/)[^<]+)<\/loc>/g
-      ),
-    ].map((match) => match[1] ?? '')
+    const paths = [...sitemap.matchAll(WORK_LOC_ALL)].map(
+      (match) => match[1] ?? ''
+    )
 
     test.skip(paths.length === 0, 'no published project to measure')
 
@@ -105,18 +124,16 @@ test.describe('media edge', () => {
      *
      * Until Tahap 12a the dataset held two ratios, 0.80 and 1.60, so no
      * rendered page had ever carried a square asset and the boundary was
-     * untested anywhere a browser could see it. `ambang` is square on purpose.
+     * untested anywhere a browser could see it. `bacaan-mesin` is square on purpose.
      *
      * The assertion is relative — full is wider than half — rather than
      * pinned to 1398px and 691px, for the same reason the test above is: those
      * numbers are one viewport's, and the gutter is allowed to be tuned.
      */
     const sitemap = await (await request.get('/sitemap.xml')).text()
-    const paths = [
-      ...sitemap.matchAll(
-        /<loc>[^<]*?(\/en\/work\/(?!discipline\/)[^<]+)<\/loc>/g
-      ),
-    ].map((match) => match[1] ?? '')
+    const paths = [...sitemap.matchAll(WORK_LOC_ALL)].map(
+      (match) => match[1] ?? ''
+    )
 
     test.skip(paths.length === 0, 'no published project to measure')
 
@@ -196,9 +213,7 @@ test.describe('media edge', () => {
      * same amount. This asserts the box is actually filled.
      */
     const sitemap = await (await request.get('/sitemap.xml')).text()
-    const path = sitemap.match(
-      /<loc>[^<]*?(\/en\/work\/(?!discipline\/)[^<]+)<\/loc>/
-    )?.[1]
+    const path = sitemap.match(WORK_LOC)?.[1]
     test.skip(!path, 'no published project to measure')
 
     await page.goto(path ?? '')

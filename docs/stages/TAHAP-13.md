@@ -225,3 +225,121 @@ sekadar dibuat ulang.
    diperbaiki di tahap ini agar tidak menyesatkan tahap berikutnya; profilingnya
    sendiri bukan pekerjaan tahap ini.
 4. **Kredensial Sanity tidak dirotasi**, sesuai permintaan Anda.
+
+---
+
+## 10. Hasil
+
+### 10.1 Terukur — sebelum dan sesudah
+
+Dihitung dari yang benar-benar **disajikan** build produksi:
+
+| Permukaan    | Sebelum                | Sesudah      |
+| ------------ | ---------------------- | ------------ |
+| `/en/ai`     | 137                    | **0**        |
+| `/en`        | 113                    | **0**        |
+| `/id/ai`     | 109                    | **0**        |
+| `/id`        | 84                     | **0**        |
+| `/en/work`   | 82                     | **0**        |
+| `/llms.txt`  | 44                     | **0**        |
+| `knowsAbout` | 5 dari 5 kosakata seni | **0 dari 5** |
+
+```
+sebelum  "Arth is a commissioned-artwork studio working in painting, mural and
+          illustration — each piece made to a brief, for the room it will live in."
+sesudah  "Arth is an agency working in consulting, AI and data, and commissioned
+          build — engagements scoped to a brief and delivered against it."
+
+sebelum  knowsAbout ["Commissioned artwork", "Mural painting", "Acrylic painting",
+                     "Gouache painting", "Illustration"]
+sesudah  knowsAbout ["Technical strategy", "Systems architecture", "AI evaluation",
+                     "Data engineering", "Commissioned software"]
+```
+
+### 10.2 Rute
+
+`/work/discipline/{painting,mural,illustration}` →
+`/work/practice/{consulting,ai-data,commission}`, keduanya terprarender di
+kedua bahasa.
+
+### 10.3 Skema
+
+`discipline` → `practice` (daftar tertutup baru) · `medium` → `engagement` ·
+`dimensions` → `scope`. Typegen menghasilkan
+`practice?: "consulting" | "ai-data" | "commission"`, dan `tsc` menolak setiap
+sisa nama lama — yang membuat rename ini bisa dituntaskan oleh kompiler alih-alih
+oleh ingatan.
+
+### 10.4 Rasio pelat dipertahankan persis
+
+Fixture ditulis ulang seluruhnya, tapi keenam rasio sampulnya tidak berubah:
+0,80 · 1,78 · **1,00** · 0,67 · 1,50 · 1,33. Yang persegi disengaja — ia satu-
+satunya yang melewati batas `isFullWidth()` di halaman terender, dan gate Tahap
+12a akan gagal tanpanya.
+
+### 10.5 Temuan: `sanity schema extract` menolak menimpa, `typegen` tidak peduli
+
+Extract keluar dengan kode bukan-nol saat `schema.json` sudah ada, tetapi
+`sanity:typegen` adalah skrip terpisah. Dijalankan berurutan dengan tangan,
+tipe dihasilkan dari skema **sebelumnya** dan `tsc` lulus terhadap bentuk yang
+sudah tidak ada.
+
+Terlihat di terminal yang sama: extract gagal, typegen "berhasil", dan
+`schema.json` masih memuat `painting`. `sanity:extract` kini memakai `--force`,
+yang memang perilaku benar untuk berkas yang di-generate. Dicatat di
+`docs/DEPLOYMENT.md` §7.
+
+### 10.6 Temuan: sebelas tes memaku nama fixture
+
+Rename fixture mematahkan **sebelas tes** di enam berkas yang memaku
+`panas-sore` dan `rimbun`. Tidak satu pun peduli karya _mana_ — mereka hanya
+butuh halaman detail yang ada.
+
+Itu bentuk masalah yang sama dengan yang diselesaikan `lib/content/practices.ts`
+untuk aplikasi, jadi diselesaikan dengan cara yang sama: `e2e/fixtures.ts`
+menyimpan `FEATURED_WORK` dan `SQUARE_WORK`. Rename berikutnya adalah satu
+suntingan.
+
+### 10.7 Temuan: dua regex sitemap berhenti mengecualikan apa pun
+
+`media-edge.e2e.ts` dan `canonical-sweep.e2e.ts` menyaring halaman karya dengan
+lookahead negatif `(?!discipline/)`. Segmennya kini `practice`, jadi lookahead
+itu **tidak lagi mengecualikan apa pun**, dan kedua berkas mulai mengukur
+`/en/work/practice/consulting` seolah ia satu karya.
+
+Kegagalannya nyata dan tidak membantu:
+`a portrait work is not narrower than a landscape one (614px vs 614px)` —
+deskripsi yang benar untuk katalog tersaring, dan bukan cacat sama sekali.
+Keduanya kini menyusun regexnya dari `PRACTICE_SEGMENT`.
+
+### 10.8 Yang gate tidak tangkap, dan ditemukan dengan mata
+
+`/llms.txt` masih berbunyi _"The full catalogue of completed commissions, with
+client, year, **medium and dimensions** for each"_ setelah semua gate hijau.
+Gate kosakata tidak melarang "medium" dan "dimensions" — keduanya kata Inggris
+biasa, dan melarangnya akan memicu positif palsu di seluruh repositori.
+
+Ditemukan dengan **membaca `/llms.txt`**, yang memang langkah verifikasi yang
+tertulis di §7. Batas sebuah gate adalah daftar kata yang bisa ia larang tanpa
+merugikan; sisanya masih pekerjaan mata.
+
+### 10.9 Gate
+
+| Gate                                                | Hasil                                                                                                                                                             |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/content/practices.test.ts` (baru, 5 tes)       | hijau — dan **terbukti hidup lewat tiga mutasi**: praktik keempat tanpa label, satu label Indonesia dihapus, satu entri `services` dihapus. Ketiganya tertangkap. |
+| `e2e/vocabulary.e2e.ts` (baru, 8 tes)               | **merah di kedelapan tesnya sebelum tahap ini**, hijau sesudahnya                                                                                                 |
+| `schema-coverage`, `routes`, katalog, no-JS, header | hijau setelah rename                                                                                                                                              |
+| Seluruh gate Tahap 12                               | hijau                                                                                                                                                             |
+
+**Angka:** unit 395 → **400** · e2e 229 → **237**.
+
+### 10.10 Yang tetap terbuka
+
+1. **Prosa penggantinya milik saya, bukan milik studio.** Copy fallback dan
+   deskripsi fixture ditulis agar koheren dan bisa dinilai, dan tetap ditandai
+   sementara di halaman lewat `home.placeholderNote`.
+2. **Intake klien** menunggu, dan sekarang tidak terhalang apa pun —
+   kosakatanya sudah benar.
+3. **Profiling** kini layak dikerjakan; catatan `RESOURCES.md` yang menyatakannya
+   mustahil sudah diperbaiki.

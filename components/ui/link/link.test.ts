@@ -74,7 +74,7 @@ describe('getLinkIntent active state', () => {
 
 describe('which hrefs take a locale prefix', () => {
   it('prefixes real routes', () => {
-    for (const href of ['/', '/work', '/work/mural', '/ai']) {
+    for (const href of ['/', '/work', '/work/practice/ai-data', '/ai']) {
       expect(isLocalizableRoute(href), `${href} should be localized`).toBe(true)
     }
   })

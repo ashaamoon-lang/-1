@@ -939,7 +939,7 @@ menghasilkan centang hijau** — kali ini pada gate-nya sendiri.
 
 ---
 
-## Tahap 13 — Situs ini akhirnya mengatakan apa yang Arth kerjakan 🔜
+## Tahap 13 — Situs ini akhirnya mengatakan apa yang Arth kerjakan ✅
 
 Spec penuh: **`docs/stages/TAHAP-13.md`**.
 
@@ -975,8 +975,28 @@ yang berbohong tentang isinya, dan itu tidak pernah gagal di gate mana pun.
 **Gate yang menentukan mengukur HTTP yang disajikan, bukan sumber** — sebuah
 grep sumber bisa dipuaskan dengan menyunting komentar; ini tidak bisa.
 
-Tiga sub-tahap: **13a** gate koherensi kosakata · **13b** rename modul, rute,
-dan skema · **13c** identitas, prosa, fixture, dan kartu OG.
+**Ketiga sub-tahap dikerjakan.** Sebutan kosakata seni yang **disajikan** turun
+`137 → 0` · `113 → 0` · `109 → 0` · `84 → 0` · `82 → 0` · `44 → 0`, dan
+`knowsAbout` dari 5-dari-5 menjadi nol. Rute `/work/discipline/*` menjadi
+`/work/practice/{consulting,ai-data,commission}`; skema me-rename tiga field,
+dan typegen membuat `tsc` menolak setiap sisa nama lama — rename ini
+dituntaskan kompiler, bukan ingatan. Rasio keenam pelat dipertahankan persis,
+termasuk yang **persegi**, karena gate Tahap 12a bergantung padanya.
+
+**Empat temuan di luar rencana.** `sanity schema extract` menolak menimpa dan
+keluar dengan error sementara `typegen` tetap berhasil dari skema **lama** —
+`tsc` lalu lulus terhadap bentuk yang sudah tidak ada; `--force` sekarang
+dipakai. Sebelas tes di enam berkas memaku nama fixture, diselesaikan dengan
+`e2e/fixtures.ts` — satu sumber, sama seperti yang menyelamatkan tahap ini. Dua
+regex sitemap menyaring dengan `(?!discipline/)` yang **berhenti mengecualikan
+apa pun**, sehingga keduanya mengukur katalog tersaring sebagai satu karya dan
+melapor "a portrait work is not narrower than a landscape one (614px vs 614px)"
+— benar sebagai deskripsi, bukan cacat sama sekali. Dan `/llms.txt` masih
+berbunyi "medium and dimensions" setelah semua gate hijau: keduanya kata
+Inggris biasa yang tidak bisa dilarang tanpa positif palsu, jadi ia ditemukan
+dengan **membaca halamannya**.
+
+**Angka:** unit 395 → **400** · e2e 229 → **237**.
 
 # Verifikasi
 

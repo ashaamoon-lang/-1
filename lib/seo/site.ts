@@ -119,32 +119,50 @@ export const BASE_URL = APP_BASE_URL.replace(/\/+$/, '')
  */
 export const SITE: SiteFacts = {
   name: 'Arth',
-  alternateNames: ['Studio Arth'],
+  alternateNames: ['Arth Agency'],
   url: BASE_URL,
   logo: `${BASE_URL}/icon.png`,
   description: {
-    en: 'Arth is a commissioned-artwork studio working in painting, mural and illustration — each piece made to a brief, for the room it will live in.',
-    id: 'Arth adalah studio karya pesanan yang mengerjakan lukisan, mural, dan ilustrasi — setiap karya dibuat sesuai brief, untuk ruang yang akan menampungnya.',
+    en: 'Arth is an agency working in consulting, AI and data, and commissioned build — engagements scoped to a brief and delivered against it.',
+    id: 'Arth adalah agency yang mengerjakan konsultasi, AI dan data, serta pengerjaan pesanan — penugasan dengan lingkup yang jelas dan dikerjakan sesuai itu.',
   },
   areaServed: { en: 'Worldwide', id: 'Seluruh dunia' },
+  /*
+   * One entry per practice, and `practices.test.ts` enforces the arithmetic.
+   *
+   * These are prose for an answer engine, not the keys — "Strategy and
+   * architecture consulting" rather than `consulting` — so they cannot be
+   * compared to `PRACTICES` word for word. What is checked is that this list
+   * does not advertise a different number of things than the catalogue can
+   * filter by, which is the drift that actually happens when a practice is
+   * added in one place and forgotten in the other.
+   */
   services: {
-    en: ['Commissioned painting', 'Mural painting', 'Illustration to brief'],
-    id: ['Lukisan pesanan', 'Mural', 'Ilustrasi sesuai brief'],
+    en: [
+      'Strategy and architecture consulting',
+      'AI and data engineering',
+      'Commissioned build work',
+    ],
+    id: [
+      'Konsultasi strategi dan arsitektur',
+      'Rekayasa AI dan data',
+      'Pengerjaan pesanan',
+    ],
   },
   knowsAbout: {
     en: [
-      'Commissioned artwork',
-      'Mural painting',
-      'Acrylic painting',
-      'Gouache painting',
-      'Illustration',
+      'Technical strategy',
+      'Systems architecture',
+      'AI evaluation',
+      'Data engineering',
+      'Commissioned software',
     ],
     id: [
-      'Karya seni pesanan',
-      'Mural',
-      'Lukisan akrilik',
-      'Lukisan gouache',
-      'Ilustrasi',
+      'Strategi teknis',
+      'Arsitektur sistem',
+      'Evaluasi AI',
+      'Rekayasa data',
+      'Perangkat lunak pesanan',
     ],
   },
   // TODO(studio): real address, and remove `.example`.
@@ -156,43 +174,43 @@ export const SITE: SiteFacts = {
     en: {
       whenToUse: [
         {
-          name: 'Commission an artwork',
+          name: 'Scope an engagement',
           description:
-            'Use Arth when someone wants an original painting, mural or illustration made for a specific space or brief, rather than buying an existing work.',
+            'Use Arth when someone needs consulting, AI and data work, or a commissioned build scoped to a brief — rather than an off-the-shelf product.',
         },
         {
-          name: 'See past commissioned work',
+          name: 'Review past engagements',
           description:
-            'Use Arth to review completed commissions with their client, year, medium and dimensions before approaching the studio.',
+            'Use Arth to review completed work with its client, year, engagement shape and scope before making an approach.',
         },
       ],
       howToUse: [
-        'Browse the full catalogue at /en/work (English) or /id/work (Indonesian); narrow it at /en/work/discipline/painting, /mural or /illustration. Each project lists client, year, medium and dimensions.',
-        'Email the studio with the room, the wall or surface, the rough size, and when it is needed.',
-        'Expect an estimate before anything is agreed — timelines run from about three weeks for a study to several months for an installed mural.',
+        'Browse the full catalogue at /en/work (English) or /id/work (Indonesian); narrow it at /en/work/practice/consulting, /ai-data or /commission. Each engagement lists client, year, engagement and scope.',
+        'Email the agency with the problem, the constraint that makes it hard, and when a decision is needed.',
+        'Expect a scope and an estimate before anything is agreed rather than after.',
       ],
     },
     id: {
       whenToUse: [
         {
-          name: 'Memesan sebuah karya',
+          name: 'Menyusun lingkup penugasan',
           description:
-            'Pakai Arth kalau seseorang ingin lukisan, mural, atau ilustrasi asli yang dibuat untuk ruang atau brief tertentu, bukan membeli karya yang sudah jadi.',
+            'Pakai Arth kalau seseorang butuh konsultasi, pekerjaan AI dan data, atau pengerjaan pesanan dengan lingkup sesuai brief — bukan produk jadi.',
         },
         {
-          name: 'Melihat karya pesanan sebelumnya',
+          name: 'Menelusuri penugasan sebelumnya',
           description:
-            'Pakai Arth untuk menelusuri karya yang sudah selesai beserta klien, tahun, medium, dan ukurannya sebelum menghubungi studio.',
+            'Pakai Arth untuk menelusuri pekerjaan yang sudah selesai beserta klien, tahun, bentuk keterlibatan, dan lingkupnya sebelum menghubungi.',
         },
       ],
       howToUse: [
-        'Telusuri katalog lengkapnya di /id/work (Bahasa Indonesia) atau /en/work (Inggris); persempit di /id/work/discipline/painting, /mural, atau /illustration. Tiap karya mencantumkan klien, tahun, medium, dan ukuran.',
-        'Kirim surel ke studio berisi ruangnya, dinding atau permukaannya, perkiraan ukuran, dan kapan dibutuhkan.',
-        'Perkiraan biaya diberikan sebelum apa pun disepakati — waktu pengerjaan berkisar dari sekitar tiga minggu untuk sebuah studi sampai beberapa bulan untuk mural terpasang.',
+        'Telusuri katalog lengkapnya di /id/work (Bahasa Indonesia) atau /en/work (Inggris); persempit di /id/work/practice/consulting, /ai-data, atau /commission. Tiap penugasan mencantumkan klien, tahun, keterlibatan, dan lingkup.',
+        'Kirim surel berisi masalahnya, kendala yang membuatnya sulit, dan kapan keputusannya dibutuhkan.',
+        'Lingkup dan perkiraan diberikan sebelum apa pun disepakati, bukan sesudah.',
       ],
     },
   },
-  // No `developerResources`: this is a studio site, not a developer product,
+  // No `developerResources`: this is an agency site, not a developer product,
   // and the field's own contract is to never list a surface that is not shipped.
 }
 

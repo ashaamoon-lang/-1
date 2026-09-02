@@ -1016,28 +1016,28 @@
         },
         "optional": true
       },
-      "discipline": {
+      "practice": {
         "type": "objectAttribute",
         "value": {
           "type": "union",
           "of": [
             {
               "type": "string",
-              "value": "painting"
+              "value": "consulting"
             },
             {
               "type": "string",
-              "value": "mural"
+              "value": "ai-data"
             },
             {
               "type": "string",
-              "value": "illustration"
+              "value": "commission"
             }
           ]
         },
         "optional": true
       },
-      "medium": {
+      "engagement": {
         "type": "objectAttribute",
         "value": {
           "type": "inline",
@@ -1045,7 +1045,7 @@
         },
         "optional": true
       },
-      "dimensions": {
+      "scope": {
         "type": "objectAttribute",
         "value": {
           "type": "string"
