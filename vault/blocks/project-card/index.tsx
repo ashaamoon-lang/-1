@@ -154,6 +154,11 @@ export function ProjectCard({
         // rather than "an element"; `data-intent` below marks what actually
         // acknowledges hover, which is the image and not this link.
         data-press="card"
+        // The second of the page's two choreographed moments (§9.5): pressing
+        // this is what carries the cover to the project page. It spends
+        // nothing at load — the budget gate measures what moves, and this
+        // moves on navigation.
+        data-epic="work-transport"
         // Stands the route-change overlay down for this navigation so the
         // cover below can morph into the project page's hero instead.
         transition="morph"

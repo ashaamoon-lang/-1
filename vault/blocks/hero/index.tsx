@@ -114,7 +114,14 @@ export function Hero({
   const ref = useReveal<HTMLDivElement>()
 
   return (
-    <section className={cn(s.hero, className)}>
+    /*
+     * `data-epic` names one of the two choreographed moments a page is
+     * allowed (`MOTION-SPEC.md` §9.5). The requirement is that both are
+     * *named*; naming them in the DOM is what makes it checkable, and it
+     * means `e2e/interaction-grammar.e2e.ts` can say which moment overspent
+     * instead of pointing at an anonymous element.
+     */
+    <section className={cn(s.hero, className)} data-epic="hero-arrival">
       <div className={s.background}>
         <SceneShell />
       </div>

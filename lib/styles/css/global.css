@@ -110,7 +110,16 @@ html {
   --stagger-cards: 70ms;
 
   /* Per-item reveal duration; overridable per group. */
-  --reveal-duration: 700ms;
+  /*
+   * `var(--duration)`, not the 700ms literal this was.
+   *
+   * 700ms is in **no band**: §2 puts them at 150–250, 300–600 and 800–1200,
+   * and it fell in the gap between the last two. It survived because
+   * `motion-rules.test.ts` reads `transition` and `animation` declarations,
+   * and this is a custom property — the rule was written where the gate does
+   * not look. Every reveal in the project inherited it.
+   */
+  --reveal-duration: var(--duration);
 
   /*
    * Minimum hit area for anything tappable.
@@ -220,7 +229,7 @@ html.screenshot {
  * renders visible. Per-section knobs: set these on the container —
  *   --reveal-transform : hidden-state offset (default translateY(16px))
  *   --reveal-stagger   : delay step between items (default 60ms)
- *   --reveal-duration  : per-item duration (default 700ms)
+ *   --reveal-duration  : per-item duration (default --duration, 400ms)
  */
 [data-reveal] [data-reveal-item] {
   opacity: 0;

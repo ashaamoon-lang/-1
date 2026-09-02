@@ -45,6 +45,45 @@ declare global {
 
 const OVERLAY = '[class*="page-transition"]'
 
+/**
+ * Runs in the page: the `<main>` a reader is actually looking at.
+ *
+ * After a client-side Back this app has **two** `<main>` elements — measured
+ * on `/en/work`: 2 mains, 2 grids, 8 reveal items where a fresh load has 1, 1
+ * and 6, and it does not clear.
+ *
+ * ## It is not a defect, and the first version of this note said it was
+ *
+ * The second `<main>` is `display: none`, `0×0`. It is Next's cached
+ * navigation tree — the previous route kept for an instant Back — and it is
+ * in no accessibility tree, takes no tab stop, and paints nothing. I wrote it
+ * up as a duplicate-landmark defect before measuring the box, which is the
+ * same mistake this file's other notes describe, made on a framework
+ * behaviour instead of on our own code.
+ *
+ * What it *does* break is a probe that queries the whole document: the two
+ * items inside that hidden tree read as `opacity: 0` and get reported as
+ * content stranded from the reader. So the probes ask for the rendered
+ * `<main>` — the one with a box — rather than the first or last in document
+ * order, which is a guess either way.
+ */
+declare global {
+  /** Installed in the page by `installLiveRoot` below. */
+  var live: () => ParentNode
+}
+
+async function installLiveRoot(page: Page) {
+  await page.addInitScript(() => {
+    globalThis.live = () => {
+      for (const main of document.querySelectorAll('main')) {
+        const box = main.getBoundingClientRect()
+        if (box.width > 0 && box.height > 0) return main
+      }
+      return document
+    }
+  })
+}
+
 /** Walks the page so every IntersectionObserver has fired. */
 async function scrollThrough(page: Page) {
   await page.evaluate(async () => {
@@ -77,7 +116,7 @@ async function scrollThrough(page: Page) {
  */
 async function clippedOutOfView(page: Page) {
   return page.evaluate(() =>
-    [...document.querySelectorAll('h1, h2, h3, p')]
+    [...live().querySelectorAll('h1, h2, h3, p')]
       .flatMap((el) => [...el.querySelectorAll('*')])
       .filter((child) => {
         const parent = child.parentElement
@@ -102,7 +141,7 @@ async function clippedOutOfView(page: Page) {
 
 async function strandedItems(page: Page) {
   return page.evaluate(() =>
-    [...document.querySelectorAll('[data-reveal-item]')]
+    [...live().querySelectorAll('[data-reveal-item]')]
       .filter((el) => Number(getComputedStyle(el).opacity) < 0.99)
       .map((el) => `${el.tagName}.${String(el.className).split(' ')[0]}`)
   )
@@ -111,6 +150,8 @@ async function strandedItems(page: Page) {
 test.describe('motion', () => {
   for (const path of ['/en', '/en/work', '/en/work/rimbun']) {
     test(`${path} strands no content invisible`, async ({ page }) => {
+      await installLiveRoot(page)
+      await installLiveRoot(page)
       await page.goto(path)
 
       const total = await page.locator('[data-reveal-item]').count()
@@ -144,6 +185,7 @@ test.describe('motion', () => {
   async function reducedMotionPage(browser: Browser, path: string) {
     const context = await browser.newContext({ reducedMotion: 'reduce' })
     const page = await context.newPage()
+    await installLiveRoot(page)
     await page.goto(path)
 
     expect(
@@ -352,6 +394,7 @@ test.describe('motion', () => {
      * Without this the panel would sweep over the exact thing it is meant to
      * be revealing.
      */
+    await installLiveRoot(page)
     await page.goto('/en/work')
     await page.waitForTimeout(800)
 
@@ -380,9 +423,102 @@ test.describe('motion', () => {
     ).toEqual(['idle'])
   })
 
+  test('a double click leaves nothing covering the page', async ({ page }) => {
+    /*
+     * `MOTION-SPEC.md` §9.4 rule 1: a moment must be interruptible with a
+     * defined resolution.
+     *
+     * A double click announces two navigations. The first sets the overlay
+     * covering and arms `maxWait`; the second re-arms it. If the route only
+     * commits once — which is what happens, because the destination is the
+     * same — the second announcement has no matching pathname change to
+     * uncover it, and only the safety timer is left between the reader and a
+     * blank screen. That is the shape of failure this asserts is impossible,
+     * on the covered path rather than the morphed one.
+     */
+    await installLiveRoot(page)
+    await page.goto('/en/work')
+    await page.waitForTimeout(600)
+
+    const overlay = page.locator(OVERLAY)
+    await expect(overlay).toHaveAttribute('data-state', 'idle')
+
+    const chip = page.locator('a[data-press="chip"]').nth(1)
+    const href = await chip.getAttribute('href')
+    await chip.dblclick()
+    await page.waitForURL(`**${href}`)
+
+    await expect(overlay).toHaveAttribute('data-state', 'idle', {
+      timeout: 5000,
+    })
+    const parked = await overlay.evaluate(
+      (el) => el.getBoundingClientRect().top >= window.innerHeight
+    )
+    expect(parked, 'overlay did not park after a double click').toBe(true)
+
+    // And the destination is actually readable, which is the thing a stuck
+    // overlay takes away.
+    await expect(page.locator('main h1, main h2').first()).toBeVisible()
+  })
+
+  test('going back mid-transition strands nothing', async ({ page }) => {
+    /*
+     * The other half of rule 1, and the one `ui-ux-pro-max` rates `Severity:
+     * High`: Back must work predictably.
+     *
+     * The overlay's two halves are driven by different things — the cover by a
+     * click, the uncover by a `usePathname()` change — so Back pressed while
+     * the reveal is still running is where they can come apart.
+     *
+     * ## Why it waits for the URL first
+     *
+     * The obvious version of this test clicked and went back 120ms later,
+     * without waiting. That does not interrupt a transition, it interrupts a
+     * *click*: the client-side navigation has not committed at 120ms, so
+     * `goBack()` steps past the page under test to `about:blank` and the
+     * assertions run against an empty document. Measured — url after click
+     * `/en/work`, url after back `about:blank`, zero `<h1>`.
+     *
+     * Waiting for the destination and going back immediately is the real
+     * interruption: the route has committed, the reveal is still in flight.
+     */
+    await installLiveRoot(page)
+    await page.goto('/en/work')
+    await page.waitForTimeout(600)
+
+    const overlay = page.locator(OVERLAY)
+    const chip = page.locator('a[data-press="chip"]').nth(1)
+    const href = await chip.getAttribute('href')
+
+    await chip.click()
+    await page.waitForURL(`**${href}`)
+    await page.goBack()
+    await page.waitForURL('**/en/work')
+    await page.waitForTimeout(900)
+
+    await expect(overlay).toHaveAttribute('data-state', 'idle', {
+      timeout: 5000,
+    })
+    const parked = await overlay.evaluate(
+      (el) => el.getBoundingClientRect().top >= window.innerHeight
+    )
+    expect(parked, 'overlay did not park after going back').toBe(true)
+
+    await expect(page.locator('h1').first()).toBeVisible()
+    expect(
+      await strandedItems(page),
+      'going back left content at opacity 0'
+    ).toEqual([])
+    expect(
+      await clippedOutOfView(page),
+      'going back left text outside its mask'
+    ).toEqual([])
+  })
+
   test('the route-change overlay covers, then always uncovers', async ({
     page,
   }) => {
+    await installLiveRoot(page)
     await page.goto('/en')
     await page.waitForTimeout(800)
 

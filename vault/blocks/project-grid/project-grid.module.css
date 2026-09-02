@@ -7,7 +7,16 @@
    */
   --reveal-transform: translateY(mobile-vw(32px));
   --reveal-stagger: 70ms;
-  --reveal-duration: var(--duration-slow);
+  /*
+   * Standard band, not choreographed.
+   *
+   * This was `--duration-slow` — 800ms — so four cards entering the home page
+   * were a third choreographed moment beside the hero's arrival and the card
+   * to project-page transport, and §9.5 allows two. A grid entrance is an
+   * entrance; the epic moment on this page is the hero, and on a navigation
+   * it is the transport.
+   */
+  --reveal-duration: var(--duration);
 
   display: grid;
   /* minmax(0, 1fr), never bare 1fr — see the component's doc comment. */

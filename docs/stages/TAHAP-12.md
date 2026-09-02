@@ -1060,3 +1060,122 @@ digulir lebih dulu supaya gambar `loading="lazy"` benar-benar termuat
 
 **Angka:** terisi 51% → **82%** · ruang mati atas 141px → **0** · e2e 220 →
 **226** · unit 395.
+
+---
+
+## 14. Hasil — 12e: dua momen epik, dianggarkan
+
+### 14.1 Beranda ternyata membelanjakan tiga, bukan dua
+
+Direkam — bukan disimpulkan dari deklarasi — dengan sampel
+`requestAnimationFrame` selama 2,6 detik sejak `load` di build produksi.
+Elemen yang bergerak lebih lama dari 600ms (plafon pita standard):
+
+| Elemen         | Sebelum    | Momen                                            |
+| -------------- | ---------- | ------------------------------------------------ |
+| Garis cue hero | **2453ms** | tidak bernama — dan ia **tidak pernah berhenti** |
+| 3 baris judul  | 732–778ms  | kedatangan hero                                  |
+| 4 kartu karya  | 608–690ms  | tidak bernama                                    |
+
+Delapan elemen, tiga hal berpita choreographed. §9.5 mengizinkan dua.
+
+### 14.2 Momen disebut namanya di DOM
+
+`data-epic="<nama>"`. §9.5 mewajibkan keduanya **disebut namanya**;
+menyebutkannya di DOM-lah yang membuat kewajiban itu bisa diperiksa, dan itu
+berarti gate bisa mengatakan momen **mana** yang boros alih-alih menunjuk
+sebuah `<div>` tanpa identitas.
+
+| Nama             | Di mana                              | Kapan ia bergerak |
+| ---------------- | ------------------------------------ | ----------------- |
+| `hero-arrival`   | `vault/blocks/hero` `<section>`      | saat muat         |
+| `work-transport` | `vault/blocks/project-card` `<Link>` | saat navigasi     |
+
+### 14.3 Tiga koreksi
+
+**Garis cue: dari loop abadi jadi garis diam.** Ia melewati tiga versi, dan
+versi ketiga yang benar:
+
+1. `@keyframes` 1200ms `infinite` — melanggar §5 (loop otomatis) **dan** §9.5
+   (satu dari dua momen, dibelanjakan selamanya untuk sebuah petunjuk).
+2. Menggambar sekali lewat kontrak `[data-reveal]` — **diukur, dan ia tidak
+   menggambar**: atributnya mendarat sekitar 200ms, setelah cat pertama, jadi
+   elemennya render di `scaleY(1)` tanpa atribut, bertransisi _menuju_ 0
+   selama ~40ms ia `hidden`, lalu kembali. Penurunan beberapa persen yang
+   tidak dilihat siapa pun.
+3. **Garis diam.** Ia mengatakan "ke bawah" dengan menjadi vertikal di bawah
+   katanya, dan tidak membelanjakan apa pun dari anggaran dua.
+
+**`--reveal-duration: 700ms` — di luar semua pita.** §2 menaruhnya di
+150–250, 300–600, dan 800–1200; 700ms jatuh di celah antara dua yang terakhir.
+Ia lolos karena `motion-rules.test.ts` membaca deklarasi `transition` dan
+`animation`, sementara ini sebuah **custom property** — aturannya ditulis di
+tempat gate tidak melihat. Setiap reveal di proyek ini mewarisinya. Kini
+`var(--duration)`.
+
+**Kisi karya turun dari pita choreographed.** `project-grid` dan
+`project-gallery` menyetel `--reveal-duration: var(--duration-slow)` (800ms),
+jadi masuknya kartu adalah momen choreographed ketiga. Sebuah masuk adalah
+masuk; momen epik halaman ini adalah heronya, dan pada navigasi adalah
+transportnya. `project-hero` **tetap** 800ms — ia memang SETTLE dari transport
+yang bernama itu.
+
+### 14.4 Sesudah
+
+|                         | Sebelum               | Sesudah                       |
+| ----------------------- | --------------------- | ----------------------------- |
+| Elemen bergerak > 600ms | **8**                 | **3** (ketiganya baris judul) |
+| Yang tak bernama        | 8                     | **0**                         |
+| Gerakan terpanjang      | 2453ms (tak berhenti) | 814ms                         |
+| Kartu karya             | 608–690ms             | 335–350ms                     |
+| Jendela kedatangan hero | —                     | 273 → 1162ms = **889ms**      |
+
+889ms berada di dalam pita choreographed dan di bawah anggaran ~1,2s yang
+dinyatakan blok hero sendiri.
+
+### 14.5 Gate
+
+**Anggaran epik** — `e2e/interaction-grammar.e2e.ts`. Diukur dari gerak yang
+direkam, karena spec menyebut ini sebagai risiko terbesar tahap ini (§8.3):
+menghitung dari CSS statis melewatkan tween GSAP, menghitung dari deklarasi
+runtime menangkap transisi yang tidak pernah berjalan, dan **keduanya gagal
+dengan hijau**.
+
+Dibuktikan merah lebih dulu, dan ia menamai kedelapan pelanggarnya. Dibuktikan
+hidup sesudahnya lewat mutasi — kisi dikembalikan ke 800ms lewat gaya yang
+disuntikkan — dan keempat kartu kembali muncul sebagai gerakan choreographed
+tanpa nama.
+
+**Interupsi** — `e2e/motion.e2e.ts`, dua tes:
+
+- klik ganda pada chip disiplin: overlay berakhir `idle` dan terparkir, dan
+  tujuannya terbaca;
+- Back di tengah transisi: overlay `idle`, konten terlihat, nol yang terdampar.
+
+### 14.6 Dua kali lagi alat ukurnya yang salah
+
+**"Back 120ms setelah klik" tidak menginterupsi transisi, ia menginterupsi
+klik.** Navigasi sisi-klien belum commit pada 120ms, jadi `goBack()` melangkah
+melewati halaman yang diuji ke `about:blank` dan asersinya berjalan di dokumen
+kosong. Terukur: url setelah klik `/en/work`, url setelah back `about:blank`,
+nol `<h1>`. Menunggu tujuan lalu langsung Back adalah interupsi yang
+sebenarnya: rutenya sudah commit, reveal-nya masih berjalan.
+
+**Dan saya nyaris mencatat perilaku framework sebagai cacat.** Setelah Back,
+dokumen punya **dua `<main>`** — terukur di `/en/work`: 2 main, 2 kisi, 8 item
+reveal, sementara muat baru punya 1, 1, dan 6, dan itu tidak hilang setelah
+empat detik. Saya menuliskannya sebagai cacat landmark ganda.
+
+Lalu saya mengukur kotaknya: `<main>` kedua adalah `display: none`, `0×0`. Itu
+pohon navigasi ter-cache milik Next — rute sebelumnya yang disimpan untuk Back
+instan. Ia tidak ada di pohon aksesibilitas mana pun, tidak mengambil
+perhentian tab, dan tidak mengecat apa pun. **Bukan cacat.**
+
+Yang benar-benar ia rusak adalah probe yang mengueri seluruh dokumen: dua item
+di dalam pohon tersembunyi itu terbaca `opacity: 0` dan dilaporkan sebagai
+konten yang terdampar dari pembaca. Probe-nya kini meminta `<main>` yang
+**terender** — yang punya kotak — bukan yang pertama atau terakhir dalam
+urutan dokumen, yang sama-sama tebakan.
+
+**Angka:** gerakan > 600ms 8 → **3** · tak bernama 8 → **0** · terpanjang
+2453ms → **814ms** · e2e 226 → **229** · unit 395.

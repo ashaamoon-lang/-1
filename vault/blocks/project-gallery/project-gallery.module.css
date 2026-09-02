@@ -6,7 +6,10 @@
    */
   --reveal-transform: translateY(mobile-vw(32px));
   --reveal-stagger: 70ms;
-  --reveal-duration: var(--duration-slow);
+  /* Standard band — same correction as `project-grid`. The detail page's two
+     choreographed moments are the cover's arrival and the next-project
+     transport, not the gallery filling in behind them. */
+  --reveal-duration: var(--duration);
 
   @media (--desktop) {
     --reveal-transform: translateY(desktop-vw(32px));

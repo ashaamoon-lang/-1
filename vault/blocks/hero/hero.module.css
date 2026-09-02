@@ -252,53 +252,34 @@
 /*
  * The line that makes the cue a direction rather than a word.
  *
- * `scaleY` on a fixed-height rule, not an animated `height`: `CLAUDE.md` #4
- * allows transform and opacity and nothing else. `transform-origin: top` so
- * it grows downward, which is the direction it is pointing.
+ * **Static, and that is the third answer rather than the first.**
+ *
+ * It began as a 1200ms keyframe looping forever, which was wrong twice:
+ * `MOTION-SPEC.md` §5 names an autoplaying loop as exactly what reduced motion
+ * is asking to be spared, and §9.5 allows a page two choreographed moments —
+ * an animation that never ends is one of them, permanently, spent on a hint.
+ * Recorded, it was the longest-moving element on the page by a factor of
+ * three: 2453ms of a 2600ms sample, against 778ms for the headline.
+ *
+ * The second attempt drew it once with the hero, under the `[data-reveal]`
+ * contract. Sampled per frame, it does not draw: the attribute lands at about
+ * 200ms, after first paint, so the element renders at `scaleY(1)` with no
+ * attribute, transitions *toward* 0 for the ~40ms it is `hidden`, and returns.
+ * A dip of a few percent that nobody sees. The same round trip happens to
+ * every `[data-reveal-item]`; on those it is masked by a stagger delay and an
+ * opacity fade, and on a 1px rule it is simply not motion.
+ *
+ * So it is a rule that is there. It says "down" by being vertical under the
+ * word, and it costs nothing from a budget of two.
  */
 .cueRule {
   display: block;
   inline-size: 1px;
   block-size: mobile-vw(32px);
   background-color: currentcolor;
-  transform-origin: top;
-  animation: cue-drop var(--duration-choreographed) var(--ease-out-expo)
-    infinite;
 
   @media (--desktop) {
     block-size: desktop-vw(40px);
-  }
-}
-
-@keyframes cue-drop {
-  0% {
-    transform: scaleY(0);
-    opacity: 0;
-  }
-
-  40% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: scaleY(1);
-    opacity: 0;
-  }
-}
-
-@media (--reduced-motion) {
-  /*
-   * The loop stops and the rule stays drawn.
-   *
-   * `MOTION-SPEC.md` §5 names an autoplaying loop as exactly what reduced
-   * motion is asking to be spared, and rule #5 is that content ends *visible*
-   * — a cue left at `scaleY(0)` is a cue nobody can see.
-   */
-  .cueRule {
-    animation: none;
-    transform: scaleY(1);
-    opacity: 1;
   }
 }
 
