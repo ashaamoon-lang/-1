@@ -998,6 +998,55 @@ dengan **membaca halamannya**.
 
 **Angka:** unit 395 → **400** · e2e 229 → **237**.
 
+## Tahap 14 — Gerak
+
+Spec penuh: **`docs/stages/TAHAP-14.md`**.
+
+Tahap ini lahir dari satu pertanyaan pemilik: bisakah animasinya dibuat setara
+dengan **melius.com**. Jawabannya diukur sebelum dijawab — HTML tersaji plus
+**22 dari 25 chunk JS (1,9 MB)** — dan hasilnya membalik rencana yang sudah
+disetujui sebelumnya.
+
+**melius tidak memakai three.js sama sekali.** `WebGLRenderer`,
+`PerspectiveCamera`, `ShaderMaterial`, `BufferGeometry`, dan `new THREE`
+kelimanya **0/22 chunk**. Mesin animasinya **Motion/framer-motion**; GSAP ada
+tapi hanya untuk `SplitText`. `scrub:` **0**, `pin:` **0**, `Observer.create`
+**0** — tidak ada koreografi scroll-scrub sedikit pun.
+
+**Dua kali instrumen saya sendiri salah bentuk, dan itu dicatat.** Pembacaan
+pertama melaporkan `Observer` di 12 chunk (ternyata `IntersectionObserver` /
+`ResizeObserver`; plugin GSAP-nya **1** kemunculan) dan 185 tween `ease:"none"`
+yang di-scrub (ternyata `display:"none"`; hitungan sebenarnya **1**).
+Kesimpulan pertama — "melius adalah koreografi scroll-scrub bervolume tinggi" —
+terbalik seluruhnya setelah instrumennya dibetulkan. Pelajaran Tahap 12 §10,
+lagi: pengukuran yang salah bentuk menghasilkan angka meyakinkan yang menunjuk
+perbaikan yang keliru.
+
+**Tata bahasa gerak Arth ternyata sudah lebih ketat.** Kurva dominan melius
+varian `in-out` (`ease-sin-in-out` ×29, `ease-quart-in-out` ×12) — yang
+`CLAUDE.md` #2 batasi; default kita `outQuart`. Gradient WebGL di hero kita
+adalah benda yang sama dengan `minigl` mereka.
+
+**Jaraknya tiga hal, tak satu pun three.js:** imagery bergerak (6 klip `.webm`
+lawan 10 pelat statis), volume (27 blok setingkat `h3` lawan ~6 blok reveal),
+dan perubahan konten di tempat (primitif `accordion`/`tabs` kita: **nol
+pemakai**).
+
+**Kerja:**
+
+- **14a — lapisan material.** `vault/webgl/material-image/` menggerakkan pelat
+  yang sudah ada lewat medan kecepatan `lib/webgl/utils/flowmaps/` — mesin GPU
+  yang sudah dibangun dan **nol pemakai**. Beranda saja
+  (`route-budget.e2e.ts`), fallback pelat statis, dan serah-terima ke DOM pada
+  **COMMIT** supaya morph `<ViewTransition>` Tahap 11d tetap hidup.
+- **14b — volume dan cakupan.** Reveal untuk tiap blok di tiga rute; seksi
+  Practice yang membuka isinya di tempat, dengan native `<details>` karena
+  `components/ui/accordion` client-only dan akan mematahkan kriteria no-JS.
+
+**Tidak dikerjakan, dinyatakan di muka:** tidak ada `.webm` dibuat, tidak ada
+material di `/en/work` atau halaman detail, tidak ada scroll-scrub atau pin,
+tidak ada Motion/framer-motion ditambahkan.
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap
