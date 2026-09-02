@@ -857,7 +857,7 @@ hijau selama beberapa tahap. Sekarang ada gate untuk itu.
 
 ---
 
-## Tahap 12 — Tata bahasa interaksi: dari indah menjadi hidup 🔜
+## Tahap 12 — Tata bahasa interaksi: dari indah menjadi hidup ✅
 
 Spec penuh: **`docs/stages/TAHAP-12.md`**.
 
@@ -907,8 +907,35 @@ asetnya. Tahap ini memperluasnya (6 karya, lima rasio, satu portrait), tidak
 menggantinya — dan sumber eksternal tetap ditolak dua kali oleh
 `remotePatterns` dan `img-src`.
 
-Lima sub-tahap: **12a** aset · **12b** tata bahasa + token · **12c** COMMIT
-terpasang · **12d** komposisi beranda · **12e** dua momen epik.
+**Kelima sub-tahap dikerjakan.** **12a** aset (3 → 6 karya, 2 → 7 rasio, dan
+aset persegi pertama yang sampai ke halaman terender) · **12b** tata bahasa
+ditulis sebagai §9 dan diberi 9 tes · **12c** COMMIT terpasang di enam kata
+benda · **12d** hero berjangkar (terisi 51% → **82%**, ruang mati atas 141px →
+**0**) dan tiap section ditandai garis rambut · **12e** anggaran epik ditegakkan
+(gerakan > 600ms **8 → 3**, tak bernama **8 → 0**, terpanjang 2453ms → 814ms).
+
+**Empat cacat ditemukan di luar rencana, dan tiga di antaranya lebih serius
+dari rencananya.** Rebuild tidak memungut perubahan konten — `'use cache'`
+menyimpan hasil fetch di `.next/cache` dan build memakainya ulang, jadi CMS
+punya enam karya sementara situs terbangun menyajikan tiga, dengan log hijau
+(`DEPLOYMENT.md` §7). `--reveal-duration: 700ms` berada **di luar semua pita**
+dan lolos karena gate aturan gerak membaca `transition`, bukan custom property.
+Kill switch reduced-motion berspesifisitas `*` dan kalah dari kelas mana pun,
+jadi ia komentar, bukan mekanisme. Dan yang terberat: **di bawah
+`prefers-reduced-motion`, dua dari tiga baris `<h1>` beranda tidak terlihat**,
+terkirim sejak Tahap 11c — `TextReveal` memarkirnya di luar mask-nya sendiri
+pada `opacity: 1`, sehingga gate yang ada persis untuk cacat ini tidak bisa
+melihatnya karena ia membaca opacity.
+
+**Empat kali alat ukurnya sendiri yang salah**, semuanya dicatat: tekanan yang
+mengenai header alih-alih kartu, snapshot keadaan yang terlalu sempit sehingga
+warna tidak terhitung sebagai pengakuan, Back yang menginterupsi klik alih-alih
+transisi, dan perilaku cache navigasi Next yang nyaris tercatat sebagai cacat
+landmark ganda. Pola yang sama seperti selalu — **pengukuran yang salah bentuk
+menghasilkan centang hijau** — kali ini pada gate-nya sendiri.
+
+**Angka:** e2e 211 → **229** · unit 386 → **395** · `:active` di seluruh proyek
+0 → satu aturan bersama + 6 kata benda.
 
 # Verifikasi
 
