@@ -56,6 +56,12 @@ bun install
 bun dev            # http://localhost:3000
 ```
 
+The site boots without any environment variables, but every integration
+self-disables when its own are absent — so a bare `bun dev` renders a page with
+no content and no error. **[docs/MENJALANKAN-LOKAL.md](docs/MENJALANKAN-LOKAL.md)**
+(Bahasa Indonesia) has the four non-secret values that connect it to the CMS,
+and why no token is needed to read it.
+
 | Command             |                                |
 | ------------------- | ------------------------------ |
 | `bun run build`     | production build               |
