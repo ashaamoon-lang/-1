@@ -937,6 +937,47 @@ menghasilkan centang hijau** — kali ini pada gate-nya sendiri.
 **Angka:** e2e 211 → **229** · unit 386 → **395** · `:active` di seluruh proyek
 0 → satu aturan bersama + 6 kata benda.
 
+---
+
+## Tahap 13 — Situs ini akhirnya mengatakan apa yang Arth kerjakan 🔜
+
+Spec penuh: **`docs/stages/TAHAP-13.md`**.
+
+Dua belas tahap membangun situs ini sebagai studio karya pesanan. Sektornya
+bukan itu. Arth adalah **agency high-ticket** — **Consulting · AI/Data ·
+Commission** — dan sejak Tahap 12 §0 penyelarasan kosakata tercatat sebagai
+utang terbuka yang menunggu keputusan pemilik. Keputusan itu sekarang ada, dan
+kata-katanya dikutip apa adanya.
+
+**Ini bukan penggantian teks.** Kosakata itu struktural: nilai tertutup di
+skema, segmen di URL, entri di JSON-LD `services` dan `knowsAbout`, label
+filter, tiga baris di hero. Diukur dari yang benar-benar **disajikan** build
+produksi: `/en/ai` **137** sebutan kosakata seni · `/en` **113** · `/id/ai`
+**109** · `/id` **84** · `/en/work` **82** · `/llms.txt` **44** · dan
+`knowsAbout` **5 dari 5**. Mesin jawaban membaca janji itu dengan patuh, karena
+kedua permukaan itu memang dibangun untuk dipercaya.
+
+**Satu sumber kebenaran menyelamatkan tahap ini.** `lib/content/disciplines.ts`
+punya sepuluh konsumen yang semuanya mengimpor darinya — keputusan Tahap 8 yang
+berbuah sekarang. Jadi: penggantian terarah, bukan pencarian-dan-penggantian.
+
+Dua puluh tujuh berkas menyebut kosakata lama, tapi **hanya sebelas menanggung
+nilai**; enam belas sisanya komentar penjelas dan URL contoh. Yang pertama
+cacat, yang kedua kebersihan — keduanya dikerjakan, hanya yang pertama
+digerbangi, karena gate yang memaksa penulisan ulang komentar ilustratif
+menghukum dokumentasi alih-alih melindungi pembaca.
+
+**Skema: tiga field, bukan satu.** `discipline` → `practice`, `medium` →
+`engagement`, `dimensions` → `scope`. Di-rename, bukan sekadar diberi judul
+baru: field bernama `medium` yang berisi "Retainer, enam bulan" adalah nama
+yang berbohong tentang isinya, dan itu tidak pernah gagal di gate mana pun.
+
+**Gate yang menentukan mengukur HTTP yang disajikan, bukan sumber** — sebuah
+grep sumber bisa dipuaskan dengan menyunting komentar; ini tidak bisa.
+
+Tiga sub-tahap: **13a** gate koherensi kosakata · **13b** rename modul, rute,
+dan skema · **13c** identitas, prosa, fixture, dan kartu OG.
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap
