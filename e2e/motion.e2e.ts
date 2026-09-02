@@ -57,6 +57,49 @@ async function scrollThrough(page: Page) {
   await page.waitForTimeout(1200)
 }
 
+/**
+ * Text pushed out of the mask it is supposed to rise into.
+ *
+ * `strandedItems` below reads `opacity`, and that is the whole reason this
+ * exists as a second probe rather than a clause in the first. `TextReveal`
+ * hides a line by translating it **down by its own height** inside a parent
+ * with `overflow: clip` — the line stays at `opacity: 1` the entire time, and
+ * an opacity check reports the page as clean while two thirds of the home
+ * page's `<h1>` is invisible.
+ *
+ * Measured under `prefers-reduced-motion` before the fix: line 1 at
+ * `matrix(1, 0, 0, 1, 0, 0)`, lines 2 and 3 at `matrix(1, 0, 0, 1, 0, 102)`
+ * inside 102px masks — 0% of each visible. It had shipped since Tahap 11c.
+ *
+ * The measure is the fraction of the *mask* its child actually covers, not
+ * whether the child is on screen: an element scrolled below the fold is fine,
+ * an element parked outside its own clip is not.
+ */
+async function clippedOutOfView(page: Page) {
+  return page.evaluate(() =>
+    [...document.querySelectorAll('h1, h2, h3, p')]
+      .flatMap((el) => [...el.querySelectorAll('*')])
+      .filter((child) => {
+        const parent = child.parentElement
+        if (!parent) return false
+        const overflow = getComputedStyle(parent).overflow
+        if (overflow !== 'clip' && overflow !== 'hidden') return false
+
+        const mask = parent.getBoundingClientRect()
+        const inner = child.getBoundingClientRect()
+        if (mask.height === 0) return false
+
+        const covered =
+          Math.max(
+            0,
+            Math.min(mask.bottom, inner.bottom) - Math.max(mask.top, inner.top)
+          ) / mask.height
+        return covered < 0.5
+      })
+      .map((el) => `"${(el.textContent ?? '').trim().slice(0, 24)}"`)
+  )
+}
+
 async function strandedItems(page: Page) {
   return page.evaluate(() =>
     [...document.querySelectorAll('[data-reveal-item]')]
@@ -114,6 +157,30 @@ test.describe('motion', () => {
   }
 
   test.describe('under prefers-reduced-motion', () => {
+    for (const locale of routing.locales) {
+      test(`/${locale} shows every line of the headline`, async ({
+        browser,
+      }) => {
+        const { context, page } = await reducedMotionPage(browser, `/${locale}`)
+
+        try {
+          const heading = page.locator('h1')
+          await expect(heading).toBeVisible()
+
+          // The accessible name is the whole headline whether or not it was
+          // split (`aria: 'auto'`), so this passes even while the page shows
+          // one line of three. What a reader sees is the assertion below.
+          const clipped = await clippedOutOfView(page)
+          expect(
+            clipped,
+            `/${locale}: text parked outside its own mask: ${clipped.join(', ')}`
+          ).toEqual([])
+        } finally {
+          await context.close()
+        }
+      })
+    }
+
     for (const locale of routing.locales) {
       test(`/${locale}/work/rimbun renders everything immediately`, async ({
         browser,

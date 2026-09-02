@@ -117,10 +117,40 @@ export function TextReveal({
   useGSAP(
     () => {
       const container = containerRef.current
+      if (!container) return
+
+      /*
+       * The preference is read again here, from `matchMedia` directly, and
+       * that repetition is the fix for a real bug rather than belt and braces.
+       *
+       * `usePreferredReducedMotion` is a `useSyncExternalStore` whose *server*
+       * snapshot is `false`. React hydrates with the server snapshot, so the
+       * first commit — the one this effect runs in — sees `false` even for a
+       * reader who has the preference on. The split happened, `gsap.from` put
+       * every line at `yPercent: 100` inside its mask, and whether the tween
+       * then completed depended on a race with the re-render that carries the
+       * real value.
+       *
+       * Measured on the home page under `prefers-reduced-motion`: the English
+       * headline finished, the Indonesian one did not — lines 2 and 3 parked
+       * at `matrix(1, 0, 0, 1, 0, 102)` inside 102px masks, 0% visible, at
+       * `opacity: 1` the whole time. That is `CLAUDE.md` #5 — content stranded
+       * invisible — and it shipped from Tahap 11c, because the gate that
+       * exists for exactly this reads opacity and nothing was ever transparent.
+       *
+       * Inside an effect we are on the client and `matchMedia` is truthful
+       * *now*, with no hydration snapshot in the way. The hook stays in the
+       * dependencies so flipping the preference mid-session still re-runs and
+       * reverts.
+       */
+      const reduced =
+        prefersReducedMotion ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
       // Reduced motion: never split, never animate. The element already
       // renders its text normally, so there is nothing to reveal — and
       // nothing left hidden.
-      if (!container || prefersReducedMotion) return
+      if (reduced) return
 
       const config = SPLIT_CONFIG[split]
 

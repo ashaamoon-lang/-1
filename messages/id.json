@@ -21,7 +21,9 @@
     "socialsHeading": "Di tempat lain",
     "heroCta": "Lihat karyanya",
     "heroCtaContact": "Hubungi kami",
-    "placeholderNote": "Teks sementara — akan diganti oleh kata-kata studio sendiri begitu CMS-nya terisi."
+    "placeholderNote": "Teks sementara — akan diganti oleh kata-kata studio sendiri begitu CMS-nya terisi.",
+    "heroIndexLabel": "Praktik",
+    "scrollCue": "Gulir"
   },
   "work": {
     "sectionTitle": "Karya pilihan",

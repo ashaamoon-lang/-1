@@ -84,5 +84,53 @@ test.describe('spatial rhythm', () => {
         `sections disagree on the rhythm: ${detail}`
       ).toBeLessThanOrEqual(TOLERANCE)
     })
+
+    test(`/${locale} marks where each section begins`, async ({ page }) => {
+      await page.goto(`/${locale}`)
+
+      /*
+       * A long page needs to say where its parts start.
+       *
+       * The home page is 5749px at 1440 — it was 4385px before Tahap 12a put
+       * real work in it — and a reader scrolling that far has nothing but a
+       * change of heading to tell them a new section has begun. The gap
+       * between sections is 160px of nothing, which reads as a pause in the
+       * same section as easily as the end of one.
+       *
+       * The invariant is the same shape as the gap test above: **one** marking
+       * device, used identically. Not which device — a rule, a change of
+       * ground, a marker in the gutter are all legitimate; three different
+       * ones are not.
+       *
+       * Numbering is the device this deliberately does not use. `01 / 02 / 03`
+       * on Work, Studio and Contact would claim a sequence, and these are not
+       * a sequence — they are three parts of one page a reader may enter at
+       * any of them from the nav.
+       */
+      const marks = await page.evaluate(() =>
+        [...document.querySelectorAll('section[id]')].map((section) => {
+          const style = getComputedStyle(section)
+          return {
+            section: section.id,
+            border: `${style.borderTopWidth} ${style.borderTopStyle} ${style.borderTopColor}`,
+            width: Number.parseFloat(style.borderTopWidth),
+          }
+        })
+      )
+
+      expect(marks.length, 'no identified sections to check').toBeGreaterThan(1)
+
+      const unmarked = marks.filter((mark) => mark.width < 0.5)
+      expect(
+        unmarked.map((mark) => mark.section),
+        'sections with nothing marking where they begin'
+      ).toEqual([])
+
+      const distinct = [...new Set(marks.map((mark) => mark.border))]
+      expect(
+        distinct,
+        `sections are marked three different ways: ${distinct.join(' | ')}`
+      ).toHaveLength(1)
+    })
   }
 })

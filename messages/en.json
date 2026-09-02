@@ -21,7 +21,9 @@
     "socialsHeading": "Elsewhere",
     "heroCta": "See the work",
     "heroCtaContact": "Get in touch",
-    "placeholderNote": "Placeholder copy — this text is replaced by the studio’s own words as soon as the CMS has them."
+    "placeholderNote": "Placeholder copy — this text is replaced by the studio’s own words as soon as the CMS has them.",
+    "heroIndexLabel": "Practice",
+    "scrollCue": "Scroll"
   },
   "work": {
     "sectionTitle": "Selected work",

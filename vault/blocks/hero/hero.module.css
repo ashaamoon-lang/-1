@@ -10,7 +10,6 @@
 
   position: relative;
   display: grid;
-  align-items: center;
   /*
    * svh, not vh: on mobile browsers vh includes the collapsing address bar, so
    * a 100vh hero is taller than the visible viewport on first paint and the
@@ -19,9 +18,14 @@
    */
   min-height: 100svh;
   /*
-   * Top padding clears the fixed header. The content is vertically centred in
-   * the viewport, so without this a tall headline slides underneath the bar
-   * instead of centring in the space actually available.
+   * Top padding clears the fixed header, which is `position: fixed` and so
+   * takes no space of its own. Without it the index row starts underneath the
+   * bar.
+   *
+   * The hero no longer centres its content: `align-items` was `center`, which
+   * is what produced 141px of dead space above the headline and 205px below
+   * it in a 900px screen. `.frame` stretches instead, and decides where each
+   * anchor sits.
    */
   padding: var(--header-height) var(--safe) mobile-vw(48px);
   overflow: clip;
@@ -35,14 +39,115 @@
   pointer-events: none;
 }
 
+/*
+ * The frame: three anchors, not one centred column.
+ *
+ * Rows are `auto 1fr auto` so the index pins to the top and the headline and
+ * cue to the bottom, with the slack in the middle where it costs nothing.
+ * That puts the index in the top right and the headline in the bottom left —
+ * a diagonal across the screen — instead of three left-aligned elements of
+ * descending width floating in the vertical centre.
+ *
+ * Columns are the site's own 12 (`lib/styles/layout.mjs`), so the headline's
+ * left edge and the grid below it are the same line rather than nearly the
+ * same line.
+ */
+.frame {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  /*
+   * `minmax(0, 1fr)`, and the zero is the point.
+   *
+   * This said `minmax(mobile-vw(48px), 1fr)`, meaning to keep a little air
+   * between the index and the headline. `mobile-vw()` resolves against the
+   * 375px *mobile* design width, so at a 1440 viewport it is 12.8vw — 184px,
+   * not 48px. The middle row demanded that space, the frame grew to 816px,
+   * the hero to 978px, and the call to action fell 78px below a 900px
+   * screen: exactly the failure the `100svh` note above exists to prevent.
+   *
+   * The slack in this row is meant to absorb space, never to ask for it.
+   */
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  column-gap: var(--gap);
+  row-gap: mobile-vw(32px);
+  min-height: 0;
+
+  @media (--desktop) {
+    row-gap: desktop-vw(48px);
+  }
+}
+
+.index {
+  grid-row: 1;
+  /* Full width on mobile — four columns is not enough to sit a list beside a
+     display headline, and stacking it reads as a standfirst rather than as a
+     cramped sidebar. */
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(8px);
+
+  @media (--desktop) {
+    /* The four columns the headline's 9em measure leaves free. */
+    grid-column: 9 / -1;
+    gap: desktop-vw(10px);
+  }
+}
+
+.cue {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  align-self: end;
+  /*
+   * Bottom right at every width, and on mobile that is a collision fix.
+   *
+   * This was `justify-self: start` below 800px, on the idea that the cue
+   * would sit under the action. It does not: `.content` spans rows 2–4 there
+   * and the cue is in row 3, so both were bottom-left and the cue landed on
+   * top of the call to action — measured at 390×844, CTA `17→163` and cue
+   * `17→81`, overlapping for 64px.
+   */
+  justify-self: end;
+
+  @media (--desktop) {
+    grid-row: 3;
+    grid-column: 10 / -1;
+  }
+}
+
 .content {
   position: relative;
   z-index: 1;
+  grid-row: 2 / 4;
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
+  justify-content: end;
+
   /* Generous, not tight. Whitespace is the cheapest expensive-looking asset
      there is — see DESIGN-SYSTEM.md §3. */
   gap: mobile-vw(24px);
+
+  @media (--desktop) {
+    grid-row: 3;
+    /*
+     * The full width, and the headline's own `max-width: 9em` is what keeps
+     * the right side free.
+     *
+     * Constraining this to `1 / 9` instead was the first attempt and it broke
+     * the headline: eight columns is 933px at 1440, and "Commissioned" sets
+     * at about 950px, so `overflow-wrap: anywhere` split it across two lines
+     * as "Commissione / d". A column count is the wrong instrument for a
+     * measure — 9em is relative to the headline's own fluid size and holds at
+     * every viewport, which a fraction of the grid does not.
+     *
+     * This shares row 3 with `.cue`, deliberately. They cannot collide: 9em
+     * resolves to about 1035px at 1440 and the cue's track starts at 1068px.
+     */
+    grid-column: 1 / -1;
+  }
   /*
    * No width limit here, and `align-items` left at its `stretch` default.
    *
@@ -101,6 +206,100 @@
    * `e2e/responsive.e2e.ts` now asserts this per element, in both locales.
    */
   overflow-wrap: anywhere;
+}
+
+.indexLabel {
+  margin: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.indexList {
+  list-style: none;
+  color: var(--color-secondary);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  /* A row on mobile, a stack on desktop: across four columns a stack of three
+     words is a tall thin ribbon, and beside a display headline a row is a
+     line of text pretending to be a list. */
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: mobile-vw(12px);
+  font-family: var(--font-mono, monospace);
+
+  @media (--desktop) {
+    flex-direction: column;
+    gap: desktop-vw(6px);
+  }
+}
+
+.cueLabel {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: mobile-vw(10px);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+
+  @media (--desktop) {
+    gap: desktop-vw(12px);
+  }
+}
+
+/*
+ * The line that makes the cue a direction rather than a word.
+ *
+ * `scaleY` on a fixed-height rule, not an animated `height`: `CLAUDE.md` #4
+ * allows transform and opacity and nothing else. `transform-origin: top` so
+ * it grows downward, which is the direction it is pointing.
+ */
+.cueRule {
+  display: block;
+  inline-size: 1px;
+  block-size: mobile-vw(32px);
+  background-color: currentcolor;
+  transform-origin: top;
+  animation: cue-drop var(--duration-choreographed) var(--ease-out-expo)
+    infinite;
+
+  @media (--desktop) {
+    block-size: desktop-vw(40px);
+  }
+}
+
+@keyframes cue-drop {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+
+  40% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+@media (--reduced-motion) {
+  /*
+   * The loop stops and the rule stays drawn.
+   *
+   * `MOTION-SPEC.md` §5 names an autoplaying loop as exactly what reduced
+   * motion is asking to be spared, and rule #5 is that content ends *visible*
+   * — a cue left at `scaleY(0)` is a cue nobody can see.
+   */
+  .cueRule {
+    animation: none;
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 .subline {

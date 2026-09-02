@@ -39,6 +39,25 @@
   display: flex;
   flex-direction: column;
   gap: var(--section-lead);
+  /*
+   * Where a section begins, said out loud.
+   *
+   * The page is 5749px at 1440 — it was 4385px before Tahap 12a put real work
+   * in it — and 160px of empty space between sections reads as a pause within
+   * one section as readily as the end of it. A reader scrolling that far had
+   * nothing but a change of heading to go on.
+   *
+   * A hairline, not numbering. `01 / 02 / 03` on Work, Studio and Contact
+   * would claim a sequence, and these are not one: they are three parts of a
+   * page a reader may enter at any of them from the nav. A rule says only
+   * "something new starts here", which is the thing that is actually true.
+   *
+   * The same `--section-lead` token below it as between the header and the
+   * body, so the rule joins the rhythm Tahap 11a established rather than
+   * introducing a second spacing vocabulary.
+   */
+  border-block-start: 1px solid var(--line);
+  padding-block-start: var(--section-lead);
   /* Matches the site gutter used by the header and footer, so a section edge
      lines up with the wordmark above it rather than nearly lining up. */
   padding-inline: var(--safe);

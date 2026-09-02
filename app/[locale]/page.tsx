@@ -4,6 +4,7 @@ import { locale as localeRootParam } from 'next/root-params'
 import type { SectionLink } from '@/components/layout/header'
 import { Wrapper } from '@/components/layout/wrapper'
 import { SectionHeader } from '@/components/ui/section-header'
+import { DISCIPLINES } from '@/lib/content/disciplines'
 import { resolveHomeContent } from '@/lib/content/home-fallback'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -107,9 +108,13 @@ export default async function Home() {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const [{ settings, projects }, t] = await Promise.all([
+  const [{ settings, projects }, t, tWork] = await Promise.all([
     fetchHomeForRequest(locale),
     getTranslations('home'),
+    // The discipline labels are already localized for the catalogue's filter
+    // chips. Reading them from there rather than adding a second set keeps
+    // the hero and `/work/discipline/<value>` naming the same three things.
+    getTranslations('workIndex'),
   ])
 
   const content = resolveHomeContent(locale, settings)
@@ -155,6 +160,22 @@ export default async function Home() {
       <Hero
         headline={content.headline}
         subline={content.subline}
+        /*
+         * The counterweight in the columns the headline leaves empty, and the
+         * cue that the page continues. `docs/stages/TAHAP-12.md` §3.1 measured
+         * what their absence cost: 456px of ink in a 900px screen, three
+         * elements of descending width down the left edge, and nothing at all
+         * saying a 5749px document followed.
+         *
+         * The disciplines are the honest content for it — they are what the
+         * studio does, they are already a route (`/work/discipline/<value>`),
+         * and they come from one vocabulary (`lib/content/disciplines.ts`).
+         */
+        index={{
+          label: t('heroIndexLabel'),
+          items: DISCIPLINES.map((discipline) => tWork(discipline)),
+        }}
+        cue={t('scrollCue')}
         action={
           /* oxlint-disable-next-line react/forbid-elements -- deliberate native
              anchor, same reasoning as the header nav: a same-page hash must

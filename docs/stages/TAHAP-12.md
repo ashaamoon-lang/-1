@@ -936,3 +936,127 @@ bisa menelantarkan pembaca.
 
 **Angka:** e2e 212 → **220** · unit 395 · `:active` di seluruh proyek 0 → **1
 aturan bersama + 6 kata benda**.
+
+---
+
+## 13. Hasil — 12d: komposisi beranda
+
+### 13.1 Hero berhenti memusat dan mulai berjangkar
+
+Tiga jangkar, bukan satu kolom terpusat: **index** (praktik studio) di
+kanan-atas, **judul** dan aksinya di kiri-bawah, **cue** gulir di kanan-bawah.
+Sebuah diagonal melintasi layar.
+
+Terukur di 1440×900, build produksi, reduced motion:
+
+|                                      | Sebelum                 | Sesudah                                            |
+| ------------------------------------ | ----------------------- | -------------------------------------------------- |
+| Tinggi hero                          | 900px                   | 900px                                              |
+| Tinta pertama → terakhir             | 239 → 695               | **98 → 836**                                       |
+| Terisi                               | 456px / 900px = **51%** | 738px / 900px = **82%**                            |
+| Ruang mati atas                      | **141px**               | **0px**                                            |
+| Ruang mati bawah                     | 205px                   | 64px (padding bawah, disengaja)                    |
+| Tepi kanan terpakai di layar pertama | **tidak ada**           | 98,2%                                              |
+| Isyarat gulir                        | **tidak ada**           | ada, kanan-bawah                                   |
+| Isi di bawah lipatan                 | —                       | **tidak ada**, keempat kombinasi locale × viewport |
+
+Lebar `h1` (75%) dan CTA (12%) tidak berubah — memang tidak seharusnya. Yang
+salah bukan lebarnya, melainkan tidak adanya apa pun di seberangnya.
+
+### 13.2 Dua cacat saya sendiri, keduanya ditemukan dengan mengukur
+
+**Baris kosong menuntut 184px, bukan 48px.** Versi pertama menulis
+`grid-template-rows: auto minmax(mobile-vw(48px), 1fr) auto`. `mobile-vw()`
+di-resolve terhadap lebar desain **mobile 375px**, jadi pada viewport 1440 ia
+menjadi `12.8vw` = **184px**. Frame terdorong ke 816px, hero ke **978px**, dan
+CTA jatuh 78px di bawah layar 900px — persis kegagalan yang dicegah komentar
+`100svh` di berkas yang sama. Diperbaiki jadi `minmax(0, 1fr)`: slack di baris
+tengah ada untuk **menyerap** ruang, tidak pernah untuk memintanya.
+
+**Cue menimpa CTA di mobile.** `justify-self: start` di bawah 800px, dengan
+gagasan cue duduk _di bawah_ aksi. Ia tidak: `.content` membentang baris 2–4 di
+sana dan cue ada di baris 3, jadi keduanya di kiri-bawah. Terukur di 390×844:
+CTA `17→163`, cue `17→81` — tumpang tindih 64px. Kini kanan-bawah di semua
+lebar.
+
+### 13.3 Judul dipatok kolom adalah instrumen yang salah
+
+Percobaan pertama memberi `.content` `grid-column: 1 / 9`. Delapan kolom
+adalah 933px pada 1440; "Commissioned" mengeset di sekitar 950px, jadi
+`overflow-wrap: anywhere` memecahnya jadi "Commissione / d".
+
+Ukuran teks bukan pecahan kisi. `max-width: 9em` relatif terhadap ukuran fluid
+judul itu sendiri dan bertahan di setiap viewport — jadi `.content` mengambil
+lebar penuh dan **judulnya sendiri** yang menyisakan sisi kanan. Ia berbagi
+baris 3 dengan cue dengan sengaja, dan keduanya tidak bisa bertabrakan: 9em
+resolve ke ~1035px pada 1440, sementara track cue mulai di 1068px.
+
+### 13.4 Jangkar section: garis rambut, bukan penomoran
+
+Dokumen kini **5896px** (dari 4385px sebelum 12a). 160px kosong antar-section
+terbaca sebagai jeda **di dalam** satu section semudah sebagai akhir darinya.
+
+Tiap section mendapat `border-block-start: 1px solid var(--line)` dan
+`padding-block-start: var(--section-lead)` — token yang sama dengan jarak
+header→isi, sehingga garis itu **bergabung** dengan ritme Tahap 11a alih-alih
+memperkenalkan kosakata spasi kedua.
+
+**Penomoran ditolak, dengan alasan.** `01 / 02 / 03` pada Work, Studio dan
+Contact akan mengklaim sebuah urutan. Ketiganya bukan urutan — mereka tiga
+bagian satu halaman yang bisa dimasuki pembaca dari mana saja lewat nav. Sebuah
+garis hanya mengatakan "sesuatu yang baru mulai di sini", dan itulah yang benar.
+
+Gate `e2e/spatial-rhythm.e2e.ts` → **"marks where each section begins"**,
+bentuknya sama dengan gate jarak di sebelahnya: **satu** perangkat penanda,
+dipakai identik. Bukan perangkat mana. Dibuktikan merah lebih dulu — sebelum
+perbaikan, ketiga section melapor `borderTopWidth: 0px`.
+
+### 13.5 Temuan terpisah, dan yang paling serius di tahap ini
+
+**Di bawah `prefers-reduced-motion`, dua dari tiga baris `<h1>` beranda tidak
+terlihat.** Terkirim sejak Tahap 11c.
+
+Terukur di build produksi, 1440×900:
+
+```
+reduce         baris 1  terlihat 1,00   matrix(1, 0, 0, 1, 0, 0)
+               baris 2  terlihat 0,00   matrix(1, 0, 0, 1, 0, 102)
+               baris 3  terlihat 0,00   matrix(1, 0, 0, 1, 0, 102)
+no-preference  ketiganya terlihat 1,00
+```
+
+Baris 2 dan 3 terdorong 102px — persis tinggi mask `overflow: clip` miliknya
+sendiri — pada `opacity: 1` sepanjang waktu.
+
+**Sebabnya.** `usePreferredReducedMotion()` adalah `useSyncExternalStore` yang
+`getServerSnapshot`-nya mengembalikan `false`. React menghidrasi dengan
+snapshot server, jadi commit pertama — tempat `useGSAP` berjalan — melihat
+`false` bahkan untuk pembaca yang preferensinya menyala. `SplitText` memecah
+teks, `gsap.from` menaruh tiap baris di `yPercent: 100`, dan apakah tween-nya
+selesai bergantung pada balapan dengan re-render yang membawa nilai
+sebenarnya. **Inggris menang, Indonesia kalah** — yang membuatnya flaky, bukan
+konsisten, dan karena itu lebih sulit dipercaya kalau ditemukan lewat mata.
+
+**Mengapa tidak pernah tertangkap.** `e2e/motion.e2e.ts` ada persis untuk kelas
+cacat ini — `CLAUDE.md` #5, konten terdampar tak terlihat — tetapi ia membaca
+**`opacity`**, dan tidak ada satu pun yang pernah transparan. Gate-nya sendiri
+yang salah bentuk.
+
+**Perbaikannya** di `vault/motion/text-reveal/index.tsx`: preferensi dibaca
+ulang lewat `window.matchMedia` **di dalam efek**, tempat ia jujur dan tidak
+ada snapshot hidrasi yang menghalangi. Hook tetap di `dependencies`, jadi
+pembalikan preferensi di tengah sesi tetap merevert.
+
+**Gate barunya** `clippedOutOfView()`: fraksi mask yang benar-benar ditutupi
+anaknya, bukan opacity. Dibuktikan merah lebih dulu —
+`/id: text parked outside its own mask: "mereka yang", "memperhatikan"` —
+dan kini hijau **deterministik** di kedua locale.
+
+### 13.6 Dilihat, bukan hanya diuji
+
+`/en` dan `/id` × 1440×900 dan 390×844, di build produksi, dengan halaman
+digulir lebih dulu supaya gambar `loading="lazy"` benar-benar termuat
+(pelajaran §10.5).
+
+**Angka:** terisi 51% → **82%** · ruang mati atas 141px → **0** · e2e 220 →
+**226** · unit 395.
