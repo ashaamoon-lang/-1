@@ -97,7 +97,7 @@ export function GradientScene({
    * (`vault/webgl/material-image/scene.tsx` was reading Lenis' eased scroll
    * instead of the real one) blanked the plates either way, so it could not
    * have shown a difference. Two bugs, each hiding the other's fix —
-   * `docs/stages/TAHAP-14.md` §11.5.
+   * `docs/stages/TAHAP-14.md` §11.4.
    */
   return (
     <mesh scale={[viewport.width, viewport.height, 1]} renderOrder={-1}>

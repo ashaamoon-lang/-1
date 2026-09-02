@@ -222,7 +222,7 @@ export function MaterialImage({
        * `[data-material]` meant the selector stopped matching exactly when
        * the behaviour under test started working, so `.first()` silently
        * re-resolved to a different card that was still at opacity 0 — a red
-       * gate pointing at the wrong thing. `docs/stages/TAHAP-14.md` §11.3.
+       * gate pointing at the wrong thing. `docs/stages/TAHAP-14.md` §11.5, item 3.
        */
       data-material-shell=""
       data-material={meshActive ? '' : undefined}

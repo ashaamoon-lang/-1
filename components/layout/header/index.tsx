@@ -47,7 +47,7 @@ export interface SectionLink {
   /** The section element's `id`, without the `#`. */
   id: string
   /** Key into the `nav` message namespace. */
-  labelKey: 'work' | 'studio' | 'contact'
+  labelKey: 'work' | 'practice' | 'studio' | 'contact'
 }
 
 // In local dev, link straight to the Storybook dev server. In deployed builds,

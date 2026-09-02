@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SectionHeader } from '@/components/ui/section-header'
+import { Reveal } from '@/vault/motion/reveal'
 
 import s from './contact-block.module.css'
 
@@ -49,37 +50,49 @@ export function ContactBlock({
 }: ContactBlockProps) {
   return (
     <section id={id} className={cn(s.section, className)}>
-      <SectionHeader eyebrow={eyebrow} title={title} />
+      <SectionHeader reveal eyebrow={eyebrow} title={title} />
 
-      <div className={s.actions}>
-        <Link
-          href={`mailto:${email}`}
-          aria-label={emailLabel}
-          className={cn('h2', s.email)}
-          // `MOTION-SPEC.md` §9.
-          data-press="email"
-          data-intent=""
-        >
-          {email}
-        </Link>
+      {/*
+        The reveal marker goes on `.actions`, never on the address itself.
 
-        {socials.length > 0 && (
-          <div className={s.socials}>
-            <h3 className={cn('caption', s.socialsHeading)}>
-              {socialsHeading}
-            </h3>
-            <ul className={s.socialsList}>
-              {socials.map((social) => (
-                <li key={social.url}>
-                  <Link href={social.url} className={cn('caption', s.social)}>
-                    {social.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+        `[data-reveal] [data-reveal-item]` in `global.css` sets a `transition`
+        shorthand, and a shorthand *replaces* an element's own rather than
+        joining it. Marked directly on this link, the reveal's 400ms silently
+        overwrote the link's 150ms COMMIT — `e2e/interaction-grammar.e2e.ts`
+        measured it as `email/commit: 400ms`, outside the micro band. A
+        pressable noun never carries the marker; its container does.
+      */}
+      <Reveal>
+        <div data-reveal-item className={s.actions}>
+          <Link
+            href={`mailto:${email}`}
+            aria-label={emailLabel}
+            className={cn('h2', s.email)}
+            // `MOTION-SPEC.md` §9.
+            data-press="email"
+            data-intent=""
+          >
+            {email}
+          </Link>
+
+          {socials.length > 0 && (
+            <div className={s.socials}>
+              <h3 className={cn('caption', s.socialsHeading)}>
+                {socialsHeading}
+              </h3>
+              <ul className={s.socialsList}>
+                {socials.map((social) => (
+                  <li key={social.url}>
+                    <Link href={social.url} className={cn('caption', s.social)}>
+                      {social.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </Reveal>
     </section>
   )
 }

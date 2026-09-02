@@ -7,6 +7,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { Reveal } from '@/vault/motion/reveal'
 
 import s from './studio-note.module.css'
 
@@ -24,11 +25,16 @@ import s from './studio-note.module.css'
  * it down, which is prop drilling around a constraint that costs nothing to
  * respect.
  *
- * The consequence: no scroll reveal here. `useReveal` is a client hook, and
- * the section reads perfectly without an entrance — a paragraph of prose does
- * not need to fade in to be taken seriously. `ProjectGrid` is where the
- * staggered entrance earns its place, because a grid of cards arriving at
- * once looks like a page dump.
+ * That used to mean no scroll reveal here — `useReveal` is a client hook —
+ * and the argument was that a paragraph of prose does not need to fade in to
+ * be taken seriously. True on its own, and wrong in context: Tahap 14's
+ * coverage gate measured `/en` and found four of eight headings arriving
+ * with no entrance while the four beside them faded in. Half a page animating
+ * reads as unfinished, not as restraint.
+ *
+ * `vault/motion/reveal` resolves it without giving up the Server Component:
+ * children cross the boundary as a prop, so this file still renders on the
+ * server and only the container is client code.
  *
  * ## Layout
  *
@@ -63,14 +69,25 @@ export function StudioNote({
   className,
 }: StudioNoteProps) {
   return (
-    <section id={id} className={cn(s.section, className)}>
-      <SectionHeader eyebrow={eyebrow} title={title} className={s.header} />
+    <section
+      id={id}
+      className={cn(s.section, className)}
+      data-has-portrait={portrait ? '' : undefined}
+    >
+      <SectionHeader
+        reveal
+        eyebrow={eyebrow}
+        title={title}
+        className={s.header}
+      />
 
-      <div className={s.body} data-has-portrait={portrait ? '' : undefined}>
-        <div className={s.prose}>{children}</div>
+      <Reveal className={s.body}>
+        <div data-reveal-item className={s.prose}>
+          {children}
+        </div>
 
         {portrait && (
-          <figure className={s.figure}>
+          <figure data-reveal-item className={s.figure}>
             <div className={s.media}>
               <SanityImage
                 image={toImageSource(portrait)}
@@ -81,7 +98,7 @@ export function StudioNote({
             </div>
           </figure>
         )}
-      </div>
+      </Reveal>
     </section>
   )
 }

@@ -7,6 +7,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { Reveal } from '@/vault/motion/reveal'
 
 import s from './next-project.module.css'
 
@@ -49,8 +50,19 @@ export function NextProject({
   className,
 }: NextProjectProps) {
   return (
-    <aside className={cn(s.next, className)}>
+    /*
+     * Revealed by hand, not by the coverage gate.
+     *
+     * `e2e/reveal-coverage.e2e.ts` walks headings, and this block has none:
+     * its title is a `<span>` inside the link so the link's accessible name is
+     * the work's title alone (see the note below). It is still a full-width
+     * block that arrives as the reader reaches the end of a project page, so
+     * it gets the same entrance as everything else — and the gate's own doc
+     * comment names it as the one thing it cannot see.
+     */
+    <Reveal as="aside" className={cn(s.next, className)}>
       <Link
+        data-reveal-item
         // A template — `components/ui/link` applies the locale prefix.
         href={`/work/${slug}`}
         className={s.link}
@@ -82,6 +94,6 @@ export function NextProject({
           <span className={cn('h2', s.title)}>{title}</span>
         </span>
       </Link>
-    </aside>
+    </Reveal>
   )
 }

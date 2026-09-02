@@ -7,7 +7,8 @@
     "storybook": "Storybook",
     "openMenu": "Menu",
     "closeMenu": "Tutup",
-    "skipToContent": "Lewati ke konten utama"
+    "skipToContent": "Lewati ke konten utama",
+    "practice": "Praktik"
   },
   "home": {
     "workEyebrow": "Karya pilihan",
@@ -23,7 +24,10 @@
     "heroCtaContact": "Hubungi kami",
     "placeholderNote": "Teks sementara — akan diganti oleh kata-kata studio sendiri begitu CMS-nya terisi.",
     "heroIndexLabel": "Praktik",
-    "scrollCue": "Gulir"
+    "scrollCue": "Gulir",
+    "practiceEyebrow": "Praktik",
+    "practiceTitle": "Yang kami kerjakan",
+    "practiceLink": "Lihat karya di praktik ini"
   },
   "work": {
     "sectionTitle": "Karya pilihan",

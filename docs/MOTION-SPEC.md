@@ -305,6 +305,89 @@ Everything else is micro or standard. A filter chip does not get 1200ms.
 
 ---
 
+## 11. The material layer
+
+`vault/webgl/material-image`, added in Tahap 14a. This section exists because
+the layer breaks two assumptions the rest of this document makes, and both
+break silently.
+
+### 11.1 When an image may become a mesh
+
+Only when all four hold:
+
+1. The route is allowed to pay for three.js. `e2e/route-budget.e2e.ts` names
+   exactly one, and it is not a number to raise.
+2. There is a **non-WebGL path that is the same design**, not a placeholder.
+   For the work plates that path is the plain `<img>` — the thing that
+   shipped in Tahap 12a — which is why this was a safe place to start.
+3. The engine is fetched **inside an effect**, never at module scope. A
+   static import puts three.js in the page graph and Next emits it as a
+   parser-initiated script, downloaded by phones and by reduced-motion
+   visitors who then see the fallback. Measured at 245.6 KB gzip.
+4. The mesh is an accent on content that already reads. `CLAUDE.md` #13.
+
+### 11.2 Never hide the DOM element on the assumption that a mesh replaced it
+
+This is the rule the stage was written to earn.
+
+Standing in a mesh for an `<img>` means hiding the `<img>`. Every DOM-shaped
+check then passes whether or not a single pixel is drawn: the wrapper is
+there, the attribute is there, the image is correctly at `opacity: 0`. Tahap
+14a shipped that arrangement twice with four blank rectangles on the home
+page, a green build, a green typecheck, a green lint, and every existing gate
+passing — once because a full-viewport background quad was writing depth over
+the plates, once because the mesh was placed from Lenis' _eased_ scroll
+instead of the document's real one and sat 660px off screen.
+
+So the contract is inverted: **the scene reports the first frame it could
+have been drawn in — texture bound, rect measured, matrix written — and only
+then may the DOM element be hidden.** A material that fails to draw is then a
+no-op, not a missing work.
+
+Two corollaries, both learned the same way:
+
+- A background mesh scaled to the viewport declares itself one:
+  `renderOrder={-1}` and `depthWrite={false}`. Otherwise it occludes every
+  DOM-anchored mesh, which all sit at `z = 0` with it.
+- A DOM-anchored mesh computes its placement **every frame** from
+  `window.scrollY`, not from a scroll event and not from a smooth-scroll
+  library's animated value. `lib/webgl/hooks/use-webgl-rect.ts` recomputes
+  only on an event, which is enough for a page scrolled by a wheel and not in
+  general.
+
+### 11.3 The material stands down at COMMIT
+
+A `<ViewTransition>` photographs real DOM. While a mesh is drawing, the
+`<img>` behind it is at `opacity: 0`, so a morph that started in that state
+would carry an empty box to the destination.
+
+The fix is the grammar in §9, not a special case. The material lives in
+**REST** and **INTENT**; at **COMMIT** it hands the surface back, before the
+navigation, so **TRANSPORT** morphs real pixels. Both COMMIT paths raise it —
+`pointerdown` and `keydown` for Enter or Space — because a keyboard user
+reaches TRANSPORT without ever producing a pointer event.
+
+### 11.4 A reveal marker never goes on a pressable noun
+
+Added in Tahap 14b, and it is a cascade rule rather than a WebGL one.
+
+`[data-reveal] [data-reveal-item]` in `global.css` sets a `transition`
+shorthand, and a shorthand **replaces** an element's own rather than joining
+it. Marked directly on the contact address, the reveal's 400ms silently
+overwrote that link's 150ms COMMIT; `e2e/interaction-grammar.e2e.ts` measured
+it as `email/commit: 400ms`, outside the micro band. Mark the container, never
+the control.
+
+The same section adds the other half: **a noun marked `data-press` must be
+reachable at rest.** A control that only exists once a disclosure is opened is
+not hoverable, not focusable, and has no computed transition — so it cannot
+answer the grammar, and marking it there makes the gate report a silent noun
+whose CSS is perfect. In `vault/blocks/practice-list` the `<summary>` is the
+marked noun, because opening a practice is the interaction the block adds; the
+link inside the panel is ordinary navigation.
+
+---
+
 ## 10. Review checklist
 
 Before any motion work is considered done:
@@ -321,3 +404,7 @@ Before any motion work is considered done:
 - [ ] Every moment is reachable with Tab and Enter, not only with a cursor
 - [ ] No more than two choreographed-band movements on the page, and both named
 - [ ] Interrupting mid-TRANSPORT (double click, Back) leaves nothing stuck
+- [ ] No DOM element is hidden because a mesh is _assumed_ to have replaced it — §11.2
+- [ ] A mesh standing in for content hands it back at COMMIT — §11.3
+- [ ] No `data-reveal-item` sits on an element that carries `data-press` — §11.4
+- [ ] Every `data-press` noun is reachable without opening a disclosure — §11.4

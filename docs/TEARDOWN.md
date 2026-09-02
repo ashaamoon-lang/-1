@@ -259,6 +259,55 @@ one. Weight comes from marketing tags and framework sprawl, not from WebGL.
 
 ---
 
+## 7.5 melius.com — measured on request, and it inverted the plan
+
+Added in Tahap 14, from the owner's question: could this site's animation be
+made equal to melius.com's. Measured before answering — the served HTML plus
+**22 of 25 JS chunks (1.9 MB)**; three chunks failed to download and every
+count below is over 22, not 25.
+
+**It ships no three.js at all.** `WebGLRenderer`, `PerspectiveCamera`,
+`ShaderMaterial`, `BufferGeometry` and `new THREE` are 0/22 chunks. There is
+WebGL — one hand-rolled `minigl` gradient canvas in the hero, plus a 2D canvas
+— which is architecturally the same thing `vault/webgl/scene-shell` already
+draws here.
+
+**The engine is Motion (framer-motion)**, not GSAP: `useMotionValue` 5 chunks,
+`whileHover` 4, `AnimatePresence` 3, `whileInView` 3, `useTransform` 3,
+`projection` 3, `useScroll` 2, `layoutId` 1. GSAP is bundled but used for
+`SplitText` only — `gsap.registerPlugin(SplitText)` ×2, `gsap.timeline` ×1.
+
+**No scroll-scrubbing and no pinning.** `scrub:` 0, `pin:` 0,
+`Observer.create` 0.
+
+|                | melius.com                                                                                                     | Arth at Tahap 13                                                      |
+| -------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Easing         | `ease-sin-in-out` ×29 · `ease-quart-in-out` ×12 · `ease-standard` ×7 · literal `cubic-bezier(.23,1,.32,1)` ×26 | `--ease-out-quart` ≈50 · `--ease-out-expo` ≈10 · `--ease-gleasing` ×4 |
+| Durations      | 200 ×41 · 500 ×27 · 450 ×12 · 300 ×9                                                                           | 150 / 200 / 400 / 800 / 1200, tokenised                               |
+| Hover surface  | 61 `hover:` + 4 `group-hover:`                                                                                 | 104 `:hover` · 73 `:focus-visible` · 11 `:active`                     |
+| Moving imagery | 6 looping `.webm`                                                                                              | none                                                                  |
+| Page volume    | 11 `<section>`, 27 `h3`                                                                                        | 4 sections on the home page                                           |
+
+**Our easing vocabulary is the tighter of the two.** melius's dominant curves
+are `in-out` variants, which §1 of this document and `CLAUDE.md` #2 restrict
+to motion that leaves _and returns_; it also uses `duration-300` nine times,
+the generic default #3 forbids. Nothing in the measurement suggested adopting
+anything from it.
+
+**Two of my own instruments were the wrong shape, and both are recorded.**
+`grep -l Observer` reported the GSAP plugin in 12 chunks — it was matching
+`IntersectionObserver` and `ResizeObserver`; the plugin appears **once**. A
+regex for `"none"` reported 185 scrubbed tweens — it was matching
+`display:"none"`; `ease:"none"` appears **once**. The first conclusion drawn
+from those numbers, that melius is high-volume scroll-scrub choreography, was
+exactly backwards.
+
+**What the corrected reading changed.** The gap was never technique. It was
+moving imagery, page volume, and content that changes in place — which is
+what Tahap 14 built, and none of it needed a new dependency.
+
+---
+
 ## 8. What this means for our build
 
 1. **Do not design an easing system.** Use Satūs's tokens. `--ease-out-quart`

@@ -19,7 +19,7 @@ import { expect, test } from '@playwright/test'
  * `GradientScene`) sitting at the same depth as every DOM-anchored mesh and
  * writing depth, so it occluded the plates; and the card's own placeholder
  * background sat over the canvas besides. Neither is expressible as a DOM
- * assertion. See `docs/stages/TAHAP-14.md` §11.2.
+ * assertion. See `docs/stages/TAHAP-14.md` §11.2 and §11.3.
  *
  * So this reads the rendered page. A plate that is actually drawn has a wide
  * spread of colour across its box; a plate that is missing is one flat value,

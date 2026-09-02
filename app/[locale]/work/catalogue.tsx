@@ -12,6 +12,7 @@ import {
 } from '@/lib/integrations/sanity/queries'
 import { PracticeFilter } from '@/vault/blocks/practice-filter'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
+import { Reveal } from '@/vault/motion/reveal'
 
 import { practiceHref } from './hrefs'
 
@@ -111,16 +112,33 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
   return (
     <Wrapper theme="dark">
       <div className={s.page}>
-        <header className={s.header}>
-          <p className="caption">{t('eyebrow')}</p>
-          <h1 className="h1">
+        {/*
+          The catalogue's own masthead reveals like every other block that
+          enters the viewport. Its three lines stagger rather than arriving
+          together — eyebrow, title, then the sentence that explains what the
+          list is — which is the order they are read in.
+        */}
+        <Reveal as="header" className={s.header}>
+          <p data-reveal-item className="caption">
+            {t('eyebrow')}
+          </p>
+          <h1 data-reveal-item className="h1">
             {practice ? t(`${practice}Title`) : t('title')}
           </h1>
-          <p className={s.intro}>
+          <p data-reveal-item className={s.intro}>
             {practice ? t(`${practice}Intro`) : t('intro')}
           </p>
-        </header>
+        </Reveal>
 
+        {/*
+          The filter is deliberately not revealed.
+
+          It is a control, not content. `MOTION-SPEC.md` §9 treats a control
+          as a pressable noun whose job is to answer INTENT and COMMIT — and
+          a control that fades in is a control the reader cannot use yet. The
+          masthead above it is prose and arrives; this is the first thing on
+          the page anyone might click, and it is there immediately.
+        */}
         <PracticeFilter
           className={s.filter}
           allLabel={t('all')}

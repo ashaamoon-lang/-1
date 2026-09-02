@@ -998,7 +998,7 @@ dengan **membaca halamannya**.
 
 **Angka:** unit 395 → **400** · e2e 229 → **237**.
 
-## Tahap 14 — Gerak
+## Tahap 14 — Gerak ✅
 
 Spec penuh: **`docs/stages/TAHAP-14.md`**.
 
@@ -1046,6 +1046,46 @@ pemakai**).
 **Tidak dikerjakan, dinyatakan di muka:** tidak ada `.webm` dibuat, tidak ada
 material di `/en/work` atau halaman detail, tidak ada scroll-scrub atau pin,
 tidak ada Motion/framer-motion ditambahkan.
+
+**Keduanya dikerjakan.** Pelat karya di beranda kini permukaan, digerakkan
+medan kecepatan GPU yang sudah dibangun dan **nol pemakai** sejak fork. Judul
+tanpa reveal turun `4 dari 8 → 0` di `/en` dan `1 dari 7 → 0` di `/en/work`.
+Seksi Practice memakai native `<details>` — terverifikasi ada di HTML server
+tanpa JavaScript — dan **tidak menambah satu kalimat pun** yang perlu
+dikoreksi pemilik, karena ia memakai ulang `workIndex.<practice>Intro` dari
+Tahap 13.
+
+**Dua cacat WebGL yang saling menutupi perbaikan satu sama lain.** Quad latar
+hero menulis depth di z = 0 dan menutupi tiap mesh berjangkar-DOM; penempatan
+mesh membaca `lenis.scroll` (nilai animasi) alih-alih posisi dokumen, menaruh
+pelat 660px di luar layar. Saya sempat **mencabut** perbaikan pertama karena
+A/B menunjukkan tidak ada bedanya — A/B itu dijalankan saat cacat kedua masih
+mengosongkan pelat di kedua kaki percobaan.
+
+**Enam instrumen saya sendiri salah bentuk**, dan tiap satunya dicatat: dua di
+pengukuran melius, satu locator yang selektornya hilang saat perbaikan bekerja,
+satu wilayah sampel yang memang rata, `page.screenshot({ clip })` yang
+**tidak mengomposit lapisan WebGL**, dan gate cakupan yang hijau di sebuah rute
+sambil menemukan **nol kandidat**. Yang terakhir kini punya lantai per rute.
+
+**Empat gate lama membayar dirinya sendiri di 14b:** `spatial-rhythm`
+menemukan nol pasang header/body setelah satu `<div>` pembungkus;
+`interaction-grammar` menemukan shorthand reveal menimpa COMMIT alamat email,
+dan tiga noun yang tak terjangkau di dalam `<details>` tertutup — saya
+mengubah gate itu empat kali sebelum menerima bahwa desain saya yang salah,
+lalu membatalkan seluruh perubahannya; `manifest:check` menolak `SectionHeader`
+yang berubah Server → Client.
+
+**Gate piksel material tidak berhasil distabilkan**, dan itu dinyatakan, bukan
+disembunyikan: lapisan WebGL tertangkap di sebagian capture dan tidak di
+capture lain, run ke run. Perbandingannya dilakukan manual (material
+`178/159/120`, DOM `177/157/120`); yang diotomasi adalah invarian yang membuat
+kotak kosong **mustahil** — `data-material` hanya ditulis setelah mesh melapor
+satu frame yang benar-benar bisa menggambarnya.
+
+**Angka:** `/en` 1853 → **1892 KB** (plafon 2100) · `/en/work` 740 → 746 KB ·
+detail dan `/en/ai` tak berubah, ketiganya tetap **nol three.js** · e2e 237 →
+**244** · unit 400.
 
 # Verifikasi
 

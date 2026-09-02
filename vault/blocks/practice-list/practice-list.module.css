@@ -1,0 +1,205 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  /* The one section-lead token, same as every other section on this page. */
+  gap: var(--section-lead);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * A hairline between practices, and none above the first.
+ *
+ * The rule is the only ornament in this block. It is what makes three
+ * disclosures read as one list rather than three cards, which is the
+ * difference between a table of contents and a pricing page.
+ */
+.item {
+  border-top: 1px solid var(--line);
+}
+
+.item:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: mobile-vw(16px);
+  padding-block: mobile-vw(20px);
+  cursor: pointer;
+  list-style: none;
+
+  /*
+   * The default triangle, removed on both engines. Safari needs the
+   * pseudo-element form; `list-style: none` alone leaves it in place there.
+   */
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  @media (--desktop) {
+    gap: desktop-vw(24px);
+    padding-block: desktop-vw(20px);
+  }
+}
+
+/*
+ * INTENT and COMMIT live on the summary itself, not on the name inside it.
+ *
+ * `MOTION-SPEC.md` §9, and `e2e/interaction-grammar.e2e.ts` reads the marked
+ * element's own computed style. A hover that only changed the child `<h3>`
+ * left the summary — the thing carrying `data-press` — measurably unchanged,
+ * which is indistinguishable from a control that does not answer at all. The
+ * gate would have been right to say so.
+ *
+ * `--press-scale` is 0.995 rather than the 0.97 default: this row is the full
+ * column width, and three percent of it is a lurch. Same reasoning as the
+ * project card's 0.99.
+ */
+.summary {
+  --press-scale: 0.995;
+  transition:
+    opacity var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-micro) var(--ease-out-quart);
+}
+
+@media (hover: hover) {
+  .summary:hover {
+    opacity: 0.7;
+  }
+}
+
+.summary:focus-visible {
+  opacity: 0.7;
+  outline: 2px solid var(--color-contrast);
+  outline-offset: 4px;
+}
+
+.name {
+  margin: 0;
+}
+
+/*
+ * The marker: a plus that becomes a minus.
+ *
+ * Two lines and a rotation, so the only thing that animates is a transform —
+ * `CLAUDE.md` #4. A rotating chevron would need the same, and says less: plus
+ * and minus name the operation, a chevron names a direction.
+ */
+.marker {
+  position: relative;
+  flex-shrink: 0;
+  width: mobile-vw(16px);
+  height: mobile-vw(16px);
+
+  @media (--desktop) {
+    width: desktop-vw(16px);
+    height: desktop-vw(16px);
+  }
+}
+
+.marker::before,
+.marker::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-secondary);
+  transition: transform var(--duration) var(--ease-out-expo);
+}
+
+.marker::after {
+  transform: rotate(90deg);
+}
+
+/* Open: the vertical stroke rotates flat, so the plus becomes a minus. */
+.item[open] .marker::after {
+  transform: rotate(0deg);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: mobile-vw(16px);
+  padding-block-end: mobile-vw(24px);
+  /* Keep the prose to a reading measure rather than the full column. */
+  max-width: 60ch;
+
+  @media (--desktop) {
+    gap: desktop-vw(16px);
+    padding-block-end: desktop-vw(24px);
+  }
+}
+
+/*
+ * The panel arrives; the box does not animate open.
+ *
+ * `CLAUDE.md` #4 forbids animating height, and a `<details>` height
+ * transition is the tempting violation here. The browser opens the box
+ * instantly — which is what a control should do — and only the content
+ * inside it animates, on `opacity` and `transform`.
+ */
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.item[open] .panel {
+  animation: panel-in var(--duration) var(--ease-out-expo) both;
+}
+
+.intro {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.link {
+  --press-scale: 0.98;
+  color: var(--color-secondary);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+  transition:
+    opacity var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-micro) var(--ease-out-quart);
+}
+
+@media (hover: hover) {
+  .link:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+  }
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-contrast);
+  outline-offset: 4px;
+  text-decoration: underline;
+}
+
+@media (--reduced-motion) {
+  /*
+   * The panel must end fully visible, never stranded at the keyframe's
+   * starting opacity — `CLAUDE.md` #5, and the exact defect Tahap 12d found
+   * in the home headline.
+   */
+  .item[open] .panel {
+    animation: none;
+  }
+
+  .summary,
+  .link,
+  .marker::before,
+  .marker::after {
+    transition: none;
+  }
+}

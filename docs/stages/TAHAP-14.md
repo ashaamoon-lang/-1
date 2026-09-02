@@ -553,3 +553,118 @@ komponen berubah, lalu hijau setelah Storybook dibangun ulang.
   **anggaran**, bukan pengukuran (`CLAUDE.md` #19).
 - **Tahap 14b belum dikerjakan**: cakupan reveal dan seksi Practice.
 - Yang terbuka dari Tahap 13 §9 tetap terbuka.
+
+---
+
+## 12. Hasil — Tahap 14b
+
+### 12.1 Terukur — cakupan reveal
+
+Diukur dari halaman tersaji, bukan dari sumber. Judul `h1`–`h3` di dalam
+`<main>` yang **tidak** punya leluhur `[data-reveal]`:
+
+| Rute              | Sebelum                                                                                 | Sesudah      |
+| ----------------- | --------------------------------------------------------------------------------------- | ------------ |
+| `/en`             | **4 dari 8** — "Recent engagements", "How we work", "Start a conversation", "Elsewhere" | **0 dari 8** |
+| `/en/work`        | **1 dari 7** — `<h1> Work`                                                              | **0 dari 7** |
+| `/en/work/<slug>` | 0 dari 1                                                                                | 0 dari 1     |
+
+Blok `vault/` yang me-reveal: **4 dari 9 → 8 dari 10**. Yang masih tidak, dan
+sengaja: `practice-filter` (kontrol, bukan konten — kontrol yang memudar
+adalah kontrol yang belum bisa dipakai) dan `project-card` (anak dari grid
+yang sudah me-reveal).
+
+### 12.2 Terukur — perubahan konten di tempat
+
+|                                         | Sebelum | Sesudah |
+| --------------------------------------- | ------- | ------- |
+| Halaman memakai primitif disclosure     | **0**   | 1       |
+| Seksi beranda                           | 4       | **5**   |
+| Anchor nav                              | 3       | **4**   |
+| Prosa baru yang perlu dikoreksi pemilik | —       | **0**   |
+
+Yang terakhir adalah keputusan desain, bukan kebetulan. Rencana mengizinkan
+prosa penampung bertanda; ternyata tidak perlu — `workIndex.<practice>Intro`
+sudah ada di kedua bahasa sejak Tahap 13 dan sudah dipakai sebagai masthead
+tiap katalog tersaring. Seksi ini memakainya ulang, jadi ia mengatakan persis
+apa yang situs ini sudah katakan.
+
+Tiga kunci pesan baru saja: `home.practiceEyebrow`, `home.practiceTitle`,
+`home.practiceLink`, plus `nav.practice`.
+
+### 12.3 `<details>`, bukan accordion yang kita kirim
+
+`components/ui/accordion` adalah Base UI `Collapsible` + React `Activity`:
+client-only, jadi isinya baru ada setelah hidrasi. Beranda punya kriteria
+keluar "terbaca tanpa JavaScript" (Tahap 3, ditegakkan
+`e2e/no-javascript.e2e.ts`), dan accordion di sana akan menaruh tiga bagian
+salinan di balik sebuah skrip.
+
+Terverifikasi dari HTML tersaji: kalimat tiap praktik ada di dalam
+`<details>` di respons server, tanpa JavaScript sama sekali.
+
+Tingginya **tidak** dianimasikan — `CLAUDE.md` #4, dan transisi `height` pada
+`<details>` adalah pelanggaran yang paling menggoda di sini. Kotaknya dibuka
+seketika oleh browser, yang memang seharusnya untuk sebuah kontrol; yang
+beranimasi hanya isi di dalamnya, pada `opacity` dan `transform`.
+
+### 12.4 Empat cacat yang gate lama temukan
+
+Tiap satunya adalah gate dari tahap sebelumnya yang membayar dirinya sendiri.
+
+1. **`spatial-rhythm` (Tahap 11a).** Pembungkus `<div>` di sekitar
+   `SectionHeader` memutus `header.nextElementSibling`, dan gate menemukan
+   **nol** pasang header/body di seluruh beranda — bukan gap yang salah,
+   melainkan invarian yang berhenti bisa diukur sama sekali. Perbaikannya
+   bukan melonggarkan gate: `SectionHeader` sekarang me-reveal **dirinya
+   sendiri**, jadi bentuk DOM-nya persis seperti sebelum tahap ini.
+2. **`interaction-grammar`, micro band (Tahap 12b).** `data-reveal-item` di
+   alamat email menimpa transisi COMMIT-nya — `email/commit: 400ms`, di luar
+   band 150–250ms. Shorthand `transition` **mengganti**, tidak menggabung;
+   `global.css` sudah mendokumentasikan jebakan yang sama untuk `:active`.
+   Penanda reveal tidak pernah di atas noun yang bisa ditekan.
+3. **`interaction-grammar`, press + keyboard (Tahap 12c).** Tiga
+   `data-press` di dalam `<details>` tertutup dilaporkan bisu. Saya mengubah
+   gate-nya **empat kali** sebelum menerima bahwa gate-nya benar dan desain
+   saya yang salah: noun yang ditandai harus bisa dijangkau saat diam.
+   Seluruh perubahan gate itu dibatalkan (`git checkout`), dan `<summary>`
+   yang jadi noun — memang itu interaksi yang blok ini tambahkan. Yang
+   tersisa hanya satu kenaikan timeout, karena tahap ini menambah tiga noun
+   ke probe yang berjalan satu per satu.
+4. **`manifest:check` (Tahap 4).** `SectionHeader` berubah Server → Client
+   dan `COMPONENTS.md` menolak sampai diperbarui.
+
+### 12.5 Instrumen keenam yang salah bentuk
+
+Melanjutkan hitungan §11.5.
+
+**Gate cakupan reveal, versi pertama.** Ia menelusuri `section, h2, h3` dan
+**hijau** di `/en/work/<slug>` — sambil menemukan **nol kandidat**, karena
+halaman itu tidak punya `<section>`, `h2`, atau `h3` sama sekali. Ia juga
+hijau di `/en/work` tanpa pernah melihat `<h1>` halaman itu.
+
+Gate yang lulus karena tidak menemukan apa pun lebih buruk daripada tidak ada
+gate. Versi sekarang menelusuri `h1`–`h3` — yang tiap rute punya — dan
+membawa **lantai per rute**: kalau halaman merender kurang dari yang
+seharusnya, ia gagal pada hitungan sebelum sempat lulus pada cakupan.
+
+### 12.6 Gate
+
+| Gate                                  | Hasil                                                       |
+| ------------------------------------- | ----------------------------------------------------------- |
+| **baru** `e2e/reveal-coverage.e2e.ts` | 3 rute, dibuktikan **merah** dulu (5 judul), sekarang hijau |
+| `e2e/interaction-grammar.e2e.ts`      | hijau — setelah dua cacat nyata di atas                     |
+| `e2e/spatial-rhythm.e2e.ts`           | hijau — setelah cacat nyata di atas                         |
+| `e2e/no-javascript.e2e.ts`            | hijau; isi `<details>` ada di HTML server                   |
+| `e2e/route-sweep.e2e.ts` + axe        | hijau, dua viewport, termasuk seksi baru                    |
+| `e2e/route-budget.e2e.ts`             | `/en` **1892 KB** / 2100; tiga rute lain nol `three`        |
+| `bun run check`                       | hijau (setelah `generate:manifest`)                         |
+| e2e total                             | 237 → **244**                                               |
+
+### 12.7 Yang tetap terbuka
+
+- **Prosa masih milik saya, bukan milik studio** (Tahap 13 §9). Seksi Practice
+  tidak menambah utang itu — lihat §12.2.
+- **Tidak ada profiling browser sungguhan.** Angka bobot rute adalah byte tak
+  terkompresi yang **diukur**; tidak ada klaim waktu di mana pun.
+- **Kredensial tidak dirotasi**, sesuai permintaan Anda.

@@ -16,6 +16,7 @@ import {
 } from '@/lib/integrations/sanity/queries'
 import { ContactBlock } from '@/vault/blocks/contact-block'
 import { Hero } from '@/vault/blocks/hero'
+import { PracticeList } from '@/vault/blocks/practice-list'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
 import { StudioNote } from '@/vault/blocks/studio-note'
 
@@ -131,6 +132,7 @@ export default async function Home() {
   // order to decide which of several visible sections is the one being read.
   const sections: SectionLink[] = [
     ...(hasWork ? [{ id: 'work', labelKey: 'work' as const }] : []),
+    { id: 'practice', labelKey: 'practice' as const },
     { id: 'studio', labelKey: 'studio' as const },
     { id: 'contact', labelKey: 'contact' as const },
   ]
@@ -213,7 +215,16 @@ export default async function Home() {
       <div className={s.sections}>
         {hasWork && (
           <section id="work" className={s.section}>
+            {/*
+              The header reveals on its own, separately from the grid below.
+              Both are `useReveal` containers, so the heading arrives first and
+              the cards stagger after it — the order a reader takes them in.
+              One container around both would have fired them together, and a
+              heading arriving with its own content reads as a page dump
+              rather than as an introduction.
+            */}
             <SectionHeader
+              reveal
               eyebrow={t('workEyebrow')}
               title={t('workTitle')}
               aside={t('workCount', { count: projects.length })}
@@ -221,6 +232,29 @@ export default async function Home() {
             <ProjectGrid projects={projects} material />
           </section>
         )}
+
+        {/*
+          What the studio takes on, opened one practice at a time.
+
+          The three values come from `lib/content/practices.ts` — the same
+          list that drives the schema, the `/work/practice/<value>` routes and
+          the catalogue's filter chips — and each panel shows the sentence
+          that catalogue already uses as its masthead. Nothing here is copy
+          invented for this section, which is why it carries no placeholder
+          note: it says what the rest of the site says.
+        */}
+        <PracticeList
+          id="practice"
+          className={s.section}
+          eyebrow={t('practiceEyebrow')}
+          title={t('practiceTitle')}
+          linkLabel={t('practiceLink')}
+          entries={PRACTICES.map((practice) => ({
+            value: practice,
+            label: tWork(practice),
+            intro: tWork(`${practice}Intro`),
+          }))}
+        />
 
         <StudioNote
           id="studio"

@@ -138,6 +138,18 @@ test.describe('interaction grammar', () => {
   }
 
   test('every pressable noun answers a press', async ({ page }) => {
+    /*
+     * Longer than the 30s default, because this walks every marked noun on
+     * the page one at a time and each one costs a hover, a settle and a
+     * press. Tahap 14b added three (`vault/blocks/practice-list`), which took
+     * the run from comfortably inside the default to just over it — it passed
+     * alone and timed out whenever another spec was sharing the machine.
+     * The budget is the thing that was wrong, not the coverage: dropping
+     * nouns to fit a timeout would be trading the gate's meaning for its
+     * runtime.
+     */
+    test.setTimeout(90_000)
+
     await page.goto('/en', { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(600)
 
@@ -195,6 +207,18 @@ test.describe('interaction grammar', () => {
   test('INTENT is reachable from the keyboard, not only from a cursor', async ({
     page,
   }) => {
+    /*
+     * Longer than the 30s default, because this walks every marked noun on
+     * the page one at a time and each one costs a hover, a settle and a
+     * press. Tahap 14b added three (`vault/blocks/practice-list`), which took
+     * the run from comfortably inside the default to just over it — it passed
+     * alone and timed out whenever another spec was sharing the machine.
+     * The budget is the thing that was wrong, not the coverage: dropping
+     * nouns to fit a timeout would be trading the gate's meaning for its
+     * runtime.
+     */
+    test.setTimeout(90_000)
+
     await page.goto('/en', { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(600)
 

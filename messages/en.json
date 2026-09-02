@@ -7,7 +7,8 @@
     "storybook": "Storybook",
     "openMenu": "Menu",
     "closeMenu": "Close",
-    "skipToContent": "Skip to main content"
+    "skipToContent": "Skip to main content",
+    "practice": "Practice"
   },
   "home": {
     "workEyebrow": "Selected work",
@@ -23,7 +24,10 @@
     "heroCtaContact": "Get in touch",
     "placeholderNote": "Placeholder copy — this text is replaced by the studio’s own words as soon as the CMS has them.",
     "heroIndexLabel": "Practice",
-    "scrollCue": "Scroll"
+    "scrollCue": "Scroll",
+    "practiceEyebrow": "Practice",
+    "practiceTitle": "What we take on",
+    "practiceLink": "See work in this practice"
   },
   "work": {
     "sectionTitle": "Selected work",

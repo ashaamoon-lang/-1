@@ -38,7 +38,7 @@
  * that had lost its image rather than one that never had it.
  */
 @media (--desktop) {
-  .body[data-has-portrait] {
+  .section[data-has-portrait] .body {
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 }

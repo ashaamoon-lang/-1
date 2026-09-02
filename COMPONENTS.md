@@ -28,7 +28,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | RouteLoading | `@/components/ui/route-loading` | Server |
 | SanityImage | `@/components/ui/sanity-image` | Server |
 | Scrollbar | `@/components/ui/scrollbar` | Client |
-| SectionHeader | `@/components/ui/section-header` | Server |
+| SectionHeader | `@/components/ui/section-header` | Client |
 | Select | `@/components/ui/select` | Client |
 | Switch | `@/components/ui/switch` | Client |
 | Tabs | `@/components/ui/tabs` | Client |
