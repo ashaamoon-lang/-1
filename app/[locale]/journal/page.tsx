@@ -4,7 +4,6 @@ import { draftMode } from 'next/headers'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { Wrapper } from '@/components/layout/wrapper'
-import { Link } from '@/components/ui/link'
 import {
   type JournalEntry,
   resolveJournalEntries,
@@ -16,6 +15,8 @@ import { journalEntriesQuery } from '@/lib/integrations/sanity/queries'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
+
+import { JournalIndexRows, type JournalRow } from './index-rows'
 
 import s from './page.module.css'
 
@@ -35,14 +36,20 @@ import s from './page.module.css'
  * again unchanged: the alternatives were a blank page or invented articles in
  * a studio's live content library.
  *
- * ## Motion: none of its own, deliberately
+ * ## Motion
  *
- * `TextReveal` on the `h1` — the site's entrance vocabulary — and the
- * container reveal on the rows. **No choreographed moment.**
- * `docs/MOTION-SPEC.md` §9.5 allows two per page; a page whose content is
- * a list of headlines does not need one, and Tahap 25 had just spent a whole
- * stage measuring two dimming values that failed contrast. Adding a sixth
- * piece of motion vocabulary immediately after would undo what that cost.
+ * `TextReveal` on the `h1` — the site's entrance vocabulary — and one
+ * choreographed moment, `journal-index`, which lives in `index-rows.tsx`.
+ *
+ * It shipped in Tahap 26 with **no** moment, and Tahap 27 measured what that
+ * meant: all four reveal items sat above the fold, so the entrance fired once
+ * on the first frame and the three rows reported `1.00 1.00 1.00` at every
+ * scroll position afterwards. On a page whose entire content is three
+ * headlines, that was the whole experience of it.
+ *
+ * The moment reuses `useActiveInSequence` rather than introducing a mechanism
+ * — the same one the studio page's process uses. `MOTION-SPEC.md` §9.5 allows
+ * two per page; this uses one.
  *
  * The summaries are **not** hidden behind hover. An index whose content only
  * appears when pointed at cannot be used with a keyboard and cannot be read
@@ -112,6 +119,12 @@ export default async function JournalPage() {
     day: 'numeric',
   })
 
+  const rows: JournalRow[] = entries.map((entry) => ({
+    ...entry,
+    dateLabel: entry.date ? formatter.format(new Date(entry.date)) : '',
+    practiceLabel: entry.practice ? tWork(entry.practice) : null,
+  }))
+
   return (
     <Wrapper theme="dark" gsap>
       <div className={s.page}>
@@ -143,43 +156,13 @@ export default async function JournalPage() {
             </p>
           </Reveal>
         ) : (
-          <Reveal as="section" className={s.list}>
-            {entries.map((entry) => (
-              <article className={s.entry} data-reveal-item key={entry.slug}>
-                <p className={cn('caption', s.date)}>
-                  {entry.date ? (
-                    <time dateTime={entry.date}>
-                      {formatter.format(new Date(entry.date))}
-                    </time>
-                  ) : null}
-                  {entry.practice ? (
-                    <span className={s.practice}>{tWork(entry.practice)}</span>
-                  ) : null}
-                </p>
-
-                <h2 className={cn('h2', s.entryTitle)}>
-                  {/*
-                    The whole row is the target, not just the title — but the
-                    link wraps the title only, and the row is made clickable by
-                    the link's own box being stretched over it in CSS. That
-                    keeps one accessible name on one control instead of
-                    wrapping a heading, a date and a paragraph in a single
-                    anchor whose name would be all three read together.
-                  */}
-                  <Link
-                    href={`/journal/${entry.slug}`}
-                    className={s.link}
-                    // `MOTION-SPEC.md` §9 — the row is a pressable noun.
-                    data-press="entry"
-                    data-intent=""
-                  >
-                    {entry.title}
-                  </Link>
-                </h2>
-
-                <p className={s.summary}>{entry.summary}</p>
-              </article>
-            ))}
+          /*
+            The rows move to a client island so the page keeps its server work
+            — CMS resolution, locale date formatting, translations — while the
+            three rows can answer the scroll position. See `index-rows.tsx`.
+          */
+          <Reveal as="section">
+            <JournalIndexRows rows={rows} />
           </Reveal>
         )}
       </div>

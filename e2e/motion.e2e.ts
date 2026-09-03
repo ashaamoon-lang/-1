@@ -930,3 +930,124 @@ test.describe('the studio sequence is audited where it happens', () => {
     })
   }
 })
+
+/**
+ * `journal-index` — the index that knows which entry is being read.
+ *
+ * ## What the re-test measured
+ *
+ * The journal index shipped in Tahap 26 with the container reveal and nothing
+ * else, and its four reveal items all sat **above the fold**: the entrance
+ * fired once on the first frame and the page was static from then on.
+ * Measured at four scroll positions, the three rows reported
+ * `1.00 1.00 1.00` every time.
+ *
+ * That page's entire content is three headlines. Three headlines arriving
+ * together and then holding still is the whole experience of it.
+ *
+ * ## Why this is scroll-led rather than pointer-led
+ *
+ * An index that only answers a mouse does not exist on a phone, and a journal
+ * index is the page most likely to be read on one. The material layer is
+ * already desktop-only by necessity; this had no such excuse.
+ */
+test.describe('the journal index reads back', () => {
+  test('a row leads while the others recede, and the lead moves', async ({
+    page,
+  }) => {
+    test.setTimeout(120_000)
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/en/journal')
+    await page.waitForTimeout(2600)
+
+    const rows = page.locator('[data-journal-entry]')
+    await expect(rows.first(), 'the index renders no rows').toBeAttached()
+
+    const height = await page.evaluate(
+      () => document.documentElement.scrollHeight
+    )
+
+    const led = new Set<string>()
+    const states: string[] = []
+
+    for (let i = 0; i <= 10; i++) {
+      await page.evaluate((y) => window.scrollTo(0, y), (height * i) / 10)
+      await page.waitForTimeout(240)
+
+      const frame = await page.evaluate(() => {
+        const all = [...document.querySelectorAll('[data-journal-entry]')]
+        return {
+          opacities: all
+            .map((row) =>
+              Number.parseFloat(getComputedStyle(row).opacity).toFixed(2)
+            )
+            .join(' '),
+          active: all.findIndex((row) => row.hasAttribute('data-active')),
+        }
+      })
+
+      states.push(frame.opacities)
+      if (frame.active >= 0) led.add(String(frame.active))
+    }
+
+    const unique = new Set(states)
+    expect(
+      unique.size,
+      `the rows reported "${[...unique].join('", "')}" across the whole page — nothing changes as the reader scrolls, which is the entire experience of a page whose content is three headlines`
+    ).toBeGreaterThan(1)
+
+    expect(
+      led.size,
+      `${led.size} row(s) ever led — an index that always leads with the same row is not reading back`
+    ).toBeGreaterThanOrEqual(2)
+  })
+
+  test('reduced motion leaves every row fully opaque', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/en/journal')
+    await page.waitForTimeout(2600)
+    await page.evaluate(() => window.scrollTo(0, 900))
+    await page.waitForTimeout(800)
+
+    const opacities = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-journal-entry]')].map((row) =>
+        Number.parseFloat(getComputedStyle(row).opacity)
+      )
+    )
+
+    expect(opacities.length, 'no rows to check').toBeGreaterThan(0)
+    expect(
+      opacities.filter((opacity) => opacity < 0.99),
+      'a row is dimmed under prefers-reduced-motion — CLAUDE.md #5 requires content to end fully visible, and the stylesheet is the layer that can promise it'
+    ).toEqual([])
+  })
+
+  test('/en/journal passes axe with a row receded', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/en/journal')
+    await page.waitForTimeout(2600)
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight / 2)
+    )
+    await page.waitForTimeout(900)
+
+    const receded = await page.evaluate(
+      () =>
+        [...document.querySelectorAll('[data-journal-entry]')].filter(
+          (row) => !row.hasAttribute('data-active')
+        ).length
+    )
+    expect(
+      receded,
+      'nothing had receded, so this run proves nothing about the receded state'
+    ).toBeGreaterThan(0)
+
+    const results = await new AxeBuilder({ page }).withTags(axeTags()).analyze()
+    const found = results.violations.map(
+      (violation) =>
+        `${violation.impact}: ${violation.id} (${violation.nodes.length} node(s))`
+    )
+    expect(found, found.join('\n')).toEqual([])
+  })
+})

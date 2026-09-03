@@ -38,7 +38,24 @@
 
 /* ── The index ────────────────────────────────────────────────────────── */
 
+/*
+ * How far a row that is not being read recedes.
+ *
+ * Tahap 25 shipped two dimming values that failed WCAG and had to measure
+ * them after a gate went red — 0.55 gave 3.70:1, and `ProgressText`'s 0.33
+ * gave 2.78:1 for ten stages. This one was swept against axe **before** it
+ * shipped, on the rendered page with two rows actually receded:
+ *
+ *   0.30 → 1.91:1 (and the title, large text, 2.49:1 against its own 3:1)
+ *   0.55 → 3.70:1     0.60 → 4.21:1     0.65 → clean     0.70 → clean
+ *
+ * So the floor is 0.65 and the value below is one step above it. The title's
+ * threshold really is 3:1 rather than 4.5 — that was **measured**, not assumed
+ * from its size. `docs/stages/TAHAP-27.md` §7.3 carries the sweep.
+ */
 .list {
+  --row-recede: 0.7;
+
   display: flex;
   flex-direction: column;
 }
@@ -53,12 +70,48 @@
  * the newest is first.
  */
 .entry {
+  /*
+   * The entrance layer. `Reveal` owns this element's opacity, so nothing else
+   * may declare it here — see the note in `index-rows.tsx`.
+   */
+  border-top: 1px solid var(--line);
+}
+
+.row {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   row-gap: mobile-vw(8px);
-  border-top: 1px solid var(--line);
   padding-block: mobile-vw(24px);
+  /*
+   * The phone gets its own length, and it is not a smaller version of the
+   * desktop one — it is the fix for a defect only the phone had.
+   *
+   * Measured at 390×844 with the height living in the desktop block only:
+   * the rows were 198, 228 and 217px tall, so **two** of them were already
+   * past the reading line on the first frame. The lead therefore started on
+   * the *second* entry with the newest one dimmed, and reached the third
+   * within 200px of scroll, where it stayed for the remaining 1400px. The
+   * whole index resolved inside a quarter of the page.
+   *
+   * 40svh puts the second row's top at ~604px against a 506px reading line,
+   * so the newest entry leads at rest and each lead holds for roughly a third
+   * of a screen. `docs/stages/TAHAP-27.md` §7.5 carries the geometry.
+   *
+   * The studio sequence was measured for the same defect and does not have
+   * it — its steps carry body prose and are tall enough on their own. This
+   * index is three headlines, so nothing makes its rows tall but this.
+   */
+  min-block-size: 40svh;
+  /* The `min-block-size` rule below, which this is the third instance of. */
+  align-content: start;
+  /*
+   * Only `opacity`, and on the whole row — never a colour transition, which
+   * would animate a paint property (`CLAUDE.md` #4). The row recedes as one
+   * object rather than its date, title and summary fading at different rates.
+   */
+  opacity: var(--row-recede);
+  transition: opacity var(--duration) var(--ease-out-expo);
 
   @media (--desktop) {
     /*
@@ -71,7 +124,57 @@
       minmax(0, 1fr);
     column-gap: var(--gap);
     align-items: start;
-    padding-block: desktop-vw(32px);
+    /*
+     * The length that gives the lead somewhere to move.
+     *
+     * Measured before this line existed: the index was 1534px in a 900px
+     * viewport with every row above the fold, so nothing could ever become
+     * "the one being read". Three rows at most of a screen each put the
+     * index across roughly two and a half viewports, which is also the pace
+     * a periodical index is actually read at.
+     *
+     * `svh`, not `vh`: a mobile toolbar appearing mid-scroll would otherwise
+     * resize the rows during the gesture they are read with — which is also
+     * why the base rule above, not only this one, is expressed in `svh`.
+     */
+    min-block-size: 55svh;
+    /*
+     * Pack the rows at the top and let the height spill below — and this is
+     * the **third** time this pairing was needed, which makes it a rule
+     * rather than a fix.
+     *
+     * `vault/blocks/step-sequence` hit it in Tahap 25: a `min-block-size` on
+     * a grid stretches its rows to fill it, and a step's title ended up
+     * ~220px from its own body. The journal row reproduced it exactly, at
+     * ~215px, because the same two properties were combined the same way.
+     *
+     * Any grid given a `min-block-size` for scroll distance needs
+     * `align-content: start`, or the extra height is distributed *through*
+     * the content instead of after it.
+     */
+    align-content: start;
+    padding-block: desktop-vw(32px) desktop-vw(48px);
+  }
+}
+
+.row[data-active] {
+  opacity: 1;
+}
+
+/*
+ * Reduced motion: nothing recedes, promised by the stylesheet.
+ *
+ * `useActiveInSequence` creates no trigger under the preference, so
+ * `data-active` would stay on the first row forever and the other two would
+ * sit at `--row-recede` permanently — content dimmed by an effect that was
+ * meant to be switched off. `CLAUDE.md` #5 is explicit that content must end
+ * fully visible, and this is the only layer that can guarantee it.
+ */
+@media (--reduced-motion) {
+  .row,
+  .row[data-active] {
+    opacity: 1;
+    transition: none;
   }
 }
 

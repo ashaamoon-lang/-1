@@ -1765,6 +1765,55 @@ bentuk Portable Text yang belum pernah ada.
 
 ---
 
+## Tahap 27 — Indeks jurnal yang membaca balik, dan satu kosakata dipakai dua kali ✅
+
+> Spec: [`docs/stages/TAHAP-27.md`](./stages/TAHAP-27.md)
+
+Uji ulang Fase 3. Indeksnya **sepenuhnya statis sesudah muat**: keempat item
+reveal-nya di atas lipatan, jadi masuknya terjadi sekali di frame pertama dan
+ketiga barisnya melaporkan `1.00 1.00 1.00` di setiap posisi gulir yang
+diukur. Isi halaman itu **tiga judul** — tiga judul yang tiba bersamaan lalu
+diam adalah seluruh pengalamannya.
+
+**Dan yang dikirim bukan kosakata baru — itu justru argumennya.** Logika "mana
+yang sedang dibaca" diekstrak dari `step-sequence` ke
+`vault/motion/use-active-in-sequence`, lalu dipakai indeks jurnal. Sebuah
+mekanisme yang cuma hidup di satu halaman bukan kosakata, ia pengecualian —
+argumen yang sama dengan Tahap 23 tentang kosakata masuk, satu tingkat lebih
+dalam. Digerakkan gulir, bukan pointer, supaya ia ada di ponsel.
+
+**Angka:** dokumen `1534 → 2228px` · opacity `1.00 1.00 1.00` di mana-mana →
+`1.00 0.70 0.70` / `0.70 1.00 0.70` / `0.70 0.70 1.00` · jarak judul→ringkasan
+`215 → 27px`.
+
+**Kontras disapu lebih dulu, bukan sesudah gerbang merah:** 0,55 → 3,70:1,
+0,60 → 4,21:1, **0,65 lantainya**, dikirim 0,7. Angka 3,70:1 itu persis sama
+dengan peredupan langkah Tahap 25 — token dan latar yang sama pada opacity
+yang sama. Dan ambang judul display memang **3:1**, terukur oleh axe, bukan
+diasumsikan dari ukurannya.
+
+**Satu cacat baru, dan hanya ponsel yang punya.** Tinggi barisnya ditulis di
+dalam `@media (--desktop)`, jadi di 390×844 dua baris sudah melewati garis
+baca di frame pertama: **entri terbaru tampil redup saat halaman dibuka**, yang
+memimpin entri kedua, dan 200px kemudian kepemimpinan menetap di baris ketiga
+untuk sisa ~1400px. Diberi `min-block-size: 40svh` di aturan dasarnya; sesudah
+itu baris terbaru memimpin saat diam dan urutannya `01 → 02 → 03`. Urutan
+langkah studio **diukur untuk cacat yang sama dan tidak punya**, jadi tidak
+diubah.
+
+**Untuk ketiga kalinya** `min-block-size` pada grid menyebarkan tinggi
+tambahannya _melalui_ isinya — judul 215px dari ringkasannya. Pasangannya
+`align-content: start`, dan sekarang ditulis sebagai aturan di CSS-nya, bukan
+perbaikan satu kali. Dua kesalahan saya yang lain juga dicatat: `Reveal` dan
+peredupan berebut `opacity` di elemen yang sama (reveal menang lewat urutan
+sumber, peredupannya inert), dan sebuah komentar JSX yang tidak sah di dalam
+`map`.
+
+e2e **354 lulus, 0 gagal**, 18 dilewati · unit 417 · `check` exit 0 · reduced
+motion nol baris di bawah 0,99 · ponsel dua bahasa tanpa overflow.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

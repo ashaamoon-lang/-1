@@ -64,23 +64,12 @@
  * ```
  */
 
-import { useGSAP } from '@gsap/react'
 import cn from 'clsx'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 
-import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
+import { useActiveInSequence } from '@/vault/motion/use-active-in-sequence'
 
 import s from './step-sequence.module.css'
-
-// Registered here as well as in `components/effects/gsap.tsx` so this block is
-// correct even when it renders before that bridge is dynamically imported.
-// `registerPlugin` is idempotent.
-// oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger)
-}
 
 export interface Step {
   /** Stable key. Also the translation key the consumer read it from. */
@@ -103,56 +92,13 @@ function pad(value: number): string {
 
 export function StepSequence({ label, steps, className }: StepSequenceProps) {
   const rootRef = useRef<HTMLElement>(null)
-  const [active, setActive] = useState(0)
-  const prefersReducedMotion = usePreferredReducedMotion()
 
-  useGSAP(
-    () => {
-      const root = rootRef.current
-      if (!root) return
-
-      /*
-       * Read from `matchMedia` as well as the hook, for the reason
-       * `vault/motion/text-reveal` records: the hook's *server* snapshot is
-       * `false`, so the first commit — the one this effect runs in — sees
-       * `false` even for a reader who has the preference on. Inside an effect
-       * we are on the client and `matchMedia` is truthful now.
-       */
-      const reduced =
-        prefersReducedMotion ||
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-      if (reduced) return
-
-      const items = [...root.querySelectorAll('[data-step]')]
-      if (items.length === 0) return
-
-      /*
-       * One trigger per step, reporting on entry in either direction.
-       *
-       * `top 60%` → `bottom 40%` is the middle band of the viewport: a step
-       * becomes "the one being read" when it reaches the place a reader's eye
-       * actually sits, not when its first pixel appears at the bottom of the
-       * screen. Scrolling back up re-reports through `onEnterBack`, so the
-       * counter is correct in both directions rather than only on the way
-       * down.
-       */
-      const triggers = items.map((item, index) =>
-        ScrollTrigger.create({
-          trigger: item,
-          start: 'top 60%',
-          end: 'bottom 40%',
-          onEnter: () => setActive(index),
-          onEnterBack: () => setActive(index),
-        })
-      )
-
-      return () => {
-        for (const trigger of triggers) trigger.kill()
-      }
-    },
-    { scope: rootRef, dependencies: [prefersReducedMotion, steps.length] }
-  )
+  /*
+   * The behaviour moved to `vault/motion/use-active-in-sequence` in Tahap 27,
+   * when the journal index needed exactly the same answer. Two copies of
+   * "which one is being read" is one that can drift.
+   */
+  const active = useActiveInSequence(rootRef, '[data-step]', steps.length)
 
   const current = steps[active]
 
