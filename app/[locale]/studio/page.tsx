@@ -9,6 +9,7 @@ import { PRACTICES } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { StepSequence } from '@/vault/blocks/step-sequence'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
 
@@ -162,8 +163,21 @@ export default async function StudioPage() {
             </p>
           </Reveal>
           <ProgressText
-            start="top 80%"
-            end="bottom 40%"
+            /*
+             * Measured in Tahap 25 §2.2 before these were changed: with
+             * `top 80%` the passage was already a third revealed at
+             * `scrollY 0` — a reader landed in the middle of the effect —
+             * and every word was at full opacity by 400px, long before they
+             * had finished reading ninety of them.
+             *
+             * `top bottom` opens the scrub only once the passage's top
+             * reaches the bottom edge of the screen, so nothing has started
+             * on arrival. `bottom 30%` closes it near the end of the read
+             * rather than at the top of the viewport, which spreads the
+             * ninety words across roughly a screen and a half of scroll.
+             */
+            start="top bottom"
+            end="bottom 30%"
             className={cn('p-big', s.statement)}
           >
             {t('statement')}
@@ -171,44 +185,23 @@ export default async function StudioPage() {
         </section>
 
         {/*
-          The label stays put while the steps pass it.
+          `studio-process` — the page's second choreographed moment, and the
+          one that makes the first section's held label mean something.
 
-          Choreography without a frame of JavaScript: `position: sticky` on the
-          left column. It reads as considered for the same reason a held note
-          does — something stays still while everything around it moves — and
-          it costs nothing, degrades to a normal heading when the layout goes
-          single-column, and is invisible to `prefers-reduced-motion` because
-          it is not motion.
+          Tahap 24 shipped this as a sticky label beside four compact steps.
+          Re-measured in Tahap 25: the pin held for ~200px in an 800px
+          viewport and was over before a reader noticed it. The block below
+          gives it both the length and the job it was missing — see
+          `vault/blocks/step-sequence`.
         */}
-        <Reveal as="section" className={s.process}>
-          <div className={s.processLabel}>
-            <p className={cn('caption', s.eyebrow)}>{t('processEyebrow')}</p>
-          </div>
-
-          {/*
-            One `Reveal` on the section rather than one per list.
-
-            `Reveal` deliberately constrains its `as` to container elements, so
-            an `<ol>` cannot be the revealed element itself — and that
-            constraint is right: wrapping the list in a `<div>` just to animate
-            it would put a meaningless box between the section and its items.
-            Marking the `<li>`s instead keeps the list semantic and gives the
-            stagger the rows it should have been staggering all along.
-          */}
-          <ol className={s.steps}>
-            {steps.map((step, index) => (
-              <li className={s.step} data-reveal-item key={step}>
-                <p className={cn('caption', s.stepNumber)} aria-hidden="true">
-                  {String(index + 1).padStart(2, '0')}
-                </p>
-                <h2 className={cn('h3', s.stepTitle)}>
-                  {t(`process.${step}Title`)}
-                </h2>
-                <p className={s.stepBody}>{t(`process.${step}Body`)}</p>
-              </li>
-            ))}
-          </ol>
-        </Reveal>
+        <StepSequence
+          label={t('processEyebrow')}
+          steps={steps.map((step) => ({
+            key: step,
+            title: t(`process.${step}Title`),
+            body: t(`process.${step}Body`),
+          }))}
+        />
 
         {/*
           Capabilities, grouped by the three practices — and the grouping comes

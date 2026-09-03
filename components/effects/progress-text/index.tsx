@@ -33,7 +33,26 @@ type ProgressTextProps = {
   start?: string
   /** ScrollTrigger `end` position, e.g. `'bottom bottom'`. */
   end?: string
-  /** Opacity of words the scroll position hasn't reached yet. */
+  /**
+   * Opacity of words the scroll position hasn't reached yet.
+   *
+   * The floor is a **contrast** decision, not a taste one. This shipped at
+   * 0.33, which axe measures at **2.78:1** against a 4.5 requirement — the
+   * dim words are body text at 20px, so the large-text 3:1 allowance does not
+   * apply either.
+   *
+   * It went unseen until Tahap 25, and the reason is worth writing down: on a
+   * practice page the passage sits below the fold, so the split had not run
+   * when the route sweep audited, and there were no dim words in the DOM to
+   * fail. The studio page puts one near the top *and* Tahap 25 retuned the
+   * scrub so it has not started on arrival — which put all ninety words at
+   * the dim value at `scrollY 0`, and 89 nodes failed at once.
+   *
+   * Swept against axe: 0.45 gives 4.21, 0.5 is the first value that passes.
+   * The default is 0.55, one step above that floor so a palette change does
+   * not silently cross it. The reveal is gentler than it was, and a legible
+   * gentle effect beats an illegible strong one.
+   */
   dimOpacity?: number
   className?: string
   style?: CSSProperties
@@ -52,7 +71,7 @@ export function ProgressText({
   children,
   start = 'top top',
   end = 'bottom bottom',
-  dimOpacity = 0.33,
+  dimOpacity = 0.55,
   className,
   style,
 }: ProgressTextProps) {

@@ -1,8 +1,10 @@
+import AxeBuilder from '@axe-core/playwright'
 import type { Browser, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 import { routing } from '../lib/i18n/routing'
 import { transitionName } from '../lib/motion/transition-name'
+import { axeTags } from './axe-tags'
 import { FEATURED_WORK } from './fixtures'
 
 /**
@@ -743,6 +745,186 @@ test.describe('every page enters the same way', () => {
         heading?.label?.trim(),
         `${route}: the aria-label does not match the text it replaced`
       ).toBe(heading?.text)
+    })
+  }
+})
+
+/**
+ * The held index — `studio-process`, the studio page's second named moment.
+ *
+ * ## What the re-test found, and why this gate exists
+ *
+ * The sticky label shipped in Tahap 24 and worked exactly as CSS says it
+ * should: measured at the header offset (146px) and pinned there. What it did
+ * not do is *last*. Its section was 580px tall in a 900px viewport, so the pin
+ * held for roughly 200px of scroll and was over before a reader could notice
+ * it had happened — the same class of defect as Tahap 21's material, which
+ * moved correctly and was never met.
+ *
+ * So this measures the two things a held index has to be true of: that it is
+ * held for longer than a screen, and that being held is doing something.
+ */
+test.describe('the studio process is a held index', () => {
+  test('the pin outlasts a screen, and reports the step being read', async ({
+    page,
+  }) => {
+    test.setTimeout(120_000)
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/en/studio')
+    await page.waitForTimeout(2600)
+
+    const section = page.locator('[data-step-sequence]')
+    await expect(
+      section,
+      'the studio page renders no step sequence'
+    ).toBeAttached()
+
+    const box = await section.boundingBox()
+    const top = (box?.y ?? 0) + (await page.evaluate(() => window.scrollY))
+
+    /*
+     * Walk the section and record, at each stop, where the label sits in the
+     * viewport and which step it names. A pinned label reports the same
+     * viewport `top` at consecutive stops; a live index reports a changing
+     * step.
+     */
+    const pinned: number[] = []
+    const reported = new Set<string>()
+    const height = box?.height ?? 0
+    const STEPS = 12
+
+    for (let i = 0; i <= STEPS; i++) {
+      await page.evaluate(
+        (y) => window.scrollTo(0, y),
+        Math.round(top - 200 + (height * i) / STEPS)
+      )
+      await page.waitForTimeout(220)
+
+      const frame = await page.evaluate(() => {
+        const label = document.querySelector('[data-step-index]')
+        return {
+          top: label ? Math.round(label.getBoundingClientRect().top) : null,
+          step: label?.getAttribute('data-step-index') ?? null,
+        }
+      })
+
+      if (frame.top !== null) pinned.push(frame.top)
+      if (frame.step) reported.add(frame.step)
+    }
+
+    /*
+     * How far the label held its position. Consecutive stops at the same
+     * viewport top are pinned frames; the scroll distance they cover is the
+     * pin's length.
+     */
+    let held = 0
+    for (let i = 1; i < pinned.length; i++) {
+      if (Math.abs((pinned[i] ?? 0) - (pinned[i - 1] ?? 0)) <= 2) {
+        held += height / STEPS
+      }
+    }
+
+    expect(
+      Math.round(held),
+      `the label held for ${Math.round(held)}px against a 800px viewport — a held note that resolves inside one screen is not held, it is a coincidence`
+    ).toBeGreaterThan(800)
+
+    expect(
+      reported.size,
+      `the index reported ${reported.size} distinct step(s) across the whole section — a label that never changes is not an index`
+    ).toBeGreaterThanOrEqual(3)
+  })
+
+  test('the statement has not already started when the page opens', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto('/en/studio')
+    await page.waitForTimeout(2600)
+
+    const opacities = await page.evaluate(() => {
+      const words = [
+        ...document.querySelectorAll('[class*=progressText] [class*=word]'),
+      ]
+      return words.map((w) => Number.parseFloat(getComputedStyle(w).opacity))
+    })
+
+    expect(opacities.length, 'the statement was never split').toBeGreaterThan(0)
+
+    /*
+     * Measured before this gate existed: 0.33 at scrollY 0, rising to 1.00 by
+     * 400px. A reader landed on an effect already a third finished and never
+     * saw the rest of it happen, because the passage they were still reading
+     * had stopped moving.
+     *
+     * The claim is only that it has not *started*: every word should still be
+     * at the dim end when nothing has been scrolled.
+     */
+    const max = Math.max(...opacities)
+    expect(
+      max,
+      `the brightest word is already at ${max.toFixed(2)} before the reader has scrolled — the scrub is resolving above the fold`
+    ).toBeLessThan(0.9)
+  })
+})
+
+/**
+ * axe, run where the effect actually is.
+ *
+ * `e2e/route-sweep.e2e.ts` audits every route at `scrollY 0`, and that is
+ * exactly how the `aria-prohibited-attr` defect in `ProgressText` stayed
+ * green for nine stages — the element carrying it sat below the fold on every
+ * page that had it, so the split had not run when axe looked. Tahap 24
+ * surfaced that by accident.
+ *
+ * The step sequence's receded steps are below the fold too. Its first recede
+ * value shipped at 0.55 and measured **3.7:1** against a 4.5 floor; the
+ * route sweep would not have seen it. So this audits the page from inside the
+ * sequence, which is the only place the question can be answered.
+ */
+test.describe('the studio sequence is audited where it happens', () => {
+  for (const route of ['/en/studio', '/id/studio']) {
+    test(`${route} passes axe with a step receded`, async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 800 })
+      await page.goto(route)
+      await page.waitForTimeout(2600)
+
+      const section = page.locator('[data-step-sequence]')
+      await expect(section, `${route} renders no step sequence`).toBeAttached()
+
+      // Into the middle of the sequence, where at least one step is active
+      // and the others have receded.
+      const box = await section.boundingBox()
+      await page.evaluate(
+        (y) => window.scrollTo(0, y),
+        Math.round(
+          (box?.y ?? 0) +
+            (await page.evaluate(() => window.scrollY)) +
+            (box?.height ?? 0) / 2
+        )
+      )
+      await page.waitForTimeout(900)
+
+      const receded = await page.evaluate(
+        () =>
+          [...document.querySelectorAll('[data-step]')].filter(
+            (step) => !step.hasAttribute('data-active')
+          ).length
+      )
+      expect(
+        receded,
+        'nothing had receded, so this run proves nothing about the receded state'
+      ).toBeGreaterThan(0)
+
+      const results = await new AxeBuilder({ page })
+        .withTags(axeTags())
+        .analyze()
+
+      const found = results.violations.map(
+        (violation) =>
+          `${violation.impact}: ${violation.id} (${violation.nodes.length} node(s))`
+      )
+      expect(found, found.join('\n')).toEqual([])
     })
   }
 })

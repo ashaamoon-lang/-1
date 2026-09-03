@@ -58,6 +58,21 @@
   display: flex;
   flex-direction: column;
   gap: var(--section-lead);
+  /*
+   * The hero holds the first screen, and that is a motion requirement as much
+   * as a compositional one.
+   *
+   * Measured in Tahap 25 §2.2: the statement below was already a third
+   * revealed at `scrollY 0`, and no `start` value can fix that — a
+   * scroll-linked reveal on an element that is already on screen has already
+   * begun. The parameter was never the problem; the layout was. Holding the
+   * first screen puts the passage below the fold, so the scrub opens when the
+   * reader arrives at it.
+   *
+   * `svh` rather than `vh`, and minus the header it sits under, so a mobile
+   * toolbar appearing mid-scroll does not resize the section being read.
+   */
+  min-block-size: calc(100svh - var(--header-height) - var(--section-lead));
 
   @media (--desktop) {
     /*
@@ -161,90 +176,6 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
   margin: 0;
-}
-
-/* ── Process ──────────────────────────────────────────────────────────── */
-
-.process {
-  display: flex;
-  flex-direction: column;
-  gap: var(--section-lead);
-
-  @media (--desktop) {
-    display: grid;
-    grid-template-columns:
-      calc((100% - var(--gap) * 11) / 12 * 3 + var(--gap) * 2)
-      minmax(0, 1fr);
-    column-gap: var(--gap);
-    align-items: start;
-  }
-}
-
-.processLabel {
-  @media (--desktop) {
-    /*
-     * The held note. The label stays put while the four steps pass it, which
-     * is choreography with no JavaScript, no bytes and no reduced-motion
-     * question to answer — it is layout, not animation.
-     *
-     * The offset clears the fixed header rather than being a round number:
-     * `--header-height` is what the header actually measures, and the rhythm
-     * token puts the label on the same baseline as the section beside it.
-     */
-    position: sticky;
-    inset-block-start: calc(var(--header-height) + var(--section-lead));
-  }
-}
-
-.steps {
-  display: flex;
-  flex-direction: column;
-  gap: var(--section-lead);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.step {
-  display: grid;
-  /*
-   * The number is a fixed, narrow track and the prose takes the rest —
-   * `minmax(0, 1fr)`, never a bare `1fr`, so a long unbroken word cannot push
-   * the row wider than its column.
-   */
-  grid-template-columns: desktop-vw(64px) minmax(0, 1fr);
-  column-gap: var(--gap);
-  row-gap: desktop-vw(8px);
-  align-items: baseline;
-  border-top: 1px solid var(--line);
-  padding-block-start: mobile-vw(20px);
-
-  @media (--desktop) {
-    padding-block-start: desktop-vw(24px);
-  }
-}
-
-.stepNumber {
-  /*
-   * Decorative, and marked `aria-hidden` in the markup: the ordered list
-   * already carries the sequence for assistive tech, so reading "01" aloud
-   * before each title would announce the same fact twice.
-   */
-  color: var(--text-muted);
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.stepTitle {
-  margin: 0;
-  grid-column: 2;
-}
-
-.stepBody {
-  margin: 0;
-  grid-column: 2;
-  max-width: 52ch;
-  color: var(--text-muted);
 }
 
 /* ── Capabilities ─────────────────────────────────────────────────────── */

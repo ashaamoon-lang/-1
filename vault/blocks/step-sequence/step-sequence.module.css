@@ -1,0 +1,231 @@
+/*
+ * How far a step that is not being read recedes.
+ *
+ * Not the 0.33 `ProgressText` uses for its dim words, and the difference is
+ * deliberate rather than an oversight. Those words are *about to be read* and
+ * the scrub brings every one of them to full opacity within a screen; these
+ * are body copy a reader may want to go back to at any moment, and a
+ * paragraph held at a third of its contrast is one a reader is being asked
+ * not to read.
+ *
+ * The first value written here was 0.55, and it **failed**: axe measured the
+ * receded body and number at `#6f6d6a` on `#110f0d` — **3.7:1**, under the
+ * 4.5 floor, on six nodes. A decorative dim that drops body text below
+ * contrast is an accessibility defect wearing a design argument, so it was
+ * measured rather than argued about.
+ *
+ * Sweeping the value against axe found 0.65 to be the first that passes.
+ * 0.7 is one step above that floor, so a later palette adjustment does not
+ * silently cross it. The recede is subtle at this value, and that is the
+ * right trade: the counter and the active title in the pinned column are the
+ * primary signal, and this is the supporting one.
+ */
+.sequence {
+  --step-recede: 0.7;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+
+  @media (--desktop) {
+    display: grid;
+    grid-template-columns:
+      calc((100% - var(--gap) * 11) / 12 * 3 + var(--gap) * 2)
+      minmax(0, 1fr);
+    column-gap: var(--gap);
+    /*
+     * `start` for the steps column, which should begin at the top of the row
+     * rather than being stretched to it.
+     *
+     * The label column opts back out (`.column` below sets `align-self:
+     * stretch`), and the distinction is the whole mechanism: a sticky element
+     * travels through its *containing block*, so the wrapper has to be as
+     * tall as the row while the pinned element inside it stays its own size.
+     */
+    align-items: start;
+  }
+}
+
+.column {
+  min-width: 0;
+
+  @media (--desktop) {
+    /*
+     * Full row height, so the sticky child below has somewhere to travel.
+     *
+     * The grid sets `align-items: start`, which makes every item shrink to
+     * its content — and a `position: sticky` element whose *containing block*
+     * is 14px tall has no range at all. Measured: the label reported a
+     * different viewport position at every scroll stop, i.e. it never pinned.
+     *
+     * Tahap 24 did not hit this because the label was the grid item itself,
+     * and a sticky grid item travels through its grid *area*, which is the
+     * full row. Introducing this wrapper moved the containing block from the
+     * area to the box, and the pin went with it.
+     */
+    align-self: stretch;
+    block-size: 100%;
+  }
+}
+
+.held {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(12px);
+
+  @media (--desktop) {
+    /*
+     * The pin. Its offset clears the fixed header rather than being a round
+     * number — `--header-height` is what the header measures itself from.
+     *
+     * Tahap 24 shipped this and it held for ~200px, because the section was
+     * 580px tall. The length below is what makes it mean something.
+     */
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + var(--section-lead));
+  }
+}
+
+.label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+
+.counter {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: desktop-vw(6px);
+  /* Digits that do not shift the layout as they change. */
+  font-variant-numeric: tabular-nums;
+}
+
+.current {
+  font-family: var(--font-display, sans-serif);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1;
+  transition: opacity var(--duration) var(--ease-out-expo);
+}
+
+.total {
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: clamp(0.75rem, 1vw, 0.875rem);
+}
+
+.activeTitle {
+  color: var(--text-muted);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: desktop-vw(8px);
+  border-top: 1px solid var(--line);
+  padding-block: mobile-vw(24px);
+  /*
+   * Only `opacity`, and only on the whole step — never a colour transition,
+   * which would animate a paint property (`CLAUDE.md` #4). The step recedes
+   * as one object rather than its parts fading at different rates.
+   */
+  opacity: var(--step-recede);
+  transition: opacity var(--duration) var(--ease-out-expo);
+
+  @media (--desktop) {
+    grid-template-columns: desktop-vw(64px) minmax(0, 1fr);
+    column-gap: var(--gap);
+    align-items: baseline;
+    /*
+     * The length that makes the pin real.
+     *
+     * Each step occupies most of a screen, so four of them hold the label for
+     * roughly three viewports. Measured against the alternative in
+     * `docs/stages/TAHAP-25.md` §2.1: at 580px for the whole section the pin
+     * lasted ~200px, which no reader perceives as holding.
+     *
+     * `svh`, not `vh`: on mobile browsers the dynamic toolbar makes `vh`
+     * resize mid-scroll, which would re-trigger layout during exactly the
+     * gesture this section is read with.
+     */
+    min-block-size: 62svh;
+    /*
+     * Pack the rows at the top and let the height spill below.
+     *
+     * Without this the `min-block-size` above stretches the grid's rows to
+     * fill it, and a step's title and its body end up ~220px apart with the
+     * body pinned to the bottom of the block — measured, and visible as two
+     * unrelated fragments rather than one step. The extra height is meant to
+     * be *space after* a step, which is what gives the pin its length; it was
+     * never meant to be distributed through it.
+     */
+    align-content: start;
+    padding-block: desktop-vw(32px) desktop-vw(48px);
+  }
+}
+
+.step[data-active] {
+  opacity: 1;
+}
+
+/*
+ * Reduced motion: nothing recedes, and this is stated in CSS rather than left
+ * to the component's state.
+ *
+ * The component already skips creating any trigger under the preference, so
+ * `data-active` would stay on the first step forever and the other three
+ * would sit at `--step-recede` permanently — content dimmed by an effect that
+ * was supposed to be switched off. `CLAUDE.md` #5 is explicit that content
+ * must end fully visible; the stylesheet is the layer that can promise it.
+ */
+@media (--reduced-motion) {
+  .step,
+  .step[data-active] {
+    opacity: 1;
+    transition: none;
+  }
+
+  .current {
+    transition: none;
+  }
+}
+
+.number {
+  color: var(--text-muted);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+
+  @media (--desktop) {
+    grid-column: 1;
+  }
+}
+
+.title {
+  margin: 0;
+
+  @media (--desktop) {
+    grid-column: 2;
+  }
+}
+
+.body {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--text-muted);
+
+  @media (--desktop) {
+    grid-column: 2;
+  }
+}

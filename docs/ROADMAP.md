@@ -1669,6 +1669,56 @@ ia hanya belum tercapai pada posisi gulir itu.
 
 ---
 
+## Tahap 25 — Koreografi Studio: anggaran dibebaskan, kontras yang mahal ✅
+
+> Spec: [`docs/stages/TAHAP-25.md`](./stages/TAHAP-25.md)
+
+Pemilik proyek membebaskan anggaran untuk animasi. **Tidak terpakai** — rute
+studio berakhir 835 KB dari plafon 900 yang sudah ada. Yang mahal ternyata
+bukan berat melainkan **kontras**.
+
+Uji ulang Fase 2 mengukur dua hal. Kolom menempelnya **bekerja** — terpaku
+tepat di offsetnya, 146px — tapi bagiannya 580px di viewport 900px, jadi
+pin-nya berlangsung ~200px dan selesai sebelum ada yang menyadarinya. Kelas
+cacat yang sama dengan Tahap 21: bergerak benar, tak pernah ditemui. Dan
+scrub pernyataannya sudah sepertiga selesai saat halaman **dibuka**.
+
+`vault/blocks/step-sequence` menjawab keduanya sekaligus, dan keduanya saling
+menopang: bagiannya diberi tinggi nyata, dan labelnya diberi pekerjaan —
+melaporkan langkah yang sedang dibaca (`01 / 04` dan namanya), dengan langkah
+lain mundur. Label yang tertahan tiga layar sambil mengucapkan satu kata mati
+lebih buruk daripada tidak ditahan sama sekali.
+
+**Angka:** pin `~200px → 1500px` · indeks `statis → 01→02→03→04` · scrub
+`selesai di 400px → ~1000px, dan belum mulai saat dibuka` · dokumen
+`2261 → 4644px` (harganya, disengaja).
+
+**Dua bacaan saya salah, keduanya dikoreksi di catatan.** "Sticky-nya rusak"
+salah — mekanismenya benar, skalanya yang kurang. Lalu saya mematahkannya
+sendiri dengan membungkusnya: blok penampung sticky berpindah dari grid area
+ke kotak 14px, dan pin hilang total. Dan premis gerbang saya salah: **efek
+terkait-gulir pada elemen yang sudah di layar sudah dimulai** — tidak ada nilai
+`start` yang memperbaikinya, hanya tata letak.
+
+**Dua kegagalan kontras, dan yang kedua berumur sepuluh tahap.** Peredupan
+langkah ditulis 0,55 dan diukur **3,70:1**; disapu terhadap axe, 0,65 lantai
+pertamanya, dipakai 0,7. Lalu route-sweep gagal dengan **89 node**: sembilan
+puluh kata `ProgressText` pada `dimOpacity: 0.33` = **2,78:1** — default
+komponen sejak Tahap 15, yang tak pernah terlihat karena di halaman praktik
+passage-nya di bawah lipatan dan split-nya belum jalan. Disapu: 0,5 lantainya,
+default jadi 0,55, dan perbaikannya ikut menutup ketiga halaman praktik.
+
+**Untuk ketiga kalinya** cacat lolos karena axe mengaudit pada `scrollY 0`
+sementara elemennya di bawah lipatan. Gerbang baru menggulir **masuk** ke
+dalam urutan, memastikan satu langkah sudah mundur, lalu menjalankan axe di
+sana — dua bahasa.
+
+e2e **337 lulus, 0 gagal** · unit 410 · `check` exit 0 · reduced motion
+`[1,1,1,1]`, dijamin stylesheet bukan state komponen · anggaran tidak
+dinaikkan.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 
