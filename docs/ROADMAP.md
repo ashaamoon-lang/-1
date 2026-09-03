@@ -84,6 +84,15 @@ Navigasi adalah anchor dalam halaman (`#work`, `#studio`, `#contact`) plus
 pengalih bahasa. Karena satu halaman panjang, **koreografi scroll harus kuat** —
 itu konsekuensi yang diterima saat memilih opsi single-page.
 
+> **Diperluas di Tahap 15, bukan dibatalkan.** Beranda tetap satu halaman
+> panjang. Yang bertambah adalah tujuan untuk pergi: tiga praktik mendapat
+> halamannya sendiri di `/practice/<value>`. Keputusan di atas dibuat saat
+> situs ini masih studio karya pesanan dengan nol karya terbit; sejak Tahap 13
+> praktik adalah kosakata struktural, dan sebuah kosakata yang jadi segmen URL,
+> nilai skema, dan entri JSON-LD pantas punya halaman. Anchor `#studio` dan
+> `#contact` **tetap** anchor — `/studio` sudah dipakai Sanity Studio, dan
+> memecah beranda bukan yang diminta.
+
 ## 1.3 Halaman detail proyek
 
 ```
@@ -1098,6 +1107,42 @@ apa pun ke `/en/ai`. Enam pertanyaan adversarial dijawab dengan angka — di
 antaranya `window.scrollY` yang terbukti melacak Lenis **selama** scroll, bukan
 hanya saat diam, dan `--press-scale: 0.995` yang menempuh 6,21px lawan 6,14px
 milik kartu proyek: selisih 0,03px, jadi bukan gestur token.
+
+## Tahap 15 — Halaman per topik, dan gerak yang mengikutinya
+
+Spec penuh: **`docs/stages/TAHAP-15.md`**.
+
+Dari dua permintaan pemilik: **halaman terpisah untuk setiap topiknya**, dan
+animasi setingkat award yang **memakai pustaka dan sumber daya yang sudah ada
+di repositori ini**. Yang kedua adalah batasan paling ketat di tahap ini, dan
+yang paling berguna: **nol dependensi baru**.
+
+**Tiga praktik akhirnya punya halaman.** Consulting, AI & Data, dan Commission
+adalah kosakata tertutup sejak Tahap 13 — nilai skema, segmen URL, entri
+JSON-LD, chip filter, tiga baris di hero, dan sejak Tahap 14b sebuah
+`<details>` di beranda. Yang tidak mereka punya adalah halaman.
+`/practice/<value>` menjadi halaman topik itu dan **menyerap** katalog
+tersaring; `/work/practice/<value>` dialihkan permanen. Satu URL per topik.
+
+**`ProgressText` akhirnya mendapat pekerjaannya.** Dibangun saat fork, punya
+`scrub: true`, dan **nol pemakai selama lima belas tahap** — sementara komentar
+dokumennya sendiri sudah menyebut untuk apa: _"a long passage the reader moves
+through"_. Pernyataan sebuah praktik persis itu.
+
+**Tiga perkakas menganggur sengaja tetap menganggur.** Observer, Flip, Tabs,
+Accordion, dan sim fluid tetap nol pemakai. "Sudah terpasang" bukan alasan
+untuk memakai, dan menyebut yang ditolak sama pentingnya dengan menyebut yang
+dipakai.
+
+**Aturan dari skill yang jadi batasan:** _"Don't use shared-element transitions
+across more than one element pair per navigation"_ — tiap navigasi baru
+memorf **satu** pasang. Dan `routing --stack nextjs` hanya mengembalikan satu
+hasil generik, jadi keputusan arsitektur rute di tahap ini **bukan** berbasis
+database skill, dan disebut begitu.
+
+**Tidak dikerjakan, dinyatakan di muka:** tidak ada dependensi baru, tidak ada
+halaman "tentang" (`/studio` dipakai Sanity), beranda tidak dipecah, tidak ada
+material WebGL di rute baru.
 
 # Verifikasi
 
