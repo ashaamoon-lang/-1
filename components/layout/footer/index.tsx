@@ -2,6 +2,7 @@ import cn from 'clsx'
 import { useTranslations } from 'next-intl'
 
 import { Link } from '@/components/ui/link'
+import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
 
 import s from './footer.module.css'
 
@@ -55,6 +56,16 @@ const SOCIAL = [
 
 export function Footer() {
   const t = useTranslations('footer')
+  /*
+   * Two more namespaces rather than new strings.
+   *
+   * `nav.work` already names the catalogue in the header, and
+   * `workIndex.<value>` already names each practice on the filter chips and on
+   * the practice page's own nameplate. Writing a second set here would let the
+   * footer call a practice something the rest of the site does not.
+   */
+  const tNav = useTranslations('nav')
+  const tWork = useTranslations('workIndex')
   return (
     // No `id="contact"`. The home page's Contact section owns that id, and two
     // elements sharing one is a `duplicate-id` violation — which now fails the
@@ -66,6 +77,48 @@ export function Footer() {
           <Link href={`mailto:${EMAIL}`} className={cn('p-big', s.email)}>
             {EMAIL}
           </Link>
+        </section>
+
+        {/*
+          Site navigation, and it lives here rather than in the header for a
+          measured reason.
+
+          Tahap 20 counted the onward links on every route: `/en/work` has
+          eleven, a practice page three, and **a project page one** — the next
+          project. The footer carried no navigation at all, on every route,
+          while a project page is the one most likely to be a landing page
+          from a search result or a shared link.
+
+          `components/layout/header` already decided, with a sound argument,
+          not to carry the home page's section anchors on inner routes: they
+          would be links that silently do nothing. That argument is about
+          anchors. Every link below is a **real route**, so it cannot die —
+          which is why this belongs here and the header stays untouched.
+
+          `Portfolio Grid`, the pattern this site follows, puts its primary
+          call to action at "Project Card Hover + Footer Contact". The footer
+          was already the site's second entry point; it simply had nothing to
+          enter.
+        */}
+        <section className={s.column}>
+          <h2 className={cn('caption', s.heading)}>{t('index')}</h2>
+          <ul className={s.list}>
+            <li>
+              <Link href="/work" className={cn('caption', s.link)}>
+                {tNav('work')}
+              </Link>
+            </li>
+            {PRACTICES.map((value) => (
+              <li key={value}>
+                <Link
+                  href={practiceTemplate(value)}
+                  className={cn('caption', s.link)}
+                >
+                  {tWork(value)}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className={s.column}>

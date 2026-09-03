@@ -68,7 +68,8 @@
     "elsewhere": "Elsewhere",
     "colophon": "Colophon",
     "rights": "All work © {year} Arth. Reproduction by arrangement only.",
-    "builtOn": "Built on Satūs by darkroom.engineering, MIT licensed. Type is Syne and Geist Mono."
+    "builtOn": "Built on Satūs by darkroom.engineering, MIT licensed. Type is Syne and Geist Mono.",
+    "index": "Index"
   },
   "project": {
     "client": "Client",

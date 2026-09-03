@@ -1415,6 +1415,42 @@ diganti `coverSpan`, kata domain yang komponennya sendiri sudah pakai.
 
 ---
 
+## Tahap 20 — Jalan keluar dari rute dalam ✅
+
+Spec penuh: **`docs/stages/TAHAP-20.md`**.
+
+Rencana menuntut angka sebelum pendapat, dan angkanya mengubah kesimpulan.
+Dihitung di build produksi, dua viewport, memisahkan header, footer dan isi:
+`/en` 12 tautan lanjut · `/en/work` 11, termasuk tiga chip praktik ·
+halaman praktik 3 · **halaman proyek 1** — hanya "proyek berikutnya".
+
+Dan pada **setiap** rute, footer situs ini tidak membawa satu pun tautan
+navigasi. Halaman proyek justru yang paling mungkin jadi halaman pendaratan,
+dari hasil pencarian atau tautan yang dibagikan, dan ia menawarkan pembaca
+tepat satu jalan lanjut. Gerbang barunya bahkan menemukan bahwa **beranda
+sendiri tidak pernah menautkan ke katalognya**.
+
+**Koreksi terhadap rencana saya sendiri:** §1.3 mengusulkan navigasi di
+header. Header sudah memutuskan dengan sadar untuk tidak membawa anchor
+beranda di rute dalam — anchor itu akan jadi tautan mati — dan argumennya
+sahih. Footer menyelesaikan masalah yang sama tanpa menyentuhnya, sudah
+ter-mount di tiap rute, dan **setiap tautannya rute nyata** sehingga tidak
+bisa mati. Basis data skill mendukungnya lewat pola yang situs ini pakai:
+`Portfolio Grid` menaruh CTA utamanya di _"Project Card Hover + Footer
+Contact"_.
+
+Satu kolom keempat, berbentuk identik dengan "Elsewhere" yang sudah ada:
+Work plus tiga praktik, diambil dari `lib/content/practices` — satu-satunya
+tempat yang memutuskan ke mana sebuah praktik menunjuk sejak Tahap 15. Nama
+praktiknya dari `workIndex.<value>`, string yang sudah dipakai chip katalog
+dan hero praktik, jadi footer menyebutnya sama seperti seluruh situs. Kolomnya
+terukur rata di 300px masing-masing pada 1280.
+
+**Angka:** e2e 299 → **306** · unit 401 · `check` exit 0 · `route-budget`
+hijau tanpa anggaran dinaikkan. Header tidak disentuh.
+
+---
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap

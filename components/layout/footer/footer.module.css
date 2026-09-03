@@ -20,7 +20,12 @@
   gap: mobile-vw(32px);
 
   @media (--desktop) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /*
+     * Four since Tahap 20 added the index column. At 1280 that is ~300px a
+     * column; the index holds four short lines and the colophon is the only
+     * one carrying a sentence, so nothing is squeezed. Measured, not assumed.
+     */
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--gap);
   }
 }
