@@ -95,6 +95,21 @@ const PAIRS: { label: string; bg: string; fg: string; min: number }[] = [
     fg: 'text-muted',
     min: AA_TEXT,
   },
+  /*
+   * The hero headline sits on the WebGL wash, not on the page ground.
+   *
+   * Until Tahap 17 the wash was two hex literals inside a component, invisible
+   * to this file, and it rendered so dark that the question never arose — the
+   * first screen measured mean luminance 4.0/255. Now that it is a token and
+   * actually carries tone, the ink over it is a real pair, and brightening the
+   * wash without checking is exactly the mistake this list prevents.
+   */
+  {
+    label: 'ink on the hero wash',
+    bg: 'hero-wash-to',
+    fg: 'secondary',
+    min: AA_TEXT,
+  },
   {
     label: 'focus ring on primary',
     bg: 'primary',

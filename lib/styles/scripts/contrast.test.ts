@@ -49,6 +49,12 @@ describe('WCAG 2.1 AA contrast (blocking)', () => {
   it('parses the derived tokens out of global.css', async () => {
     const derived = await readDerivedTokens()
     expect(derived.map((d) => d.token).sort()).toEqual([
+      // `--hero-wash-to` joined the list in Tahap 17, when the hero's gradient
+      // stopped being two hex literals in a component and became a token. It
+      // belongs here rather than being filtered out: the wash is what the hero
+      // headline sits on, so brightening it is a contrast decision, and this
+      // list exists so a new derived token cannot arrive without one.
+      'hero-wash-to',
       'line',
       'line-strong',
       'surface',

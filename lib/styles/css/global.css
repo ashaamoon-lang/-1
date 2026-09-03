@@ -39,6 +39,29 @@ html {
     var(--color-secondary) 8%,
     var(--color-primary)
   );
+  /*
+   * The hero wash — the one large area of colour on the site.
+   *
+   * Authored here rather than in the component because it was the single
+   * place in the whole shipped codebase carrying raw hex (`#0d0d0d`,
+   * `#242527`), and it was also the place the site looked worst: those two
+   * values span 13 to 36 of 255 against a ground that renders at 15, so half
+   * the gradient was darker than the page behind it. `lib/styles/scripts/
+   * token-rules.test.ts` now stops that returning.
+   *
+   * `from` is the page ground itself, so the wash has no edge — it emerges
+   * rather than being laid on top. `to` is a touch beyond `--surface-2`'s 8%,
+   * because this spreads across a whole viewport rather than a card and needs
+   * slightly more to read at all at that scale. Still minimal, which is what
+   * `ui-ux-pro-max`'s Portfolio Grid pattern asks for: *"Neutral background
+   * (let work shine). Accent: Minimal."*
+   */
+  --hero-wash-from: var(--color-primary);
+  --hero-wash-to: color-mix(
+    in oklab,
+    var(--color-secondary) 12%,
+    var(--color-primary)
+  );
   --line: color-mix(in oklab, var(--color-secondary) 14%, transparent);
   --line-strong: color-mix(in oklab, var(--color-secondary) 28%, transparent);
   /*

@@ -117,7 +117,28 @@ export function WebGLCanvas({
         dpr={[1, 2]}
         orthographic
         frameloop="never"
-        linear
+        /*
+         * `linear` is deliberately **not** set, and that is a correction.
+         *
+         * It shipped with the fork and set `outputColorSpace` to linear, which
+         * switches off the renderer's sRGB conversion on the way out. three
+         * still converts every `new Color(...)` from sRGB *into* linear on the
+         * way in, so with the conversion disabled at only one end every
+         * custom-shaded colour landed on screen as `authored ^ 2.2`.
+         *
+         * Measured on the hero, whose wash is the site's one large area of
+         * colour: the band between the header and the headline rendered at
+         * mean luminance **4.0/255 with the canvas and 15.5/255 with it
+         * hidden** — the decoration was subtracting light, and the page looked
+         * better with its own accent switched off. Forcing the wash to white
+         * and rebuilding gave mean 166, which is what proved the mesh was
+         * drawing and the transfer curve was the fault: `#242527` is 39, and
+         * `(39 / 255) ^ 2.2 * 255 = 4.1`, matching the measurement exactly.
+         *
+         * `flat` stays: tone mapping is a photographic curve, and this design
+         * system wants the colours it authored, not a graded version of them.
+         * `docs/stages/TAHAP-17.md` §4 carries the full measurement.
+         */
         flat
         eventSource={document.documentElement}
         eventPrefix="client"

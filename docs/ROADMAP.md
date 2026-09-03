@@ -1260,6 +1260,65 @@ halaman, bukan kecepatan (`CLAUDE.md` #19).
 
 ---
 
+## Tahap 17 — Audit: situs ini dilihat, bukan hanya dibaca ✅
+
+Spec penuh: **`docs/stages/TAHAP-17.md`**.
+
+Permintaan pemilik menentukan metodenya: "jangan sampai website terlihat
+buruk" adalah pertanyaan visual, dan **enam belas tahap sebelumnya tidak
+pernah sekali pun merender halaman lalu memandanginya.** Semua gerbang
+memeriksa DOM, header, bobot bundel, dan pelanggaran aturan; tidak satu pun
+menanyakan seperti apa tampilannya.
+
+**Layar pertama situs ini adalah persegi hitam rata, dan aksennya yang
+membuatnya begitu.** Diukur pada band antara header dan headline: mean
+luminansi **4.0/255 dengan canvas, 15.5/255 dengan canvas disembunyikan.**
+Halaman terlihat lebih baik dengan dekorasinya sendiri dimatikan.
+
+**Sebabnya satu kata:** `linear` pada `<Canvas>` R3F, warisan fork Satūs. Ia
+mematikan konversi sRGB di sisi keluaran sementara three tetap mengonversi
+tiap `new Color(...)` di sisi masukan — jadi setiap warna custom-shader
+mendarat sebagai `authored ^ 2.2`. Terbukti dengan aritmetika, bukan dugaan:
+`#242527` adalah 39, dan `(39/255)^2.2 × 255 = 4.1`, persis angka yang
+terukur. Sesudah: **30.2 mean, rentang gradien 2.0 → 13.9.**
+
+**Dan perbaikan itu membuka kalibrasi kedua.** Grain hero disetel `0.06`
+melawan pipeline yang rusak; dengan kurva benar ia terukur **sd 21.0/255** —
+77% dari mean band, statik bukan film grain. Diturunkan ke `0.014` → **6.45**.
+Setiap nilai yang pernah disetel dengan mata melawan pipeline salah harus
+disetel ulang.
+
+**Sistem desain dilewati persis di tempat terburuknya.** Dua-satunya hex
+mentah di seluruh kode terkirim adalah dua warna hero itu. Aturan token
+`CLAUDE.md` #8/#10 ternyata **tidak punya gate sama sekali** — §1.5 di atas
+mencatatnya "ditegakkan saat review", dan gate gerak yang ada hanya memindai
+CSS sementara warna WebGL adalah nilai TypeScript.
+`lib/styles/scripts/token-rules.test.ts` menutupnya, dibuktikan merah dulu.
+Wash-nya kini token, dan `contrast.test.ts` mengukur tinta di atasnya — gate
+proyek ini sendiri yang menuntut itu, dengan langsung merah saat token baru
+ditambahkan.
+
+**Instrumen saya sendiri salah dua kali, lagi.** Sapuan hex pertama dipotong
+`head -10` dan sepuluh baris pertamanya kebetulan komentar — kesimpulannya
+"bersih, nol hex mentah", tepat di atas pelanggarannya. Dan `readPixels` di
+tengah band mengembalikan `[0,0,0,0]` karena buffer sudah dibersihkan setelah
+komposit; pembacaan itu hampir membuat saya menyimpulkan mesh-nya tidak
+menggambar.
+
+**Dicatat, tidak dikerjakan:** sebelas komponen `components/ui/*` nol pemakai
+(warisan Base UI dari fork; `vault/` sebaliknya habis terpakai kecuali satu) ·
+kartu setengah lebar yang berdiri sendiri di grid beranda, yang `span`-nya
+datang dari CMS sehingga memperbaikinya adalah keputusan desain tersendiri.
+**Belum semua halaman dipandangi** — `/en` dua viewport lima posisi scroll;
+sisanya baru lewat gerbang otomatis, dan itu disebut karena audit visual
+setengah jalan lebih berbahaya kalau dilaporkan selesai.
+
+**Angka:** e2e 275 · unit 400 → **401** · hex mentah 2 → **0** · gate token
+0 → **1**. Tidak ada klaim performa: semua angka di sini luminansi piksel dan
+geometri tata letak.
+
+---
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap

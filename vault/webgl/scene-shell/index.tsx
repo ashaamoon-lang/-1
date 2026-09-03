@@ -49,10 +49,16 @@
  */
 
 import cn from 'clsx'
-import { type ComponentType, useEffect, useState } from 'react'
+import {
+  type ComponentType,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 
 import { useDeviceDetection } from '@/lib/hooks/use-device-detection'
 import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
+import { resolveColorToHex } from '@/lib/styles/resolve-color'
 import { WebGLTunnel } from '@/webgl/components/tunnel'
 
 import type { GradientScene as GradientSceneType } from './scene'
@@ -116,27 +122,102 @@ function useGradientScene(
   return Scene
 }
 
+/**
+ * The tokens this wash is made of, named once.
+ *
+ * `lib/styles/css/global.css` owns the values; this file owns nothing about
+ * colour beyond the two names, which is the point — they used to be two hex
+ * literals here and were the only raw hex in the shipped codebase.
+ */
+/**
+ * Resolved colour pairs, memoised by their CSS source.
+ *
+ * `getSnapshot` must return a referentially stable value or React re-renders
+ * forever, and resolving through the DOM is not free either. Keyed by the two
+ * CSS strings, which is the whole of the input.
+ */
+const washCache = new Map<string, { a: string; b: string } | null>()
+
+function washSnapshot(
+  colorA: string,
+  colorB: string
+): { a: string; b: string } | null {
+  const key = `${colorA}|${colorB}`
+  const cached = washCache.get(key)
+  if (cached !== undefined) return cached
+
+  const a = resolveColorToHex(colorA)
+  const b = resolveColorToHex(colorB)
+  const value = a && b ? { a, b } : null
+  washCache.set(key, value)
+  return value
+}
+
+/**
+ * A subscription that never fires.
+ *
+ * `useSyncExternalStore` requires one, and the "external system" here is the
+ * resolved cascade, which does not change under a running page: the palette
+ * is static and a theme switch remounts the tree. The unsubscribe is empty
+ * because there was nothing to attach.
+ */
+function subscribeNever(): () => void {
+  return noop
+}
+
+function noop(): void {
+  // Nothing to tear down — see `subscribeNever`.
+}
+
+/** No DOM on the server, so no colour — and the fallback is what renders. */
+function serverWashSnapshot(): null {
+  return null
+}
+
+const WASH_FROM = 'var(--hero-wash-from)'
+const WASH_TO = 'var(--hero-wash-to)'
+
 export function SceneShell({
-  colorA = '#0d0d0d',
-  colorB = '#242527',
-  grain = 0.06,
+  colorA = WASH_FROM,
+  colorB = WASH_TO,
+  grain = 0.014,
   className,
 }: SceneShellProps) {
   const { isWebGL } = useDeviceDetection()
   const prefersReducedMotion = usePreferredReducedMotion()
+
+  /*
+   * WebGL needs concrete sRGB; CSS gives us `color-mix(in oklab, …)`.
+   *
+   * `useSyncExternalStore` rather than an effect, which is the shape this
+   * repository already uses twice for the same problem — reading a value that
+   * only exists in the browser without a mount effect and without a hydration
+   * mismatch (`components/ui/link` does it for the Network Information API).
+   * The server snapshot is `null`, so the server renders the fallback
+   * gradient, which takes the CSS values directly and is therefore already
+   * correct; the client resolves them and swaps in the mesh.
+   */
+  const resolved = useSyncExternalStore(
+    subscribeNever,
+    () => washSnapshot(colorA, colorB),
+    serverWashSnapshot
+  )
 
   // Mirrors the condition inside `<Canvas>`: if the canvas will not mount,
   // this component must render the fallback instead of an empty box.
   const canRenderWebGL = isWebGL && !prefersReducedMotion
   const GradientScene = useGradientScene(canRenderWebGL === true)
 
-  if (!canRenderWebGL || !GradientScene) {
+  if (!canRenderWebGL || !GradientScene || !resolved) {
     return (
       <div
         className={cn(s.fallback, className)}
         style={{
           // Same two colours, same direction as the shader's diagonal ramp, so
           // the fallback is the same design rather than a placeholder.
+          // The CSS values go in unresolved on purpose: this path needs no
+          // conversion, so the fallback reads the tokens directly and stays
+          // correct if the palette changes under it.
           backgroundImage: `linear-gradient(135deg, ${colorA}, ${colorB})`,
         }}
         aria-hidden="true"
@@ -152,8 +233,8 @@ export function SceneShell({
             state, so its identity is stable. Holding it is what keeps three.js
             out of the initial graph. */}
         <GradientScene
-          colorA={colorA}
-          colorB={colorB}
+          colorA={resolved.a}
+          colorB={resolved.b}
           grain={grain}
           // Belt and braces: the canvas already declines to mount under
           // reduced motion, but a scene must never assume its host checked.

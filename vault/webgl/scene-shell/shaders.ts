@@ -56,5 +56,22 @@ export const fragmentShader = /* glsl */ `
     color += grain;
 
     gl_FragColor = vec4(color, 1.0);
+
+    /*
+     * Convert back to the renderer's output colour space.
+     *
+     * three converts every \`new Color(...)\` from sRGB into the linear working
+     * space when colour management is on, which it is by default. The built-in
+     * materials undo that on the way out; a \`ShaderMaterial\` that assigns
+     * \`gl_FragColor\` itself does not, unless it includes this chunk. Without
+     * it the linear value is written straight into an sRGB framebuffer and
+     * every colour lands far darker than it was authored.
+     *
+     * Measured on the home page before this line existed: the hero band
+     * rendered at mean luminance **4.0/255 with the canvas, 15.5/255 with it
+     * hidden**. The accent was subtracting light — the page looked better with
+     * its own decoration switched off. \`docs/stages/TAHAP-17.md\` §4.1.
+     */
+    #include <colorspace_fragment>
   }
 `
