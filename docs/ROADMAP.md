@@ -1514,6 +1514,65 @@ CI=true bun run test:e2e   # Playwright + axe, lewat build produksi
 bun run build-storybook    # katalog komponen
 ```
 
+## Tahap 22 — Pondasi: footer yang tertelan canvas ✅
+
+> Spec: [`docs/stages/TAHAP-22.md`](./stages/TAHAP-22.md)
+
+Fase 0 dari scaffold pengembangan lanjutan yang disetujui pemilik proyek.
+Pondasi harus bersih dulu, karena Fase 6 akan menaruh canvas di lebih banyak
+rute — dan menambah canvas sebelum tahap ini akan **menggandakan** cacatnya.
+
+Cacatnya ditemukan bukan oleh gerbang mana pun, melainkan dengan **menelusuri
+situs sebagai pengunjung**: menggulir ke dasar beranda mencari alamat email,
+dan menemukan ruang gelap kosong. Footer empat kolomnya ada di sana — DOM
+benar, `opacity: 1`, lolos hit-test, axe bersih — dan **tidak terbaca**.
+
+Sebabnya bukan WebGL, bukan reveal, bukan opacity, melainkan **urutan lukis
+CSS**: `<footer>` dikirim sebagai `position: static` sementara saudaranya
+`<main>` membawa `relative`. Blok non-berposisi dilukis di lapisan 3, seluruh
+keturunan berposisi di lapisan 6 — termasuk pembungkus WebGL yang `fixed`.
+Footer melukis **di bawah** canvas. Satu properti yang hilang.
+
+**Instrumen pertama saya salah, dan salahnya informatif:** luminansi rata-rata
+pita footer justru **naik** melintasi cacat ini (16,90 → 23,82), karena wash
+memang menambah cahaya. Yang ia hancurkan adalah jarak teks ke latarnya —
+p99 jatuh **98 → 39**. Kedua kalinya di proyek ini statistik yang salah
+menyembunyikan cacat yang persis sedang dicari (Tahap 17 yang pertama).
+
+**Angka:** p99 teks footer `39 → 88` (kontrol tanpa canvas: 82 — perbaikannya
+melampauinya, karena wash lalu menyumbang cahaya _di belakang_ teks).
+Gerbangnya menangkap `/id` merah juga, yang tidak saya ukur manual.
+
+**Soft-404: premis saya salah, dan dikoreksi bukan ditambal.** Status 200 pada
+URL tak dikenal ternyata konsekuensi terdokumentasi dari Cache Components,
+sudah ditegaskan `e2e/not-found.e2e.ts` berikut alasannya, dan sudah
+dimitigasi `noindex` + judul jujur. Tidak diubah. Yang dikerjakan masalah
+manusianya — dan pemeriksaan setiap label nav di kedua bahasa menemukan
+**lima** URL tebakan yang 404, bukan satu: `/en/contact`, `/id/kontak`,
+`/en/practice`, `/id/praktik`, dan yang paling tajam `/id/karya` (labelnya
+"Karya", rutenya `/work`, jadi pembaca Indonesia yang mengetik apa yang ia
+baca **selalu** salah). Kelimanya kini 308 asli lewat `proxy.ts`, satu-satunya
+lapisan tempat status nyata memang tersedia.
+
+**Anggaran: aturannya dicabut, angkanya tidak dinaikkan.** Aturan Tahap 7
+("WebGL di tepat satu rute") dicabut eksplisit di dalam `route-budget.e2e.ts`,
+karena melanggar diam-diam lebih buruk daripada mencabut terbuka. Tapi tidak
+ada plafon yang naik: menaikkan anggaran untuk berat yang belum ada adalah
+cara anggaran berhenti bermakna. Temuan sampingannya: **`/id` tidak pernah
+diukur sama sekali** — seluruh daftar berisi rute `/en`, padahal beranda
+Indonesia membawa 1899 KB dan dua library yang sama. Sekarang ada di daftar.
+
+e2e **319 lulus**, 12 dilewati · unit **410 lulus** · `check` exit 0 ·
+storybook 92 lulus. Satu kegagalan awal (`storybook-a11y` penjaga kebasian)
+adalah gerbang yang bekerja benar, bukan cacat.
+
+**Dua instrumen salah dicatat di §8.4**, termasuk asersi status pengalihan
+yang bentuk pertamanya **tidak bisa gagal** — ia menyubstitusi nilai yang
+diharapkan ketika tidak ada pengalihan sama sekali, jadi lulus paling kuat
+justru saat fiturnya hilang. Diperbaiki lalu dibuktikan bisa merah.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

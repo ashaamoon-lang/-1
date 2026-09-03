@@ -86,3 +86,66 @@ test.describe('every page offers a way into the rest of the site', () => {
     })
   }
 })
+
+/**
+ * A URL guessed from a nav label, and where it lands.
+ *
+ * The mapping itself is unit-tested in `lib/i18n/guessed-paths.test.ts`; what
+ * this adds is proof that `proxy.ts` actually runs it, and that the status is
+ * a **real 308** rather than the 200 the not-found page is forced to return
+ * (`e2e/not-found.e2e.ts` documents why). Middleware executes before
+ * rendering, so this is the one layer of the app where a genuine redirect
+ * status is available — and an assertion that never checked the status would
+ * pass just as happily against a soft 404.
+ */
+const GUESSED: [typed: string, lands: string][] = [
+  ['/en/contact', '/en#contact'],
+  ['/id/kontak', '/id#contact'],
+  ['/en/practice', '/en#practice'],
+  ['/id/praktik', '/id#practice'],
+  ['/id/karya', '/id/work'],
+]
+
+test.describe('a URL guessed from a nav label goes somewhere', () => {
+  for (const [typed, lands] of GUESSED) {
+    test(`${typed} redirects to ${lands}`, async ({ page }) => {
+      const response = await page.goto(typed)
+
+      /*
+       * The first hop of the chain, not the final response.
+       *
+       * Written carefully, because the obvious version cannot fail: an
+       * expression like `hop ? (await hop.response())?.status() : 308`
+       * substitutes the expected value when no redirect happened at all, so
+       * it passes hardest exactly when the feature is missing. Assert the hop
+       * exists first, then read its status.
+       */
+      const hop = response?.request().redirectedFrom()
+      expect(hop, `${typed} produced no redirect at all`).not.toBeNull()
+
+      const status = (await hop?.response())?.status()
+      expect(
+        status,
+        `${typed} answered ${status} — a 200 here means the reader got the not-found page instead of being sent on`
+      ).toBe(308)
+
+      const landed = new URL(page.url())
+      expect(
+        landed.pathname + landed.hash,
+        `${typed} landed on ${landed.pathname}${landed.hash}`
+      ).toBe(lands)
+    })
+  }
+
+  test('a real route is never redirected away', async ({ page }) => {
+    // `/en/work` is the catalogue and `/en/practice/consulting` a real page;
+    // a redirect table that caught either would be worse than the 404s it
+    // exists to remove.
+    for (const route of ['/en/work', '/id/work', '/en/practice/consulting']) {
+      await page.goto(route)
+      expect(new URL(page.url()).pathname, `${route} was redirected`).toBe(
+        route
+      )
+    }
+  })
+})

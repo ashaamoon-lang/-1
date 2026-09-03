@@ -105,3 +105,65 @@ export async function grain(
     values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length
   return Math.sqrt(variance)
 }
+
+export interface Legibility {
+  /** 1st percentile — the ground the text sits on. */
+  p01: number
+  /** 99th percentile — how bright the brightest glyph pixels actually get. */
+  p99: number
+  /** `p99 - p01`: the range a reader's eye has to work with. */
+  spread: number
+  mean: number
+}
+
+/**
+ * Whether text in a band is still readable — measured at **full resolution**.
+ *
+ * ## Why this is not `tone()`
+ *
+ * `tone()` downscales to 64×40 on purpose, so grain averages away and `range`
+ * reports the gradient. That is exactly wrong for text: at 64×40 a hairline
+ * glyph is blended into its background before it is ever measured, and the
+ * signal this function exists to read is gone. So this one samples the band as
+ * rendered, and uses 1st/99th percentiles rather than min/max so a single
+ * stray pixel cannot speak for the band.
+ *
+ * ## Why the mean is not the answer
+ *
+ * Tahap 22 found the home page's footer painting *underneath* the fixed WebGL
+ * wrapper — `<footer>` was `position: static`, so it sat in the non-positioned
+ * block layer, which CSS paints below every positioned sibling. The four
+ * columns became unreadable.
+ *
+ * Mean luminance **rose** across that defect, 16.90 → 23.82, because the wash
+ * genuinely adds light. Reading the mean would have concluded the canvas was
+ * helping. What it destroyed was the distance between the glyphs and their
+ * ground: p99 fell from **98 to 39**. The spread is the honest number, and it
+ * is the second time in this project that picking the wrong statistic hid the
+ * very defect being looked for (Tahap 17 was the first).
+ */
+export async function legibility(
+  png: Buffer | string,
+  band: { left: number; top: number; width: number; height: number }
+): Promise<Legibility> {
+  const { data, info } = await sharp(png).extract(band).raw().toBuffer({
+    resolveWithObject: true,
+  })
+
+  const values: number[] = []
+  for (let i = 0; i < data.length; i += info.channels) {
+    values.push(luminance(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0))
+  }
+  values.sort((a, b) => a - b)
+
+  const at = (q: number) => values[Math.floor(q * (values.length - 1))] ?? 0
+  const p01 = at(0.01)
+  const p99 = at(0.99)
+
+  return {
+    p01,
+    p99,
+    spread: p99 - p01,
+    mean: values.reduce((a, b) => a + b, 0) / values.length,
+  }
+}

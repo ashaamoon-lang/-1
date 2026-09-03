@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import sharp from 'sharp'
 
 import { PRACTICES } from '../lib/content/practices'
-import { grain, tone } from '../lib/styles/scripts/luminance'
+import { grain, legibility, tone } from '../lib/styles/scripts/luminance'
 import { material } from '../vault/motion/tokens'
 import { FEATURED_WORK } from './fixtures'
 /**
@@ -530,4 +530,103 @@ test.describe('the material is a material, not a picture', () => {
       `the ambient input is not staying quieter than the deliberate one (${report})`
     ).toBeLessThan(material.displacement)
   })
+})
+
+/**
+ * How much of the canvas-free legibility a canvas route's footer must keep.
+ *
+ * Measured on `/en` at 1280×800, the footer band's p99 (the brightest glyph
+ * pixels):
+ *
+ *   - **broken**: 39 against a canvas-hidden control of 82 — ratio **0.48**;
+ *   - **fixed**: 88 against the same 82 — ratio **1.07**, above the control,
+ *     because the wash then adds light *behind* the text instead of over it.
+ *
+ * 0.85 sits in the wide gap between those two and leaves room for a wash
+ * retune, without admitting a footer that has gone back under the canvas.
+ */
+const FOOTER_LEGIBILITY_FLOOR = 0.85
+
+test.describe('a footer under a canvas is still readable', () => {
+  for (const route of GUTTER_ROUTES) {
+    test(`${route} keeps its footer out from under the canvas`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1280, height: 800 })
+      await page.goto(route)
+      await page.waitForTimeout(2600)
+
+      /*
+       * Discovered at runtime rather than pinned to `/en`.
+       *
+       * Only one route carries a canvas today, but the scaffold's Fase 6
+       * spreads the material layer to a second one. A gate written against a
+       * hardcoded route would silently stop covering the thing it was written
+       * for on the exact stage that made it matter more.
+       */
+      const hasCanvas = (await page.locator('canvas').count()) > 0
+      test.skip(!hasCanvas, 'no canvas on this route, nothing to paint over')
+
+      await page.evaluate(() => window.scrollTo(0, 999999))
+      await page.waitForTimeout(2200)
+
+      const geometry = await page.evaluate(() => {
+        const footer = document.querySelector('footer')
+        if (!footer) return null
+        const rect = footer.getBoundingClientRect()
+        const top = Math.max(0, Math.round(rect.top))
+        return {
+          top,
+          height: Math.round(Math.min(rect.height, window.innerHeight - top)),
+          width: window.innerWidth,
+          dpr: window.devicePixelRatio,
+        }
+      })
+
+      expect(geometry, `${route} rendered no footer`).not.toBeNull()
+      const { top, height, width, dpr } = geometry ?? {
+        top: 0,
+        height: 0,
+        width: 0,
+        dpr: 1,
+      }
+      expect(
+        height,
+        `${route}: the footer is not on screen at full scroll`
+      ).toBeGreaterThan(40)
+
+      /*
+       * The band in device pixels. A screenshot is in device pixels and
+       * `getBoundingClientRect` is in CSS pixels; conflating them is exactly
+       * how Tahap 21's measurement ended up reading the header instead of the
+       * plate it meant to read (TAHAP-21.md §8.4).
+       */
+      const band = {
+        left: 0,
+        top: Math.round(top * dpr),
+        width: Math.round(width * dpr),
+        height: Math.round(height * dpr),
+      }
+
+      const painted = await legibility(await page.screenshot(), band)
+
+      /*
+       * The control: the same footer with the canvas gone. Comparing against
+       * it rather than an absolute floor means the assertion survives a
+       * palette change — what is claimed is "the canvas does not eat the
+       * footer", not "the footer is this bright".
+       */
+      await page.evaluate(() => {
+        const canvas = document.querySelector('canvas')
+        if (canvas instanceof HTMLElement) canvas.style.display = 'none'
+      })
+      await page.waitForTimeout(800)
+      const control = await legibility(await page.screenshot(), band)
+
+      expect(
+        painted.p99,
+        `${route}: the footer's brightest text reaches ${painted.p99.toFixed(0)}/255 with the canvas and ${control.p99.toFixed(0)}/255 without it — the canvas is painting over the footer. Mean luminance is not the tell here: it *rises* across this defect.`
+      ).toBeGreaterThan(control.p99 * FOOTER_LEGIBILITY_FLOOR)
+    })
+  }
 })

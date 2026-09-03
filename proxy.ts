@@ -16,6 +16,7 @@ import createMiddleware from 'next-intl/middleware'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 
+import { guessedDestination } from '@/lib/i18n/guessed-paths'
 import { routing } from '@/lib/i18n/routing'
 import {
   type DocumentMediaType,
@@ -168,6 +169,23 @@ export function proxy(request: NextRequest) {
         }
       )
     }
+  }
+
+  /*
+   * A URL the reader guessed from a nav label, sent where it belongs.
+   *
+   * Placed here — before content negotiation and before next-intl — because
+   * this is a decision about the *path*, and every step below reasons about a
+   * path it assumes will resolve. Running it first also means the redirect is
+   * a real 308: `proxy.ts` executes before rendering, so unlike the
+   * not-found status (which Cache Components force to 200 — see
+   * `e2e/not-found.e2e.ts`), a genuine status is available at this layer.
+   *
+   * The table and its reasoning live in `lib/i18n/guessed-paths.ts`.
+   */
+  const guessed = guessedDestination(request.nextUrl.pathname)
+  if (guessed) {
+    return NextResponse.redirect(new URL(guessed, request.url), 308)
   }
 
   if (request.nextUrl.pathname === MARKDOWN_HANDLER_PATH) {

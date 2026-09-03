@@ -28,21 +28,64 @@ import { expect, test } from '@playwright/test'
  * Tahap 5 budgeted by counting `<script src>` tags in the HTML. Two libraries
  * arrived *after* hydration through `import()` and were invisible to that
  * method. This waits for the network to settle and weighs what arrived.
+ *
+ * ## Tahap 7's "exactly one route" rule is revoked here, on purpose
+ *
+ * This file used to carry a stronger claim than a budget: that the material
+ * layer lives on **one** route and a second would undo a Tahap 7 decision.
+ * The owner of the project has directed that WebGL be extended (scaffold
+ * Fase 6, `docs/ROADMAP.md`), so that rule is lifted **explicitly and here**,
+ * rather than quietly violated by the stage that needs it.
+ *
+ * What replaces it is not "anything goes". Every route still declares what it
+ * carries, and a stage that adds a library to a route must add it to that
+ * route's `allow` list with its reason. The list is the decision; the number
+ * is only the ceiling.
+ *
+ * ## Baseline, measured against the production build in Tahap 22
+ *
+ * | route                     | measured | budget | headroom |
+ * | ------------------------- | -------- | ------ | -------- |
+ * | `/en`                     | 1899 KB  | 2100   | 201      |
+ * | `/id`                     | 1899 KB  | 2100   | 201      |
+ * | `/en/work`                |  751 KB  |  900   | 149      |
+ * | `/en/work/arus-balik`     |  746 KB  |  900   | 154      |
+ * | `/en/practice/consulting` |  874 KB  |  900   | **26**   |
+ * | `/en/ai`                  |  706 KB  |  850   | 144      |
+ *
+ * **No ceiling was raised in Tahap 22.** Raising a budget for weight that
+ * does not exist yet is how a budget stops meaning anything; Fase 6 raises
+ * the routes it actually loads, with the measurement that justifies it.
+ *
+ * The practice route's 26KB is the one to watch: the scaffold's Fase 1 adds
+ * motion primitives, and that is where they will land first. A red gate there
+ * is this file working, not this file being in the way.
  */
 
 /** Byte totals are uncompressed response bodies, not transfer size. */
 const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
-  // The only page with a scene, and the only one that animates.
+  // The page with a scene, and the one that animates.
   { path: '/en', allow: ['three', 'gsap'], maxKb: 2100 },
+  /*
+   * The Indonesian home page, which was **not measured at all** until Tahap
+   * 22 added it.
+   *
+   * It is the same page and carries the same 1899KB and the same two
+   * libraries, so a regression there would have been invisible: every route
+   * in this list was an `/en` one, and a bilingual site whose gate only reads
+   * one language is checking half of what it ships.
+   */
+  { path: '/id', allow: ['three', 'gsap'], maxKb: 2100 },
   { path: '/en/work', allow: [], maxKb: 900 },
   { path: '/en/work/arus-balik', allow: [], maxKb: 900 },
   /*
    * A practice page opts into `gsap` and nothing else.
    *
    * `components/effects/progress-text` scrubs word opacity against scroll,
-   * which needs ScrollTrigger. It does **not** get three.js: the material
-   * layer is allowed on exactly one route, and adding a second would undo the
-   * Tahap 7 decision this file exists to hold.
+   * which needs ScrollTrigger. It does **not** get three.js — not because a
+   * second WebGL route is forbidden (that rule is revoked above) but because
+   * nothing on this route has asked for one yet. When a stage wants it, it
+   * adds `three` here and says why.
    */
   { path: '/en/practice/consulting', allow: ['gsap'], maxKb: 900 },
   // The machine view. Its layout comment promises zero client components.

@@ -1,4 +1,29 @@
 .footer {
+  /*
+   * A positioning context, so the footer paints in the same layer as the rest
+   * of the page's content.
+   *
+   * Not decoration, and not a z-index skirmish. `<footer>` is a sibling of
+   * `<main>` directly under `<body>`, and it shipped as `position: static`
+   * while `main` carries `relative`. In CSS paint order a non-positioned
+   * block sits in layer 3 and *every* positioned sibling with `z-index: auto`
+   * sits in layer 6 — including the fixed WebGL wrapper. So on the one route
+   * that mounts a canvas, the whole four-column footer was painted
+   * underneath it.
+   *
+   * Measured on `/en` (`docs/stages/TAHAP-22.md` §2): the brightest text in
+   * the footer band reached **39/255** with the canvas and **82** without it.
+   * With this line it reaches **88** — above the canvas-free control, because
+   * the wash then adds light behind the text instead of over it.
+   *
+   * No `z-index`: the footer follows the canvas in DOM order, so joining the
+   * positioned layer is already enough, and staying out of the z-index ladder
+   * (header 20, page transition 9998, cursor 9999) keeps it that way.
+   *
+   * Held by `e2e/visual-substance.e2e.ts`, which measures this on every route
+   * that carries a canvas rather than on `/en` by name.
+   */
+  position: relative;
   padding-inline: var(--safe);
   padding-block: mobile-vw(48px) mobile-vw(32px);
   border-top: 1px solid var(--line);
