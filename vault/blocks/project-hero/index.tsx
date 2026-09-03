@@ -78,8 +78,33 @@ export function ProjectHero({
   const coverRatio = cover ? aspectRatioFor(cover) : undefined
   const coverIsFull = isFullWidth(coverRatio ?? null)
 
+  /*
+   * How many columns the cover takes, as one value rather than a nested
+   * ternary. `span` is the word this component already uses for the same idea
+   * on the media element itself (`data-span`).
+   *
+   * `none` is a real case, not a fallback: a work may ship without a cover, or
+   * with one whose ratio cannot be read, and the stylesheet must not then
+   * reserve an empty column beside nothing.
+   */
+  const hasCover = Boolean(cover) && coverRatio !== undefined
+  let coverSpan: 'full' | 'half' | 'none' = 'none'
+  if (hasCover) coverSpan = coverIsFull ? 'full' : 'half'
+
   return (
-    <header ref={ref} className={cn(s.hero, className)}>
+    <header
+      ref={ref}
+      className={cn(s.hero, className)}
+      /*
+       * Which shape the cover took, stated rather than inferred.
+       *
+       * The component already computes `coverIsFull`; the stylesheet needs the
+       * same fact to decide whether there is an empty column beside the cover
+       * to put the facts in. An explicit attribute beats `:has()` guessing
+       * from the children, and it is what `e2e/project-detail.e2e.ts` holds.
+       */
+      data-cover={coverSpan}
+    >
       <h1 data-reveal-item className={cn('h1', s.title)}>
         {title}
       </h1>

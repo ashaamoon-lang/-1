@@ -1378,6 +1378,43 @@ belum diputuskan apakah itu kehematan atau jalan buntu.
 
 ---
 
+## Tahap 19 — Halaman proyek: apa yang ia jawab sebelum digulir ✅
+
+Spec penuh: **`docs/stages/TAHAP-19.md`**.
+
+Prioritasnya dijangkarkan pada kriteria penilaian awwwards yang dipublikasikan
+— **Design 40% · Usability 30% · Creativity 20% · Content 10%** — dan halaman
+proyek adalah halaman yang paling dinilai di sebuah portofolio.
+
+**Terukur di 1280×800: setiap fakta tentang sebuah karya dimulai 259px di
+bawah lipatan**, sementara separuh kanan layar kosong sepanjang 767px tinggi
+sampulnya. Layar pertama berisi sebuah nama dan setengah gambar, tidak lebih.
+Di 390×844 fakta sudah di atas lipatan (611 dari 844) — cacatnya desktop-only,
+dan perbaikannya juga.
+
+**Faktanya pindah ke kolom yang memang sudah kosong**, sejajar puncak sampul:
+`<dl>` dari **1059 → 256**. Layar pertama kini menjawab apa, untuk siapa,
+kapan, dan seberapa besar tanpa digulir.
+
+**Sampulnya tidak bergerak satu piksel** — 614 lebar, tepi kanan 628, sebelum
+dan sesudah. Pola `Portfolio Grid` yang situs ini pakai meminta _"visuals
+first"_, dan Tahap 11b menyetel lebar itu supaya sampul dan galeri berbagi tepi
+kanan. Track grid-nya **mengulang ekspresi lebar yang sama** alih-alih
+menimpanya, dan `media-edge.e2e.ts` yang membuktikan hasilnya identik.
+
+**Basis data skill nol** untuk `"case study"` dan `"above the fold"`. Dicatat,
+lalu prinsip universal pola yang dipakai situs ini yang jadi jangkar — dan
+prinsip itu yang melarang solusi malas berupa menggeser sampul turun.
+
+**Dua aturan proyek ini menolak kode saya, dan keduanya benar:**
+`no-nested-ternary`, lalu `no-shape-in-symbol-names` atas `coverShape` —
+diganti `coverSpan`, kata domain yang komponennya sendiri sudah pakai.
+
+**Angka:** e2e 297 → **299** · unit 401 · `check` exit 0 · `media-edge` dan
+`spatial-rhythm` hijau.
+
+---
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap

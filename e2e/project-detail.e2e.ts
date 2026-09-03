@@ -42,6 +42,64 @@ async function publishedSlugs(request: {
   )
 }
 
+/**
+ * How far down the first screen a reader has to look before the page says
+ * anything about the work.
+ *
+ * Desktop only, and that is measured rather than cautious: at 390x844 the
+ * facts already sit at 611 against a fold of 844, because the stacked mobile
+ * order puts them straight under the cover. The defect is a desktop one —
+ * a half-width cover leaves the right half of the screen empty and pushes the
+ * facts past the fold.
+ *
+ * Measured before Tahap 19 at 1280x800: title 130-220, cover 256-**1023**,
+ * and the fact list beginning at **1059** — 259px below the fold, with 767px
+ * of empty column beside the cover. The first screen of a project page held a
+ * name and half a picture.
+ */
+test.describe('the project page says what the work is, before the fold', () => {
+  test('the facts meet the first screen on desktop', async ({
+    page,
+    request,
+  }) => {
+    const sitemap = await (await request.get('/sitemap.xml')).text()
+    const match = sitemap.match(
+      /<loc>[^<]*?(\/en\/work\/(?!practice\/)[^<]+)<\/loc>/
+    )
+    test.skip(!match, 'no published project in the sitemap to check')
+
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto(match?.[1] ?? '')
+    await page.waitForTimeout(2200)
+
+    const measured = await page.evaluate(() => {
+      const list = document.querySelector('dl')
+      if (!list) return null
+      const rect = list.getBoundingClientRect()
+      return {
+        top: Math.round(rect.top),
+        fold: window.innerHeight,
+        facts: document.querySelectorAll('dt').length,
+      }
+    })
+
+    expect(measured, 'the project page rendered no fact list').not.toBeNull()
+    expect(measured?.facts ?? 0, 'the fact list is empty').toBeGreaterThan(0)
+
+    /*
+     * Intersecting the fold, not merely near it: a reader who never scrolls
+     * should still be told who the work was for and when. `Portfolio Grid`
+     * asks for "visuals first", so the cover keeps its six columns and its
+     * position — the facts move into the empty half beside it rather than
+     * above it.
+     */
+    expect(
+      measured?.top ?? Number.POSITIVE_INFINITY,
+      `the facts begin ${measured?.top}px down, ${(measured?.top ?? 0) - (measured?.fold ?? 0)}px below a fold at ${measured?.fold}px`
+    ).toBeLessThan(measured?.fold ?? 0)
+  })
+})
+
 test.describe('project detail', () => {
   test('an unknown slug resolves as not-found in both locales', async ({
     request,

@@ -148,3 +148,63 @@
   color: var(--color-secondary);
   overflow-wrap: anywhere;
 }
+
+/*
+ * A half-width cover leaves half the screen empty. The facts go there.
+ *
+ * Measured before this rule, at 1280x800: title 130-220, cover 256-**1023**,
+ * and the fact list starting at **1059** — 259px below the fold, with 767px
+ * of empty column beside the cover. The first screen of a project page held a
+ * name and half a picture, and said nothing about the work.
+ *
+ * `Portfolio Grid` — the pattern this site follows — asks for "visuals first",
+ * so the cover does not move and does not shrink: it keeps the same six of
+ * twelve columns it has always had. Only the facts move, into the column that
+ * was already empty.
+ *
+ * ## Why the track repeats the width formula instead of overriding it
+ *
+ * `.media[data-span='half']` is load-bearing: Tahap 11b tuned it so a portrait
+ * cover and a portrait gallery image share a right edge, and
+ * `e2e/media-edge.e2e.ts` holds that. Rewriting it to suit a new layout would
+ * put that contract at risk for a composition change. Reproducing the same
+ * expression as the grid track leaves the rendered width identical — and the
+ * media edge gate is what proves that rather than this comment.
+ *
+ * Desktop only, measured: at 390x844 the stacked order already puts the facts
+ * at 611 against a fold of 844. Mobile was never the problem.
+ */
+@media (--desktop) {
+  .hero[data-cover='half'] {
+    display: grid;
+    grid-template-columns:
+      calc((100% - var(--gap) * 11) / 12 * 6 + var(--gap) * 5)
+      minmax(0, 1fr);
+    /* The grid gutter across, the hero's own rhythm down. */
+    column-gap: var(--gap);
+    row-gap: desktop-vw(40px);
+    align-items: start;
+  }
+
+  .hero[data-cover='half'] .title {
+    grid-column: 1 / -1;
+  }
+
+  .hero[data-cover='half'] .media {
+    grid-column: 1;
+    /* The track already carries the six-column width; fill it. */
+    width: 100%;
+  }
+
+  .hero[data-cover='half'] .meta {
+    grid-column: 2;
+    /*
+     * One column, not four. Four facts across a half-width track would set
+     * "Architecture review, six weeks" in a column narrow enough to break
+     * mid-phrase; stacked, each fact reads as a line and the hairline above
+     * them starts the column at the same height the cover starts.
+     */
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: desktop-vw(20px);
+  }
+}
