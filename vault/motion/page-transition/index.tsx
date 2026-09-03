@@ -100,6 +100,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
 import { subscribeNavigation } from '@/lib/motion/navigation-signal'
+import type { NavigationSource } from '@/lib/motion/navigation-signal'
+import { useHistoryNavigation } from '@/lib/motion/use-history-navigation'
 
 import s from './page-transition.module.css'
 
@@ -108,6 +110,13 @@ import s from './page-transition.module.css'
  * to it after a reveal is instant and invisible rather than a slide back down.
  */
 type State = 'idle' | 'covering' | 'revealing'
+
+/**
+ * Milliseconds after which the panel parks itself even if `transitionend`
+ * never arrives. Longer than the slowest declared reveal (400ms) with room to
+ * spare, so it is a floor and not a second timing decision.
+ */
+const SETTLE = 900
 
 interface PageTransitionProps {
   /**
@@ -121,31 +130,70 @@ interface PageTransitionProps {
 
 export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
   const [state, setState] = useState<State>('idle')
+  /*
+   * Which control started the navigation, kept so the stylesheet can time the
+   * two differently. `ui-ux-pro-max`'s page-transition row is explicit that
+   * "exit should always resolve faster than entrance … so back/forward feels
+   * snappy", and that is the only guidance its database carries about the
+   * direction a reader travels — `docs/stages/TAHAP-16.md` §2.4 records that
+   * it has nothing at all on whether a back navigation should move.
+   */
+  const [source, setSource] = useState<NavigationSource>('link')
   const pathname = usePathname()
   const prefersReducedMotion = usePreferredReducedMotion()
+
+  // The browser's own back and forward controls press no link, so nothing
+  // else in the app announces them. Called unconditionally, as hooks must be;
+  // under reduced motion nobody is subscribed and the announcement is inert.
+  useHistoryNavigation()
 
   // Set while a navigation is in flight, so the pathname effect can tell a
   // covered route change from a first paint, a back button, or a hash change.
   const covering = useRef(false)
   const safety = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const settle = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const reveal = useCallback(() => {
     if (!covering.current) return
     covering.current = false
     if (safety.current) clearTimeout(safety.current)
     setState('revealing')
+    /*
+     * A second net, for the other end of the sweep.
+     *
+     * The panel returns to `idle` on `transitionend`, and that event is not
+     * guaranteed to arrive: if `covering` and `revealing` land in the same
+     * React commit, the DOM attribute changes without the intermediate state
+     * ever painting, and a browser that starts no transition fires no
+     * `transitionend`. The panel then sits at `revealing` — off-screen, but
+     * permanently mid-sweep, so the next navigation animates from the wrong
+     * place.
+     *
+     * Observed once during Tahap 16a, with the journey gate reporting it
+     * exactly: `hop 3 back: the route overlay was left at "revealing"
+     * instead of idle`. Moving the signal onto the Navigation API — which
+     * fires ~14ms earlier than `popstate` — removed the collapse that caused
+     * it, but "the two states are far enough apart" is a timing assumption,
+     * and this is what makes the stranded state unrepresentable instead.
+     *
+     * `SETTLE` is comfortably longer than the slowest reveal the stylesheet
+     * declares, so it never pre-empts a transition that is genuinely running.
+     */
+    if (settle.current) clearTimeout(settle.current)
+    settle.current = setTimeout(() => setState('idle'), SETTLE)
   }, [])
 
   useEffect(() => {
     if (prefersReducedMotion) return
 
-    return subscribeNavigation((intent) => {
+    return subscribeNavigation(({ intent, source: from }) => {
       // A navigation that morphs a shared element must not be covered: the
       // whole point of the morph is that the reader watches one object move
       // between two pages, and a panel over the top hides exactly that.
       if (intent === 'morph') return
 
       covering.current = true
+      setSource(from)
       setState('covering')
       if (safety.current) clearTimeout(safety.current)
       safety.current = setTimeout(reveal, maxWait)
@@ -161,6 +209,7 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
   useEffect(
     () => () => {
       if (safety.current) clearTimeout(safety.current)
+      if (settle.current) clearTimeout(settle.current)
     },
     []
   )
@@ -171,11 +220,14 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
     <div
       className={s.overlay}
       data-state={state}
+      data-source={source}
       aria-hidden="true"
       // Park it again once it has left the top of the screen. Off-screen at
       // both ends, so the reset is never visible.
       onTransitionEnd={() => {
-        if (state === 'revealing') setState('idle')
+        if (state !== 'revealing') return
+        if (settle.current) clearTimeout(settle.current)
+        setState('idle')
       }}
     />
   )

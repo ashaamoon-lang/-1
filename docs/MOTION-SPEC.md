@@ -305,6 +305,32 @@ is the wrong register for this site — rejected for the same reason in Tahap
    `e2e/navigation-landing.e2e.ts` holds the cause; `e2e/motion.e2e.ts` holds
    the effect, now from a link far down the page as well as one near the top.
 
+7. **A navigation the reader starts with the browser's own controls is dressed
+   too, and faster.** Back and forward press no link, fire no `onNavigate`, and
+   until Tahap 16a ran **no transition at all** — measured, zero
+   pseudo-elements, the overlay never leaving `idle`. The reader got
+   choreography one way and a jump-cut the other.
+
+   They get the cover, never a morph: the destination is restored to a scroll
+   position of its own, so the paired element may sit anywhere including
+   outside the viewport, where rule 6 says the name is dropped. Promising a
+   morph that silently degrades to a cross-fade is the defect Tahap 15b just
+   removed.
+
+   And it is quicker — 150ms + 200ms against a link's 200ms + 400ms. That
+   asymmetry is the one piece of guidance `ui-ux-pro-max` carries about
+   travelling backwards: _"exit should always resolve faster than entrance
+   (asymmetric timing) so back/forward feels snappy"_. Its database says
+   nothing at all about whether a back navigation should move, and
+   `docs/stages/TAHAP-16.md` §2.4 records that rather than dressing a default
+   as research.
+
+   The signal comes from the Navigation API, not `popstate`: by the time a
+   `popstate` listener here runs, the router has already committed and React
+   has already re-rendered, so intent cannot be recovered. `navigate` fires
+   before the commit and marks a hash press with `hashChange`, which is what
+   keeps an in-page anchor from being swept by a full-viewport panel.
+
 ### 9.5 The epic-moment budget
 
 Award sites do not make everything epic. They make **one or two** things epic

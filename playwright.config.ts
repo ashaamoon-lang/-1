@@ -52,6 +52,9 @@ export default defineConfig({
         // maximum, so the same link strands the heading by a different
         // distance at each width. Tahap 15b measured 1522px on desktop.
         '**/navigation-landing.e2e.ts',
+        // Same reason as the landing gate above, one step further: a journey's
+        // resting positions depend on how much of each page fits on screen.
+        '**/journey.e2e.ts',
         // The rhythm token resolves to a different number per breakpoint
         // (32px mobile, 48px desktop), so "one rhythm per page" is a claim
         // that has to hold at both widths, not just the one it was written at.

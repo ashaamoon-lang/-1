@@ -49,6 +49,27 @@ const NAVIGATION_START = 'arth:navigation-start'
 export type NavigationIntent = 'cover' | 'morph'
 
 /**
+ * What started the navigation.
+ *
+ * `link` is a press on a `<Link>`. `history` is the browser's own back or
+ * forward control — which presses no link, fires no `onNavigate`, and is
+ * therefore the reason a back navigation ran no transition at all until
+ * Tahap 16a.
+ *
+ * Deliberately not called `back`. `popstate` fires for forward as well, and
+ * distinguishing the two means tracking a history index this module has no
+ * business owning. The distinction that actually matters for the treatment is
+ * link-versus-browser-control, and that is the one measured.
+ */
+export type NavigationSource = 'link' | 'history'
+
+/** Everything the overlay needs to know about a navigation that just began. */
+export interface NavigationStart {
+  intent: NavigationIntent
+  source: NavigationSource
+}
+
+/**
  * Announce that a client-side navigation has begun.
  *
  * No `typeof window` guard, and that is a claim about the call sites rather
@@ -56,15 +77,15 @@ export type NavigationIntent = 'cover' | 'morph'
  * which is a user gesture. The server renders the handler as a reference and
  * never invokes it.
  */
-export function announceNavigation(intent: NavigationIntent = 'cover'): void {
+export function announceNavigation(
+  intent: NavigationIntent = 'cover',
+  source: NavigationSource = 'link'
+): void {
   window.dispatchEvent(
-    new CustomEvent<NavigationIntent>(NAVIGATION_START, { detail: intent })
+    new CustomEvent<NavigationStart>(NAVIGATION_START, {
+      detail: { intent, source },
+    })
   )
-}
-
-/** Announces a navigation whose destination shares an element with this page. */
-export function announceMorphNavigation(): void {
-  announceNavigation('morph')
 }
 
 /**
@@ -73,15 +94,18 @@ export function announceMorphNavigation(): void {
  * called from, and why it needs no environment guard either.
  */
 export function subscribeNavigation(
-  listener: (intent: NavigationIntent) => void
+  listener: (start: NavigationStart) => void
 ): () => void {
   const handler = (event: Event) => {
     // SAFETY: the only dispatcher of this event name is `announceNavigation`
-    // above, which always constructs it as a `CustomEvent<NavigationIntent>`.
-    // The `?? 'cover'` covers a stray same-named event from anywhere else by
-    // falling back to the safe, always-correct behaviour.
-    const custom = event as CustomEvent<NavigationIntent>
-    listener(custom.detail ?? 'cover')
+    // above, which always constructs it as a `CustomEvent<NavigationStart>`.
+    // The fallback covers a stray same-named event from anywhere else by
+    // resolving to the safe, always-correct behaviour: a covered link.
+    const custom = event as CustomEvent<NavigationStart>
+    listener({
+      intent: custom.detail?.intent ?? 'cover',
+      source: custom.detail?.source ?? 'link',
+    })
   }
   window.addEventListener(NAVIGATION_START, handler)
   return () => window.removeEventListener(NAVIGATION_START, handler)

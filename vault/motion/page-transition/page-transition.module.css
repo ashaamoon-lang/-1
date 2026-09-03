@@ -55,3 +55,25 @@
     display: none;
   }
 }
+
+/*
+ * A navigation the reader started with the browser's own back or forward
+ * control, rather than by pressing something on the page.
+ *
+ * Both halves drop one band. `ui-ux-pro-max`'s page-transition row carries the
+ * only guidance its database has about travelling backwards — "exit should
+ * always resolve faster than entrance (asymmetric timing) so back/forward
+ * feels snappy" — and this is that asymmetry, spent where the reader is
+ * returning to something they have already seen and has no reason to wait for
+ * it. 150ms + 200ms against the link's 200ms + 400ms.
+ *
+ * Tokens, not literals, and both inside the 150-250ms micro band
+ * (`CLAUDE.md` #3, #8).
+ */
+.overlay[data-source='history'][data-state='covering'] {
+  transition: transform var(--duration-micro) var(--ease-out-quart);
+}
+
+.overlay[data-source='history'][data-state='revealing'] {
+  transition: transform var(--duration-fast) var(--ease-out-expo);
+}

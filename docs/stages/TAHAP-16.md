@@ -318,4 +318,137 @@ mengira isinya sudah beres.
 
 ## 11. Hasil
 
-_Diisi saat sub-tahap dikerjakan._
+### 11.1 Tahap 16a — mundur dikoreografikan
+
+**Merah dulu, dengan angkanya:** `a back navigation ran no transition at all;
+overlay states seen: idle:none`. Persis seperti §5 memprediksi.
+
+Mekanisme pertamanya salah, dan gate-nya yang menemukan — bukan saya.
+
+`popstate` **tidak bisa dipakai dari sini.** Versi pertama mendengarkan
+`popstate` lalu membandingkan `window.location.pathname` dengan jalur terakhir
+yang ia lihat. Ia tidak pernah mengumumkan apa pun, dan handler-nya sendiri yang
+melaporkan alasannya:
+
+```
+POP DEBUG: /en/practice/consulting vs /en/practice/consulting
+```
+
+Kedua sisinya adalah tujuan. Saat sebuah listener `popstate` yang didaftarkan di
+sini berjalan, **Next sudah memperbarui URL dan React sudah render ulang dengan
+pathname baru** — listener router terdaftar lebih dulu dan commit sebelum punya
+kita dipanggil. Perbandingan "di mana kita" lawan "di mana tadi" kalah dalam
+balapan itu, bagaimanapun nilai keduanya disimpan.
+
+Yang benar: **Navigation API**. Ia menembak sebelum commit — terukur 23ms lawan
+`popstate` 37ms — dan membawa dua fakta yang dibutuhkan sebagai data, bukan
+sebagai tebakan:
+
+| Aksi pembaca               | `navigationType` | `hashChange` |
+| -------------------------- | ---------------- | ------------ |
+| menekan `<Link>`           | `push`           | `false`      |
+| menekan `#work`            | `push`           | `true`       |
+| back/forward antar halaman | `traverse`       | `false`      |
+| back melewati tekan hash   | `traverse`       | `true`       |
+
+Syaratnya jadi `traverse && !hashChange`, dan **risiko §10.1 dikecualikan oleh
+bendera yang platform-nya sendiri set**, bukan oleh heuristik kita. Tiap
+`traverse` diikuti `replace` milik Next, yang diabaikan karena itu bukan
+navigasi pembaca.
+
+Risiko §10.1 juga **dibuktikan nyata**: dengan versi tanpa guard, gate anchor
+melaporkan `the overlay ran for an in-page anchor: idle, covering`. Tekan
+`#work` menyapukan panel selebar layar di halaman yang tidak pernah pembaca
+tinggalkan. Prediksinya benar, dan gate-nya menangkapnya sebelum ia terkirim.
+
+**Waktunya**, dari satu-satunya baris basis data yang relevan (§2.1): mundur
+150ms + 200ms lawan maju 200ms + 400ms. Token, bukan literal, dan keduanya di
+pita micro (`CLAUDE.md` #3, #8).
+
+**Di mana Navigation API tidak ada**, tidak ada yang diumumkan dan navigasi
+history tetap potongan keras seperti hari ini. Lantai yang disengaja, bukan
+polyfill — pengukuran di atas menunjukkan intent itu tidak bisa disimpulkan
+dengan benar dari `popstate`.
+
+### 11.2 Satu cacat laten, ditemukan lalu dibuat mustahil
+
+Saat pengembangan, gate perjalanan melaporkan:
+
+```
+hop 3 back: the route overlay was left at "revealing" instead of idle
+```
+
+Overlay kembali ke `idle` lewat `transitionend`, dan event itu **tidak
+dijamin datang**: kalau `covering` dan `revealing` mendarat di commit React
+yang sama, atribut DOM berubah tanpa keadaan antara pernah tergambar, dan
+browser yang tidak memulai transisi tidak menembakkan `transitionend`. Panel
+lalu duduk di `revealing` selamanya — di luar layar, tapi separuh jalan, jadi
+navigasi berikutnya beranimasi dari tempat yang salah.
+
+Memindahkan sinyal ke Navigation API menghapus penyebabnya. Tapi "kedua
+keadaan cukup berjauhan" adalah asumsi waktu, jadi ditambahkan jaring kedua:
+`revealing` juga memasang timeout yang memarkir panel setelah 900ms — lebih
+lama dari reveal terlambat yang stylesheet deklarasikan, jadi ia tidak pernah
+mendahului transisi yang benar-benar berjalan. Bentuknya sama dengan kontrak
+`drew` di Tahap 14a: **keadaan terdampar dibuat tidak terwakilkan**, bukan
+diandalkan tidak terjadi.
+
+### 11.3 Tahap 16b — gate perjalanan
+
+`e2e/journey.e2e.ts`, empat tes, dua viewport. Tujuh hop dalam satu sesi, enam
+invarian per hop, ditambah hop keenam yang harus berperilaku identik dengan hop
+kedua.
+
+Satu hal yang perlu disebut: **gate ini lulus pada tulisan pertama**, dan gate
+yang langsung hijau tidak membuktikan apa-apa. Jadi tiap kelas asersinya
+dibuktikan bisa merah — pendaratan sudah terbukti di Tahap 15b (1522 / 1047 /
+394 / 1480), overlay terdampar terbukti sendiri (§11.2), anchor terbukti dengan
+versi tanpa guard, dan "mundur tidak bergerak" adalah cacat pembuka tahap ini.
+
+Selektor anchor-nya juga harus diperbaiki karena alasan yang nyata: di 390px,
+empat anchor seksi milik header terukur `0x0` — terlipat di balik menu —
+sementara CTA hero tetap bisa ditekan pada 146x42. `.first()` mengambil tautan
+header yang tersembunyi dan pressnya timeout. Itu tes yang gagal karena
+selektornya sendiri, bukan karena produknya.
+
+### 11.4 Tahap 16c — shell instan: dijawab, bukan ditunda
+
+Spec §7 menyebutnya investigasi. Hasilnya tegas.
+
+**Jalan pertama diukur dan ditolak.** Membungkus badan halaman praktik dalam
+`<Suspense>` menurunkan render tanpa-JavaScript-nya dari **924 karakter menjadi
+20** — harfiah `"Skip to main content"`. Semua di halaman itu bergantung pada
+`params`, jadi tidak ada unit lebih kecil untuk dibungkus, dan shell yang tiba
+seketika adalah halaman kosong. Itu regresi yang sama persis dengan yang
+`e2e/no-javascript.e2e.ts` dibangun untuk mencegah.
+
+**Jalan kedua diukur dan diambil.** `export const instant = false` pada kedua
+rute dinamis: diagnostiknya **nol** di delapan rute dua bahasa, render tanpa-JS
+tetap **924 karakter**, tidak ada error lain. Ia tidak mengubah perilaku — rute
+itu memang sudah memblokir — ia menyatakan maksudnya, dan mematikan diagnostik
+yang kalau dibiarkan melatih semua orang mengabaikan konsol.
+
+Efek sampingnya bagus: daftar pengecualian `KNOWN` di gate perjalanan **dihapus**,
+jadi setiap console error kembali fatal di sana. Daftar pengecualian yang tidak
+lagi mengecualikan apa pun adalah cara sebuah gate diam-diam berhenti bisa gagal.
+
+### 11.5 Yang **tidak** dikerjakan
+
+- **Tidak ada morph saat mundur**, sesuai §5. Menjanjikan morph yang diam-diam
+  merosot jadi cross-fade adalah cacat yang baru diperbaiki Tahap 15b.
+- **Tidak ada satu kata baru untuk pembaca.** Pernyataan praktik masih
+  placeholder (Tahap 13 §9). Tahap ini memperbaiki bagaimana situs bergerak,
+  bukan apa yang dikatakannya — disebut di muka di §10.5 dan tetap benar.
+- **Tidak ada angka performa.** Tidak ada profiler di lingkungan ini
+  (`CLAUDE.md` #19). "23ms lawan 37ms" di §11.1 adalah urutan event yang diukur
+  di dalam halaman, bukan klaim kecepatan.
+- **Kredensial tidak dirotasi**, sesuai permintaan Anda.
+
+### 11.6 Angka akhir
+
+```
+bun run check      exit 0    (oxlint, oxfmt, tsc, 400 unit test, manifest, aset)
+CI=true test:e2e   275 lulus, 0 gagal   (dari 267)
+```
+
+Build produksi bersih (`rm -rf .next`), Storybook dibangun ulang.

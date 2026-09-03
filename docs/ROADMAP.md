@@ -1187,7 +1187,7 @@ produksi bersih. Enam asersi baru, semuanya dibuktikan merah dulu dengan
 angkanya. Tidak ada klaim performa: tidak ada profiler di lingkungan ini
 (`CLAUDE.md` #19).
 
-## Tahap 16 — Perjalanan
+## Tahap 16 — Perjalanan ✅
 
 Spec penuh: **`docs/stages/TAHAP-16.md`**.
 
@@ -1224,6 +1224,39 @@ diperbaiki) · **16b** `e2e/journey.e2e.ts`, satu pembaca, tujuh hop, enam
 invarian per hop, dua viewport · **16c** shell instan — investigasi, bukan
 janji, karena ia tarik-menarik dengan Tahap 9 yang mencabut batas Suspense
 supaya halaman terbaca tanpa JavaScript.
+
+**16a: mekanisme pertamanya salah, dan gate-nya yang menemukan.** Versi
+`popstate` tidak pernah mengumumkan apa pun, dan handler-nya melaporkan
+sendiri kenapa — `POP DEBUG: /en/practice/consulting vs
+/en/practice/consulting`, kedua sisinya tujuan. Saat sebuah listener `popstate`
+di sini berjalan, router sudah commit dan React sudah render ulang; balapan itu
+tidak bisa dimenangkan. **Navigation API** menembak sebelum commit (23ms lawan
+37ms) dan memberi `navigationType` serta `hashChange` sebagai data. Syaratnya
+`traverse && !hashChange` — dan risiko §10.1 dikecualikan oleh bendera platform,
+bukan heuristik. Risiko itu juga terbukti nyata: versi tanpa guard membuat gate
+melaporkan `the overlay ran for an in-page anchor: idle, covering`.
+
+**Satu cacat laten ditemukan lalu dibuat mustahil.** Gate perjalanan sempat
+melaporkan `hop 3 back: the route overlay was left at "revealing" instead of
+idle`. Overlay pulang ke `idle` lewat `transitionend`, dan event itu tidak
+dijamin datang kalau dua keadaan mendarat di satu commit. Panel lalu duduk
+separuh jalan selamanya. Timeout 900ms membuat keadaan terdampar itu tidak
+terwakilkan — bentuk yang sama dengan kontrak `drew` Tahap 14a.
+
+**16c dijawab, bukan ditunda.** Jalan pertama diukur dan ditolak: `<Suspense>`
+di halaman praktik menurunkan render tanpa-JavaScript dari **924 karakter jadi
+20** — harfiah "Skip to main content". Jalan kedua diambil: `export const
+instant = false` pada kedua rute dinamis — diagnostik nol di delapan rute dua
+bahasa, tanpa-JS tetap 924 karakter. Efek sampingnya, daftar pengecualian
+`KNOWN` di gate perjalanan **dihapus**, jadi setiap console error kembali fatal
+di sana.
+
+**Gate ini lulus pada tulisan pertama, dan itu tidak membuktikan apa-apa** —
+jadi tiap kelas asersinya dibuktikan bisa merah lebih dulu.
+
+**Angka:** e2e 267 → **275** · unit 400 · `bun run check` exit 0. Tidak ada
+klaim performa: "23ms lawan 37ms" adalah urutan event yang diukur di dalam
+halaman, bukan kecepatan (`CLAUDE.md` #19).
 
 ---
 

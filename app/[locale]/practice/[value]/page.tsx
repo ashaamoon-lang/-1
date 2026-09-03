@@ -68,6 +68,30 @@ interface PracticePageProps {
  * filtered route carried. Three compile-time values, so no Sanity round trip
  * and no empty-dataset sentinel.
  */
+/**
+ * This route blocks on its own params, and says so.
+ *
+ * Next 16 reports a route that reads `params` outside a `<Suspense>` as one
+ * that "may prevent the navigation from being instant", and offers two ways
+ * out: stream a placeholder, or declare the route blocking. Tahap 16c
+ * measured the first one. Wrapping this page's body in `<Suspense>` took its
+ * no-JavaScript render from **924 characters to 20** — literally
+ * "Skip to main content" — because everything here depends on `params` and so
+ * there is no smaller unit to wrap; the shell that arrives instantly is an
+ * empty page.
+ *
+ * That is the same regression `e2e/no-javascript.e2e.ts` was built to stop
+ * after a single `loading.tsx` reduced the home page to 28 characters for a
+ * crawler. Trading the site's readability without JavaScript for a shell with
+ * nothing in it is not a trade worth making.
+ *
+ * So the honest declaration is this one. It changes no behaviour — the route
+ * already blocked — it states the intent, and it silences a diagnostic that
+ * would otherwise train everyone to ignore the console.
+ * `docs/stages/TAHAP-16.md` §7 carries the measurement.
+ */
+export const instant = false
+
 export function generateStaticParams() {
   return PRACTICES.map((value) => ({ value }))
 }
