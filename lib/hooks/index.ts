@@ -11,6 +11,7 @@ export { useReveal } from './use-reveal'
 export {
   useDocumentVisibility,
   useOnlineStatus,
+  usePointerIsFine,
   usePreferredColorScheme,
   usePreferredReducedMotion,
 } from './use-sync-external'

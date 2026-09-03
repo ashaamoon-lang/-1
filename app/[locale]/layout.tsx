@@ -24,6 +24,7 @@ import { SITE, siteFacts } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
 import { PageTransition } from '@/vault/motion/page-transition'
+import { Cursor } from '@/vault/primitives/cursor'
 
 import '@/lib/styles/css/index.css'
 
@@ -241,6 +242,26 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           <Suspense fallback={null}>
             <PageTransition />
           </Suspense>
+          {/*
+            Mounted here for the same reason as the overlay above: it belongs
+            to the site, not to a page, and remounting it per route would
+            restart the follow on every navigation.
+
+            It costs no library on any route. Until Tahap 18c the follow ran
+            on `gsap.quickTo`, and `e2e/route-budget.e2e.ts` allows GSAP on
+            `/en` and `/en/practice/*` only — `/en/work`, `/en/work/[slug]`
+            and `/en/ai` are allowed **nothing**. A site-wide cursor would
+            have turned that gate red on three routes. The follow now runs on
+            the Tempus loop the site already has, which `CLAUDE.md` #6 wanted
+            anyway.
+
+            No `<Suspense>`: unlike the overlay this reads no URL data.
+
+            The label is `work.viewProject` — the same word the cards
+            themselves use. A cursor that says "View" while the card says
+            something else would be a second vocabulary for one idea.
+          */}
+          <Cursor viewLabel={t('work.viewProject')} />
           {/* Critical: CSS custom properties needed for layout */}
           <RealViewport>
             <ToastProvider>

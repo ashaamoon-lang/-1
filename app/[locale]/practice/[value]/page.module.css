@@ -1,9 +1,65 @@
 .page {
+  /* Containing block for `.wash`. */
+  position: relative;
   display: flex;
   flex-direction: column;
   /* The one section-lead token every other page uses. */
   gap: var(--section-lead);
   padding-block: var(--section-lead);
+  /*
+   * The page gutter, and its absence was a shipped defect.
+   *
+   * This block had `padding-block` and nothing inline, so every practice page
+   * rendered its content flush against the viewport edge while the header's
+   * wordmark sat at `--safe`. Measured in Tahap 18 across three routes, both
+   * viewports and both languages: `h1` at **0px against the header's 14** on
+   * desktop, **0 against 17** on mobile.
+   *
+   * Sixteen stages of gates missed it because not one of them asked where
+   * content starts — the same shape of blind spot as Tahap 15b's landing
+   * position and Tahap 17's hero. `e2e/visual-substance.e2e.ts` now measures
+   * every route's heading against its own header.
+   *
+   * `var(--safe)` rather than a length: it is the token `/en/work` and
+   * `/en/work/[slug]` already use, so the three pages agree by construction
+   * instead of by three people remembering the same number.
+   */
+  padding-inline: var(--safe);
+}
+
+/*
+ * The same wash the home hero carries, in CSS rather than WebGL.
+ *
+ * A practice page's first screen was a flat near-black band: measured in
+ * Tahap 18, tonal range 29.9/255 at desktop and 32.8 at mobile against the
+ * home hero's 13.9-over-ground. It reads as an unpainted rectangle, which is
+ * the same impression Tahap 17 fixed on `/en` — except here it cannot be
+ * fixed the same way: `e2e/route-budget.e2e.ts` allows three.js on exactly
+ * one route, and this is deliberately not it.
+ *
+ * It does not need to be. `vault/webgl/scene-shell` already renders this
+ * gradient in CSS as its non-WebGL fallback, from the same two tokens, and a
+ * gradient costs no library on any route. The mesh buys drift and grain; the
+ * tone is the part that stops the screen reading as empty.
+ *
+ * Its own element rather than a `::before`, so `e2e/visual-substance.e2e.ts`
+ * can mark it and hide it: the gate compares the page with and without the
+ * accent, and a pseudo-element cannot carry the attribute that makes that
+ * possible.
+ */
+.wash {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  /* One screen, then gone — it dresses the arrival, not the document. */
+  block-size: 100svh;
+  background-image: linear-gradient(
+    135deg,
+    var(--hero-wash-from),
+    var(--hero-wash-to)
+  );
+  pointer-events: none;
+  z-index: -1;
 }
 
 .section {

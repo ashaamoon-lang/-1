@@ -55,6 +55,10 @@ export default defineConfig({
         // Same reason as the landing gate above, one step further: a journey's
         // resting positions depend on how much of each page fits on screen.
         '**/journey.e2e.ts',
+        // The gutter defect it caught existed at both widths — `h1` at 0
+        // against the header's 14 on desktop and 17 on mobile — so checking
+        // one width would have found half of it.
+        '**/visual-substance.e2e.ts',
         // The rhythm token resolves to a different number per breakpoint
         // (32px mobile, 48px desktop), so "one rhythm per page" is a claim
         // that has to hold at both widths, not just the one it was written at.

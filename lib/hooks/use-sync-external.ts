@@ -163,6 +163,47 @@ export function usePreferredReducedMotion(): boolean {
 }
 
 // ============================================================================
+// usePointerIsFine
+// ============================================================================
+
+const FINE_POINTER = '(hover: hover) and (pointer: fine)'
+
+function subscribeToPointer(callback: () => void) {
+  const query = window.matchMedia(FINE_POINTER)
+  query.addEventListener('change', callback)
+  return () => query.removeEventListener('change', callback)
+}
+
+function getPointerSnapshot(): boolean {
+  return window.matchMedia(FINE_POINTER).matches
+}
+
+function getPointerServerSnapshot(): boolean {
+  return false
+}
+
+/**
+ * Whether the device has a pointer that can hover precisely — a mouse or a
+ * trackpad, not a finger.
+ *
+ * The server snapshot is `false` on purpose. Anything gated on this is
+ * decoration for a pointer that may not exist, so the safe first paint is the
+ * one without it; a capable device promotes itself on hydration. Guessing the
+ * other way would flash an artefact onto every phone.
+ *
+ * A subscription rather than a one-off read, because this genuinely changes
+ * under a running page: a tablet with a keyboard case attached, or a laptop
+ * whose touchscreen takes over.
+ */
+export function usePointerIsFine(): boolean {
+  return useSyncExternalStore(
+    subscribeToPointer,
+    getPointerSnapshot,
+    getPointerServerSnapshot
+  )
+}
+
+// ============================================================================
 // useDocumentVisibility
 // ============================================================================
 

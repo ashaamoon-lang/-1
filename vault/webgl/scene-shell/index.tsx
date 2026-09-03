@@ -212,6 +212,15 @@ export function SceneShell({
     return (
       <div
         className={cn(s.fallback, className)}
+        /*
+         * Identity, not state — the same split `vault/webgl/material-image`
+         * uses. `data-accent-region` says "this area is supposed to carry
+         * tone" and is always present; `data-accent-live` below says "a mesh
+         * is drawing it right now" and is only present then. Marking one
+         * attribute for both would make the marker vanish exactly when it
+         * works, which is the trap Tahap 14a recorded.
+         */
+        data-accent-region=""
         style={{
           // Same two colours, same direction as the shader's diagonal ramp, so
           // the fallback is the same design rather than a placeholder.
@@ -226,7 +235,12 @@ export function SceneShell({
   }
 
   return (
-    <div className={cn(s.shell, className)} aria-hidden="true">
+    <div
+      className={cn(s.shell, className)}
+      data-accent-region=""
+      data-accent-live=""
+      aria-hidden="true"
+    >
       <WebGLTunnel>
         {/* oxlint-disable-next-line react/static-components -- not created
             during render: the module's own export, fetched once and held in

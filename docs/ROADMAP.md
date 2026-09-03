@@ -1319,6 +1319,65 @@ geometri tata letak.
 
 ---
 
+## Tahap 18 — Selesaikan pandangan, lalu jadikan gate ✅
+
+Spec penuh: **`docs/stages/TAHAP-18.md`**.
+
+Tahap 17 sengaja berhenti setengah jalan: baru `/en` yang dipandangi, dan
+sebuah flag render global dicabut tanpa dilihat efeknya di luar beranda.
+Tahap ini menyelesaikan keduanya — empat puluh dua tangkapan, tujuh rute, dua
+viewport, diukur lalu dipandangi.
+
+**Dan menemukan cacat terkirim: setiap halaman praktik merender isinya
+menempel ke tepi layar.** `h1` di **0px** sementara wordmark header di 14
+(desktop) dan 17 (mobile) — tiga rute, dua viewport, dua bahasa. Sebabnya satu
+baris: `.page` punya `padding-block` dan **tidak punya padding inline sama
+sekali**, sementara `/en/work` memakai `var(--safe)`. Setiap gerbang
+melewatkannya karena tidak ada yang pernah menanyakan **di mana isi dimulai** —
+bentuk titik buta yang sama dengan posisi pendaratan Tahap 15b dan hero Tahap 17.
+
+**`e2e/visual-substance.e2e.ts` menutup kelasnya.** Dua kelompok asersi,
+keduanya **selisih halaman dengan dirinya sendiri** sehingga teks dan pipeline
+tangkapan layar saling membatalkan. Bukti merah untuk yang kedua diperoleh
+dengan menghidupkan kembali cacat Tahap 17 — mengembalikan `linear`, bangun
+ulang — dan gerbangnya menangkapnya: `the accent made the page darker: 3.4
+with it, 15.5 without`.
+
+**Dua instrumen saya sendiri salah dan dikoreksi sebelum sempat berbohong:**
+asersi "body copy" memakai `<p>` pertama dalam urutan DOM, yang di beranda
+adalah indeks praktik yang memang rata kanan — merah terhadap desain yang
+benar. Dan kontrolnya semula selalu menyembunyikan canvas, padahal di mobile
+tidak ada canvas (WebGL digerbangi `supportsWebGL && isDesktop`), sehingga
+lengan mobile hanya _skip_ — gerbang yang tidak bisa gagal.
+
+**Kursor dipasang; scrollbar tidak.** Kursor punya kosakata yang menunggunya —
+`data-cursor` sudah dideklarasikan di tiga blok sejak tahap-tahap lalu dan
+komponennya tidak pernah dipasang. Hambatannya nyata: ia mengimpor GSAP,
+sementara `route-budget` mengizinkan GSAP di dua rute dan **nol** di tiga
+lainnya. Geraknya pindah ke loop Tempus yang sudah ada — yang `CLAUDE.md` #6
+memang tuntut — jadi kursor terkirim ke seluruh situs dengan **nol biaya
+pustaka**, anggaran tetap hijau tanpa satu pun dinaikkan. Scrollbar tidak
+punya kosakata yang menunggunya dan bersaing dengan karyanya; sembilan sisanya
+kontrol formulir tanpa tempat di sini.
+
+**Gerak diverifikasi, bukan diasumsikan.** Kurva follow kursor disampel per
+frame setelah lompatan 800px: 39% → 71% → 83% → **95% pada 200ms** → 98% →
+99%. Persis `duration.fast`, karena `FOLLOW_TAU = duration.fast / 3`. Hanya 16
+frame dalam 600ms (~27fps headless) — justru itu yang membuktikan kenapa
+bentuk eksponensialnya penting. Reduced motion: **1000px pada 50ms**, menempel,
+cincin tetap ada. Wash hero benar-benar bergeser: mean |delta| **1.06/255**
+dalam 4 detik.
+
+**Terbuka, dan disebut:** kekosongan hero (keputusan komposisi, bukan cacat) ·
+kartu setengah lebar sendirian · **header tanpa nav di rute dalam** — dari
+`/en/work` atau halaman praktik hanya ada wordmark dan pengalih bahasa, dan
+belum diputuskan apakah itu kehematan atau jalan buntu.
+
+**Angka:** e2e 275 → **297** · unit 401 · `bun run check` exit 0 ·
+`route-budget` hijau tanpa anggaran dinaikkan.
+
+---
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap

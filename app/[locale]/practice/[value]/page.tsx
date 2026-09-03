@@ -150,6 +150,14 @@ export default async function PracticePage({ params }: PracticePageProps) {
   return (
     <Wrapper theme="dark" gsap>
       <div className={s.page}>
+        {/*
+          The first screen's tone. Decoration only — `aria-hidden`, no content,
+          no pointer events — and marked so `e2e/visual-substance.e2e.ts` can
+          hide it and prove it adds light rather than subtracting it, which is
+          the defect Tahap 17 found on the home hero.
+        */}
+        <div className={s.wash} data-accent-region="" aria-hidden="true" />
+
         <PracticeHero
           value={value}
           eyebrow={t('eyebrow')}

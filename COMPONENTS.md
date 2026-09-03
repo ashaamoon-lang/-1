@@ -69,6 +69,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | useOnlineStatus | `@/hooks/use-sync-external` | `() => boolean` |
 | usePreferredColorScheme | `@/hooks/use-sync-external` | `() => 'light' | 'dark'` |
 | usePreferredReducedMotion | `@/hooks/use-sync-external` | `() => boolean` |
+| usePointerIsFine | `@/hooks/use-sync-external` | `() => boolean` |
 | useDocumentVisibility | `@/hooks/use-sync-external` | `() => DocumentVisibilityState` |
 
 ---

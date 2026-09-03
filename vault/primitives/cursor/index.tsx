@@ -4,7 +4,9 @@
  * Cursor — custom pointer with hover states.
  *
  * Provenance: original work for this project. No third-party code copied.
- * Written from GSAP's public `quickTo` API and standard DOM events.
+ * Written from standard DOM events and the project's own Tempus loop. It used
+ * GSAP's `quickTo` until Tahap 18c, when the follow moved onto the single RAF
+ * loop `CLAUDE.md` #6 requires — see the note on the `useTempus` call.
  *
  * Mount once, near the root of a layout. Any element in the tree can then
  * change the cursor's appearance by declaring `data-cursor`:
@@ -37,12 +39,14 @@
  *   affordance, only to stop it moving on its own.
  */
 
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTempus } from 'tempus/react'
 
-import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
-import { duration, easing } from '@/vault/motion/tokens'
+import {
+  usePointerIsFine,
+  usePreferredReducedMotion,
+} from '@/lib/hooks/use-sync-external'
+import { duration } from '@/vault/motion/tokens'
 
 import s from './cursor.module.css'
 
@@ -75,58 +79,133 @@ interface CursorProps {
   viewLabel?: string | undefined
 }
 
+/**
+ * Time constant for the follow, derived from a token rather than picked.
+ *
+ * Exponential smoothing covers about 95% of the remaining distance in three
+ * time constants, so a tau of `duration.fast / 3` means the ring catches up to
+ * the pointer in `--duration-fast` — the same 200ms the rest of the site uses
+ * for a small state flip (`CLAUDE.md` #8: the number comes from the token).
+ */
+const FOLLOW_TAU = duration.fast / 3
+
+/**
+ * A delta longer than this is a tab returning from the background, not a slow
+ * frame. Left unclamped it makes the smoothing factor 1 and the ring teleports
+ * — which is the right outcome, but only by accident. Clamping states it.
+ */
+const MAX_FRAME_MS = 100
+
 export function Cursor({ viewLabel = 'View' }: CursorProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const [state, setState] = useState<CursorState>('default')
-  // Gate mounting on a fine pointer. Starts false so server and first client
-  // paint agree; the effect promotes it on capable devices only.
-  const [isEnabled, setIsEnabled] = useState(false)
+  /*
+   * Starts `hidden`, not `default`, and that is a real fix rather than
+   * caution.
+   *
+   * The element is `position: fixed; top: 0; left: 0` and only the `hidden`
+   * state sets `opacity: 0` on the ring, so a `default` start painted a ring
+   * in the top-left corner of every page until the reader happened to move
+   * the mouse. Measured in Tahap 18c: `transform: none` before the first
+   * pointer event. That is exactly the "custom cursor that appeared at the
+   * origin" tell this component's own doc comment warns about.
+   *
+   * The first `pointermove` promotes it, and `onPointerOut` returns it here
+   * when the pointer leaves the window — so the invisible state is the same
+   * one, reached the same way, at both ends.
+   */
+  const [state, setState] = useState<CursorState>('hidden')
+  /*
+   * A fine pointer is a device capability, not a render-time guess, so it is
+   * read through the same `useSyncExternalStore` shape the rest of the
+   * codebase uses for preferences. The server snapshot is `false`, so a phone
+   * never paints a ring for a pointer it does not have.
+   */
+  const isEnabled = usePointerIsFine()
   const prefersReducedMotion = usePreferredReducedMotion()
 
-  useGSAP(
-    () => {
-      if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-        setIsEnabled(false)
-        return
-      }
-      setIsEnabled(true)
+  // Where the pointer is, and where the ring has got to. Refs rather than
+  // state: this changes every frame and must never trigger a render.
+  const target = useRef({ x: 0, y: 0 })
+  const position = useRef({ x: 0, y: 0 })
+  const hasPointer = useRef(false)
 
+  useEffect(() => {
+    if (!isEnabled) return
+
+    const onPointerMove = (event: PointerEvent) => {
+      target.current.x = event.clientX
+      target.current.y = event.clientY
+
+      // The first sighting places the ring rather than easing it in from the
+      // top-left corner, which is the classic custom-cursor tell on load.
+      if (!hasPointer.current) {
+        hasPointer.current = true
+        position.current.x = event.clientX
+        position.current.y = event.clientY
+      }
+
+      setState(readCursorState(event.target))
+    }
+
+    // The pointer leaving the window should hide the ring rather than freeze
+    // it at the last known edge position.
+    const onPointerOut = (event: PointerEvent) => {
+      if (!event.relatedTarget) setState('hidden')
+    }
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true })
+    window.addEventListener('pointerout', onPointerOut)
+
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerout', onPointerOut)
+    }
+  }, [isEnabled])
+
+  /*
+   * The follow runs on the site's single RAF loop, not on GSAP's.
+   *
+   * This used `gsap.quickTo`, which meant mounting the cursor pulled GSAP into
+   * every route that rendered it — and `e2e/route-budget.e2e.ts` allows GSAP
+   * on `/en` and `/en/practice/*` only, with `/en/work`, `/en/work/[slug]` and
+   * `/en/ai` allowed **nothing**. A site-wide cursor would have turned that
+   * gate red on three routes, and raising the budgets to decorate is not a
+   * trade worth making.
+   *
+   * Tempus was already the answer: `CLAUDE.md` #6 requires one RAF loop, and
+   * Lenis (order 5) and GSAP's own root update (order 10) are on it. An
+   * explicit order rather than the default 0, because
+   * `components/ui/marquee` records what happens without one — sequencing
+   * becomes mount-order luck.
+   */
+  useTempus(
+    ({ deltaTime }: { deltaTime: number }) => {
       const element = ref.current
-      if (!element) return
+      if (!element || !hasPointer.current) return
 
-      // Reduced motion: follow the pointer exactly, with no easing lag. The
-      // cursor still exists — it just never animates of its own accord.
-      const followDuration = prefersReducedMotion ? 0 : duration.fast
-      const moveX = gsap.quickTo(element, 'x', {
-        duration: followDuration,
-        ease: easing.outQuart.gsap,
-      })
-      const moveY = gsap.quickTo(element, 'y', {
-        duration: followDuration,
-        ease: easing.outQuart.gsap,
-      })
+      /*
+       * Frame-rate independent smoothing. A plain `+= (target - current) * k`
+       * moves twice as fast on a 120Hz display as on a 60Hz one; the
+       * exponential form covers the same distance per unit of *time* whatever
+       * the frame rate.
+       *
+       * Reduced motion takes the pointer position exactly. The ring still
+       * exists — it simply stops lagging, which is the preference's actual
+       * request (`MOTION-SPEC.md` §9.4 rule 3: the duration changes, the
+       * outcome does not).
+       */
+      const seconds = Math.min(deltaTime, MAX_FRAME_MS) / 1000
+      const factor = prefersReducedMotion
+        ? 1
+        : 1 - Math.exp(-seconds / FOLLOW_TAU)
 
-      const onPointerMove = (event: PointerEvent) => {
-        moveX(event.clientX)
-        moveY(event.clientY)
-        setState(readCursorState(event.target))
-      }
+      position.current.x += (target.current.x - position.current.x) * factor
+      position.current.y += (target.current.y - position.current.y) * factor
 
-      // The pointer leaving the window should hide the ring rather than
-      // freeze it at the last known edge position.
-      const onPointerOut = (event: PointerEvent) => {
-        if (!event.relatedTarget) setState('hidden')
-      }
-
-      window.addEventListener('pointermove', onPointerMove, { passive: true })
-      window.addEventListener('pointerout', onPointerOut)
-
-      return () => {
-        window.removeEventListener('pointermove', onPointerMove)
-        window.removeEventListener('pointerout', onPointerOut)
-      }
+      // `transform` only, never `left`/`top` (`CLAUDE.md` #4).
+      element.style.transform = `translate3d(${position.current.x}px, ${position.current.y}px, 0)`
     },
-    { dependencies: [prefersReducedMotion] }
+    { order: 8 }
   )
 
   if (!isEnabled) return null
