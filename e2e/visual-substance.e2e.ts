@@ -46,6 +46,7 @@ declare global {
 
 const GUTTER_ROUTES = [
   '/en',
+  '/en/studio',
   '/en/work',
   `/en/work/${FEATURED_WORK}`,
   ...PRACTICES.map((value) => `/en/practice/${value}`),

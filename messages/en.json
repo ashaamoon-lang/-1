@@ -120,5 +120,53 @@
     "consultingStatement": "A consulting engagement starts before anything is built. We read the system that exists, name the decisions that are actually open, and write down the trade-offs each one carries — so the choice that gets made is the one the team can defend six months later.",
     "ai-dataStatement": "AI and data work is judged in production, not in a notebook. We build the evaluation first, so there is a number to argue with; then the pipelines, the guardrails, and the handover that lets a team run it without us.",
     "commissionStatement": "A commission is scoped, priced and delivered against a brief. The brief is the work: most of what goes wrong in a commissioned engagement was decided, or left undecided, before the first line was written."
+  },
+  "studio": {
+    "eyebrow": "Studio",
+    "title": "Studio",
+    "lead": "Arth is a small practice built around one habit: scope a piece of work honestly, then finish it. We take consulting, AI and data, and commissioned build — three practices that share a method rather than a medium.",
+    "facts": {
+      "founded": "Founded",
+      "foundedValue": "2021",
+      "based": "Based",
+      "basedValue": "Jakarta, working remotely",
+      "team": "Team",
+      "teamValue": "Four, plus specialists per engagement",
+      "languages": "Languages",
+      "languagesValue": "English, Bahasa Indonesia"
+    },
+    "statementEyebrow": "How we think about it",
+    "statement": "Most work fails before anyone writes code. It fails in the week where the brief is still soft, where nobody has said out loud which decisions are actually open and which are already made, and where the cost of being wrong has not been written down. So that is where we start. We read the system that exists, we name the trade-offs, and we put a number on the thing everyone is guessing at. What gets built after that is smaller than what was asked for, and it survives longer.",
+    "processEyebrow": "How we work",
+    "process": {
+      "scopeTitle": "Scope",
+      "scopeBody": "A week, sometimes two. We read what exists, talk to the people who maintain it, and write down what the engagement is and is not. If the honest answer is that you do not need us, that is the deliverable.",
+      "readTitle": "Read",
+      "readBody": "We map the decisions that are still open and the constraints that are not. Every trade-off gets written where the team can argue with it, months later, without us in the room.",
+      "decideTitle": "Decide",
+      "decideBody": "One recommendation, with the reasoning attached and the alternatives named. We would rather be overruled with the facts in hand than agreed with on authority.",
+      "deliverTitle": "Deliver",
+      "deliverBody": "Built, documented, and handed over so the team can run it without us. The engagement ends on a date we named at the start, not when the budget does."
+    },
+    "capabilitiesEyebrow": "What that covers",
+    "capabilities": {
+      "consulting": "Architecture review · System mapping · Technical due diligence · Decision records",
+      "ai-data": "Evaluation harnesses · Retrieval pipelines · Data modelling · Production guardrails",
+      "commission": "Design systems · Interface build · Motion and interaction · Handover documentation"
+    },
+    "colophonEyebrow": "Colophon",
+    "colophonNote": "This page is the only part of the site that describes itself. Everything below is accurate.",
+    "colophon": {
+      "built": "Built with",
+      "builtValue": "Next.js on Satūs by darkroom.engineering, MIT licensed",
+      "type": "Type",
+      "typeValue": "Syne for display, Geist Mono for labels",
+      "colour": "Colour",
+      "colourValue": "Authored in oklch, derived with color-mix",
+      "access": "Accessibility",
+      "accessValue": "WCAG 2.2, tested with axe on every route"
+    },
+    "closing": "The work is the argument. Start there.",
+    "closingAction": "See the work"
   }
 }

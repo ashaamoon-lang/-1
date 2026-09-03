@@ -35,10 +35,9 @@ import { isLocale } from './routing'
  *
  * ## What is deliberately absent
  *
- * `studio` is **not** in this table. It becomes a real route in Tahap 24
- * (`app/[locale]/studio/page.tsx`), and shipping a redirect now only to
- * delete it two stages later is work thrown away. Until then it 404s, which
- * is at least honest.
+ * `studio` is **not** in this table, and no longer needs to be: Tahap 24 made
+ * it a real route, so it resolves rather than being redirected. It moved to
+ * `REAL_SEGMENTS` below, which is where a guess must never shadow a page.
  *
  * ## The trade-off, stated
  *
@@ -67,16 +66,15 @@ const GUESSED_SEGMENTS = new Map([
 /**
  * Single segments that already resolve, so a guess must never shadow them.
  *
- * Only `work` and `ai` qualify today, and the distinction is worth stating:
- * `practice` is *not* here, because `/en/practice` alone 404s — the route is
- * `practice/[value]`, which this function never sees (it matches two path
- * parts only). `studio` is not here either; it joins this set in Tahap 24
- * when `app/[locale]/studio/page.tsx` exists.
+ * `work`, `ai` and — since Tahap 24 built `app/[locale]/studio/page.tsx` —
+ * `studio`. The one still absent is `practice`, and the distinction is worth
+ * stating: `/en/practice` alone 404s, because the route is `practice/[value]`,
+ * which this function never sees (it matches two path parts only).
  *
  * Kept as data so `guessed-paths.test.ts` can assert the two lists never
  * name the same segment.
  */
-export const REAL_SEGMENTS = new Set(['work', 'ai'])
+export const REAL_SEGMENTS = new Set(['work', 'ai', 'studio'])
 
 /** Every key the table answers to. Exported for the unit test. */
 export const GUESSED_KEYS = [...GUESSED_SEGMENTS.keys()]

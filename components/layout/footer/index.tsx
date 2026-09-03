@@ -108,6 +108,21 @@ export function Footer() {
                 {tNav('work')}
               </Link>
             </li>
+            {/*
+              The studio page, which became a real route in Tahap 24.
+
+              It goes here rather than in the header because the header's nav
+              is built from the *sections* the current page rendered — in-page
+              anchors, passed only by the home page — while this column is the
+              site's route index and is on every page. Adding it here makes the
+              studio reachable from anywhere, which is what
+              `e2e/site-reach.e2e.ts` reads.
+            */}
+            <li>
+              <Link href="/studio" className={cn('caption', s.link)}>
+                {tNav('studio')}
+              </Link>
+            </li>
             {PRACTICES.map((value) => (
               <li key={value}>
                 <Link

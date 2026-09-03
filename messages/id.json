@@ -120,5 +120,53 @@
     "consultingStatement": "Penugasan konsultasi dimulai sebelum ada yang dibangun. Kami membaca sistem yang sudah ada, menyebut keputusan mana yang sebenarnya masih terbuka, dan menuliskan konsekuensi yang dibawa masing-masing — supaya pilihan yang diambil adalah pilihan yang masih bisa dipertahankan tim enam bulan kemudian.",
     "ai-dataStatement": "Pekerjaan AI dan data dinilai di produksi, bukan di notebook. Kami membangun evaluasinya dulu, supaya ada angka yang bisa didebat; lalu pipeline, pengamannya, dan serah-terima yang membuat tim bisa menjalankannya tanpa kami.",
     "commissionStatement": "Pesanan dilingkupi, dihargai, dan dikirim sesuai brief. Brief itu sendiri pekerjaannya: sebagian besar yang salah di penugasan berbayar sudah diputuskan — atau dibiarkan tak diputuskan — sebelum baris pertama ditulis."
+  },
+  "studio": {
+    "eyebrow": "Studio",
+    "title": "Studio",
+    "lead": "Arth praktik kecil yang dibangun di atas satu kebiasaan: tentukan lingkup pekerjaan dengan jujur, lalu selesaikan. Kami mengambil konsultasi, AI dan data, serta pengerjaan pesanan — tiga praktik yang berbagi metode, bukan medium.",
+    "facts": {
+      "founded": "Berdiri",
+      "foundedValue": "2021",
+      "based": "Basis",
+      "basedValue": "Jakarta, bekerja jarak jauh",
+      "team": "Tim",
+      "teamValue": "Empat, plus spesialis per penugasan",
+      "languages": "Bahasa",
+      "languagesValue": "Inggris, Bahasa Indonesia"
+    },
+    "statementEyebrow": "Cara kami memikirkannya",
+    "statement": "Sebagian besar pekerjaan gagal sebelum ada yang menulis kode. Ia gagal di minggu ketika brief-nya masih lunak, ketika belum ada yang menyebut lantang keputusan mana yang benar-benar terbuka dan mana yang sudah ditutup, dan ketika ongkos salah belum pernah dituliskan. Jadi di situlah kami mulai. Kami membaca sistem yang sudah ada, menamai tukar-tambahnya, dan menaruh angka pada hal yang selama ini ditebak semua orang. Yang dibangun sesudah itu lebih kecil daripada yang diminta, dan ia bertahan lebih lama.",
+    "processEyebrow": "Cara kami bekerja",
+    "process": {
+      "scopeTitle": "Lingkup",
+      "scopeBody": "Seminggu, kadang dua. Kami membaca yang sudah ada, berbicara dengan orang yang merawatnya, dan menuliskan penugasan ini apa dan bukan apa. Kalau jawaban jujurnya Anda tidak butuh kami, itulah hasilnya.",
+      "readTitle": "Baca",
+      "readBody": "Kami memetakan keputusan yang masih terbuka dan batasan yang tidak. Setiap tukar-tambah ditulis di tempat tim bisa membantahnya, berbulan-bulan kemudian, tanpa kami di ruangan.",
+      "decideTitle": "Putuskan",
+      "decideBody": "Satu rekomendasi, dengan alasannya melekat dan alternatifnya disebut. Kami lebih suka dibantah dengan fakta di tangan daripada disetujui karena otoritas.",
+      "deliverTitle": "Kirim",
+      "deliverBody": "Dibangun, didokumentasikan, dan diserahkan supaya tim bisa menjalankannya tanpa kami. Penugasan berakhir pada tanggal yang kami sebut di awal, bukan saat anggarannya habis."
+    },
+    "capabilitiesEyebrow": "Apa saja cakupannya",
+    "capabilities": {
+      "consulting": "Tinjauan arsitektur · Pemetaan sistem · Uji tuntas teknis · Catatan keputusan",
+      "ai-data": "Rangka evaluasi · Pipeline retrieval · Pemodelan data · Pengaman produksi",
+      "commission": "Sistem desain · Pengerjaan antarmuka · Gerak dan interaksi · Dokumentasi serah terima"
+    },
+    "colophonEyebrow": "Kolofon",
+    "colophonNote": "Halaman ini satu-satunya bagian situs yang menjelaskan dirinya sendiri. Semua di bawah ini akurat.",
+    "colophon": {
+      "built": "Dibangun dengan",
+      "builtValue": "Next.js di atas Satūs oleh darkroom.engineering, lisensi MIT",
+      "type": "Huruf",
+      "typeValue": "Syne untuk display, Geist Mono untuk label",
+      "colour": "Warna",
+      "colourValue": "Ditulis dalam oklch, diturunkan dengan color-mix",
+      "access": "Aksesibilitas",
+      "accessValue": "WCAG 2.2, diuji dengan axe di setiap rute"
+    },
+    "closing": "Karyanya adalah argumennya. Mulai dari sana.",
+    "closingAction": "Lihat karyanya"
   }
 }

@@ -109,6 +109,15 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * adds `three` here and says why.
    */
   { path: '/en/practice/consulting', allow: ['gsap'], maxKb: 900 },
+  /*
+   * The studio page (Tahap 24) opts into `gsap` and nothing else.
+   *
+   * It carries two GSAP consumers: `TextReveal` for its `h1` — the entrance
+   * vocabulary Tahap 23 unified — and `ProgressText` for the long statement,
+   * which is a scroll scrub and therefore needs ScrollTrigger. No three.js:
+   * nothing on this route has asked for a scene.
+   */
+  { path: '/en/studio', allow: ['gsap'], maxKb: 900 },
   // The machine view. Its layout comment promises zero client components.
   { path: '/en/ai', allow: [], maxKb: 850 },
 ]

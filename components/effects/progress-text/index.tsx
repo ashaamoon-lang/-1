@@ -65,10 +65,30 @@ export function ProgressText({
 
       const split = SplitText.create(container, {
         type: 'words',
-        // Full text stays in the a11y tree via aria-label on the container;
-        // the generated per-word spans get aria-hidden so screen readers
-        // read continuous text, never word-by-word.
-        aria: 'auto',
+        /*
+         * `none`, and the accessible copy is a real element below.
+         *
+         * This shipped as `'auto'`, which writes the original string to an
+         * `aria-label` on the container — and that is a **serious a11y
+         * violation** here, because the container is a `<span>`:
+         * `aria-label` is prohibited on any element whose role does not
+         * support naming, which includes `generic` (a bare span or div) and
+         * `paragraph` (a `<p>`), so there is no tag that would have made it
+         * legal.
+         *
+         * axe reported it as `aria-prohibited-attr` on `/en/studio` in Tahap
+         * 24. It was present on every practice page too, and the route sweep
+         * was green on those by luck of position: their statement sits below
+         * the fold, so the split had not run yet when axe looked. The studio
+         * page puts one near the top, and the latent defect surfaced.
+         *
+         * The fix keeps the intent — never announce word-by-word — but uses
+         * the pattern that is provably correct rather than one that depends
+         * on how a given screen reader treats inline spans: hide the split
+         * copy from assistive tech entirely, and put the full text beside it
+         * in a visually hidden element.
+         */
+        aria: 'none',
         tag: 'span',
         // `noUncheckedIndexedAccess` types the CSS module's index signature
         // as `string | undefined`; the class always exists at build time.
@@ -135,12 +155,22 @@ export function ProgressText({
   )
 
   return (
-    <span
-      ref={containerRef}
-      className={cn(s.progressText, className)}
-      style={style}
-    >
-      {children}
-    </span>
+    <>
+      {/*
+        The accessible copy. `sr-only` is clipped out of the visual flow, so
+        it changes no layout, and it carries the passage exactly once — which
+        is what a paragraph needs, since a paragraph is read from its content
+        rather than from a name.
+      */}
+      <span className="sr-only">{children}</span>
+      <span
+        ref={containerRef}
+        aria-hidden="true"
+        className={cn(s.progressText, className)}
+        style={style}
+      >
+        {children}
+      </span>
+    </>
   )
 }

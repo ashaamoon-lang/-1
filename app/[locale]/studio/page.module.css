@@ -1,0 +1,363 @@
+.page {
+  /* Containing block for `.wash`. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* The one section-lead token every other page uses. */
+  gap: var(--section-lead);
+  /*
+   * Clear the fixed header, then the page's own rhythm.
+   *
+   * Measured before this line existed: the header's bottom edge sits at 98px
+   * and this page put its `h1` at 86 — the heading rendered *underneath* the
+   * chrome, and the first fact ("2021") was half-hidden behind it. Every
+   * other route clears it (146-480), and the catalogue does it with exactly
+   * this expression, so this is the site's pattern rather than a number
+   * chosen here. `--header-height` is what the header actually measures
+   * itself from.
+   */
+  padding-block: calc(var(--header-height) + mobile-vw(48px)) mobile-vw(96px);
+  /*
+   * The gutter, present from the first commit of this file rather than added
+   * after a gate caught it. Tahap 18 measured three practice pages rendering
+   * flush against the viewport edge because this block had `padding-block`
+   * and nothing inline; `e2e/visual-substance.e2e.ts` holds every route to
+   * the header's own gutter now, and this route is in that list.
+   */
+  padding-inline: var(--safe);
+
+  @media (--desktop) {
+    padding-block: calc(var(--header-height) + desktop-vw(80px))
+      desktop-vw(160px);
+  }
+}
+
+.wash {
+  position: absolute;
+  /*
+   * Anchored to the page box, which now starts below the header, so the
+   * gradient dresses the first screen of *content* rather than sliding under
+   * the chrome.
+   */
+  inset-block-start: 0;
+  inset-inline: 0;
+  /* One screen, then gone — it dresses the arrival, not the document. */
+  block-size: 100svh;
+  background-image: linear-gradient(
+    135deg,
+    var(--hero-wash-from),
+    var(--hero-wash-to)
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+
+  @media (--desktop) {
+    /*
+     * Text left, facts right — the project page's split from Tahap 19, at the
+     * same proportion, because a reader arriving from a project page should
+     * find the same shape rather than a second way of saying "here are the
+     * facts".
+     *
+     * The media expression is repeated as a track rather than nested, which
+     * is what keeps the facts column aligned to the same twelve-column grid
+     * the rest of the site uses.
+     */
+    display: grid;
+    grid-template-columns:
+      calc((100% - var(--gap) * 11) / 12 * 7 + var(--gap) * 6)
+      minmax(0, 1fr);
+    column-gap: var(--gap);
+    align-items: start;
+  }
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(24px);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+}
+
+.lead {
+  /* A reading measure, not the full column — this is prose. */
+  max-width: 46ch;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.facts {
+  min-width: 0;
+}
+
+.factList {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(20px);
+  margin: 0;
+  /*
+   * A rule above the list, matching the project page's fact block. It is the
+   * one piece of chrome on a page that is otherwise pure type, and it does
+   * the job a heading would without adding a heading the outline does not
+   * need.
+   */
+  border-top: 1px solid var(--line);
+  padding-block-start: mobile-vw(20px);
+
+  @media (--desktop) {
+    gap: desktop-vw(24px);
+    padding-block-start: desktop-vw(24px);
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(4px);
+  min-width: 0;
+}
+
+.factLabel {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+
+.factValue {
+  margin: 0;
+}
+
+/* ── Statement ────────────────────────────────────────────────────────── */
+
+.statementSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+}
+
+.statement {
+  /*
+   * A reading measure. Wider than the lead because this is the passage the
+   * scrub moves through, and a narrow column would turn ~100 words into a
+   * very tall thin block that scrolls past before the effect resolves.
+   */
+  max-width: 60ch;
+}
+
+.eyebrow {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+
+/* ── Process ──────────────────────────────────────────────────────────── */
+
+.process {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+
+  @media (--desktop) {
+    display: grid;
+    grid-template-columns:
+      calc((100% - var(--gap) * 11) / 12 * 3 + var(--gap) * 2)
+      minmax(0, 1fr);
+    column-gap: var(--gap);
+    align-items: start;
+  }
+}
+
+.processLabel {
+  @media (--desktop) {
+    /*
+     * The held note. The label stays put while the four steps pass it, which
+     * is choreography with no JavaScript, no bytes and no reduced-motion
+     * question to answer — it is layout, not animation.
+     *
+     * The offset clears the fixed header rather than being a round number:
+     * `--header-height` is what the header actually measures, and the rhythm
+     * token puts the label on the same baseline as the section beside it.
+     */
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + var(--section-lead));
+  }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  /*
+   * The number is a fixed, narrow track and the prose takes the rest —
+   * `minmax(0, 1fr)`, never a bare `1fr`, so a long unbroken word cannot push
+   * the row wider than its column.
+   */
+  grid-template-columns: desktop-vw(64px) minmax(0, 1fr);
+  column-gap: var(--gap);
+  row-gap: desktop-vw(8px);
+  align-items: baseline;
+  border-top: 1px solid var(--line);
+  padding-block-start: mobile-vw(20px);
+
+  @media (--desktop) {
+    padding-block-start: desktop-vw(24px);
+  }
+}
+
+.stepNumber {
+  /*
+   * Decorative, and marked `aria-hidden` in the markup: the ordered list
+   * already carries the sequence for assistive tech, so reading "01" aloud
+   * before each title would announce the same fact twice.
+   */
+  color: var(--text-muted);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepTitle {
+  margin: 0;
+  grid-column: 2;
+}
+
+.stepBody {
+  margin: 0;
+  grid-column: 2;
+  max-width: 52ch;
+  color: var(--text-muted);
+}
+
+/* ── Capabilities ─────────────────────────────────────────────────────── */
+
+.capabilities {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+}
+
+.capabilityList {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--section-lead);
+  margin: 0;
+
+  @media (--desktop) {
+    /* One column per practice, from the same constant the routes read. */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--gap);
+  }
+}
+
+.capability {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(12px);
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  padding-block-start: mobile-vw(20px);
+
+  @media (--desktop) {
+    padding-block-start: desktop-vw(24px);
+  }
+}
+
+.capabilityName {
+  margin: 0;
+}
+
+.capabilityItems {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* ── Colophon ─────────────────────────────────────────────────────────── */
+
+.colophon {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+}
+
+.colophonList {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: mobile-vw(24px);
+  margin: 0;
+
+  @media (--desktop) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--gap);
+  }
+}
+
+.colophonEntry {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(6px);
+  min-width: 0;
+}
+
+.colophonValue {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.colophonNote {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+
+/* ── Closing ──────────────────────────────────────────────────────────── */
+
+.closing {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(24px);
+  border-top: 1px solid var(--line);
+  padding-block-start: var(--section-lead);
+}
+
+.closingLine {
+  margin: 0;
+  max-width: 32ch;
+}
+
+.closingAction {
+  display: inline-block;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  border: 1px solid var(--line);
+  padding: mobile-vw(14px) mobile-vw(24px);
+  /*
+   * A 44px minimum target, which `e2e/keyboard-focus.e2e.ts` and axe's WCAG
+   * 2.2 target-size rule both read. Stated here rather than left to the
+   * padding happening to add up.
+   */
+  min-height: 44px;
+
+  @media (--desktop) {
+    padding: desktop-vw(16px) desktop-vw(28px);
+  }
+}

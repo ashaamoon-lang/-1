@@ -1619,6 +1619,56 @@ alih-alih dibiarkan.
 
 ---
 
+## Tahap 24 — Halaman Studio, dan cacat a11y yang sembilan tahap tak terlihat ✅
+
+> Spec: [`docs/stages/TAHAP-24.md`](./stages/TAHAP-24.md)
+
+Fase 2 dari scaffold. Pemilik proyek mencabut larangan konten fiktif untuk
+tahap ini: teksnya perancah tata letak, akan diganti, dan fokusnya **desain
+dan gerak**. Ditulis dengan panjang realistis supaya tata letaknya teruji oleh
+bentuk yang akan benar-benar dipakai. Kolofonnya pengecualian — faktual, dan
+dibiarkan benar.
+
+`/[locale]/studio` menutup janji yang Tahap 22 catat: label `STUDIO` menunjuk
+anchor sejak awal, `/en/studio` mengembalikan 404, dan itu satu-satunya label
+nav yang sengaja tidak dialihkan karena rutenya akan lahir di sini.
+
+Nol primitif gerak baru — `TextReveal`, `Reveal`, dan `ProgressText` semuanya
+sudah ada. Satu momen berkoreografi, dinamai `studio-statement`. Kolom label
+"cara kerja" **menempel** lewat CSS `position: sticky`: koreografi tanpa satu
+baris JavaScript, tanpa satu kilobyte, dan tanpa pertanyaan reduced-motion
+untuk dijawab, karena ia tata letak bukan animasi.
+
+**Tiga cacat, dan yang ketiga jauh lebih besar daripada halaman ini.**
+
+Dua ditemukan dengan **memandang**, bukan oleh gerbang: halaman merender di
+bawah header tetap (`h1` di 86 sementara header berakhir di 98 — setiap rute
+lain lolos di 146-480), dan nama kapabilitas merender kunci mentah
+(`work.consulting`) karena label praktik ada di namespace `workIndex`.
+
+Yang ketiga ditangkap `route-sweep` — yang menemukan rute baru itu sendiri,
+membuktikan pendaftarannya benar — dan sumbernya **bukan halaman ini**:
+`components/effects/progress-text` menyuruh SplitText menulis teksnya ke
+`aria-label` pada sebuah `<span>`. `aria-label` **dilarang** pada elemen yang
+role-nya tidak mendukung penamaan, dan tidak ada tag yang akan membuatnya sah.
+Cacat itu ada di **setiap halaman praktik** sejak Tahap 15, dan gerbangnya
+hijau selama sembilan tahap **karena keberuntungan posisi**: pernyataan di
+sana ada di bawah lipatan, jadi SplitText belum jalan saat axe mengaudit.
+Halaman Studio menaruh satu dekat atas, dan cacat laten itu muncul.
+Diperbaiki dengan pola yang bisa dibuktikan benar — salinan visual
+disembunyikan dari teknologi bantu, teks lengkap di elemen `sr-only`
+sebelahnya — dan keempat rute kini bersih.
+
+e2e **328 lulus + 5 gagal → 333 lulus, 0 gagal** · unit 410 · `check` exit 0 ·
+axe langsung bersih di empat rute · reduced motion 47 elemen `minOpacity: 1`,
+nol tersembunyi · ponsel tanpa overflow.
+
+Satu hal **diperiksa dan ternyata bukan cacat** (§8.5): bagian penutup yang
+tampak kosong di satu tangkapan layar ternyata `opacity: 1` dengan teks utuh —
+ia hanya belum tercapai pada posisi gulir itu.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 
