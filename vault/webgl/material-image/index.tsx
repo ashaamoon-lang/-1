@@ -239,6 +239,9 @@ export function MaterialImage({
             displacement={material.displacement}
             drift={material.drift}
             driftPeriod={material.driftPeriod}
+            shear={material.shear}
+            shearVelocity={material.shearVelocity}
+            shearTau={material.shearTau}
             visible={isVisible}
             onFirstFrame={handleFirstFrame}
           />

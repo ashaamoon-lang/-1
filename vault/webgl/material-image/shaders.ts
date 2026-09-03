@@ -46,6 +46,25 @@ export const vertexShader = /* glsl */ `
  * sinusoidal drift keeps the surface alive without becoming an animation:
  * `uDrift` is roughly a quarter of `uDisplacement`, over a 12-second cycle.
  *
+ * ## Why there is a second input
+ *
+ * The field above is the pointer's, and only the pointer's. Measured in
+ * `docs/stages/TAHAP-21.md` §2: a sweep across a plate moves 2.6% of its
+ * pixels, **scrolling moves 0.00%**. So the one original surface on this site
+ * could only be met by a reader who happened to drag a mouse across an image;
+ * a reader who scrolled — which is how a portfolio is actually read — never
+ * met it at all.
+ *
+ * `uShear` is that reader's input. It is a single signed number for the whole
+ * plate, not a second stamp: a scroll disturbs the entire surface at once,
+ * unlike a cursor, which disturbs the place it is. Because it is added into
+ * the same `offset` as the other two, it inherits the edge falloff below for
+ * free — the border stays pinned and only the interior lags, which is what
+ * makes it read as the weight of a surface rather than a picture sliding
+ * around inside its frame. It is deliberately the quietest of the three
+ * (`vault/motion/tokens.ts`: `shear` < `displacement`), because scrolling is
+ * continuous and sweeping is a choice.
+ *
  * ## Edges
  *
  * Warped UVs can leave 0–1 and sample the clamped border, which shows as a
@@ -62,6 +81,7 @@ export const fragmentShader = /* glsl */ `
   uniform float uDisplacement;
   uniform float uDrift;
   uniform float uDriftPeriod;
+  uniform float uShear;
   uniform float uTime;
   uniform vec2 uResolution;
 
@@ -79,7 +99,9 @@ export const fragmentShader = /* glsl */ `
     float phase = uTime / uDriftPeriod * PI2;
     vec2 drift = vec2(sin(phase), cos(phase * 0.75)) * uDrift;
 
-    vec2 offset = flow * uDisplacement + drift;
+    // Three inputs, one offset — so all three inherit the edge falloff below.
+    // uShear is the scroll's, already decayed and clamped on the JS side.
+    vec2 offset = flow * uDisplacement + drift + vec2(0.0, uShear);
 
     // Hold the border still. smoothstep from the edge inward on both axes,
     // multiplied, so the falloff is a soft frame rather than a vignette.

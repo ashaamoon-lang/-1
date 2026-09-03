@@ -291,4 +291,66 @@ export const material = {
    * picture.
    */
   MAX_DISPLACEMENT: 0.012,
+  /**
+   * Peak UV offset of the plate's **interior** driven by scroll velocity, 0-1.
+   *
+   * ## Why a second input exists at all
+   *
+   * `docs/stages/TAHAP-21.md` §2 measured what a reader actually meets. A
+   * pointer sweep across a plate moves 2.6% of its pixels; **scrolling moves
+   * 0.00%** — the flowmap listens to the pointer and to nothing else
+   * (`lib/webgl/utils/flowmaps/index.tsx`), and parks its stamp off screen at
+   * zero velocity when the pointer is still. So the one original thing on
+   * this site could only be met by a reader who happened to sweep a mouse
+   * across an image. A reader who scrolls — which is how a portfolio is
+   * actually read — never saw it.
+   *
+   * This is the fix, and it is deliberately not "more". `displacement` did
+   * not change; `MAX_DISPLACEMENT` did not change. What changed is *when* the
+   * material is reachable.
+   *
+   * ## The ladder
+   *
+   * With this token the material has three inputs, and they are deliberately
+   * ordered by how deliberate the gesture that triggers them is:
+   *
+   * ```
+   * drift 0.002  ambient      nobody did anything
+   * shear 0.005  scrolling    someone is reading
+   * displacement 0.008  pointer   someone reached for it
+   * ```
+   *
+   * Sweeping is a choice; reading is continuous; the drift is neither. An
+   * amplitude that is pleasant once, on purpose, is an irritation when it
+   * answers every notch of the wheel — so the ladder is the design, not just
+   * a safety margin. `tokens.test.ts` asserts the ordering rather than
+   * trusting it, and `e2e/visual-substance.e2e.ts` asserts it again in
+   * rendered pixels — where the amplitudes are actually comparable, which as
+   * numbers they are not: `displacement` scales a velocity field whose own
+   * magnitude is not 1, `shear` is the offset itself.
+   *
+   * Measured on the production build at 1280x800, one 614x767 plate, pixels
+   * changed inside a fixed 400x500 window over the plate: **2.12% drifting,
+   * 2.94% scrolling, 9.28% under a pointer sweep** — the ladder, in pixels.
+   */
+  shear: 0.005,
+  /**
+   * Scroll speed, in CSS pixels per second, at which `shear` reaches its peak.
+   *
+   * Above it the response saturates rather than growing, so a flick and a
+   * programmatic jump land at the same amplitude as brisk reading instead of
+   * lurching. Chosen so ordinary wheel reading reaches a real fraction of the
+   * peak — a reference so high that only a flick triggers anything would
+   * reproduce the exact defect this token exists to remove.
+   */
+  shearVelocity: 1000,
+  /**
+   * Exponential decay time constant, in seconds, for the shear.
+   *
+   * `duration.base / 3` puts ~95% of the recovery inside 400ms — the
+   * project's default duration — rather than inventing a fourth number. Same
+   * frame-rate-independent form as the cursor's follow in
+   * `vault/primitives/cursor`: `factor = 1 - exp(-seconds / tau)`.
+   */
+  shearTau: duration.base / 3,
 } as const

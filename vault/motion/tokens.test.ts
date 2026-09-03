@@ -32,7 +32,7 @@
 import { describe, expect, it } from 'bun:test'
 import { readFile } from 'node:fs/promises'
 
-import { duration, easing, interaction, stagger } from './tokens'
+import { duration, easing, interaction, material, stagger } from './tokens'
 
 const GLOBAL_CSS = 'lib/styles/css/global.css'
 const EASINGS_CSS = 'lib/styles/css/easings.css'
@@ -237,5 +237,65 @@ describe('the interaction grammar (MOTION-SPEC.md §9)', () => {
     expect(commit.seconds).toBeLessThanOrEqual(intent.seconds)
     expect(transport.seconds).toBeGreaterThan(intent.seconds)
     expect(settle.seconds).toBeGreaterThan(transport.seconds)
+  })
+})
+
+describe('the material layer (MOTION-SPEC.md §11)', () => {
+  /*
+   * `tokens.ts` has said since Tahap 14 that `MAX_DISPLACEMENT` "is the
+   * ceiling `tokens.test.ts` enforces". It was not: nothing in this file had
+   * ever read `material`. The ceiling was a comment, and a comment does not
+   * fail a build. Found while adding the shear below; recorded in
+   * `docs/stages/TAHAP-21.md` §8 rather than quietly fixed.
+   */
+  it('keeps the pointer displacement under its declared ceiling', () => {
+    expect(
+      material.displacement,
+      `displacement ${material.displacement} is above the ${material.MAX_DISPLACEMENT} ceiling — above it the warp reads as an effect applied to a picture, not as the surface of a material`
+    ).toBeLessThanOrEqual(material.MAX_DISPLACEMENT)
+  })
+
+  it('keeps the ambient inputs quieter than the deliberate one', () => {
+    /*
+     * Two inputs answer the reader, and they are not equals. A pointer sweep
+     * is a choice made once; scrolling and the ambient drift are continuous,
+     * and an amplitude that is pleasant on purpose is an irritation when it
+     * answers every notch of the wheel.
+     *
+     * This asserts the *declared relation*, which is the part that can drift
+     * in a diff. It is not a claim about rendered pixels — `displacement`
+     * scales a velocity field whose magnitude is not 1, while `shear` is the
+     * offset itself, so the two numbers are not in the same unit.
+     * `e2e/visual-substance.e2e.ts` makes the pixel claim, where they are.
+     */
+    expect(
+      material.shear,
+      `shear ${material.shear} is not below the pointer's ${material.displacement}`
+    ).toBeLessThan(material.displacement)
+
+    expect(
+      material.drift,
+      `drift ${material.drift} is not below the scroll's ${material.shear} — the input nobody asked for must be the quietest of the three`
+    ).toBeLessThan(material.shear)
+  })
+
+  it('decays the shear on a time constant derived from a duration token', () => {
+    /*
+     * The whole point of this file is that a motion value is written down
+     * once. A tau picked as a bare 0.13 would be a fourth number nobody could
+     * trace; this one is `duration.base / 3`, so ~95% of the recovery lands
+     * inside the project's default 400ms.
+     */
+    expect(material.shearTau).toBeCloseTo(duration.base / 3, 10)
+
+    // A tau of zero would make the decay instant and the guard a lie; a long
+    // one would leave the plate skewed after the reader stopped.
+    expect(material.shearTau).toBeGreaterThan(0)
+    expect(material.shearTau).toBeLessThan(duration.base)
+
+    // Saturation reference, in CSS px/s. Zero would divide by zero; a huge
+    // value would mean only a flick ever triggers anything, which is the
+    // defect this token was added to remove.
+    expect(material.shearVelocity).toBeGreaterThan(0)
   })
 })

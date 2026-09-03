@@ -1449,6 +1449,57 @@ terukur rata di 300px masing-masing pada 1280.
 **Angka:** e2e 299 → **306** · unit 401 · `check` exit 0 · `route-budget`
 hijau tanpa anggaran dinaikkan. Header tidak disentuh.
 
+## Tahap 21 — Satu momen milik sendiri: materialnya ternyata beku ✅
+
+> Spec: [`docs/stages/TAHAP-21.md`](./stages/TAHAP-21.md)
+
+Rencana §1.2 meminta lapisan material dinaikkan "dari aksen jadi tanda
+tangan". Dua hal menghalanginya, dan yang kedua tidak diduga.
+
+Yang pertama sudah tertulis di proyek ini sendiri: `MAX_DISPLACEMENT` ada
+**justru karena** nilai itu menggoda untuk dinaikkan, dan `CLAUDE.md` #13
+menyebut 3D sebagai aksen. Jadi jalur "lebih keras" ditutup, dan menutupnya
+adalah jawaban yang benar.
+
+Yang kedua muncul saat mengukur: **lapisan material tidak pernah bergerak sama
+sekali.** Beku sejak ia dikirim di Tahap 14. Setiap uniform per-frame ditulis
+ke objek `useMemo` milik komponen, bukan objek yang three pakai untuk
+merender — jadi platnya menggambar nilai frame nol selamanya. Terukur:
+`uniform1f` untuk `uTime` milik program material terpanggil **satu kali,
+dengan nilai 0**, seumur halaman, sementara nilai JS-nya maju normal tiap
+frame. Dua build dengan shader berbeda (satu diberi tint yang digerakkan
+`uTime`) menghasilkan piksel **identik byte-per-byte**.
+
+Semua gerbang Tahap 14 hijau dan semuanya benar — mereka menggerbangi
+**keberadaan** (ada canvas, ada mesh, tekstur terikat, tidak ada kebocoran
+GPU). Tidak satu pun menanyakan apakah materialnya **bergerak**. Pola yang
+sama dengan Tahap 17: pertanyaannya berhenti satu langkah sebelum yang dilihat
+pembaca.
+
+Perbaikannya struktural dan sudah ada contohnya di repo: tulis lewat
+`materialRef.current.uniforms`, seperti `vault/webgl/scene-shell` yang memang
+beranimasi. Di atas material yang kini hidup, barulah input kedua dipasang —
+**kecepatan gulir**, sebagai shear sumbu-Y yang mewarisi edge falloff yang
+sudah ada, sehingga tepi plat tetap diam. Nol pendengar baru, nol dependensi,
+nol perubahan rute; `scene.tsx` memang sudah membaca `window.scrollY` tiap
+frame.
+
+Hasilnya tangga tiga anak, diurutkan menurut seberapa disengaja gerakan yang
+memicunya: **hanyut 0.002 (tak seorang pun) → gulir 0.005 (sedang membaca) →
+pointer 0.008 (menjangkaunya)**.
+
+**Angka:** piksel plat yang berubah, kursor dikecualikan —
+`0,00% → 0,66-2,99%` diam, `0,00% → 3,75-6,80%` sapuan pointer,
+`0,00% → 1,48-2,45%` menggulir. e2e 306 → **307 lulus, 2 dilewati** (mobile,
+alasan tertulis) · unit 401 → **404** · `check` exit 0 · storybook 92 lulus ·
+`route-budget` hijau tanpa anggaran dinaikkan.
+
+**Sepuluh instrumen salah dicatat di §8.4**, termasuk yang paling mahal:
+baseline "pointer menggerakkan 2,6% plat" ternyata **cincin kursor**, bukan
+platnya. Dan gerbang kedua sengaja **bukan** berbasis piksel — diukur dulu,
+lalu dibatalkan, karena shear meluruh pada 133ms sementara rana CDP mendarat
+50-150ms kemudian, dan urutan lengannya terbalik antar-jalan.
+
 ---
 
 # Verifikasi
