@@ -1187,6 +1187,46 @@ produksi bersih. Enam asersi baru, semuanya dibuktikan merah dulu dengan
 angkanya. Tidak ada klaim performa: tidak ada profiler di lingkungan ini
 (`CLAUDE.md` #19).
 
+## Tahap 16 — Perjalanan
+
+Spec penuh: **`docs/stages/TAHAP-16.md`**.
+
+**Menambah halaman lagi akan memperburuk situs ini.** Peta rute §1.1 sudah
+lengkap dan isinya yang belum — pernyataan praktik masih placeholder (Tahap 13
+§9). Yang belum pernah diperiksa sekali pun dalam enam belas tahap adalah **apa
+yang terjadi di antara halaman**: setiap gate di repositori ini memakai
+`page.goto`, yang selalu mulai dari nol, sendirian, tanpa sejarah. Itulah
+sebabnya cacat pendaratan Tahap 15b bertahan enam belas tahap dengan semua
+gerbang hijau. Tahap ini menutup kelasnya, bukan satu contohnya.
+
+**Terukur sebelum spec ditulis:** rute **sudah** diumumkan ke pembaca layar
+(`next-route-announcer`, `aria-live="assertive"`, `"Consulting — Arth"`) ·
+scroll **dipulihkan** saat mundur · judul dokumen ikut berubah · dan mundur
+menjalankan **nol transisi** — potongan keras, karena `announceNavigation()`
+hanya dipanggil dari `onNavigate` sebuah `<Link>`, dan tombol back tidak
+menekan tautan apa pun.
+
+**Tiga instrumen salah bentuk dicatat di spec §4.1.** Pertanyaan "apakah
+rutenya diumumkan" butuh tiga percobaan, dan dua jawaban pertama keduanya
+salah ke arah yang mengkhawatirkan — `querySelectorAll` tidak menembus shadow
+root, dan `getElementsByName` mencocokkan atribut `name` bukan nama tag. Kalau
+keduanya masuk spec, tahap ini akan dibuka dengan cacat aksesibilitas yang
+tidak ada.
+
+**Basis data skill tidak punya satu baris pun** tentang apakah navigasi mundur
+harus bergerak sama sekali, dan itu disebut terus terang (§2.1 aturan 2). Yang
+berbasis skill hanya asimetri waktunya: _"exit should always resolve faster
+than entrance so back/forward feels snappy"_.
+
+Isinya: **16a** mundur mendapat cover yang lebih cepat daripada maju (bukan
+morph — menjanjikan morph yang merosot jadi cross-fade adalah cacat yang baru
+diperbaiki) · **16b** `e2e/journey.e2e.ts`, satu pembaca, tujuh hop, enam
+invarian per hop, dua viewport · **16c** shell instan — investigasi, bukan
+janji, karena ia tarik-menarik dengan Tahap 9 yang mencabut batas Suspense
+supaya halaman terbaca tanpa JavaScript.
+
+---
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap
