@@ -1108,7 +1108,7 @@ antaranya `window.scrollY` yang terbukti melacak Lenis **selama** scroll, bukan
 hanya saat diam, dan `--press-scale: 0.995` yang menempuh 6,21px lawan 6,14px
 milik kartu proyek: selisih 0,03px, jadi bukan gestur token.
 
-## Tahap 15 — Halaman per topik, dan gerak yang mengikutinya
+## Tahap 15 — Halaman per topik, dan gerak yang mengikutinya ✅
 
 Spec penuh: **`docs/stages/TAHAP-15.md`**.
 
@@ -1143,6 +1143,49 @@ database skill, dan disebut begitu.
 **Tidak dikerjakan, dinyatakan di muka:** tidak ada dependensi baru, tidak ada
 halaman "tentang" (`/studio` dipakai Sanity), beranda tidak dipecah, tidak ada
 material WebGL di rute baru.
+
+**Hasilnya: morph yang diminta mengungkap cacat yang jauh lebih besar dari
+dirinya sendiri.** Pasangan morph baru terpasang dalam beberapa menit dan
+gate-nya merah — `::view-transition-old(morph-practice-consulting)` sendirian,
+tanpa `group`, tanpa `new`. Enam dugaan diuji dan **lima salah**: bukan Client
+Component, bukan chunk WebGL, bukan prefetch, bukan kedalaman rute, bukan nama
+yang tidak cocok. Yang benar tidak ada hubungannya dengan halaman praktik:
+React hanya memberi `view-transition-name` pada elemen yang **berada di dalam
+viewport** saat commit, dan mencabutnya lagi kalau tidak — dibaca langsung di
+sumber `react-dom` yang dipaketkan Next, bukan diduga.
+
+**Dan tujuannya memang selalu di luar viewport, karena setiap navigasi internal
+di situs ini membawa offset scroll halaman sebelumnya.** `components/ui/link`
+memakai `scroll={false}` sejak fork, dengan komentar tentang peringatan yang
+tidak pernah muncul sekali pun dalam pengukuran ini. Harganya: dari beranda di
+y=3520, `/practice/consulting` **dibuka di 1522** — maksimum halamannya —
+dengan `<h1>`-nya **1136px di atas layar**. Pembaca yang meminta sebuah halaman
+mendarat di ujung bawahnya. Beranda → detail karya: 1047. `/work` → detail: 394.
+Praktik → praktik berikutnya: 1480.
+
+**Enam belas tahap gate hijau melewatkan ini** karena tidak satu pun gate
+menanyakan ke mana sebuah navigasi _berakhir_ — semuanya memakai `page.goto`,
+yang selalu mulai dari nol. Gate morph lama pun hijau justru karena `/work`
+menaruh grid-nya dekat puncak: offset yang terbawa cukup kecil untuk menyisakan
+sampul tujuan di dalam viewport. Ia hanya pernah menguji jalur yang pendek.
+
+Perbaikannya satu baris — `scroll` kembali ke bawaan Next — dan memperbaiki
+pendaratan dan morph sekaligus. `e2e/navigation-landing.e2e.ts` (baru, dua
+viewport) memegang sebabnya; `e2e/motion.e2e.ts` memegang akibatnya, sekarang
+dari tautan yang jauh di bawah halaman dan bukan hanya yang dekat puncak.
+`MOTION-SPEC.md` §9.4 aturan 6 mencatat syaratnya.
+
+**Yang tidak diperbaiki, dan disebut:** konsol dev melaporkan `params` dibaca
+di luar `<Suspense>` pada `/[locale]/practice/[value]` — dan diukur, pada
+`/en/work/arus-balik` juga. Pola lama di **setiap** rute dinamis, bukan bawaan
+tahap ini, dan memperbaikinya tarik-menarik dengan Tahap 9 yang justru mencabut
+batas Suspense supaya halaman terbaca tanpa JavaScript. Tahap tersendiri, bukan
+sisipan diam-diam.
+
+**Angka:** e2e 257 → **267** · unit 400 · `bun run check` exit 0 · build
+produksi bersih. Enam asersi baru, semuanya dibuktikan merah dulu dengan
+angkanya. Tidak ada klaim performa: tidak ada profiler di lingkungan ini
+(`CLAUDE.md` #19).
 
 # Verifikasi
 

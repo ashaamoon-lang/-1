@@ -47,6 +47,11 @@ export default defineConfig({
         '**/promises.e2e.ts',
         '**/no-javascript.e2e.ts',
         '**/route-budget.e2e.ts',
+        // Where a navigation lands is a viewport question: a destination
+        // shorter than the offset the reader carried over clamps to its own
+        // maximum, so the same link strands the heading by a different
+        // distance at each width. Tahap 15b measured 1522px on desktop.
+        '**/navigation-landing.e2e.ts',
         // The rhythm token resolves to a different number per breakpoint
         // (32px mobile, 48px desktop), so "one rhythm per page" is a claim
         // that has to hold at both widths, not just the one it was written at.

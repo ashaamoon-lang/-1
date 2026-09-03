@@ -52,11 +52,12 @@
  */
 
 import cn from 'clsx'
-import type { ReactNode } from 'react'
+import { type ReactNode, ViewTransition } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SectionHeader } from '@/components/ui/section-header'
 import { type Practice, practiceTemplate } from '@/lib/content/practices'
+import { transitionName } from '@/lib/motion/transition-name'
 import { Reveal } from '@/vault/motion/reveal'
 
 import s from './practice-list.module.css'
@@ -118,7 +119,28 @@ export function PracticeList({
               like the rest of the site but not a noun in the grammar.
             */}
             <summary className={s.summary} data-press="practice" data-intent="">
-              <h3 className={cn('h2', s.name)}>{entry.label}</h3>
+              {/*
+                The name is carried to the practice's page rather than
+                cross-faded away from it.
+
+                Same mechanism as the work card to its detail page: React
+                pairs `<ViewTransition>` elements by name, and the paired
+                element does not have to be the one that was pressed — the
+                link in the panel below does the navigating, this does the
+                travelling.
+
+                `ui-ux-pro-max` is explicit that a navigation morphs **one**
+                pair and no more ("compounding Flips are hard to time
+                correctly"). This is that one pair; the panel's link carries
+                no name of its own.
+              */}
+              <ViewTransition
+                name={transitionName(`practice-${entry.value}`)}
+                share="morph"
+                default="none"
+              >
+                <h3 className={cn('h2', s.name)}>{entry.label}</h3>
+              </ViewTransition>
               {/*
                 Decoration only. The browser announces open/closed state for a
                 `<details>` on its own, so a marker that repeated it would be
@@ -132,6 +154,10 @@ export function PracticeList({
               <Link
                 href={practiceTemplate(entry.value)}
                 className={cn('caption', s.link)}
+                // Stands the route-change overlay down for this navigation so
+                // the name above can morph into the page's heading instead of
+                // being swept over by a panel.
+                transition="morph"
               >
                 {linkLabel}
               </Link>

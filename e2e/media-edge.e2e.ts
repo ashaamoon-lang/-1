@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-import { PRACTICE_SEGMENT } from '../lib/content/practices'
-
 /**
  * A project page has an edge a reader can follow.
  *
@@ -46,23 +44,44 @@ import { PRACTICE_SEGMENT } from '../lib/content/practices'
  */
 
 /**
- * Published works in the sitemap, excluding the practice filter.
+ * Published works in the sitemap.
  *
- * The exclusion is built from `PRACTICE_SEGMENT` rather than typed out. It was
- * typed out — as `(?!discipline/)` — and Tahap 13 renamed the segment to
- * `practice`, so the lookahead stopped excluding anything and these tests
- * started measuring `/en/work/practice/consulting` as if it were one work.
- * The failure was real and unhelpful: "a portrait work is not narrower than a
- * landscape one (614px vs 614px)", which describes a filtered catalogue
- * correctly and a defect not at all.
+ * ## Why there is no longer an exclusion here, and why that is asserted
+ *
+ * This used to carry `(?!${'practice'}/)` to keep the filtered catalogue out of a
+ * list of works. Tahap 15 moved practices to their own top-level pages, so
+ * `/work/practice/…` is not in the sitemap at all and the lookahead would
+ * exclude nothing.
+ *
+ * A lookahead that matches nothing is not harmless: it reads as a live guard
+ * and the next rename will trust it. This project has already paid for that
+ * exactly once — the same expression was typed out as `(?!discipline/)`,
+ * Tahap 13 renamed the segment, and these tests silently began measuring
+ * `/en/work/practice/consulting` as if it were one work, reporting "a portrait
+ * work is not narrower than a landscape one (614px vs 614px)": true of a
+ * filtered catalogue, and not a defect at all.
+ *
+ * So the guard becomes an assertion instead. `practiceUrlsAreGone` below fails
+ * if a practice URL ever reappears under `/work/`, which is the thing the
+ * lookahead was silently protecting.
  */
-const WORK_LOC_ALL = new RegExp(
-  String.raw`<loc>[^<]*?(/en/work/(?!${PRACTICE_SEGMENT}/)[^<]+)</loc>`,
-  'g'
-)
-const WORK_LOC = new RegExp(
-  String.raw`<loc>[^<]*?(/en/work/(?!${PRACTICE_SEGMENT}/)[^<]+)</loc>`
-)
+const WORK_LOC_ALL = /<loc>[^<]*?(\/en\/work\/[^<]+)<\/loc>/g
+const WORK_LOC = /<loc>[^<]*?(\/en\/work\/[^<]+)<\/loc>/
+
+/**
+ * The sitemap must not list a practice under `/work/`.
+ *
+ * Tahap 15 gave each practice its own page and made the old filtered URL a
+ * permanent redirect. A sitemap that still advertised the old path would ask
+ * a crawler to index a 308.
+ */
+function practiceUrlsAreGone(sitemap: string): string[] {
+  return [
+    ...sitemap.matchAll(
+      /<loc>[^<]*?(\/[a-z]{2}\/work\/practice\/[^<]+)<\/loc>/g
+    ),
+  ].map((m) => m[1] as string)
+}
 
 /** Sub-pixel rounding; two widths this close are the same width. */
 const TOLERANCE = 1.5
@@ -72,6 +91,16 @@ test.describe('media edge', () => {
     // A real slug from the sitemap rather than a hardcoded one, so this
     // cannot pass against a dataset that no longer holds it.
     const sitemap = await (await request.get('/sitemap.xml')).text()
+
+    // The guard that used to be a silent lookahead. Tahap 15 moved practices
+    // out of `/work/`; if one ever comes back, the list below would treat a
+    // filtered catalogue as a single work and report nonsense about its
+    // proportions rather than failing here.
+    expect(
+      practiceUrlsAreGone(sitemap),
+      'the sitemap lists a practice under /work/, which is now a permanent redirect'
+    ).toEqual([])
+
     const paths = [...sitemap.matchAll(WORK_LOC_ALL)].map(
       (match) => match[1] ?? ''
     )
@@ -131,6 +160,16 @@ test.describe('media edge', () => {
      * numbers are one viewport's, and the gutter is allowed to be tuned.
      */
     const sitemap = await (await request.get('/sitemap.xml')).text()
+
+    // The guard that used to be a silent lookahead. Tahap 15 moved practices
+    // out of `/work/`; if one ever comes back, the list below would treat a
+    // filtered catalogue as a single work and report nonsense about its
+    // proportions rather than failing here.
+    expect(
+      practiceUrlsAreGone(sitemap),
+      'the sitemap lists a practice under /work/, which is now a permanent redirect'
+    ).toEqual([])
+
     const paths = [...sitemap.matchAll(WORK_LOC_ALL)].map(
       (match) => match[1] ?? ''
     )

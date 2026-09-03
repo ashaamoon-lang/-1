@@ -48,15 +48,35 @@ export function isPractice(value: string | undefined): value is Practice {
 }
 
 /**
- * The URL segment that separates a filter from a work.
+ * The top-level segment that practice pages live under.
  *
- * `/work/practice/ai-data` is a filtered catalogue; `/work/rimbun` is one
- * piece of work. Without a segment between them a work whose slug happened to
- * be `ai-data` would shadow the filter, so the schema forbids that slug — and
- * it imports this constant to do it, rather than repeating the string.
+ * ## It moved in Tahap 15, and what it guards moved with it
+ *
+ * This used to be a segment *inside* `/work`: `/work/practice/ai-data` was a
+ * filtered catalogue sitting beside `/work/rimbun`, one piece of work. What it
+ * guarded was that pairing — a work whose slug happened to be `practice` would
+ * have shadowed the filter, so the schema forbade it.
+ *
+ * A practice now has a page of its own at `/practice/<value>`, and the
+ * collision is a different one: `/practice` is a static segment competing with
+ * `app/[locale]/[...slug]`, the CMS catch-all. Next resolves static segments
+ * first, so the page wins — but a CMS page published at slug `practice` would
+ * then be unreachable, silently. The schema forbids that instead.
+ *
+ * Same constant, same reason for existing: a path that is decided in one place
+ * and imported everywhere cannot drift from the guard that protects it.
  */
 export const PRACTICE_SEGMENT = 'practice'
 
+/**
+ * The locale-free path of a practice's page.
+ *
+ * Ten modules read this — the catalogue's chips, the sitemap, `/llms.txt`,
+ * `/ai`, the alternates helper, the page's own metadata. Moving a practice's
+ * URL is one edit here, which is the whole reason this module exists
+ * (`lib/seo/route-catalog.ts` and `app/[locale]/work/hrefs.ts` both compose it
+ * rather than writing the string out).
+ */
 export function practiceTemplate(value: Practice): string {
-  return `/work/${PRACTICE_SEGMENT}/${value}`
+  return `/${PRACTICE_SEGMENT}/${value}`
 }

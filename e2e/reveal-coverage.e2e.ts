@@ -62,6 +62,14 @@ const ROUTES: { path: string; minHeadings: number }[] = [
   { path: '/en/work', minHeadings: 5 },
   // The work's own title. Gallery and next-project carry no heading.
   { path: `/en/work/${FEATURED_WORK}`, minHeadings: 1 },
+  /*
+   * A practice page: its own h1, plus one h3 per work in that practice.
+   *
+   * The floor is 1 rather than a count of works, because a practice with
+   * nothing published under it renders its empty state — and that page is
+   * still supposed to reveal its nameplate.
+   */
+  { path: '/en/practice/consulting', minHeadings: 1 },
 ]
 
 interface Heading {

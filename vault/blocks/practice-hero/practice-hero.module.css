@@ -1,0 +1,56 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: mobile-vw(16px);
+  /* The measure, not the column: a nameplate that runs the full 12 columns
+     reads as a banner rather than as a subject. */
+  max-width: 60ch;
+
+  /*
+   * The nameplate holds most of the first screen, and that is a composition
+   * decision with a measured consequence.
+   *
+   * Measured before: the hero was 203px of a 720px screen and the statement
+   * below it sat at y=289 with a height of 200 — entirely above the fold. A
+   * page whose whole subject is one practice was giving that subject a
+   * quarter of the first screen, which is the same under-composition Tahap
+   * 12d measured on the home hero ("456px of ink in a 900px screen").
+   *
+   * It also decided whether the statement's scroll-scrub could work at all.
+   * With the statement fully visible on load there was no runway: all 46
+   * words resolved within 8% of the page's scroll. Pushing it just past the
+   * fold gives the scrub roughly a quarter of the document to play out in.
+   *
+   * `svh`, not `vh`: on a phone the dynamic viewport shrinks when the URL bar
+   * returns, and `vh` would leave the name clipped behind it.
+   */
+  min-height: 70svh;
+
+  @media (--desktop) {
+    gap: desktop-vw(16px);
+  }
+}
+
+.eyebrow {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+
+.name {
+  margin: 0;
+  /* Size comes from the `h1` type class; only the wrap rule is decided here.
+     A two-word practice name broken across lines reads as an accident. */
+  text-wrap: balance;
+}
+
+.intro,
+.count {
+  margin: 0;
+}
+
+.count {
+  color: var(--text-muted);
+}

@@ -36,6 +36,15 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
   { path: '/en', allow: ['three', 'gsap'], maxKb: 2100 },
   { path: '/en/work', allow: [], maxKb: 900 },
   { path: '/en/work/arus-balik', allow: [], maxKb: 900 },
+  /*
+   * A practice page opts into `gsap` and nothing else.
+   *
+   * `components/effects/progress-text` scrubs word opacity against scroll,
+   * which needs ScrollTrigger. It does **not** get three.js: the material
+   * layer is allowed on exactly one route, and adding a second would undo the
+   * Tahap 7 decision this file exists to hold.
+   */
+  { path: '/en/practice/consulting', allow: ['gsap'], maxKb: 900 },
   // The machine view. Its layout comment promises zero client components.
   { path: '/en/ai', allow: [], maxKb: 850 },
 ]

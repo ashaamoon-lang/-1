@@ -1,0 +1,29 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  /* The one section-lead token every other page uses. */
+  gap: var(--section-lead);
+  padding-block: var(--section-lead);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+}
+
+.eyebrow {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+
+.statement {
+  /* A reading measure, not the full column — the statement is prose. */
+  max-width: 60ch;
+}
+
+.placeholder {
+  color: var(--text-muted);
+}

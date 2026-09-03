@@ -107,5 +107,17 @@
     "developerResources": "Sumber untuk pengembang",
     "elsewhere": "Di tempat lain",
     "forAgents": "Untuk agen"
+  },
+  "practice": {
+    "eyebrow": "Praktik",
+    "statementEyebrow": "Cara kami mengerjakannya",
+    "nextEyebrow": "Praktik berikutnya",
+    "workEyebrow": "Karya terpilih",
+    "workTitle": "Penugasan di praktik ini",
+    "empty": "Belum ada karya terbit di praktik ini.",
+    "placeholderNote": "Teks penampung. Studio belum menulis pernyataan ini.",
+    "consultingStatement": "Penugasan konsultasi dimulai sebelum ada yang dibangun. Kami membaca sistem yang sudah ada, menyebut keputusan mana yang sebenarnya masih terbuka, dan menuliskan konsekuensi yang dibawa masing-masing — supaya pilihan yang diambil adalah pilihan yang masih bisa dipertahankan tim enam bulan kemudian.",
+    "ai-dataStatement": "Pekerjaan AI dan data dinilai di produksi, bukan di notebook. Kami membangun evaluasinya dulu, supaya ada angka yang bisa didebat; lalu pipeline, pengamannya, dan serah-terima yang membuat tim bisa menjalankannya tanpa kami.",
+    "commissionStatement": "Pesanan dilingkupi, dihargai, dan dikirim sesuai brief. Brief itu sendiri pekerjaannya: sebagian besar yang salah di penugasan berbayar sudah diputuskan — atau dibiarkan tak diputuskan — sebelum baris pertama ditulis."
   }
 }

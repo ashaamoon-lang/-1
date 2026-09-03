@@ -38,6 +38,49 @@ type CustomLinkProps = Omit<
   Omit<ComponentProps<typeof NextLink>, 'href' | 'locale'> & {
     href?: string
     onClick?: (e: MouseEvent<HTMLElement>) => void
+    /**
+     * Whether a route change lands the reader at the top of the destination.
+     *
+     * Defaults to `true`, which is also Next's own default. It was `false`
+     * here from the fork until Tahap 15b, with the comment "prevent scroll
+     * restoration warnings with fixed/sticky elements" — and that warning was
+     * never reproduced, while the cost of silencing it was severe and had no
+     * gate watching it.
+     *
+     * ## What `false` actually did
+     *
+     * Every internal navigation kept the *previous* page's scroll offset.
+     * Measured on the production build: pressing a practice from the home
+     * page's disclosure list, at scroll 3520, landed on
+     * `/en/practice/consulting` at scroll 1522 — the page's maximum, its
+     * `<h1>` 1136px above the fold. The reader asked for a page and arrived at
+     * the end of it. `/en` to a project page landed at 1047 with the title
+     * 917px out of view.
+     *
+     * ## Why it also killed the shared-element morph
+     *
+     * React only gives a `<ViewTransition>` a `view-transition-name` when the
+     * element it wraps is **inside the viewport** at commit time:
+     * `applyViewTransitionToHostInstancesRecursive` returns whether any host
+     * instance was in view, and when it was not React calls
+     * `restoreViewTransitionOnHostInstances` and drops the name again. With
+     * the destination scrolled off-screen, only the outgoing half of every
+     * pair was ever named — so the browser produced
+     * `::view-transition-old(...)` alone, with no group and no `new`, and the
+     * morph silently degraded to a cross-fade.
+     *
+     * That is why `/en/work` to a project page morphed while `/en` to the
+     * same page did not: the catalogue is short enough that the destination
+     * cover was still in view at the offset the reader carried over. The gate
+     * only ever tested the short one.
+     *
+     * ## What this does not affect
+     *
+     * Hash links. `#work` never reaches this prop's branch — `lib/i18n/paths`
+     * rejects it as non-localizable and Lenis's `anchors: true` owns same-page
+     * jumps. Measured unchanged: `#work` scrolls to 660 either way. The back
+     * button is unchanged too (the browser restores its own position).
+     */
     scroll?: boolean
     /**
      * Force new-tab behavior (target="_blank" + rel="noopener noreferrer")
@@ -177,7 +220,7 @@ export function Link({
   href,
   children,
   onClick,
-  scroll = false, // Default to false to prevent scroll restoration warnings with fixed/sticky elements
+  scroll = true,
   newTab = false,
   transition = 'cover',
   ...props

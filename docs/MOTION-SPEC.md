@@ -288,6 +288,22 @@ is the wrong register for this site — rejected for the same reason in Tahap
    The whole grammar is additive — which is what keeps the no-JS gate green.
 5. **One shared-element morph per navigation.** More than one pair is not
    legible and is very hard to time.
+6. **A morph requires the destination to open at the top.** This is not a
+   preference, it is the condition React imposes: a `<ViewTransition>` is only
+   given a `view-transition-name` when the element it wraps is **inside the
+   viewport** at commit time, and the name is stripped again when it is not
+   (`applyViewTransitionToHostInstancesRecursive` returns whether any host
+   instance is in view; its caller restores the name otherwise). So a link that
+   carries the reader's scroll offset into the next page silently downgrades
+   every morph on the site to a cross-fade — `::view-transition-old(name)` with
+   no group and no `new` half.
+
+   Measured in Tahap 15b: `components/ui/link` had shipped `scroll={false}`
+   since the fork, so pressing a practice from the home page at scroll 3520
+   opened its page at 1522 with the heading 1136px above the fold. Both the
+   landing and the morph were fixed by the same one-line change.
+   `e2e/navigation-landing.e2e.ts` holds the cause; `e2e/motion.e2e.ts` holds
+   the effect, now from a link far down the page as well as one near the top.
 
 ### 9.5 The epic-moment budget
 

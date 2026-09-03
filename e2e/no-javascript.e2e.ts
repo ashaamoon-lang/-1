@@ -103,25 +103,35 @@ test.describe('readable without JavaScript', () => {
   }
 
   for (const practice of PRACTICES) {
-    test(`/en/work/practice/${practice} renders server-side`, async ({
+    test(`/en/practice/${practice} renders server-side`, async ({
       browser,
     }) => {
+      /*
+       * The practice's own page, not the filtered catalogue it replaced.
+       *
+       * This test used to point at `/en/work/practice/<value>` and assert the
+       * filter chip's `aria-current`. Tahap 15 gave each practice a page and
+       * made that URL a permanent redirect, so the old assertion was about a
+       * control that no longer exists on the destination — a chip belongs to
+       * `/work`, and this page is not a filtered listing.
+       *
+       * What matters without JavaScript is stricter now, because the page
+       * carries prose: the statement is scrubbed word by word against scroll
+       * by `components/effects/progress-text`, and a scrub that left its words
+       * dim with JS disabled would be text nobody can read.
+       */
       const rendered = await renderWithoutJavaScript(
         browser,
-        `/en/work/practice/${practice}`
+        `/en/practice/${practice}`
       )
 
-      // No `projectLinks` assertion: a practice the studio has not published
-      // under yet legitimately renders the empty state, and this gate must not
-      // fail on a truthful empty catalogue.
       expect(rendered.headings, 'exactly one h1').toBe(1)
-      // What is asserted instead is the filter's own state. `aria-current` is
-      // set from the route segment during the server render, so finding it on
-      // the right chip proves both that this view is distinct from `/work`
-      // and that its selected state survives with no JavaScript at all — the
-      // property a client-side filter cannot have.
-      expect(rendered.activeChip, 'active chip marks this practice').toBe(
-        `/en/work/practice/${practice}`
+
+      // No `projectLinks` assertion: a practice the agency has not published
+      // under yet legitimately renders its empty state, and this gate must not
+      // fail on a truthful empty page.
+      expect(rendered.chars, `only rendered: ${rendered.text}`).toBeGreaterThan(
+        MIN_CHARS
       )
     })
   }

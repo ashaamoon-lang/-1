@@ -1,0 +1,63 @@
+.next {
+  /* The same hairline that separates the practices on the home page, so the
+     two surfaces read as one system rather than two treatments. */
+  border-top: 1px solid var(--line);
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(8px);
+  padding-block: mobile-vw(24px);
+  text-decoration: none;
+  color: inherit;
+  /*
+   * COMMIT. `global.css` supplies the `:active` transform; the transition has
+   * to be declared here because a `transition` shorthand in a shared rule
+   * replaces an element's own rather than joining it.
+   *
+   * 0.995, not the 0.97 default: this row is the full column width, and three
+   * percent of it is a lurch. Measured against the project card in Tahap 14 —
+   * the travel, not the scale, is what has to match.
+   */
+  --press-scale: 0.995;
+  transition: transform var(--duration-micro) var(--ease-out-quart);
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+    padding-block: desktop-vw(24px);
+  }
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--color-contrast);
+  outline-offset: 4px;
+}
+
+.eyebrow {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.label {
+  /* INTENT — the name answers hover, `MOTION-SPEC.md` §9. */
+  transition: color var(--duration-fast) var(--ease-out-quart);
+}
+
+@media (hover: hover) {
+  .link:hover .label {
+    color: var(--color-secondary);
+  }
+}
+
+.link:focus-visible .label {
+  color: var(--color-secondary);
+}
+
+@media (--reduced-motion) {
+  .link,
+  .label {
+    transition: none;
+  }
+}

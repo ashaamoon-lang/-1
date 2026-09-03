@@ -1,84 +1,88 @@
-import { getTranslations } from 'next-intl/server'
-import { notFound } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { locale as localeRootParam } from 'next/root-params'
 
-import { Catalogue } from '@/app/[locale]/work/catalogue'
 import {
   PRACTICES,
-  practiceTemplate,
   isPractice,
+  practiceTemplate,
 } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
-import { isLocale, routing } from '@/lib/i18n/routing'
-import { isConfigured } from '@/lib/integrations/registry'
-import { generatePageMetadata } from '@/lib/utils/metadata'
+import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 
 /**
- * `/[locale]/work/practice/[value]` — the catalogue narrowed to one
- * practice.
+ * `/[locale]/work/practice/[value]` — kept only to redirect.
  *
- * A page rather than a query string, for reasons recorded in
- * `../../catalogue.tsx`: under Cache Components a route that reads
- * `searchParams` must hide its content behind a Suspense boundary, and that
- * content then reaches the reader only through an inline script. Measured,
- * that meant `/en/work` showed no work at all with JavaScript off.
+ * ## Why this file still exists
  *
- * The three values are prerendered whether or not the studio has published
- * anything under them. An empty one renders the catalogue's empty state, not
- * a 404 — "nothing under this practice yet" and "this is not a practice we
- * have" are different
- * claims and should not share a status code.
+ * Until Tahap 15 this was the catalogue narrowed to one practice. A practice
+ * now has a page of its own at `/practice/<value>` that carries the same work
+ * plus what the filtered listing could never say — what the practice *is*.
+ *
+ * Leaving both would give one subject two URLs: an answer engine would have
+ * to pick, a reader would find two doors to the same room, and the sitemap
+ * would advertise a listing that duplicates a page. So this one redirects,
+ * permanently, and `lib/content/practices.ts` is the single place that
+ * decides where to.
+ *
+ * ## Why a route file rather than a `redirects()` entry
+ *
+ * `next.config.ts` redirects run in middleware, before the locale segment has
+ * been resolved, so the rule would have to re-implement the locale prefixing
+ * that `lib/i18n/paths.ts` already owns. Here the locale is a root param and
+ * the destination composes the same helper every link on the site uses.
+ *
+ * ## Why 308 and not 307
+ *
+ * The move is permanent and the method must not change: a crawler that has
+ * indexed the old URL should transfer its signals to the new one rather than
+ * keep both. `permanentRedirect` is the App Router's 308.
  */
-interface DisciplinePageProps {
+
+interface RedirectProps {
   params: Promise<{ value: string }>
 }
 
 /**
- * Static, complete and independent of the CMS.
- *
- * Unlike `work/[slug]`, this list is a compile-time constant, so it needs no
- * Sanity round trip, no `'use cache'` wrapper, and no empty-dataset sentinel —
- * it can never return zero results and trip the Cache Components rule that
- * "all `generateStaticParams` functions must return at least one result".
+ * The same three values the old route prerendered. Keeping them means the
+ * redirect is static rather than a dynamic miss on every crawl of a URL that
+ * is still linked from elsewhere on the internet.
  */
 export function generateStaticParams() {
   return PRACTICES.map((value) => ({ value }))
 }
 
-export default async function DisciplinePage({ params }: DisciplinePageProps) {
-  if (!isConfigured('sanity')) notFound()
-
-  const { value } = await params
-  // `dynamicParams` defaults to true, so a hand-typed
-  // `/en/work/practice/sculpture` reaches this component. It is a URL that
-  // names a category the studio does not have — a 404, not an empty grid.
-  if (!isPractice(value)) notFound()
-
-  const requested = await localeRootParam()
-  const locale = isLocale(requested) ? requested : routing.defaultLocale
-
-  return <Catalogue locale={locale} practice={value} />
+/**
+ * `permanentRedirect` under `typedRoutes: true`.
+ *
+ * The destination is composed at runtime by `localizedPath`, so its type is
+ * `string` while the parameter wants the generated `Route` union. Every path
+ * this function is given is one the app prerenders — `/en/practice/consulting`
+ * and its five siblings, from `generateStaticParams` above — but a composed
+ * string is exactly what `typedRoutes` cannot follow.
+ *
+ * `components/ui/link` resolves the same tension the same way
+ * (`href as ComponentProps<typeof NextLink>['href']`), which is why this is
+ * an idiom here rather than a one-off.
+ */
+function redirectTo(path: string): never {
+  // SAFETY: `path` always comes from `localizedPath` composed with either
+  // `/work` or `practiceTemplate(...)`. Both are routes this file's own
+  // `generateStaticParams` prerenders, so the string is a real route; only
+  // the composition hides that from the type.
+  permanentRedirect(path as Parameters<typeof permanentRedirect>[0])
 }
 
-export async function generateMetadata({ params }: DisciplinePageProps) {
+export default async function PracticeCatalogueRedirect({
+  params,
+}: RedirectProps) {
   const { value } = await params
   const requested = await localeRootParam()
-  const locale = isLocale(requested) ? requested : routing.defaultLocale
-  const t = await getTranslations('workIndex')
+  const locale: Locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  if (!isPractice(value)) {
-    // Matches the `notFound()` above. Without this the 404 would inherit the
-    // parent layout's title and be indexable under whatever was typed.
-    return generatePageMetadata({
-      title: t('title'),
-      noIndex: true,
-      url: localizedPath(locale, '/work'),
-    })
-  }
+  // A hand-typed practice the agency does not have goes to the catalogue
+  // rather than to a 404 the reader cannot act on: they asked for work, and
+  // `/work` is where all of it is.
+  if (!isPractice(value)) redirectTo(localizedPath(locale, '/work'))
 
-  return generatePageMetadata({
-    title: t(`${value}Title`),
-    description: t(`${value}Intro`),
-    url: localizedPath(locale, practiceTemplate(value)),
-  })
+  redirectTo(localizedPath(locale, practiceTemplate(value)))
 }

@@ -175,25 +175,38 @@ Chip filter di `/work` juga menunjuk ke halaman praktik, jadi tiga jalan masuk
 
 **Baru**
 
-| Berkas                                                | Untuk         |
-| ----------------------------------------------------- | ------------- |
-| `app/[locale]/practice/[value]/page.tsx`              | Halaman topik |
-| `vault/blocks/practice-hero/{index.tsx,*.module.css}` | Bagian 1      |
-| `vault/blocks/next-practice/{index.tsx,*.module.css}` | Bagian 4      |
-| `e2e/practice-page.e2e.ts`                            | Gate 15a      |
-| `docs/stages/TAHAP-15.md`                             | dokumen ini   |
+| Berkas                                                | Untuk            |
+| ----------------------------------------------------- | ---------------- |
+| `app/[locale]/practice/[value]/page.tsx`              | Halaman topik    |
+| `vault/blocks/practice-hero/{index.tsx,*.module.css}` | Bagian 1         |
+| `vault/blocks/next-practice/{index.tsx,*.module.css}` | Bagian 4         |
+| `e2e/practice-page.e2e.ts`                            | Gate 15a         |
+| `e2e/navigation-landing.e2e.ts`                       | Gate 15b (§11.2) |
+| `docs/stages/TAHAP-15.md`                             | dokumen ini      |
 
 **Diubah**
 
-| Berkas                                        | Perubahan                                         |
-| --------------------------------------------- | ------------------------------------------------- |
-| `lib/content/practices.ts`                    | `practiceTemplate()` menunjuk `/practice/<value>` |
-| `lib/seo/route-catalog.ts`                    | Entri praktik pindah; sitemap/llms/ai ikut        |
-| `app/[locale]/work/practice/[value]/page.tsx` | Jadi redirect permanen                            |
-| `app/[locale]/work/hrefs.ts`                  | Chip menunjuk halaman baru                        |
-| `vault/blocks/practice-list/index.tsx`        | Nama praktik jadi pasangan morph                  |
-| `messages/{en,id}.json`                       | String halaman praktik, dua bahasa                |
-| `docs/ROADMAP.md`                             | §1.2 dikoreksi — keputusan single-page diperluas  |
+| Berkas                                                    | Perubahan                                                            |
+| --------------------------------------------------------- | -------------------------------------------------------------------- |
+| `lib/content/practices.ts`                                | `practiceTemplate()` menunjuk `/practice/<value>`                    |
+| `app/[locale]/work/practice/[value]/page.tsx`             | Jadi redirect permanen                                               |
+| `vault/blocks/practice-list/index.tsx`                    | Nama praktik jadi pasangan morph                                     |
+| `messages/{en,id}.json`                                   | String halaman praktik, dua bahasa                                   |
+| `lib/motion/transition-name.ts`                           | Prefiks `work-cover-` → `morph-`; ia berbohong untuk pasangan baru   |
+| `components/ui/link/index.tsx`                            | `scroll` kembali ke `true` — sebab akar §11.2                        |
+| `playwright.config.ts`                                    | Gate pendaratan ikut berjalan di viewport mobile                     |
+| `e2e/motion.e2e.ts`                                       | Menyusun `transitionName` alih-alih mengetik prefiks; dua morph baru |
+| `e2e/media-edge.e2e.ts`                                   | Lookahead `(?!practice/)` mati diganti asersi eksplisit              |
+| `e2e/{no-javascript,reveal-coverage,route-budget}.e2e.ts` | Rute baru masuk cakupan                                              |
+| `docs/MOTION-SPEC.md`                                     | §9.4 aturan 6 — syarat viewport untuk morph                          |
+| `docs/ROADMAP.md`                                         | §1.2 dikoreksi — keputusan single-page diperluas                     |
+
+**Tidak perlu diubah, dan itu buktinya sumber tunggal bekerja.**
+`lib/seo/route-catalog.ts` dan `app/[locale]/work/hrefs.ts` sudah menyusun
+`practiceTemplate()`, jadi memindahkan rute di satu berkas ikut memindahkan
+sitemap, `llms.txt`, `/ai`, `alternates` dan chip katalog tanpa satu pun
+suntingan di sini. Spec ini semula mendaftarkan keduanya sebagai "diubah";
+ternyata tidak.
 
 ---
 
@@ -248,4 +261,131 @@ terbukti: dibuktikan merah dulu, dan diukur di halaman tersaji.
 
 ## 11. Hasil
 
-_Diisi saat sub-tahap dikerjakan._
+### 11.1 Tahap 15a — halaman praktik
+
+Selesai seperti dispesifikasikan. Tiga halaman di `/[locale]/practice/<value>`,
+dua bahasa; `/work/practice/<value>` jadi 308 permanen; `practiceTemplate()`
+satu-satunya tempat yang memutuskan tujuannya, jadi sitemap, `llms.txt`, `/ai`,
+`alternates` dan chip katalog ikut lewat satu suntingan.
+
+`ProgressText` akhirnya dipakai — dan pemakaian pertamanya hampir tidak
+mengerjakan apa pun. Diukur sebelum diperbaiki: **46 kata membalik serentak**,
+`min` opacity sama dengan `max` di setiap posisi scroll. Nilai bawaan
+komponen (`top top` → `bottom bottom`) mengandaikan paragraf yang lebih tinggi
+dari layar; pernyataan tiga baris membuat kedua posisi itu berjarak beberapa
+piksel dan seluruh scrub selesai dalam satu frame. `start="top 80%"`
+`end="bottom 40%"` plus `min-height: 70svh` pada hero memberi jarak scroll yang
+nyata. Tanpa pengukuran itu ia akan dikirim sebagai "ProgressText akhirnya
+dipakai" sambil diam.
+
+Dua instrumen salah bentuk lagi, dicatat bukan diperbaiki diam-diam:
+
+- `SectionHeader title=""` akan memancarkan `<h2>` kosong — `empty-heading`
+  bagi axe. Seksi yang labelnya hanya eyebrow tidak butuh heading.
+- `ProgressText` **membuang props yang tidak dikenalnya** (ia merender `span`
+  dengan `ref`, `className`, `style` saja). Penanda `data-practice-statement`
+  yang dipasang padanya akan hilang tanpa suara dan gate akan gagal terhadap
+  markup yang benar. Penanda pindah ke `<section>`.
+
+### 11.2 Tahap 15b — morph, dan cacat yang ia ungkap
+
+Mekanismenya terpasang dalam beberapa menit. Gate-nya merah, dan **merahnya
+benar**: `::view-transition-old(morph-practice-consulting)` ada, tanpa `group`
+dan tanpa `new`. Separuh yang masuk tidak pernah diberi nama.
+
+Enam eksperimen, di server dev supaya murah:
+
+| Dugaan                                             | Hasil                                      |
+| -------------------------------------------------- | ------------------------------------------ |
+| `practice-hero` harus Client Component             | Salah — tetap gagal                        |
+| Chunk WebGL beranda mengganggu                     | Salah — diblokir, tetap gagal              |
+| Prefetch belum selesai (link di dalam `<details>`) | Salah — tunggu 4 detik, sama               |
+| Navigasi lebih dalam dua tingkat                   | Salah — `/practice` → `/work` **berhasil** |
+| Nama tidak cocok di kedua ujung                    | Salah — HTML tersaji cocok                 |
+| Beranda-nya yang khusus                            | **Benar**, tapi bukan karena isinya        |
+
+Yang membedakan bukan halamannya. Yang membedakan **seberapa jauh pembaca
+sudah menggulir**.
+
+React hanya memberi `view-transition-name` pada elemen yang **berada di dalam
+viewport** saat commit: `applyViewTransitionToHostInstancesRecursive`
+mengembalikan apakah ada host instance yang terlihat, dan ketika tidak,
+pemanggilnya memanggil `restoreViewTransitionOnHostInstances` dan mencabut
+nama itu lagi. Dibaca langsung di
+`node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js`,
+bukan diduga.
+
+Dan tujuannya selalu di luar viewport, karena **`components/ui/link` memakai
+`scroll={false}` sejak fork**, dengan komentar "prevent scroll restoration
+warnings with fixed/sticky elements". Peringatan itu tidak pernah muncul sekali
+pun dalam pengukuran ini. Harganya, diukur pada build produksi:
+
+| Navigasi                                    | Mendarat di                 | `<h1>`               |
+| ------------------------------------------- | --------------------------- | -------------------- |
+| beranda (y=3520) → `/practice/consulting`   | **1522** — maksimum halaman | 1136px di atas layar |
+| beranda → `/work/arus-balik`                | **1047**                    | 917px di atas layar  |
+| `/work` → `/work/arus-balik`                | **394**                     | 264px di atas layar  |
+| `/practice/consulting` → praktik berikutnya | **1480**                    | di luar layar        |
+
+Pembaca yang meminta sebuah halaman **mendarat di ujung bawahnya.** Enam belas
+tahap gate hijau melewatkan ini karena tidak satu pun gate menanyakan ke mana
+sebuah navigasi _berakhir_ — semuanya memakai `page.goto`, yang selalu mulai
+dari nol.
+
+Itu juga menjelaskan kenapa gate morph lama hijau: `/work` menaruh grid-nya
+dekat puncak, jadi offset yang terbawa cukup kecil untuk menyisakan sampul
+tujuan di dalam viewport. Gate itu hanya pernah menguji jalur yang pendek.
+
+**Perbaikannya satu baris** — `scroll` kembali ke `true`, bawaan Next sendiri —
+dan ia memperbaiki keduanya sekaligus: pendaratan dan morph. Diverifikasi tidak
+mengubah apa pun yang lain: `#work` tetap menggulir ke 660 (Lenis `anchors:
+true` yang memilikinya, bukan prop ini), tombol back tidak berubah, dan tidak
+ada peringatan konsol baru.
+
+### 11.3 Gate
+
+Enam asersi baru, semuanya dibuktikan merah dulu dengan angkanya:
+
+| Gate                                          | Merah sebelum                                                  |
+| --------------------------------------------- | -------------------------------------------------------------- |
+| **baru** `e2e/navigation-landing.e2e.ts` (×4) | mendarat 1522 / 1047 / 394 / 1480px ke bawah                   |
+| `e2e/motion.e2e.ts` — morph nama praktik      | `no morph pair formed`, hanya `old(morph-practice-consulting)` |
+| `e2e/motion.e2e.ts` — sampul dari beranda     | `no morph pair formed`, hanya `old(morph-arus-balik)`          |
+
+Gate pendaratan juga berjalan di viewport mobile: halaman yang lebih pendek
+dari offset yang terbawa akan terpotong ke maksimumnya sendiri, jadi jarak
+terdamparnya berbeda per lebar layar.
+
+### 11.4 Yang **tidak** diperbaiki, dan kenapa
+
+**Shell instan pada rute dinamis.** Konsol dev melaporkan, pada
+`/[locale]/practice/[value]`:
+
+```
+Route "/[locale]/practice/[value]": Next.js encountered URL data during
+prerendering or a navigation. `params` … accessed outside of `<Suspense>`
+```
+
+Diukur: `/en/work/arus-balik` melaporkan hal yang sama; `/en`, `/en/work` dan
+`/en/ai` tidak. Jadi ini pola yang sudah ada pada **setiap** rute dinamis, bukan
+sesuatu yang Tahap 15a bawa. Memperbaikinya berarti menaruh `<Suspense>` di
+sekitar bagian yang membaca `params` pada dua rute — dan Tahap 9 justru
+**mencabut** batas Suspense dari rute-rute ini supaya halaman terbaca tanpa
+JavaScript (`e2e/no-javascript.e2e.ts` mendokumentasikan 28 karakter yang jadi
+1073). Kedua tuntutan itu tarik-menarik, dan itu tahap tersendiri, bukan
+sisipan diam-diam ke 15b. Dicatat, tidak dibungkam.
+
+**Tidak ada angka performa.** Tidak ada profiler yang berjalan di lingkungan
+ini; tidak ada klaim FPS atau waktu frame di mana pun dalam tahap ini
+(`CLAUDE.md` #19).
+
+### 11.5 Angka akhir
+
+```
+bun run check      exit 0    (oxlint, oxfmt, tsc, 400 unit test, manifest, assets)
+CI=true test:e2e   267 lulus, 0 gagal   (dari 257 sebelum tahap ini)
+```
+
+Build produksi bersih (`rm -rf .next`), Storybook dibangun ulang — gate
+kebasiannya menolak build lama setelah `components/ui/link` berubah, dan itu
+memang tugasnya.

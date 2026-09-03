@@ -2,6 +2,7 @@ import type { Browser, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 import { routing } from '../lib/i18n/routing'
+import { transitionName } from '../lib/motion/transition-name'
 import { FEATURED_WORK } from './fixtures'
 
 /**
@@ -299,11 +300,35 @@ test.describe('motion', () => {
    * always says `none`. A test that checked the settled DOM would pass
    * whether or not a morph ever happened.
    */
-  async function captureMorph(page: Page, from: string, to: string) {
+  async function captureMorph(
+    page: Page,
+    from: string,
+    to: string,
+    /**
+     * Run before the link is clicked.
+     *
+     * The practice pair's link lives inside a closed `<details>`, so it is not
+     * clickable until the disclosure is opened — the same thing a reader does
+     * before pressing it.
+     */
+    prepare?: (page: Page) => Promise<void>
+  ) {
     await page.goto(from)
     await page.waitForTimeout(1500)
+    if (prepare) await prepare(page)
 
-    await page.evaluate(() => {
+    /*
+     * The prefix is passed in rather than typed out inside the page.
+     *
+     * It used to be the literal `work-cover`, in four places here, while
+     * `lib/motion/transition-name.ts` owned the real one — so renaming the
+     * prefix would have left this gate looking for a name nothing emits, and
+     * it would have reported "no morph pair formed" about a morph that was
+     * working. That is the same drift the sitemap's `(?!discipline/)`
+     * lookahead produced in Tahap 13. The page cannot import, so the value
+     * crosses the boundary as an argument.
+     */
+    await page.evaluate((namePrefix: string) => {
       const record: typeof globalThis.__morph = {
         calls: 0,
         names: [],
@@ -331,7 +356,7 @@ test.describe('motion', () => {
               effect instanceof KeyframeEffect ? effect.pseudoElement : null
             if (!pseudo) continue
             record.pseudo.push(pseudo)
-            if (pseudo.includes('group(work-cover')) {
+            if (pseudo.includes(`group(${namePrefix}`)) {
               record.durations.push(
                 Number(effect?.getComputedTiming().duration ?? 0)
               )
@@ -342,7 +367,7 @@ test.describe('motion', () => {
         requestAnimationFrame(sample)
         return transition
       }
-    })
+    }, transitionName(''))
 
     await page.locator(`a[href="${to}"]`).first().click()
     await page.waitForURL(`**${to.replace(/^\/[a-z]{2}/, '')}`)
@@ -368,7 +393,7 @@ test.describe('motion', () => {
 
     expect(morph.calls, 'no view transition was started').toBeGreaterThan(0)
     expect(morph.names, 'the shared name was never applied').toContain(
-      `work-cover-${FEATURED_WORK}`
+      transitionName(FEATURED_WORK)
     )
 
     /*
@@ -378,7 +403,7 @@ test.describe('motion', () => {
      * difference between the cover moving and the cover being replaced.
      */
     const group = morph.pseudo.filter((p) =>
-      p.includes(`view-transition-group(work-cover-${FEATURED_WORK})`)
+      p.includes(`view-transition-group(${transitionName(FEATURED_WORK)})`)
     )
     expect(
       group.length,
@@ -388,11 +413,54 @@ test.describe('motion', () => {
     for (const half of ['old', 'new']) {
       expect(
         morph.pseudo.some((p) =>
-          p.includes(`view-transition-${half}(work-cover-${FEATURED_WORK})`)
+          p.includes(
+            `view-transition-${half}(${transitionName(FEATURED_WORK)})`
+          )
         ),
         `the ${half} half of the pair is missing`
       ).toBe(true)
     }
+  })
+
+  test('the same cover morphs from the home page, far down it', async ({
+    page,
+  }) => {
+    /*
+     * The case the catalogue test could not see, and the reason Tahap 15b
+     * found a defect at all.
+     *
+     * `/en/work` puts its grid near the top, so a reader pressing a card there
+     * carried a small scroll offset into the project page — small enough that
+     * the destination cover was still inside the viewport, which is the only
+     * condition under which React keeps a `view-transition-name` on the
+     * entering half (`applyViewTransitionToHostInstancesRecursive` returns
+     * whether any host instance is in view, and the caller strips the name
+     * when it is not).
+     *
+     * The home page's featured grid sits about a thousand pixels down. With
+     * `components/ui/link` still defaulting to `scroll={false}`, the project
+     * page opened at that same offset, its cover 917px above the fold, and the
+     * morph degraded to `::view-transition-old(...)` alone — no group, no new
+     * half, no movement. Measured, not inferred.
+     *
+     * Same assertion as the catalogue test, from a place where it used to
+     * fail.
+     */
+    const morph = await captureMorph(page, '/en', `/en/work/${FEATURED_WORK}`)
+
+    expect(morph.calls, 'no view transition was started').toBeGreaterThan(0)
+
+    const name = transitionName(FEATURED_WORK)
+    expect(morph.names, 'the shared name was never applied').toContain(name)
+    expect(
+      morph.pseudo.filter((p) => p.includes(`view-transition-group(${name})`))
+        .length,
+      `no morph pair formed; pseudo-elements seen: ${morph.pseudo.join(', ')}`
+    ).toBeGreaterThan(0)
+    expect(
+      morph.pseudo.some((p) => p.includes(`view-transition-new(${name})`)),
+      'the entering half of the pair is missing — the destination was scrolled out of view'
+    ).toBe(true)
   })
 
   test('the overlay stands aside for a morph', async ({ page }) => {
@@ -429,6 +497,47 @@ test.describe('motion', () => {
       states,
       `overlay animated during a morph: ${states.join(', ')}`
     ).toEqual(['idle'])
+  })
+
+  test('a practice name morphs into its own page', async ({ page }) => {
+    /*
+     * The second pair on the site, added in Tahap 15.
+     *
+     * `ui-ux-pro-max` is explicit that a navigation should morph one pair and
+     * no more — "compounding Flips are hard to time correctly". So this
+     * asserts a pair formed, exactly as the work-cover test does, rather than
+     * asserting that several things moved.
+     *
+     * The name travelling is not the element pressed: the link sits in the
+     * disclosure's panel, the `<h3>` above it carries the shared name. That is
+     * the same arrangement as a work card, where the link is pressed and the
+     * cover travels.
+     */
+    const morph = await captureMorph(
+      page,
+      '/en',
+      '/en/practice/consulting',
+      async (p) => {
+        // Open the disclosure, then let its panel finish arriving so the link
+        // is not still moving when it is clicked.
+        await p.locator('#practice summary').first().click()
+        await p.waitForTimeout(700)
+      }
+    )
+
+    expect(morph.calls, 'no view transition was started').toBeGreaterThan(0)
+
+    const name = transitionName('practice-consulting')
+    expect(morph.names, 'the shared name was never applied').toContain(name)
+
+    // A `group` pseudo-element exists only when the browser matched an old and
+    // a new element under one name — the difference between the name moving
+    // and the two screens crossfading.
+    expect(
+      morph.pseudo.filter((p) => p.includes(`view-transition-group(${name})`))
+        .length,
+      `no morph pair formed; pseudo-elements seen: ${morph.pseudo.join(', ')}`
+    ).toBeGreaterThan(0)
   })
 
   test('a double click leaves nothing covering the page', async ({ page }) => {
