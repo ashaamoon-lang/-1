@@ -1,0 +1,113 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+  padding-block: calc(var(--header-height) + mobile-vw(48px)) mobile-vw(96px);
+  padding-inline: var(--safe);
+
+  @media (--desktop) {
+    padding-block: calc(var(--header-height) + desktop-vw(80px))
+      desktop-vw(160px);
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(20px);
+}
+
+.meta {
+  margin: 0;
+  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: desktop-vw(10px);
+  font-variant-numeric: tabular-nums;
+}
+
+.practice {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+/*
+ * A separator, because two mono labels with a gap between them read as one
+ * string: "February 11, 2026 CONSULTING". The middot is the site's own
+ * convention — `vault/blocks/project-card` already joins engagement, client
+ * and year with it, so this is reusing a decision rather than making one.
+ */
+.practice::before {
+  content: '·';
+  margin-inline-end: desktop-vw(8px);
+  color: var(--text-muted);
+}
+
+.title {
+  margin: 0;
+  /*
+   * A title measure, not the full column. An `h1` at display size running the
+   * whole twelve columns gives lines nobody can track back to the start of.
+   */
+  max-width: 18ch;
+}
+
+.summary {
+  margin: 0;
+  max-width: 52ch;
+  color: var(--text-muted);
+}
+
+/* ── The prose ────────────────────────────────────────────────────────── */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(24px);
+  border-top: 1px solid var(--line);
+  padding-block-start: var(--section-lead);
+}
+
+.paragraph {
+  margin: 0;
+  /*
+   * The reading measure. 65 characters is the figure every typographic manual
+   * lands near, and the one place on this site where it matters most: the
+   * other pages are indexes and fact lists, this is the only long read.
+   */
+  max-width: 65ch;
+}
+
+/* ── Next ─────────────────────────────────────────────────────────────── */
+
+.next {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(10px);
+  border-top: 1px solid var(--line);
+  padding-block-start: var(--section-lead);
+}
+
+.nextEyebrow {
+  margin: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.nextTitle {
+  margin: 0;
+  max-width: 22ch;
+}
+
+.nextLink {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+.nextLink:hover,
+.nextLink:focus-visible {
+  opacity: 0.7;
+}

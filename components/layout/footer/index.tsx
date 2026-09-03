@@ -66,6 +66,7 @@ export function Footer() {
    */
   const tNav = useTranslations('nav')
   const tWork = useTranslations('workIndex')
+  const tJournal = useTranslations('journal')
   return (
     // No `id="contact"`. The home page's Contact section owns that id, and two
     // elements sharing one is a `duplicate-id` violation — which now fails the
@@ -121,6 +122,11 @@ export function Footer() {
             <li>
               <Link href="/studio" className={cn('caption', s.link)}>
                 {tNav('studio')}
+              </Link>
+            </li>
+            <li>
+              <Link href="/journal" className={cn('caption', s.link)}>
+                {tJournal('title')}
               </Link>
             </li>
             {PRACTICES.map((value) => (

@@ -168,5 +168,13 @@
     },
     "closing": "Karyanya adalah argumennya. Mulai dari sana.",
     "closingAction": "Lihat karyanya"
+  },
+  "journal": {
+    "eyebrow": "Jurnal",
+    "title": "Jurnal",
+    "intro": "Catatan tentang bagaimana pekerjaan dilingkupi, diputuskan, dan dikirim. Metode, bukan pengumuman.",
+    "nextEyebrow": "Entri berikutnya",
+    "emptyTitle": "Belum ada yang diterbitkan di sini.",
+    "emptyBody": "Studio menulis ketika ada yang layak dituliskan, dan itu bukan setiap minggu."
   }
 }

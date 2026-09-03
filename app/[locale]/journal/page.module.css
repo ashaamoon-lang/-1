@@ -1,0 +1,170 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+  /* Clear the fixed header, then the page's own rhythm — the catalogue's
+     expression, and the one Tahap 25 found the studio page was missing. */
+  padding-block: calc(var(--header-height) + mobile-vw(48px)) mobile-vw(96px);
+  padding-inline: var(--safe);
+
+  @media (--desktop) {
+    padding-block: calc(var(--header-height) + desktop-vw(80px))
+      desktop-vw(160px);
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(20px);
+}
+
+.eyebrow {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+
+.title {
+  margin: 0;
+}
+
+.intro {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--text-muted);
+}
+
+/* ── The index ────────────────────────────────────────────────────────── */
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+/*
+ * A typographic index, not a card grid.
+ *
+ * The work catalogue is already a grid of plates, and repeating that shape
+ * here would make the site one template applied twice. A journal is a list of
+ * headlines with dates, which is what a periodical index has looked like for
+ * a very long time, and the form carries the meaning: these are in order, and
+ * the newest is first.
+ */
+.entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: mobile-vw(8px);
+  border-top: 1px solid var(--line);
+  padding-block: mobile-vw(24px);
+
+  @media (--desktop) {
+    /*
+     * Date left, everything else in the reading column. `minmax(0, 1fr)`
+     * rather than a bare `1fr`, so a long unbroken title cannot push the row
+     * wider than its track.
+     */
+    grid-template-columns:
+      calc((100% - var(--gap) * 11) / 12 * 3 + var(--gap) * 2)
+      minmax(0, 1fr);
+    column-gap: var(--gap);
+    align-items: start;
+    padding-block: desktop-vw(32px);
+  }
+}
+
+.date {
+  margin: 0;
+  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: desktop-vw(8px);
+  font-variant-numeric: tabular-nums;
+}
+
+.practice {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+/*
+ * A separator, because two mono labels with a gap between them read as one
+ * string: "February 11, 2026 CONSULTING". The middot is the site's own
+ * convention — `vault/blocks/project-card` already joins engagement, client
+ * and year with it, so this is reusing a decision rather than making one.
+ */
+.practice::before {
+  content: '·';
+  margin-inline-end: desktop-vw(8px);
+  color: var(--text-muted);
+}
+
+.entryTitle {
+  margin: 0;
+  min-width: 0;
+
+  @media (--desktop) {
+    grid-column: 2;
+  }
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+  /* Only transform and opacity move — `CLAUDE.md` #4. */
+  display: inline-block;
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+/*
+ * The whole row is the target, while the accessible name stays the title.
+ *
+ * Wrapping the date, the title and the summary in one anchor would give it an
+ * accessible name of all three read as a sentence. Stretching the title's own
+ * link over the row keeps the name right and the target large — and the row
+ * is `position: relative` above precisely to be this pseudo-element's
+ * containing block.
+ */
+.link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.entry:hover .link,
+.link:focus-visible {
+  opacity: 0.7;
+}
+
+.summary {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-muted);
+
+  @media (--desktop) {
+    grid-column: 2;
+  }
+}
+
+/* ── The designed absence ─────────────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(12px);
+  border-top: 1px solid var(--line);
+  padding-block-start: var(--section-lead);
+}
+
+.emptyTitle {
+  margin: 0;
+  max-width: 40ch;
+}
+
+.emptyBody {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 52ch;
+}

@@ -168,5 +168,13 @@
     },
     "closing": "The work is the argument. Start there.",
     "closingAction": "See the work"
+  },
+  "journal": {
+    "eyebrow": "Journal",
+    "title": "Journal",
+    "intro": "Notes on how the work gets scoped, decided and delivered. Method rather than announcements.",
+    "nextEyebrow": "Next entry",
+    "emptyTitle": "Nothing published here yet.",
+    "emptyBody": "The studio writes when there is something worth writing down, which is not every week."
   }
 }

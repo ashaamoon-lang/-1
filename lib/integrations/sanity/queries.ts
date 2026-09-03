@@ -104,6 +104,50 @@ const projectCardFields = `
  */
 const isListed = `_type == "project" && listed != false`
 
+/**
+ * Journal entries.
+ *
+ * `listed != false` matches the projects' rule and for the same reason: the
+ * field is absent on anything written before it existed, so a missing value
+ * has to mean listed or every existing document would vanish.
+ *
+ * The index does **not** project `body`. An index that fetched every entry's
+ * full Portable Text would grow with the archive while showing none of it —
+ * the entry route fetches its own.
+ */
+const isListedEntry = `_type == "journalEntry" && listed != false`
+
+const localizedSummary = `"summary": coalesce(summary[_key == $locale][0].value, summary[_key == "en"][0].value)`
+
+const journalCardFields = `
+  _id,
+  "slug": slug.current,
+  date,
+  practice,
+  ${localizedTitle},
+  ${localizedSummary}
+`
+
+/** The journal index, newest first. */
+export const journalEntriesQuery = defineQuery(`
+  *[${isListedEntry}] | order(date desc) {
+    ${journalCardFields}
+  }
+`)
+
+/** One entry, with its body. */
+export const journalEntryQuery = defineQuery(`
+  *[${isListedEntry} && slug.current == $slug][0] {
+    ${journalCardFields},
+    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)
+  }
+`)
+
+/** Slugs for `generateStaticParams`. */
+export const journalSlugsQuery = defineQuery(`
+  *[${isListedEntry}].slug.current
+`)
+
 /** Every listed project, in curated order. */
 export const projectsQuery = defineQuery(`
   *[${isListed}] | order(order asc, publishedAt desc) {

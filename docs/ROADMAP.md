@@ -1719,6 +1719,52 @@ dinaikkan.
 
 ---
 
+## Tahap 26 — Journal, dan nol kosakata gerak baru ✅
+
+> Spec: [`docs/stages/TAHAP-26.md`](./stages/TAHAP-26.md)
+
+Fase 3. Empat rute baru (indeks dan entri, dua bahasa), skema `journalEntry`
+terdaftar dengan tiga query, dan **nol byte ditulis ke dataset**.
+
+Scaffold menulis "skema baru". Skemanya dibuat — itu arsitektur yang benar dan
+ia tidak menulis apa pun. Yang **tidak** dilakukan: menaruh entri contoh ke
+dalam dataset, yang bernama `production`. Proyek ini sudah menghadapi kasus
+persis ini di `lib/content/home-fallback.ts` dan sudah memutuskan: perancah di
+kode, CMS menang seluruhnya, jangan pernah menaruh karangan ke pustaka konten
+yang nyata. Kontraknya **diuji unit**, bukan diniatkan.
+
+**Sebuah pintu yang Tahap 10 tutup dibuka lagi, dan itu disebut.** Starter
+Satūs mengirim tipe `article` dan Tahap 10 menghapusnya karena ia "blog
+lengkap di situs studio yang tidak menulis" yang tak pernah diberitahukan ke
+siapa pun. `journalEntry` berbeda dalam tiga hal, ketiganya ditulis di dalam
+skemanya: ia diminta, ia punya rute dan halaman yang dirender di hari ia
+dikirim, dan ia didokumentasikan. Kalau ketiganya berhenti benar, ia harus
+pergi seperti `article` pergi.
+
+**Gerak: nol kosakata baru, dan itu keputusan.** Tahap 25 baru saja
+menghabiskan satu tahap mengukur dua peredupan yang gagal WCAG; menambahkan
+gerak keenam di tahap berikutnya adalah cara koherensi yang baru dibayar mahal
+itu hilang. Kedua halaman memakai `TextReveal`, `Reveal`, dan tata bahasa
+INTENT yang sudah ada. §9.5 mengizinkan dua momen berkoreografi; keduanya
+memakai **nol**. Ringkasan tidak disembunyikan di balik hover — indeks yang
+isinya hanya muncul saat ditunjuk tidak bisa dipakai dengan keyboard.
+
+**Dua penolakan lint diperbaiki dengan mengubah bentuk, bukan membungkam:**
+type assertion diganti type guard (`PRACTICES.some`), dan anotasi `Record`
+diganti `satisfies`.
+
+Satu cacat ditemukan **dengan mata**: tanggal dan praktik menyatu jadi satu
+string. Diberi pemisah `·` — konvensi yang kartu proyek sudah punya.
+
+e2e **351 lulus, 0 gagal**, 18 dilewati · unit **417** (dari 410) · `check`
+exit 0 · ponsel tanpa overflow.
+
+Satu celah **disengaja dan disebut** (§8.8): rute entri membaca perancah saja;
+cabang CMS-nya menunggu dokumen pertama supaya tidak ditulis buta terhadap
+bentuk Portable Text yang belum pernah ada.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

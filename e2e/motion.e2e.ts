@@ -688,6 +688,8 @@ test.describe('motion', () => {
 const SPLIT_HEADING_ROUTES = [
   '/en',
   '/id',
+  '/en/journal',
+  '/en/journal/scope-is-the-deliverable',
   '/en/studio',
   '/en/work',
   `/en/work/${FEATURED_WORK}`,

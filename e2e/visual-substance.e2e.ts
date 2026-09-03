@@ -46,6 +46,8 @@ declare global {
 
 const GUTTER_ROUTES = [
   '/en',
+  '/en/journal',
+  '/en/journal/scope-is-the-deliverable',
   '/en/studio',
   '/en/work',
   `/en/work/${FEATURED_WORK}`,

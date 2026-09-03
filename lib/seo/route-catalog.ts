@@ -97,6 +97,16 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
     priority: 0.5,
   },
   {
+    path: '/journal',
+    label: { en: 'Journal', id: 'Jurnal' },
+    description: {
+      en: 'Notes on how the studio scopes, decides and delivers — method rather than announcements.',
+      id: 'Catatan tentang bagaimana studio menentukan lingkup, memutuskan, dan mengirim — metode, bukan pengumuman.',
+    },
+    changeFrequency: 'weekly',
+    priority: 0.6,
+  },
+  {
     path: '/studio',
     label: { en: 'Studio', id: 'Studio' },
     description: {

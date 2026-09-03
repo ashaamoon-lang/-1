@@ -118,6 +118,13 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * nothing on this route has asked for a scene.
    */
   { path: '/en/studio', allow: ['gsap'], maxKb: 900 },
+  /*
+   * The journal, index and entry. Both opt into `gsap` for one thing only:
+   * `TextReveal` on their `h1`, which is the entrance vocabulary every route
+   * with a heading now speaks. Neither carries a choreographed moment.
+   */
+  { path: '/en/journal', allow: ['gsap'], maxKb: 900 },
+  { path: '/en/journal/scope-is-the-deliverable', allow: ['gsap'], maxKb: 900 },
   // The machine view. Its layout comment promises zero client components.
   { path: '/en/ai', allow: [], maxKb: 850 },
 ]

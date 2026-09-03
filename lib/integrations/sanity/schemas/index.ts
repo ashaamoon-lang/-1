@@ -19,6 +19,7 @@
 import type { SchemaTypeDefinition } from 'sanity'
 
 // Import all schema definitions
+import { journalEntry } from './journalEntry'
 import { link } from './link'
 import { metadata } from './metadata'
 import { page } from './page'
@@ -27,7 +28,7 @@ import { richText } from './richText'
 import { studioSettings } from './studioSettings'
 
 // Re-export all schemas for convenience
-export { link, metadata, page, project, richText, studioSettings }
+export { journalEntry, link, metadata, page, project, richText, studioSettings }
 
 // Schema collection for Sanity configuration
 export const schema = {
@@ -42,6 +43,7 @@ export const schema = {
     // `fieldTypes` list. Declaring them again would collide.
 
     // Document types (content pages)
+    journalEntry,
     page,
     project,
 

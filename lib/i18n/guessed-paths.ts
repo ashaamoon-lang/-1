@@ -66,15 +66,14 @@ const GUESSED_SEGMENTS = new Map([
 /**
  * Single segments that already resolve, so a guess must never shadow them.
  *
- * `work`, `ai` and — since Tahap 24 built `app/[locale]/studio/page.tsx` —
- * `studio`. The one still absent is `practice`, and the distinction is worth
+ * `work`, `ai`, `studio` (Tahap 24) and `journal` (Tahap 26). The one still absent is `practice`, and the distinction is worth
  * stating: `/en/practice` alone 404s, because the route is `practice/[value]`,
  * which this function never sees (it matches two path parts only).
  *
  * Kept as data so `guessed-paths.test.ts` can assert the two lists never
  * name the same segment.
  */
-export const REAL_SEGMENTS = new Set(['work', 'ai', 'studio'])
+export const REAL_SEGMENTS = new Set(['work', 'ai', 'studio', 'journal'])
 
 /** Every key the table answers to. Exported for the unit test. */
 export const GUESSED_KEYS = [...GUESSED_SEGMENTS.keys()]

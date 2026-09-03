@@ -99,6 +99,27 @@ export type InternationalizedArrayText = Array<
   } & InternationalizedArrayTextValue
 >;
 
+export type JournalEntry = {
+  _id: string;
+  _type: "journalEntry";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: InternationalizedArrayString;
+  slug?: Slug;
+  date?: string;
+  summary?: InternationalizedArrayText;
+  body?: InternationalizedArrayRichText;
+  practice?: "consulting" | "ai-data" | "commission";
+  listed?: boolean;
+};
+
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
+};
+
 export type RichText = Array<
   | {
       children?: Array<{
@@ -190,12 +211,6 @@ export type Project = {
   span?: 6 | 12;
   publishedAt?: string;
   metadata?: Metadata;
-};
-
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
 };
 
 export type Page = {
@@ -336,12 +351,13 @@ export type AllSanitySchemaTypes =
   | SanityImageHotspot
   | InternationalizedArrayRichText
   | InternationalizedArrayText
+  | JournalEntry
+  | Slug
   | RichText
   | PageReference
   | ProjectReference
   | Link
   | Project
-  | Slug
   | Page
   | InternationalizedArrayRichTextValue
   | InternationalizedArrayTextValue
@@ -432,6 +448,36 @@ export type PageQueryResult = {
   publishedAt: string | null;
   _updatedAt: string;
 } | null;
+
+// Source: queries.ts
+// Variable: journalEntriesQuery
+// Query: *[_type == "journalEntry" && listed != false] | order(date desc) {      _id,  "slug": slug.current,  date,  practice,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "summary": coalesce(summary[_key == $locale][0].value, summary[_key == "en"][0].value)  }
+export type JournalEntriesQueryResult = Array<{
+  _id: string;
+  slug: string | null;
+  date: string | null;
+  practice: "ai-data" | "commission" | "consulting" | null;
+  title: string | null;
+  summary: string | null;
+}>;
+
+// Source: queries.ts
+// Variable: journalEntryQuery
+// Query: *[_type == "journalEntry" && listed != false && slug.current == $slug][0] {      _id,  "slug": slug.current,  date,  practice,  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "summary": coalesce(summary[_key == $locale][0].value, summary[_key == "en"][0].value),    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)  }
+export type JournalEntryQueryResult = {
+  _id: string;
+  slug: string | null;
+  date: string | null;
+  practice: "ai-data" | "commission" | "consulting" | null;
+  title: string | null;
+  summary: string | null;
+  body: RichText | null;
+} | null;
+
+// Source: queries.ts
+// Variable: journalSlugsQuery
+// Query: *[_type == "journalEntry" && listed != false].slug.current
+export type JournalSlugsQueryResult = Array<string | null>;
 
 // Source: queries.ts
 // Variable: projectsQuery
@@ -644,6 +690,9 @@ import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult;
+    '\n  *[_type == "journalEntry" && listed != false] | order(date desc) {\n    \n  _id,\n  "slug": slug.current,\n  date,\n  practice,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "summary": coalesce(summary[_key == $locale][0].value, summary[_key == "en"][0].value)\n\n  }\n': JournalEntriesQueryResult;
+    '\n  *[_type == "journalEntry" && listed != false && slug.current == $slug][0] {\n    \n  _id,\n  "slug": slug.current,\n  date,\n  practice,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "summary": coalesce(summary[_key == $locale][0].value, summary[_key == "en"][0].value)\n,\n    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)\n  }\n': JournalEntryQueryResult;
+    '\n  *[_type == "journalEntry" && listed != false].slug.current\n': JournalSlugsQueryResult;
     '\n  *[_type == "project" && listed != false] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  practice,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': ProjectsQueryResult;
     '\n  *[_type == "project" && listed != false && featured == true] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  practice,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': FeaturedProjectsQueryResult;
     '\n  *[_type == "project" && listed != false && ($practice == null || practice == $practice)]\n    | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  practice,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': WorkIndexQueryResult;
