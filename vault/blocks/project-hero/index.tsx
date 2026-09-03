@@ -12,6 +12,7 @@ import {
 } from '@/lib/integrations/sanity/utils/image'
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
 import { isFullWidth } from '@/vault/blocks/project-gallery'
+import { TextReveal } from '@/vault/motion/text-reveal'
 
 import s from './project-hero.module.css'
 
@@ -105,9 +106,15 @@ export function ProjectHero({
        */
       data-cover={coverSpan}
     >
-      <h1 data-reveal-item className={cn('h1', s.title)}>
+      {/*
+        Line-by-line behind a mask, the same entrance the home hero uses.
+        Safe here specifically because this `h1` sits *outside* the
+        `ViewTransition` below — the practice page's heading, which is inside
+        one, deliberately keeps its plain form (`docs/stages/TAHAP-23.md` §3.2).
+      */}
+      <TextReveal as="h1" split="lines" className={cn('h1', s.title)}>
         {title}
-      </h1>
+      </TextReveal>
 
       {coverRatio !== undefined && cover && (
         /*

@@ -1573,6 +1573,52 @@ justru saat fiturnya hilang. Diperbaiki lalu dibuktikan bisa merah.
 
 ---
 
+## Tahap 23 — Satu kosakata masuk, diucapkan di setiap halaman ✅
+
+> Spec: [`docs/stages/TAHAP-23.md`](./stages/TAHAP-23.md)
+
+Fase 1 dari scaffold. Scaffold-nya menulis bahwa `text-reveal` dan `magnetic`
+punya nol konsumen dan tinggal dikirim; memeriksanya dengan benar menunjukkan
+**keduanya sudah terkirim** — di `vault/blocks/hero`, yang render di beranda.
+Yang benar-benar menganggur ternyata `components/ui/marquee`.
+
+Setelah premisnya diperbaiki, cacat yang sebenarnya kelihatan: situs ini punya
+**dua kosakata masuk**. Beranda menaikkan `h1`-nya baris demi baris di balik
+mask; katalog, halaman proyek, dan halaman praktik memakai reveal blok
+generik. Gerakan yang mahal hidup di satu rute dan sisanya dapat default —
+kebalikan persis dari standar yang `CLAUDE.md` tutup dengan, bahwa yang
+membedakan situs award adalah **pengendalian diri yang diterapkan konsisten**.
+
+`TextReveal` kini membawa `h1` katalog dan halaman proyek. Halaman praktik
+sengaja tidak: `h1`-nya di dalam `<ViewTransition share="morph">` — seluruh
+hasil Tahap 15b — dan SplitText mengganti persis node yang morph itu potret.
+
+**Angka:** +120 KB per rute (751 → 871 dan 746 → 866), yaitu GSAP,
+ScrollTrigger, dan SplitText tiba di rute yang sebelumnya tidak membawanya.
+Kenaikan anggaran **diizinkan pemilik proyek dan tidak dipakai** — keduanya
+tetap di bawah plafon 900 yang sudah ada, sisa ~30 KB. Yang berubah cuma
+daftar `allow`, dan itu memang keputusan yang berkas anggaran jaga.
+
+e2e **319 → 323 lulus** · unit 410 · `check` exit 0 · storybook 92 ·
+`journey.e2e.ts` lulus, jadi split ini tidak mematahkan morph mana pun.
+
+**Dua rencana ditolak oleh pengukuran, bukan dikecilkan diam-diam.**
+`Magnetic` tidak diperluas: ketiga kandidatnya elemen selebar kolom
+(`block`/`flex`, sampai 440px tinggi) sementara `.magnetic` `inline-block` —
+membungkusnya menciutkan tata letak, dan pada tautan email ia meniadakan
+pembungkusan baris yang komentarnya sendiri lindungi. Parallax tidak dipasang
+pada karyanya: gambar galeri mengisi kotaknya persis, jadi menggesernya
+menuntut membesarkan gambar — **memotong karya supaya efeknya punya ruang**,
+yang persis argumen `MAX_DISPLACEMENT` proyek ini sendiri.
+
+**Tiga premis salah dicatat di §8.6**, termasuk satu "cacat" yang saya
+laporkan dan ternyata bukan (chip filter bernavigasi ke halaman praktik lewat
+`permanentRedirect`, jadi `h1` yang saya ukur memang sengaja tidak displit),
+dan satu komentar yang saya tulis memuat klaim palsu tentang `key` — diperbaiki
+alih-alih dibiarkan.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

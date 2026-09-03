@@ -13,6 +13,7 @@ import {
 import { PracticeFilter } from '@/vault/blocks/practice-filter'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
 import { Reveal } from '@/vault/motion/reveal'
+import { TextReveal } from '@/vault/motion/text-reveal'
 
 import { practiceHref } from './hrefs'
 
@@ -122,9 +123,30 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
           <p data-reveal-item className="caption">
             {t('eyebrow')}
           </p>
-          <h1 data-reveal-item className="h1">
+          {/*
+            The heading enters the way the home hero's does, rather than as
+            one more block in the container's stagger — `docs/stages/TAHAP-23.md`.
+
+            `key` guards a path that is not currently reachable, and that is
+            worth stating rather than implying. `TextReveal` hands its text to
+            SplitText, which takes ownership of the rendered text nodes, so a
+            changing string has to remount rather than update in place. But
+            the only caller (`app/[locale]/work/page.tsx:37`) passes
+            `practice={null}`, and the practice chips navigate to
+            `/[locale]/practice/<value>` — measured — because
+            `work/practice/[value]/page.tsx` is a `permanentRedirect` left
+            from before Tahap 15a gave practices their own pages. So the
+            filtered branch below never renders today. The key costs nothing
+            and makes reviving it safe.
+          */}
+          <TextReveal
+            key={practice ?? 'all'}
+            as="h1"
+            split="lines"
+            className="h1"
+          >
             {practice ? t(`${practice}Title`) : t('title')}
-          </h1>
+          </TextReveal>
           <p data-reveal-item className={s.intro}>
             {practice ? t(`${practice}Intro`) : t('intro')}
           </p>

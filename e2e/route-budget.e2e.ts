@@ -48,10 +48,14 @@ import { expect, test } from '@playwright/test'
  * | ------------------------- | -------- | ------ | -------- |
  * | `/en`                     | 1899 KB  | 2100   | 201      |
  * | `/id`                     | 1899 KB  | 2100   | 201      |
- * | `/en/work`                |  751 KB  |  900   | 149      |
- * | `/en/work/arus-balik`     |  746 KB  |  900   | 154      |
+ * | `/en/work`                |  871 KB  |  900   | 29       |
+ * | `/en/work/arus-balik`     |  866 KB  |  900   | 34       |
  * | `/en/practice/consulting` |  874 KB  |  900   | **26**   |
  * | `/en/ai`                  |  706 KB  |  850   | 144      |
+ *
+ * `/en/work` and its project page were 751/746 KB before Tahap 23 added the
+ * shared heading entrance; the +120 KB each is GSAP arriving. **No ceiling
+ * was raised for it** — see their entry below.
  *
  * **No ceiling was raised in Tahap 22.** Raising a budget for weight that
  * does not exist yet is how a budget stops meaning anything; Fase 6 raises
@@ -76,8 +80,25 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * one language is checking half of what it ships.
    */
   { path: '/id', allow: ['three', 'gsap'], maxKb: 2100 },
-  { path: '/en/work', allow: [], maxKb: 900 },
-  { path: '/en/work/arus-balik', allow: [], maxKb: 900 },
+  /*
+   * The catalogue and a project page opt into `gsap` as of Tahap 23.
+   *
+   * Their `h1` now enters the way the home hero's does — line by line behind
+   * a mask, through `vault/motion/text-reveal` — so that the site has one
+   * entrance vocabulary instead of an expensive one on the home page and the
+   * generic block reveal everywhere else.
+   *
+   * It cost **+120 KB** each, measured: 751 → 871 and 746 → 866. That is
+   * GSAP, ScrollTrigger and SplitText arriving on routes that carried none.
+   *
+   * The ceiling did **not** move. Tahap 23 was authorised to raise budgets
+   * and did not need to: both routes still sit under the 900 they already
+   * had, with ~30 KB left. What changed is the `allow` list, which is the
+   * decision this file actually protects — a route paying for a library is a
+   * choice, and it is written here.
+   */
+  { path: '/en/work', allow: ['gsap'], maxKb: 900 },
+  { path: '/en/work/arus-balik', allow: ['gsap'], maxKb: 900 },
   /*
    * A practice page opts into `gsap` and nothing else.
    *

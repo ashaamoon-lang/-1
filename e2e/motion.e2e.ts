@@ -658,3 +658,90 @@ test.describe('motion', () => {
     expect(parked, 'overlay did not park below the viewport').toBe(true)
   })
 })
+
+/**
+ * One way in, spoken on every page that is allowed to speak it.
+ *
+ * ## What this holds
+ *
+ * The `h1` is the first thing read on any page, and until Tahap 23 it entered
+ * two different ways: the home hero rose line-by-line behind a mask
+ * (`vault/motion/text-reveal`), and every other route got the generic block
+ * reveal. The expensive gesture lived on one route and the rest got the
+ * default — the exact inversion of the standard `CLAUDE.md` closes with,
+ * that the difference between a competent site and an award one is restraint
+ * applied *consistently*.
+ *
+ * ## Why the practice route is not in this list
+ *
+ * `vault/blocks/practice-hero` wraps its `h1` in `<ViewTransition
+ * share="morph">` — the practice name travels from the list into its own
+ * page, which is the whole of Tahap 15b. SplitText replaces the very text
+ * nodes that morph photographs. So that route keeps its own, more expensive
+ * entrance, and `MOTION-SPEC.md` §9.5 caps a page at two choreographed moves
+ * anyway.
+ *
+ * Its absence is a decision; this comment is where it is written down.
+ */
+const SPLIT_HEADING_ROUTES = [
+  '/en',
+  '/id',
+  '/en/work',
+  `/en/work/${FEATURED_WORK}`,
+]
+
+test.describe('every page enters the same way', () => {
+  for (const route of SPLIT_HEADING_ROUTES) {
+    test(`${route} reveals its h1 line by line`, async ({ page }) => {
+      await page.goto(route)
+      await page.waitForTimeout(2600)
+
+      const heading = await page.evaluate(() => {
+        const h1 = document.querySelector('h1')
+        if (!h1) return null
+
+        /*
+         * SplitText's `mask` wraps each line in an `overflow: clip` parent and
+         * puts the moving copy inside it. Lines are `div`s, not spans — worth
+         * stating, because a probe written for spans reports zero on a
+         * correctly split heading and reads as the feature being absent.
+         */
+        const masks = [...h1.children].filter(
+          (child) =>
+            child.getAttribute('aria-hidden') === 'true' &&
+            getComputedStyle(child).overflow === 'clip'
+        )
+
+        return {
+          label: h1.getAttribute('aria-label'),
+          text: h1.textContent?.trim() ?? '',
+          masks: masks.length,
+        }
+      })
+
+      expect(heading, `${route} rendered no h1`).not.toBeNull()
+
+      expect(
+        heading?.masks ?? 0,
+        `${route}: the h1 has no masked lines — it is entering with the generic block reveal while the home hero rises line by line`
+      ).toBeGreaterThan(0)
+
+      /*
+       * And the split must not cost the heading its name. SplitText's
+       * `aria: 'auto'` writes the original string back as an `aria-label`;
+       * with `'hidden'` instead, the element keeps its heading role and loses
+       * its accessible name — an `<h1>` that both screen readers and
+       * `getByRole('heading', { name })` see as empty. That has already
+       * shipped once in this project.
+       */
+      expect(
+        heading?.label,
+        `${route}: the h1 lost its accessible name to the split`
+      ).toBeTruthy()
+      expect(
+        heading?.label?.trim(),
+        `${route}: the aria-label does not match the text it replaced`
+      ).toBe(heading?.text)
+    })
+  }
+})
