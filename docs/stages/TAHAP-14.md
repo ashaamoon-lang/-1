@@ -668,3 +668,128 @@ seharusnya, ia gagal pada hitungan sebelum sempat lulus pada cakupan.
 - **Tidak ada profiling browser sungguhan.** Angka bobot rute adalah byte tak
   terkompresi yang **diukur**; tidak ada klaim waktu di mana pun.
 - **Kredensial tidak dirotasi**, sesuai permintaan Anda.
+
+---
+
+## 13. Validasi — dijalankan sendiri, bukan oleh auditor
+
+Pemilik meminta agen validasi. `arth-auditor` dijalankan **dua kali** dan mati
+dua kali di batas pakai sesi — bukan pada temuan, melainkan pada kuota,
+keduanya sebelum membaca satu berkas pun. Jadi validasinya dijalankan inline,
+dengan Playwright, curl, dan grep. Tiap jawaban di bawah adalah angka.
+
+**Tidak ada satu pun cacat baru ditemukan.** Itu ditulis dengan hati-hati:
+enam pertanyaan di bawah adalah yang paling saya curigai salah, bukan daftar
+yang dipilih supaya lulus.
+
+### 13.1 Fallback — `CLAUDE.md` #5 dan #14
+
+| Kondisi                        | canvas | sampul tersembunyi                  | `alt` utuh | item reveal tersembunyi |
+| ------------------------------ | ------ | ----------------------------------- | ---------- | ----------------------- |
+| `/en` normal                   | 1      | 4 dari 4 (mesh menggambar)          | 4          | **0 dari 22**           |
+| `/id` normal                   | 1      | 1 dari 4 (sisanya di luar viewport) | 4          | **0 dari 22**           |
+| `/en` reduced-motion           | **0**  | **0 dari 4**                        | 4          | **0 dari 22**           |
+| `/id` reduced-motion           | **0**  | **0 dari 4**                        | 4          | **0 dari 22**           |
+| `/en` chunk `./scene` diblokir | 1      | **0 dari 4**, 4 gambar ter-layout   | 4          | **0 dari 22**           |
+
+Baris terakhir adalah yang penting: chunk scene diblokir sungguhan (dicari
+dulu berdasarkan **isi** — `uDisplacement` — karena namanya di-hash), dan
+hasilnya **nol kotak kosong**. Kontrak `drew` (§11 / `MOTION-SPEC.md` §11.2)
+melakukan persis yang ia janjikan.
+
+Yang "1 dari 4" bukan cacat: pelat di luar viewport memang tidak menggambar
+(`useWebGLElement`, `rootMargin: 200px`). Ditelusuri sambil menggulir seluruh
+halaman: **keempatnya** mengaktifkan material saat dicapai, dan **nol** pelat
+pernah tersembunyi tanpa material hidup.
+
+### 13.2 Tanpa JavaScript
+
+Dari HTML tersaji, bukan dari browser:
+
+- Prosa ketiga panel `<details>` **ada** (`strategy, architecture` ·
+  `evaluation, pipelines` · `Commissioned work`).
+- `data-reveal-item` muncul **28×**; `data-reveal=` muncul **0×**.
+
+Yang kedua adalah buktinya. Keadaan tersembunyi di `global.css` di-scope di
+bawah `[data-reveal]`, dan atribut itu **hanya** ditulis JavaScript — jadi
+tanpa JS ia tak pernah ada dan tak ada yang bisa tersembunyi. Kontraknya
+dibuktikan, bukan dipercaya.
+
+### 13.3 Aksesibilitas
+
+`e2e/route-sweep.e2e.ts` (axe, WCAG 2.2) **14 lulus** di `/en`, `/id`,
+`/en/work`, `/id/work`, `/en/ai`, `/id/ai`, dua viewport. Ditambah yang tidak
+dicakup axe:
+
+| Cek                                               | 1280×720         | 390×844        |
+| ------------------------------------------------- | ---------------- | -------------- |
+| Urutan heading `1,2,3,3,3,3,2,3,3,3,2,2,3`        | **tak melompat** | tak melompat   |
+| Ukuran target `<summary>` (min WCAG 2.2 24×24)    | **1242×74**      | **347×72**     |
+| `<summary>` di urutan tab                         | `tabIndex=0`     | `tabIndex=0`   |
+| `<summary>` membuka dengan keyboard               | `false → true`   | `false → true` |
+| `<img>` pelat material di pohon a11y dengan `alt` | **4 dari 4**     | 4 dari 4       |
+
+### 13.4 Anggaran rute
+
+| Rute              | KB              | pustaka     | canvas |
+| ----------------- | --------------- | ----------- | ------ |
+| `/en`             | **1892** / 2100 | gsap, three | 1      |
+| `/id`             | 1892            | gsap, three | 1      |
+| `/en/work`        | 746             | **—**       | 0      |
+| `/en/work/<slug>` | 740             | **—**       | 0      |
+| `/en/ai`          | 701             | **—**       | 0      |
+
+`SectionHeader` menjadi Client Component **tidak membocorkan apa pun**:
+`/en/ai` tetap 701 KB, tidak berubah dari sebelum Tahap 14, dan tidak memuat
+`SectionHeader` sama sekali. Sisa plafon `/en`: **208 KB**.
+
+### 13.5 Konformansi `CLAUDE.md`
+
+| Aturan                                                                      | Hasil                                                                                                                                                                             |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #1 `cubic-bezier` mentah di komponen                                        | **0**. Ketujuh kemunculan ada di `vault/motion/tokens.ts` — tiga di prosa, empat di field `bezier` yang berkas itu sendiri nyatakan "untuk dokumentasi dan Storybook saja"        |
+| #3 durasi bertoken                                                          | 15 rujukan, semuanya `var(--duration*)`; **nol** literal ms/s                                                                                                                     |
+| #4 properti terlarang (`width`/`height`/`top`/`left`/`margin`/`box-shadow`) | **nol**. `practice-list` menganimasikan hanya `opacity` dan `transform` — transisi `height` pada `<details>` adalah pelanggaran yang paling menggoda di sini, dan tidak dilakukan |
+| #5 reduced motion berakhir terlihat                                         | 0 dari 22 item tersembunyi — §13.1                                                                                                                                                |
+| #8/#12/#15/#16–18                                                           | `bun run check` hijau, termasuk `motion-rules.test.ts` dan `manifest:check`                                                                                                       |
+
+### 13.6 Adversarial — enam hal yang paling saya curigai salah
+
+1. **`window.scrollY` benar selama scroll halus Lenis?** **Ya, terukur.**
+   Diambil sampel di tengah animasi: `scrollY=590` → rentang pelat
+   `122/124/108`; `scrollY=659` → `142/125/95`; diam di `660` → `142/125/95`.
+   Pelat menggambar isi nyata **sepanjang** scroll, bukan hanya saat diam —
+   karena Lenis v1 menggerakkan scroll dokumen sungguhan, jadi `window.scrollY`
+   **adalah** posisi teranimasi itu.
+2. **Penempatan per-frame mubazir saat tak ada yang bergerak?** **Ya, dan
+   diterima.** Tiap pelat tiap frame: empat perbandingan, satu baca
+   `window.scrollY`, enam tulis float, satu `updateMatrix()`. Alternatifnya —
+   digerakkan event — adalah persis cacat §11.3. Biayanya **tidak diukur**
+   (`CLAUDE.md` #19): tidak ada profiler di lingkungan ini, jadi ini disebut
+   biaya yang diterima, bukan biaya yang kecil.
+3. **`depthWrite={false}` merusak hero?** **Tidak.** Hero tetap merender;
+   tidak ada apa pun yang digambar di belakang quad itu, jadi tidak ada yang
+   bisa terhalang olehnya.
+4. **`useReveal` gratis saat `reveal` mati?** **Ya.** Hook membaca
+   `ref.current`, yang `null` saat ref tak terpasang, lalu `return` sebelum
+   membuat IntersectionObserver (`lib/hooks/use-reveal.ts`). Yang tersisa satu
+   layout effect yang langsung keluar.
+5. **`--press-scale: 0.995` gestur token?** **Bukan — terukur setara.**
+   `<summary>` menempuh **6,21px** lebar (3,10px per sisi). Kartu proyek,
+   kontrol yang sudah diterima di Tahap 12c dengan `0.99`, menempuh **6,14px**
+   (3,07px per sisi). Selisih **0,03px**. Skalanya berbeda karena lebarnya
+   berbeda; jarak tempuh — yang dirasakan orang — sama.
+6. **`data-has-portrait` pindah ke `.section` mengubah layout?** **Tidak.**
+   Flag ada di `<section>`, `.body` tetap `display: grid` dengan
+   `grid-template-columns: 707.656px 505.469px` dan figure 505px.
+
+### 13.7 Gate setelah validasi
+
+`bun run check` hijau · e2e **244 lulus** · Storybook a11y 92 lulus.
+
+### 13.8 Yang tetap tidak diukur
+
+- **Tidak ada profiling browser.** Semua angka di atas adalah byte, piksel,
+  dan geometri — tidak ada satu pun klaim waktu.
+- **Prosa masih milik saya** (Tahap 13 §9), tidak diperburuk oleh Tahap 14.
+- **Kredensial tidak dirotasi**, sesuai permintaan Anda.

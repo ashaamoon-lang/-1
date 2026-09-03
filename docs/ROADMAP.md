@@ -1087,6 +1087,18 @@ satu frame yang benar-benar bisa menggambarnya.
 detail dan `/en/ai` tak berubah, ketiganya tetap **nol three.js** · e2e 237 →
 **244** · unit 400.
 
+**Divalidasi setelahnya, dan tidak ada cacat baru.** Agen auditor mati dua kali
+di batas pakai sesi tanpa membaca satu berkas pun, jadi validasinya dijalankan
+inline dan terukur (spec §13). Yang dibuktikan: memblokir chunk scene sungguhan
+memberi **nol kotak kosong**; `data-reveal=` muncul **0×** di HTML tersaji, jadi
+tanpa JavaScript tak ada yang bisa tersembunyi; reduced motion menyisakan **0
+dari 22** item tersembunyi; `<summary>` 1242×74 dan 347×72 dengan urutan heading
+tak melompat; `SectionHeader` yang jadi Client Component **tidak** membocorkan
+apa pun ke `/en/ai`. Enam pertanyaan adversarial dijawab dengan angka — di
+antaranya `window.scrollY` yang terbukti melacak Lenis **selama** scroll, bukan
+hanya saat diam, dan `--press-scale: 0.995` yang menempuh 6,21px lawan 6,14px
+milik kartu proyek: selisih 0,03px, jadi bukan gestur token.
+
 # Verifikasi
 
 Setiap tahap ditutup dengan urutan yang sama, dan **tidak boleh ada tahap
