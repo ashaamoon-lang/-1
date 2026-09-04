@@ -19,6 +19,16 @@ import { practiceHref } from './hrefs'
 
 import s from './page.module.css'
 
+/*
+ * The velocity field the plates' material reads, and nothing else.
+ *
+ * Opt-in for the reason `app/[locale]/page.tsx` records: a simulation with no
+ * consumer still costs a render pass every frame and a window pointer
+ * listener. Declared at module scope so the array identity is stable — a
+ * fresh literal per render would re-subscribe the provider on every pass.
+ */
+const FLOWMAP_SIM: ('fluid' | 'flowmap')[] = ['flowmap']
+
 /**
  * The catalogue body, shared by `/work` and `/work/practice/[value]`.
  *
@@ -111,7 +121,26 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
   )
 
   return (
-    <Wrapper theme="dark">
+    <Wrapper
+      theme="dark"
+      /*
+       * The catalogue carries the material layer as of Tahap 32.
+       *
+       * The home page shows a selection of the work with plates that answer
+       * the pointer; this page shows **all** of it, through the same
+       * `ProjectGrid`, and until now those plates were inert. A visitor who
+       * pressed a plate on the home page and then opened the catalogue found
+       * the same object had stopped responding — an inconsistency on the page
+       * a prospective client spends the most time in.
+       *
+       * It is not free, and the number is written down rather than waved at:
+       * `e2e/route-budget.e2e.ts` carries the measured cost and the ceiling
+       * that was raised for it, deliberately. Phones and readers who ask for
+       * reduced motion still download no 3D engine at all.
+       */
+      webgl
+      simTypes={FLOWMAP_SIM}
+    >
       <div className={s.page}>
         {/*
           The catalogue's own masthead reveals like every other block that
@@ -183,6 +212,7 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
               projects={projects}
               layout="catalogue"
               className={s.grid}
+              material
             />
           </>
         ) : (

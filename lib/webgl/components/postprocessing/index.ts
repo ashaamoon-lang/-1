@@ -6,6 +6,37 @@ import { HalfFloatType } from 'three'
 /**
  * Sanctioned starter scaffold: no default consumer wires this up in the repo
  * today, enable it per-canvas via the `postprocessing` prop on WebGLCanvas.
+ *
+ * ## Tahap 32 tried to ship this, measured it, and did not
+ *
+ * The approved scaffold's Fase 6 asked for "one pass, subtle". As it stands
+ * this composer renders and copies with **no visual change at all**, so it
+ * needed an effect to be worth anything. It was given one — a low-amplitude
+ * grain, which is the site's own vocabulary — wired on, built, and
+ * photographed against the same page without it.
+ *
+ * It **lifted the whole canvas**. Measured across the two frames: mean
+ * absolute difference **55.8/255**, with 93.5% of channels moved. Looking at
+ * it said the same thing louder — the artwork's deep rust read as milky
+ * apricot, its forest green as mint, its violet as lavender. The composer's
+ * `HalfFloatType` buffer takes the render out of the renderer's own output
+ * colour handling, and everything came back desaturated and pale. On a site
+ * whose subject *is* the artwork, that is not a subtle pass; it is a colour
+ * grade nobody asked for.
+ *
+ * That is fixable — an output pass would restore the encoding, and the grain
+ * would come down from 0.06 to something like 0.015. It was not pursued,
+ * because of what would be left afterwards: this site already applies grain
+ * **twice**, in `vault/webgl/scene-shell/shaders.ts` (where it has a real job
+ * — it dithers gradient banding) and composited into the artwork plates
+ * themselves by `lib/scripts/seed-fixtures.ts`. A third layer over the
+ * composite would sit on top of the work rather than serve it, for +19KB and
+ * a full-screen pass every frame.
+ *
+ * So this stays unused, and the reasoning is here rather than in a commit
+ * message, so the next stage that reaches for it starts from the measurement
+ * instead of from the scaffold's one line. `docs/stages/TAHAP-32.md` §7 has
+ * the numbers and the two frames.
  */
 export function PostProcessing() {
   const gl = useThree((state) => state.gl)

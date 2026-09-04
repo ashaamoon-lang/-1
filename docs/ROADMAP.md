@@ -2006,6 +2006,54 @@ nol plafon naik · tanpa JS galerinya tetap terbaca.
 
 ---
 
+## Tahap 32 — WebGL di rute kedua, dan satu pass yang tidak lulus ujiannya ✅
+
+> Spec: [`docs/stages/TAHAP-32.md`](./stages/TAHAP-32.md)
+
+Fase 6. Separuh dikirim, separuh **ditolak dengan bukti**.
+
+**Katalog membawa lapisan materialnya.** Beranda menampilkan pilihan karya
+dengan plat yang menjawab pointer; katalog menampilkan seluruhnya lewat
+komponen yang sama, dan platnya diam. Pengunjung yang menekan plat di beranda
+lalu membuka katalog menemukan objek yang sama berhenti merespons.
+
+**Harganya: 880 → 1909 KB**, plafon 900 → **2100**, izin `three` + `gsap`.
+Kenaikan yang diputuskan, diukur, dan ditulis alasannya **di dalam file
+anggarannya** — tempat file itu sendiri memintanya ("when a stage wants it, it
+adds `three` here and says why"). Platnya **benar-benar tergambar**: 2 → 4 → 6
+hidup sambil digulir, empat plat hidup di `opacity: 0` dan dua yang belum
+hidup masih menampilkan `<img>`-nya. Ponsel dan reduced motion tetap mengunduh
+**nol** mesin 3D.
+
+Efek samping menyenangkan: dua uji yang selama ini dilewati sekarang berjalan
+— "footer di bawah kanvas masih terbaca" hanya jalan di rute yang punya
+kanvas, dan `/en/work` sekarang punya. Dilewati 18 → 16, keduanya lulus.
+
+**Postprocessing dibangun, difoto, dan tidak dikirim.** Modulnya apa adanya
+merender lalu menyalin dengan nol perubahan visual, jadi ia diberi efek —
+grain amplitudo rendah, kosakata situs ini sendiri — lalu halaman yang sama
+difoto dengan dan tanpanya. **Ia mengangkat seluruh kanvas**: beda absolut
+rata-rata **55,8/255**, 93,5% kanal bergerak. Rust dalam jadi aprikot susu,
+hijau hutan jadi mint, violet jadi lavender — buffer `HalfFloatType` komposer
+mengeluarkan render dari penanganan ruang warna renderer. Di situs yang
+subjeknya karya seni, itu bukan pass halus melainkan color grade yang tidak
+diminta.
+
+Itu bisa diperbaiki dengan satu output pass. **Tidak dikejar**, karena yang
+tersisa sesudahnya adalah grain ketiga: situs ini sudah memakainya di shader
+hero (di mana ia mendither banding — pekerjaan nyata) dan dikomposit ke dalam
+plat karyanya sendiri. Lapisan ketiga duduk di atas karyanya, seharga +19 KB
+dan satu pass layar-penuh tiap frame. Alasannya ditulis **di dalam modulnya**
+supaya tahap berikutnya mulai dari pengukuran, bukan dari satu baris scaffold.
+
+unit 438 · e2e **384 lulus, 0 gagal**, 16 dilewati, nol flake · `route-budget`
+lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
+
+**Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
+ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

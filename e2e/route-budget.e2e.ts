@@ -117,7 +117,30 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * decision this file actually protects — a route paying for a library is a
    * choice, and it is written here.
    */
-  { path: '/en/work', allow: ['gsap'], maxKb: 900 },
+  /*
+   * The catalogue takes the material layer in Tahap 32, and this is the
+   * "says why" that the note above asks of any stage adding a library.
+   *
+   * **Why:** the home page shows a selection of the work with plates that
+   * answer the pointer; this page shows all of it, through the same
+   * `ProjectGrid`, and its plates were inert. A visitor who pressed a plate
+   * on the home page and then opened the catalogue found the same object had
+   * stopped responding.
+   *
+   * **What it costs, measured:** 880 -> **1909 KB**. That is three.js, and it
+   * is the largest single number in this file after the home page's. The
+   * ceiling is raised to the home page's 2100 rather than to something
+   * snugger, because these two routes now carry the same engine for the same
+   * reason and a different ceiling on each would be two decisions where there
+   * is one.
+   *
+   * The project owner authorised raising budgets deliberately, and this is
+   * what deliberately looks like: measured first, written down here with its
+   * reason, and re-gated at the new number. Phones and readers who ask for
+   * reduced motion still download no engine at all — `webgl-budget` proves
+   * that separately, and it did not move.
+   */
+  { path: '/en/work', allow: ['three', 'gsap'], maxKb: 2100 },
   { path: '/en/work/arus-balik', allow: ['gsap'], maxKb: 900 },
   /*
    * A practice page opts into `gsap` and nothing else.
