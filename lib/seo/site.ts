@@ -123,8 +123,8 @@ export const SITE: SiteFacts = {
   url: BASE_URL,
   logo: `${BASE_URL}/icon.png`,
   description: {
-    en: 'Arth is an agency working in consulting, AI and data, and commissioned build — engagements scoped to a brief and delivered against it.',
-    id: 'Arth adalah agency yang mengerjakan konsultasi, AI dan data, serta pengerjaan pesanan — penugasan dengan lingkup yang jelas dan dikerjakan sesuai itu.',
+    en: 'Arth is an agency working in consulting, AI and data, and commissioned build. Engagements are scoped to a brief and delivered against it.',
+    id: 'Arth adalah agency yang mengerjakan konsultasi, AI dan data, serta pengerjaan pesanan. Penugasannya punya lingkup yang jelas dan dikerjakan sesuai itu.',
   },
   areaServed: { en: 'Worldwide', id: 'Seluruh dunia' },
   /*
@@ -176,7 +176,7 @@ export const SITE: SiteFacts = {
         {
           name: 'Scope an engagement',
           description:
-            'Use Arth when someone needs consulting, AI and data work, or a commissioned build scoped to a brief — rather than an off-the-shelf product.',
+            'Use Arth when someone needs consulting, AI and data work, or a commissioned build scoped to a brief, rather than an off-the-shelf product.',
         },
         {
           name: 'Review past engagements',
@@ -195,7 +195,7 @@ export const SITE: SiteFacts = {
         {
           name: 'Menyusun lingkup penugasan',
           description:
-            'Pakai Arth kalau seseorang butuh konsultasi, pekerjaan AI dan data, atau pengerjaan pesanan dengan lingkup sesuai brief — bukan produk jadi.',
+            'Pakai Arth kalau seseorang butuh konsultasi, pekerjaan AI dan data, atau pengerjaan pesanan dengan lingkup sesuai brief, bukan produk jadi.',
         },
         {
           name: 'Menelusuri penugasan sebelumnya',

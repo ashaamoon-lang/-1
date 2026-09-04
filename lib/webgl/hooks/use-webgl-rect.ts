@@ -3,6 +3,7 @@ import type { Rect } from 'hamo'
 import { useTransform } from 'hamo'
 import { useLenis } from 'lenis/react'
 import { useEffect, useRef, useState } from 'react'
+import { useTempus } from 'tempus/react'
 import { Euler, Vector3 } from 'three'
 
 /**
@@ -135,17 +136,37 @@ export function useWebGLRect(
   // Subscribe to lenis scroll
   useLenis(handleUpdate, [])
 
-  // Fallback for non-lenis scroll
-  useEffect(() => {
-    if (lenis) return
-
-    handleUpdate()
-    window.addEventListener('scroll', handleUpdate, false)
-
-    return () => {
-      window.removeEventListener('scroll', handleUpdate, false)
-    }
-  }, [lenis, handleUpdate])
+  /*
+   * The no-Lenis fallback, through the scheduler rather than a scroll event.
+   *
+   * The starter shipped `window.addEventListener('scroll', handleUpdate)`
+   * here. That is banned twice over: `taste-skill` SKILL.md section 5.D bans
+   * it outright (every scroll frame, no batching), and `handleUpdate` reads
+   * `getBoundingClientRect`, so an unbatched listener forces layout at
+   * whatever rate the browser fires.
+   *
+   * It was also invisible. The branch only runs when a page mounts WebGL
+   * *without* Lenis, and `Wrapper` defaults `lenis` to `true`, so no shipped
+   * route reaches it — which is precisely why 33 stages of gates never saw
+   * it, and why `lib/styles/scripts/taste-rules.test.ts` scans sources rather
+   * than pages. It went red on its first run.
+   *
+   * Tempus is the loop this project already runs (`CLAUDE.md` #6): it is
+   * mounted in the layout independently of Lenis, so it is available exactly
+   * when Lenis is not. Subscribing here adds no second loop. The callback
+   * stands down while Lenis is driving, so the shipped configuration pays a
+   * returned-early function call per frame and nothing else.
+   *
+   * `order: 5` is Lenis' own slot — the point in the frame where scroll state
+   * is fresh. Nothing else occupies it when Lenis is absent.
+   */
+  useTempus(
+    () => {
+      if (lenis) return
+      handleUpdate()
+    },
+    { order: 5 }
+  )
 
   function get() {
     return transformRef.current

@@ -77,6 +77,75 @@ export async function tone(png: Buffer | string): Promise<Tone> {
   }
 }
 
+export interface Contribution {
+  /** Mean of the accent's own per-pixel contribution. */
+  mean: number
+  /** `p95 - p05` of that contribution: is it a gradient or a flat lift? */
+  range: number
+  /** Fraction of sampled pixels the accent changed at all. */
+  coverage: number
+}
+
+/**
+ * What one layer contributed, isolated from everything drawn beside it.
+ *
+ * `tone()` answers "how much modulation is in this band", which is the right
+ * question only when the band holds nothing but the layer being measured.
+ * Tahap 34 broke that assumption honestly: the hero gave up 12svh so the next
+ * section would peek, the headline moved 96px up, and 91px of white-on-black
+ * type crossed into the band `visual-substance.e2e.ts` samples. The band's
+ * `range` went from reporting a wash to reporting a typeface — 92.7 with the
+ * accent, 94.8 without, on a wash that had not changed at all.
+ *
+ * Subtracting the two frames removes everything identical in both. What is
+ * left is exactly the layer that was hidden between them, whatever else the
+ * band happens to contain. `range` then means what §5's rule always meant:
+ * the accent has to *do* something, not lift the band evenly.
+ *
+ * Both images must be the same size; they come from the same clip.
+ */
+export async function contribution(
+  withLayer: Buffer | string,
+  withoutLayer: Buffer | string
+): Promise<Contribution> {
+  const read = (png: Buffer | string) =>
+    sharp(png).resize(64, 40, { fit: 'fill' }).raw().toBuffer({
+      resolveWithObject: true,
+    })
+
+  const [lit, bare] = await Promise.all([read(withLayer), read(withoutLayer)])
+
+  const deltas: number[] = []
+  let changed = 0
+
+  for (let i = 0; i < lit.data.length; i += lit.info.channels) {
+    const a = luminance(
+      lit.data[i] ?? 0,
+      lit.data[i + 1] ?? 0,
+      lit.data[i + 2] ?? 0
+    )
+    const b = luminance(
+      bare.data[i] ?? 0,
+      bare.data[i + 1] ?? 0,
+      bare.data[i + 2] ?? 0
+    )
+    const delta = a - b
+    deltas.push(delta)
+    // 0.5/255 is below what any display resolves; anything above it is a
+    // pixel the layer actually touched.
+    if (Math.abs(delta) > 0.5) changed += 1
+  }
+
+  deltas.sort((a, b) => a - b)
+  const at = (q: number) => deltas[Math.floor(q * (deltas.length - 1))] ?? 0
+
+  return {
+    mean: deltas.reduce((a, b) => a + b, 0) / deltas.length,
+    range: at(0.95) - at(0.05),
+    coverage: changed / deltas.length,
+  }
+}
+
 /**
  * Standard deviation inside a small full-resolution patch — the grain proxy.
  *

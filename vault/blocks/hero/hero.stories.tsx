@@ -42,7 +42,7 @@ export const Default: Story = {
   args: {
     headline: 'Commissioned work for people who notice',
     subline:
-      'Consulting, AI and data, and commissioned build — scoped to a brief and delivered against it.',
+      'Consulting, AI and data, and commissioned build, scoped to a brief and delivered against it.',
     action,
   },
 }

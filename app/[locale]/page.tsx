@@ -177,22 +177,6 @@ export default async function Home() {
       <Hero
         headline={content.headline}
         subline={content.subline}
-        /*
-         * The counterweight in the columns the headline leaves empty, and the
-         * cue that the page continues. `docs/stages/TAHAP-12.md` §3.1 measured
-         * what their absence cost: 456px of ink in a 900px screen, three
-         * elements of descending width down the left edge, and nothing at all
-         * saying a 5749px document followed.
-         *
-         * The practices are the honest content for it — they are what the
-         * studio does, they are already a route (`/work/practice/<value>`),
-         * and they come from one vocabulary (`lib/content/practices.ts`).
-         */
-        index={{
-          label: t('heroIndexLabel'),
-          items: PRACTICES.map((practice) => tWork(practice)),
-        }}
-        cue={t('scrollCue')}
         action={
           /* oxlint-disable-next-line react/forbid-elements -- deliberate native
              anchor, same reasoning as the header nav: a same-page hash must
@@ -223,9 +207,16 @@ export default async function Home() {
               heading arriving with its own content reads as a page dump
               rather than as an introduction.
             */}
+            {/*
+              No eyebrow. "Selected work" over "Recent engagements" said the
+              same thing twice, and `taste-skill` SKILL.md section 4.7 caps
+              eyebrows at one per three sections precisely to stop that
+              rhythm: four sections each wearing a small-caps label is the
+              templated look, not a considered one. The count beside the
+              title carries what the eyebrow was pretending to.
+            */}
             <SectionHeader
               reveal
-              eyebrow={t('workEyebrow')}
               title={t('workTitle')}
               aside={t('workCount', { count: projects.length })}
             />
@@ -259,7 +250,13 @@ export default async function Home() {
         <StudioNote
           id="studio"
           className={s.section}
-          eyebrow={t('studioEyebrow')}
+          /*
+           * No eyebrow either. "Studio" duplicated the header's own anchor
+           * label sitting a few hundred pixels above it, and "How we work"
+           * needs no category. Two eyebrows remain on this page — `Practice`
+           * and `Commissions` — because each names something its headline
+           * does not.
+           */
           title={t('studioTitle')}
           portrait={settings?.portrait ?? null}
           {...(settings?.portraitAlt && { portraitAlt: settings.portraitAlt })}

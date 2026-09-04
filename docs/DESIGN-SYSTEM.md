@@ -22,6 +22,46 @@ defect, not a shortcut.
 
 ---
 
+## 0. The dials, and the design read
+
+Added in Tahap 34, from `.claude/skills/taste-skill/` (MIT, provenance in
+`docs/PROVENANCE.md` §3). Everything below §1 is a token contract; this
+section is the _intent_ those tokens serve, and it exists because "make it
+more exploratory" is a feeling until it has a number.
+
+### The design read
+
+> Reading this as: a commissioned-work studio site for clients and curators,
+> in a monochrome gallery language, leaning on its own system (`vault/` +
+> Base UI) rather than a third-party design system.
+
+### The three dials
+
+`taste-skill` SKILL.md §1 and §7 gate every layout, motion and density
+decision on three values. Its baseline is `8 / 6 / 4`. Arth runs **`7 / 9 / 3`**.
+
+| Dial               | Was |    Is | Why                                                                                                                                                                                                                                                                                                                   |
+| ------------------ | --: | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DESIGN_VARIANCE`  |   3 | **7** | §7 calls 1–3 "predictable: symmetrical CSS Grid, 12-col, equal fr-units", which described `project-grid.module.css` exactly. 7 buys asymmetric offsets and varied ratios. Not 8: §7 puts masonry and `padding-left: 20vw` there, and a grid that stays legible as a grid is how six works get compared to each other. |
+| `MOTION_INTENSITY` |   4 | **9** | §7 defines 8–10 as scroll-triggered reveals, parallax and scroll-driven animation via ScrollTrigger — the architecture this repo already had and barely spent. The preset for a studio portfolio is 7; 9 is deliberate, and the owner asked for it.                                                                   |
+| `VISUAL_DENSITY`   |   2 | **3** | The one dial that barely moves, on purpose. §7 puts 8–10 at "cockpit: tight paddings, no card boxes, mandatory `font-mono` for all numbers", which would bury the subject. A work site is an art gallery, and 3 keeps it one.                                                                                         |
+
+The numbers are **intent, not measurement**. No gate can prove a page "is at
+VARIANCE 7". What is gated is the mechanical half of the skill —
+`e2e/taste-preflight.e2e.ts` and `lib/styles/scripts/taste-rules.test.ts` —
+and every stage from 34 on names the dial it is spending in its §Hasil.
+
+### What was adopted, and what was refused
+
+`docs/stages/TAHAP-34.md` §5 lists the thirteen rules adopted and the defect
+each one closed; §6 lists the five refused. The refusal that matters most
+here: §7's own example of fluid motion is
+`transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1)`, which breaks three of
+this project's hard rules at once — `all`, a 300ms default, and a raw bezier.
+Where the skill and `CLAUDE.md` disagree, `CLAUDE.md` wins.
+
+---
+
 ## 1. Colour
 
 ### The rule this project follows
@@ -92,8 +132,11 @@ place without touching every component.
 with `color-mix(in oklab, …)`. Perceptual colour space is not theoretical:
 tints and shades derived in sRGB lose chroma and go muddy, while oklch keeps
 them consistent. Derive every variation with `color-mix(in oklab, …)`, never
-by hand-picking a hex. The derived tokens in `global.css` (`--surface`,
-`--surface-2`, `--line`, `--line-strong`) are all built that way.
+by hand-picking a hex. Six tokens in `global.css` are derived this way — `--surface`,
+`--surface-2`, `--line`, `--line-strong`, `--text-muted` and `--hero-wash-to`
+— every one of them a `color-mix(in oklab, …)`. `contrast.test.ts` parses
+those recipes out of the stylesheet and pins the list, so a seventh cannot
+arrive without a contrast decision attached to it.
 
 ### Contrast is enforced, not assumed
 
@@ -102,9 +145,12 @@ and ratchets in both directions — a new failure fails, and an _improved_ pair
 that is still recorded in the baseline also fails, so the baseline cannot go
 stale.
 
-Current state: **all 18 measured pairs clear WCAG AA.** The lowest is
-`secondary on surface-2` at 14.22:1 against a 4.5 minimum; the lowest APCA is
-|Lc| 86.1 against a 60 threshold. `contrast-baseline.json` is empty:
+Current state: **11 role pairs measured in both themes, 22 measurements, all
+clear WCAG AA.** The lowest is `muted text on primary` in the dark theme at
+**9.08:1** against a 4.5 minimum; the lowest APCA is **|Lc| 60.6**, on the
+same pair, against a 60 threshold. Both numbers come from the table
+`lib/styles/css/global.css` keeps beside `--text-muted`, which is where the
+75% mix was chosen. `contrast-baseline.json` is empty:
 
 ```json
 { "accepted": {}, "apcaAccepted": {} }
@@ -163,7 +209,7 @@ From `lib/styles/typography.ts` (mobile → desktop):
 
 | Style     | Family  | Size     | Weight | Line-height | Tracking |
 | --------- | ------- | -------- | ------ | ----------- | -------- |
-| `h1`      | display | 72 → 120 | 700    | 85%         | −0.04em  |
+| `h1`      | display | 38 → 120 | 700    | 85%         | −0.04em  |
 | `h2`      | display | 32 → 48  | 600    | 90%         | −0.025em |
 | `p-big`   | display | 16 → 20  | 400    | 125%        | −0.02em  |
 | `p`       | display | 12 → 14  | 400    | 125% → 120% | −0.01em  |
@@ -279,3 +325,27 @@ by band, easing from `--ease-*` tokens only, `transform` and `opacity` only,
 5. **Accessibility is not a later pass.** Focus states visible, targets
    ≥44×44px, contrast checked. `@axe-core/playwright` is already installed —
    there is no excuse for guessing.
+
+---
+
+## 7. Where this document and the code still disagree
+
+Kept here rather than quietly fixed in prose, because a design document that
+describes a system nobody built is worse than no document. Each line names the
+stage that closes it; until then, the code is the truth and this is the debt.
+
+| This document says                                                                                                          | The code does                                                                                                                                                                                                                                        | Closes in |
+| --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| §2 "fluid sizing: `clamp()` with a small viewport coefficient, 1–1.5vw; aggressive `vw` scaling is a reliable amateur tell" | **Zero tokens use `clamp()`.** Every size is uncapped linear `vw`: `h1` is 10.13vw on mobile and 8.33vw on desktop. Crossing 800px, `h1` shrinks 18%, the gutter collapses 3.8× and body type drops from 25.6px to 7.8px                             | Tahap 36  |
+| §3 "derive spacing from the grid gap: 8 / 16 / 24 / 32 / 48 / 64 / 96 / 128"                                                | 29 distinct values ship; **192 of 375 occurrences (51%) are off that ladder**, and there is no `--spacing-*` token to reference                                                                                                                      | Tahap 37  |
+| §2 "two to three weights"                                                                                                   | **Four.** `font-weight: 500` ships in `fields`, `select` and `toast`                                                                                                                                                                                 | Tahap 37  |
+| §2 the seven-class scale                                                                                                    | **54 `font-size` declarations bypass it.** `not-configured` and `not-found-view` (which ships as the 404) each carry a complete parallel scale, hand-inlined as `calc(N / 375 * 100vw)`. There is no `h3`, and nothing fills the 48→120 gap          | Tahap 37  |
+| §3 "always `minmax(0, 1fr)`, never bare `1fr`"                                                                              | `components/ui/select/select.module.css:71` violates it, and so does **`dr-grid`, this project's own grid utility**. Nothing enforces the rule                                                                                                       | Tahap 37  |
+| §6.1 "a raw `#fff`, `16px` or `400ms` in a component is a defect"                                                           | Only the colour and duration halves are enforced. Raw `44px`, `4px`, `0.875rem`, `1.125rem`, `1.1em` all ship                                                                                                                                        | Tahap 37  |
+| §6.2 "semantic tokens, not literals"                                                                                        | **Eight raw `oklch()` literals ship, three of them chromatic** — a green, a red and a blue in `toast`, `alert-dialog` and `form/fields`, at chroma 0.19–0.22. The colour gate forbids hex, rgb, hsl and named colours; it does not look at `oklch()` | Tahap 37  |
+| §1 "no chromatic accent at all"                                                                                             | True of the palette, false of the page: see the row above                                                                                                                                                                                            | Tahap 37  |
+| §1 the colour gate                                                                                                          | `setup-styles.test.ts` globs `{app,components,lib}` — **`vault/` is not scanned**, and `vault/` is the site                                                                                                                                          | Tahap 37  |
+| §6.4 "every primitive gets a Storybook story"                                                                               | **25 component directories have none**, including five vault blocks, `parallax`, both `vault/webgl/*` and the lightbox                                                                                                                               | Tahap 46  |
+
+The measurements behind every row are in the curator audit that opened Tahap
+34; none of them is an estimate.

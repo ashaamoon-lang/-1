@@ -636,8 +636,8 @@ const PROJECTS: readonly FixtureProject[] = [
       'Bingkai tinggi berwarna ungu yang disinari dari bawah'
     ),
     body: i18nRich(
-      'Nine sources into one table. The hard part was not the joins — it was deciding, in writing, which source wins when two of them disagree.',
-      'Sembilan sumber menjadi satu tabel. Bagian sulitnya bukan penggabungannya — melainkan memutuskan, secara tertulis, sumber mana yang menang ketika dua di antaranya berbeda.'
+      'Nine sources into one table. The hard part was not the joins. It was deciding, in writing, which source wins when two of them disagree.',
+      'Sembilan sumber menjadi satu tabel. Bagian sulitnya bukan penggabungannya, melainkan memutuskan, secara tertulis, sumber mana yang menang ketika dua di antaranya berbeda.'
     ),
   },
   {
@@ -761,8 +761,8 @@ async function seed() {
         name: 'Arth',
         headline: i18n('Work that has to hold up', 'Karya yang harus bertahan'),
         subline: i18nText(
-          'Consulting, AI and data, and commissioned build — scoped to a brief and delivered against it.',
-          'Konsultasi, AI dan data, serta pengerjaan pesanan — dengan lingkup sesuai brief dan dikerjakan sesuai itu.'
+          'Consulting, AI and data, and commissioned build, scoped to a brief and delivered against it.',
+          'Konsultasi, AI dan data, serta pengerjaan pesanan, dengan lingkup sesuai brief dan dikerjakan sesuai itu.'
         ),
         /*
          * A portrait, which the dataset did not have before.

@@ -65,16 +65,16 @@ const PRACTICE_LABELS = {
 
 const PRACTICE_DESCRIPTIONS = {
   consulting: {
-    en: 'Consulting engagements — strategy, architecture and the decisions that come before a build.',
-    id: 'Penugasan konsultasi — strategi, arsitektur, dan keputusan yang datang sebelum pembangunan.',
+    en: 'Consulting engagements: strategy, architecture and the decisions that come before a build.',
+    id: 'Penugasan konsultasi: strategi, arsitektur, dan keputusan yang datang sebelum pembangunan.',
   },
   'ai-data': {
-    en: 'AI and data work — evaluation, pipelines and systems that have to hold up in production.',
-    id: 'Pekerjaan AI dan data — evaluasi, pipeline, dan sistem yang harus bertahan di produksi.',
+    en: 'AI and data work: evaluation, pipelines and systems that have to hold up in production.',
+    id: 'Pekerjaan AI dan data: evaluasi, pipeline, dan sistem yang harus bertahan di produksi.',
   },
   commission: {
-    en: 'Commissioned work — scoped, paid engagements delivered to a brief.',
-    id: 'Karya pesanan — penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief.',
+    en: 'Commissioned work: scoped, paid engagements delivered to a brief.',
+    id: 'Karya pesanan: penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief.',
   },
 } satisfies Record<Practice, Localized<string>>
 
@@ -100,8 +100,8 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
     path: '/journal',
     label: { en: 'Journal', id: 'Jurnal' },
     description: {
-      en: 'Notes on how the studio scopes, decides and delivers — method rather than announcements.',
-      id: 'Catatan tentang bagaimana studio menentukan lingkup, memutuskan, dan mengirim — metode, bukan pengumuman.',
+      en: 'Notes on how the studio scopes, decides and delivers: method rather than announcements.',
+      id: 'Catatan tentang bagaimana studio menentukan lingkup, memutuskan, dan mengirim: metode, bukan pengumuman.',
     },
     changeFrequency: 'weekly',
     priority: 0.6,

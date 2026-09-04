@@ -3,7 +3,12 @@ import { expect, test } from '@playwright/test'
 import sharp from 'sharp'
 
 import { PRACTICES } from '../lib/content/practices'
-import { grain, legibility, tone } from '../lib/styles/scripts/luminance'
+import {
+  contribution,
+  grain,
+  legibility,
+  tone,
+} from '../lib/styles/scripts/luminance'
 import { material } from '../vault/motion/tokens'
 import { FEATURED_WORK } from './fixtures'
 /**
@@ -131,6 +136,27 @@ test.describe('the page starts where its own chrome starts', () => {
  * 17 fix the same shot gave mean **4.0** — below the hidden arm, which is the
  * defect stated as a number. The margin is set well under the measured
  * headroom so a legitimate retune of the wash does not trip it.
+ *
+ * **What this number means changed in Tahap 34, and the value did not.** It
+ * used to be a margin the band's own spread had to beat; it is now a floor on
+ * the accent's *own* contribution, measured by subtracting the two frames
+ * (`contribution()` in `lib/styles/scripts/luminance.ts`, which carries the
+ * reason). The band-spread form only worked while the band held nothing but
+ * the wash, and Tahap 34 moved the headline into it.
+ *
+ * Re-measured under the new form, same day:
+ *
+ * | route                       | viewport | contribution range |
+ * | --------------------------- | -------- | -----------------: |
+ * | `/en` (WebGL wash)          | 1280x800 |           **15.9** |
+ * | `/en/practice/<v>` (CSS)    | 1280x800 |           **12.1** |
+ * | `/en`                       |  390x844 |            **9.7** |
+ * | `/en/practice/<v>`          |  390x844 |            **8.9** |
+ *
+ * Three is a floor with real headroom, and it was checked by raising it to 99
+ * and watching all four go red — a gate nobody has seen fail is a gate nobody
+ * has tested. The mesh out-modulating the CSS fallback is the ordering the
+ * design intends, which is a second reason to believe the number.
  */
 const ACCENT_RANGE_MARGIN = 3
 
@@ -208,11 +234,33 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
           `the accent made the page darker: ${lit.mean.toFixed(1)} with it, ${bare.mean.toFixed(1)} without`
         ).toBeGreaterThan(bare.mean)
 
-        // And it has to do something, not merely lift the whole band evenly.
+        /*
+         * And it has to do something, not merely lift the whole band evenly.
+         *
+         * Measured on the difference between the two frames, not on the band's
+         * own spread. `lit.range > bare.range` was the first shape and it held
+         * only while the band contained nothing but the wash. Tahap 34 shrank
+         * the hero by 12svh so the next section would peek, the headline moved
+         * 96px up, and 91px of it crossed into this band — after which `range`
+         * reported the contrast of a typeface, 92.7 with the accent against
+         * 94.8 without, on a wash that had not changed by a single pixel.
+         *
+         * Subtracting the frames removes everything present in both. What
+         * survives is the layer that was hidden between them, so the assertion
+         * now means what it always meant and no longer depends on where the
+         * copy lands.
+         */
+        const added = await contribution(withAccent, withoutAccent)
+
         expect(
-          lit.range,
-          `the accent added no modulation: range ${lit.range.toFixed(1)} with it, ${bare.range.toFixed(1)} without`
-        ).toBeGreaterThan(bare.range + ACCENT_RANGE_MARGIN)
+          added.coverage,
+          `the accent touched ${(added.coverage * 100).toFixed(1)}% of the band`
+        ).toBeGreaterThan(0.5)
+
+        expect(
+          added.range,
+          `the accent added no modulation: its own contribution spans ${added.range.toFixed(1)}`
+        ).toBeGreaterThan(ACCENT_RANGE_MARGIN)
 
         // Grain is texture, not noise. Tahap 17 measured 21.0/255 — 77% of the
         // band's own mean — after the colour pipeline was corrected, because the

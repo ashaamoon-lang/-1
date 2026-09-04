@@ -71,9 +71,9 @@ const ENTRIES = {
       summary:
         'Recommendations are easy. What a team needs is the reasoning, written where they can argue with it without you.',
       body: [
-        'The failure mode of consulting is a recommendation that arrives without its reasoning. It is accepted because of who said it, implemented because it was accepted, and then defended by nobody when the context changes — because there is nothing to defend, only something to have been told.',
+        'The failure mode of consulting is a recommendation that arrives without its reasoning. It is accepted because of who said it, implemented because it was accepted, and then defended by nobody when the context changes. There is nothing to defend, only something to have been told.',
         'We write decisions down in a fixed shape: what was open, what constrained it, which alternatives were live, what each one cost, and why the chosen one won. It is not elegant and it is not short. It is readable by somebody who was not in the room, which is the only test that matters.',
-        'Six months later the world moves. A dependency is deprecated, a volume assumption doubles, a team member leaves. With the reasoning on record, the team can ask the right question — has the thing that made this true stopped being true? — instead of the wrong one, which is whether to keep trusting a consultant they no longer have access to.',
+        'Six months later the world moves. A dependency is deprecated, a volume assumption doubles, a team member leaves. With the reasoning on record, the team can ask the right question (has the thing that made this true stopped being true?) instead of the wrong one, which is whether to keep trusting a consultant they no longer have access to.',
         'This is also why we would rather be overruled with the facts in hand than agreed with on authority. An overruled recommendation that left a record behind is a better outcome than an accepted one that did not.',
       ],
       practice: 'consulting',
@@ -115,9 +115,9 @@ const ENTRIES = {
       summary:
         'Rekomendasi itu mudah. Yang dibutuhkan tim adalah alasannya, ditulis di tempat mereka bisa membantahnya tanpa Anda.',
       body: [
-        'Mode gagal sebuah konsultasi adalah rekomendasi yang tiba tanpa alasannya. Ia diterima karena siapa yang mengucapkannya, dikerjakan karena sudah diterima, lalu tidak dibela siapa pun saat konteksnya berubah — karena tidak ada yang bisa dibela, hanya ada sesuatu yang pernah disampaikan.',
+        'Mode gagal sebuah konsultasi adalah rekomendasi yang tiba tanpa alasannya. Ia diterima karena siapa yang mengucapkannya, dikerjakan karena sudah diterima, lalu tidak dibela siapa pun saat konteksnya berubah. Tidak ada yang bisa dibela, hanya ada sesuatu yang pernah disampaikan.',
         'Kami menuliskan keputusan dalam bentuk tetap: apa yang terbuka, apa yang membatasinya, alternatif mana yang hidup, ongkos masing-masing, dan kenapa yang terpilih menang. Ia tidak elegan dan tidak pendek. Ia terbaca oleh orang yang tidak ada di ruangan, dan itu satu-satunya ujian yang berarti.',
-        'Enam bulan kemudian dunia bergerak. Sebuah dependensi ditinggalkan, asumsi volume berlipat, satu anggota tim keluar. Dengan alasannya tercatat, tim bisa mengajukan pertanyaan yang benar — apakah hal yang membuat ini benar sudah berhenti benar? — alih-alih yang salah, yaitu apakah masih perlu mempercayai konsultan yang sudah tidak bisa mereka hubungi.',
+        'Enam bulan kemudian dunia bergerak. Sebuah dependensi ditinggalkan, asumsi volume berlipat, satu anggota tim keluar. Dengan alasannya tercatat, tim bisa mengajukan pertanyaan yang benar (apakah hal yang membuat ini benar sudah berhenti benar?) alih-alih yang salah, yaitu apakah masih perlu mempercayai konsultan yang sudah tidak bisa mereka hubungi.',
         'Ini juga kenapa kami lebih suka dibantah dengan fakta di tangan daripada disetujui karena otoritas. Rekomendasi yang dibantah tapi meninggalkan catatan adalah hasil yang lebih baik daripada yang diterima tapi tidak.',
       ],
       practice: 'consulting',

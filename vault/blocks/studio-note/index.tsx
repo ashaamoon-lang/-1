@@ -45,7 +45,12 @@ import s from './studio-note.module.css'
  */
 interface StudioNoteProps {
   id: string
-  eyebrow: ReactNode
+  /**
+   * Optional, for the same reason `components/ui/section-header` makes it
+   * optional: an eyebrow carries information or it is not there. The home
+   * page drops it — see the note at its call site.
+   */
+  eyebrow?: ReactNode | undefined
   title: ReactNode
   /** The statement. Portable Text from the CMS, or plain paragraphs. */
   children: ReactNode

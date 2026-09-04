@@ -102,10 +102,61 @@ icons, 17 GSAP presets, 25 chart types, 22 technology stacks — including
 > "79 searchable styles … 119 UX guidelines". The `SKILL.md` figures are the
 > ones the search data actually exposes and are what is quoted above.
 
-Only the `ui-ux-pro-max` skill was vendored. The upstream repo also ships
+Only `ui-ux-pro-max` was taken from that repo. It also ships
 `design`, `design-system`, `ui-styling`, `brand`, `banner-design` and
 `slides` (≈11 MB total); they were left out to keep repository weight and
 agent context focused. They are available at the same MIT terms if wanted.
+
+---
+
+### `taste-skill`
+
+|              |                                                                 |
+| ------------ | --------------------------------------------------------------- |
+| Source       | https://github.com/Leonxlnx/taste-skill                         |
+| Version      | v2 (experimental), commit `ccbc156`, 2026-08-24                 |
+| Licence      | **MIT** — Copyright (c) 2026 Leonxlnx, verified from `LICENSE`  |
+| Installed at | `.claude/skills/taste-skill/`                                   |
+| Licence copy | `.claude/skills/taste-skill/LICENSE` — retained as MIT requires |
+
+Vendored as files rather than installed with `npx skills add`, for the same
+reason `ui-ux-pro-max` was: it is committed with the repository, so any agent
+that opens this repo inherits it with no setup step.
+
+**The licence was verified by fetching and reading the repository's own
+`LICENSE` file**, not a README badge and not a search result — `CLAUDE.md` #18,
+and the reason for that rule is §5 below.
+
+What was taken:
+
+| Path          | From upstream                 | Why                                                                                                                                                                                                 |
+| ------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SKILL.md`    | `skills/taste-skill/SKILL.md` | The v2 skill itself — the three dials, the layout hard rules, the AI-tell list, and the 60-box pre-flight check                                                                                     |
+| `references/` | `research/`                   | Background research on why models produce incomplete output and the documented techniques against it. Directly relevant to a repo whose recurring lesson is that a green gate is not a correct site |
+| `LICENSE`     | `LICENSE`                     | Required by MIT                                                                                                                                                                                     |
+
+What was left behind: eleven sibling skills (`gpt-tasteskill`, `brutalist-`,
+`soft-`, `minimalist-`, `redesign-`, `output-`, `stitch-`, `image-to-code-`,
+two `imagegen-` skills, `brandkit`) plus `assets/` and `examples/` (≈1.4 MB),
+to keep repository weight and agent context focused. All are available at the
+same MIT terms if wanted.
+
+> Note on a discrepancy, for accuracy: the vendored file's own frontmatter
+> declares `name: design-taste-frontend`, which is the upstream install name,
+> while the directory here is `taste-skill` (its path in the source repo and
+> the name used throughout `docs/stages/TAHAP-34.md`). The file was **not**
+> edited — a vendored file that has been quietly rewritten is a provenance
+> record you cannot trust — so the two names differ on purpose.
+
+**How it is used here is a decision, not an adoption.**
+`docs/stages/TAHAP-34.md` §5 lists the rules this project adopts and the
+defect each one closes; §6 lists the five it rejects and why — among them the
+skill's `transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1)` example, which
+violates three separate hard rules in `CLAUDE.md`. Where the two disagree,
+`CLAUDE.md` wins.
+
+Nothing was copied from `SKILL.md` into shipped source. It is guidance read by
+agents, in the same position as `ui-ux-pro-max`.
 
 ---
 

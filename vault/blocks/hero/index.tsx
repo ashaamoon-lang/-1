@@ -15,13 +15,31 @@
  * | Headline | `TextReveal` | line-by-line masked rise — the premium reveal |
  * | Action | `Magnetic` | pointer attraction on the single CTA |
  * | Index | slot | a standing fact, in the columns the headline leaves |
- * | Cue | slot | says the page continues; not a control |
+ *
+ * ## Where the scroll cue went — Tahap 34
+ *
+ * There was a fourth slot here: a `Scroll` label with a 1px rule under it,
+ * bottom right. It was added in Tahap 12 for a measured reason —
+ * `ui-ux-pro-max`'s `hero-centric-design` pattern says to let the hero
+ * dominate the first screen *without hiding the next-content cue*, and this
+ * hero dominated 900px of a 5749px document while saying nothing about the
+ * rest.
+ *
+ * `taste-skill` SKILL.md section 14 bans scroll cues outright, as an AI tell.
+ * Two vendored skills, opposite instructions, so the tie is broken on which
+ * one is right about *this* page rather than on which arrived later.
+ *
+ * Both are. The problem Tahap 12 measured is real and the word is the tell.
+ * A label is a weak way to say "there is more below"; the strong way is for
+ * there to visibly be more below. So the hero gives up 12svh and the next
+ * section's top edge now sits inside the first screen. The affordance is
+ * kept, in a form that carries no copy, needs no `aria-hidden`, and adds no
+ * element to the hero stack — which SKILL.md section 4.7 caps at four.
  *
  * ## The frame, and why it is not centred
  *
- * The three text elements sit on a diagonal: the index in the top right, the
- * headline and its action at the bottom left, the cue in the bottom right.
- * That is a composition. The previous arrangement — everything centred in a
+ * The text elements sit on a diagonal: the index in the top right, the
+ * headline and its action at the bottom left. That is a composition. The previous arrangement — everything centred in a
  * column down the left — was not: it was one element's natural width three
  * times over, with the vertical position decided by `align-items: center`.
  * `docs/stages/TAHAP-12.md` §3.1 has the measurement it came from.
@@ -85,21 +103,6 @@ interface HeroProps {
    * spent Tahap 11 removing came from in the first place.
    */
   index?: { label: string; items: readonly string[] } | undefined
-  /**
-   * The cue that the page continues below.
-   *
-   * `ui-ux-pro-max`'s `hero-centric-design` pattern is explicit about it:
-   * let the hero dominate the first screen **without hiding the next content
-   * cue**. This hero dominated 900px of a 5749px document and said nothing
-   * about the rest.
-   *
-   * Deliberately not a control. The call to action is the interactive path;
-   * a second clickable thing in the same corner would add a noun to the
-   * interaction grammar and buy nothing.
-   *
-   * A label; the rule beneath it is the block's own.
-   */
-  cue?: string | undefined
   className?: string | undefined
 }
 
@@ -108,7 +111,6 @@ export function Hero({
   subline,
   action,
   index,
-  cue,
   className,
 }: HeroProps) {
   const ref = useReveal<HTMLDivElement>()
@@ -155,23 +157,6 @@ export function Hero({
             </div>
           )}
         </div>
-
-        {cue && (
-          /*
-           * `aria-hidden`, and that is the right call rather than laziness.
-           *
-           * A screen-reader user does not need to be told the page scrolls,
-           * and the word would be read as content between the call to action
-           * and the first section. The information it carries is spatial, and
-           * it is already carried by the document order.
-           */
-          <div data-reveal-item className={s.cue} aria-hidden="true">
-            <p className={cn('caption', s.cueLabel)}>
-              {cue}
-              <span className={s.cueRule} />
-            </p>
-          </div>
-        )}
       </div>
     </section>
   )

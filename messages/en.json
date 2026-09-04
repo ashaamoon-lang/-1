@@ -11,10 +11,8 @@
     "practice": "Practice"
   },
   "home": {
-    "workEyebrow": "Selected work",
     "workTitle": "Recent engagements",
     "workCount": "{count, plural, one {# engagement} other {# engagements}}",
-    "studioEyebrow": "Studio",
     "studioTitle": "How we work",
     "contactEyebrow": "Commissions",
     "contactTitle": "Start a conversation",
@@ -22,9 +20,8 @@
     "socialsHeading": "Elsewhere",
     "heroCta": "See the work",
     "heroCtaContact": "Get in touch",
-    "placeholderNote": "Placeholder copy — this text is replaced by the studio’s own words as soon as the CMS has them.",
+    "placeholderNote": "Placeholder copy. The studio’s own words replace this text as soon as the CMS has them.",
     "heroIndexLabel": "Practice",
-    "scrollCue": "Scroll",
     "practiceEyebrow": "Practice",
     "practiceTitle": "What we take on",
     "practiceLink": "See work in this practice"
@@ -48,11 +45,11 @@
     "ai-data": "AI & Data",
     "commission": "Commission",
     "consultingTitle": "Consulting",
-    "consultingIntro": "Consulting engagements — strategy, architecture and the decisions that come before a build.",
+    "consultingIntro": "Consulting engagements: strategy, architecture and the decisions that come before a build.",
     "ai-dataTitle": "AI & Data",
-    "ai-dataIntro": "AI and data work — evaluation, pipelines and systems that have to hold up in production.",
+    "ai-dataIntro": "AI and data work: evaluation, pipelines and systems that have to hold up in production.",
     "commissionTitle": "Commission",
-    "commissionIntro": "Commissioned work — scoped, paid engagements delivered to a brief."
+    "commissionIntro": "Commissioned work: scoped, paid engagements delivered to a brief."
   },
   "meta": {
     "client": "Client",
@@ -113,18 +110,17 @@
     "eyebrow": "Practice",
     "statementEyebrow": "How we work in it",
     "nextEyebrow": "Next practice",
-    "workEyebrow": "Selected work",
     "workTitle": "Engagements in this practice",
     "empty": "Nothing published under this practice yet.",
     "placeholderNote": "Placeholder text. The studio has not written this statement yet.",
-    "consultingStatement": "A consulting engagement starts before anything is built. We read the system that exists, name the decisions that are actually open, and write down the trade-offs each one carries — so the choice that gets made is the one the team can defend six months later.",
+    "consultingStatement": "A consulting engagement starts before anything is built. We read the system that exists, name the decisions that are actually open, and write down the trade-offs each one carries, so the choice that gets made is the one the team can defend six months later.",
     "ai-dataStatement": "AI and data work is judged in production, not in a notebook. We build the evaluation first, so there is a number to argue with; then the pipelines, the guardrails, and the handover that lets a team run it without us.",
     "commissionStatement": "A commission is scoped, priced and delivered against a brief. The brief is the work: most of what goes wrong in a commissioned engagement was decided, or left undecided, before the first line was written."
   },
   "studio": {
     "eyebrow": "Studio",
     "title": "Studio",
-    "lead": "Arth is a small practice built around one habit: scope a piece of work honestly, then finish it. We take consulting, AI and data, and commissioned build — three practices that share a method rather than a medium.",
+    "lead": "Arth is a small practice built around one habit: scope a piece of work honestly, then finish it. We take consulting, AI and data, and commissioned build. Three practices that share a method rather than a medium.",
     "facts": {
       "founded": "Founded",
       "foundedValue": "2021",

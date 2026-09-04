@@ -226,11 +226,7 @@ export default async function PracticePage({ params }: PracticePageProps) {
 
         {projects.length > 0 ? (
           <section className={s.section}>
-            <SectionHeader
-              reveal
-              eyebrow={t('workEyebrow')}
-              title={t('workTitle')}
-            />
+            <SectionHeader reveal title={t('workTitle')} />
             {/*
               `catalogue`, not the default `editorial` layout: a work's `span`
               is a composition choice for the home page's curated handful, and

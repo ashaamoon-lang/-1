@@ -2054,6 +2054,71 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 34 — Selera diberi angka ✅
+
+> Spec: [`docs/stages/TAHAP-34.md`](./stages/TAHAP-34.md)
+
+Keluhan yang sama datang tiga kali: situs ini **kurang animatif, kurang
+kreatif, kurang eksploratif**. Tiga Tahap terakhir menjawab dengan menambah
+gerak, dan keluhannya tidak berubah. Diagnosisnya bukan kurangnya efek —
+proyek ini punya angka untuk durasi, kontras, luminansi, dan berat rute, dan
+**nol angka untuk komposisi**. "Lebih eksploratif" adalah perasaan, dan
+perasaan tidak bisa digerbangi.
+
+`taste-skill` ([Leonxlnx](https://github.com/Leonxlnx/taste-skill), **MIT,
+diverifikasi dengan membaca `LICENSE`-nya sendiri** — `CLAUDE.md` #18)
+divendor ke `.claude/skills/`, dan Arth disetel ke
+**`DESIGN_VARIANCE 7 / MOTION_INTENSITY 9 / VISUAL_DENSITY 3`** dari
+baseline skill `8 / 6 / 4`, tiap angka diargumenkan di `DESIGN-SYSTEM.md` §0.
+Density adalah satu-satunya dial yang hampir tidak naik, dengan sengaja: 8–10
+di skill itu berarti "cockpit", dan itu membunuh situs karya.
+
+Tiga belas aturannya diadopsi, **lima ditolak dengan alasan** — termasuk contoh
+geraknya sendiri, `transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1)`, yang
+melanggar tiga aturan keras `CLAUDE.md` sekaligus.
+
+**Gerbangnya merah dulu: 21 asersi.** Nav 98px (plafon 80), hero 5 elemen teks
+(plafon 4), scroll cue di `/en` dan `/id`, eyebrow 4 dari 5 seksi di beranda,
+dan em-dash di 8 dari 8 rute. Semuanya diperbaiki: **39 string** di sembilan
+berkas, header ke 72px, dua eyebrow dijatuhkan setelah tiap pasang
+eyebrow/judul dinilai satu per satu.
+
+**Dua cacat yang tidak bisa dilihat dari halaman mana pun** ditemukan pemindai
+sumber: `min-height: 100vh` pada `body` sejak fork, dan
+`window.addEventListener('scroll')` di `lib/webgl/hooks/use-webgl-rect.ts`.
+Keduanya lolos 33 Tahap karena tidak satu pun terlihat dari DOM.
+
+**Dua skill bertabrakan soal scroll cue** — `ui-ux-pro-max` menambahkannya di
+Tahap 12 dengan pengukuran, `taste-skill` melarangnya sebagai AI tell.
+Keduanya benar: masalahnya nyata, **katanya** yang merupakan tell. Hero
+melepas 12svh (`100svh` → `88svh`) dan tepi seksi berikutnya kini terlihat di
+layar pertama; afordansinya bertahan tanpa satu kata pun.
+
+Perubahan itu lalu **mematahkan sebuah gerbang lama secara jujur**: judul naik
+96px dan menyeberang ke pita yang `visual-substance.e2e.ts` sampel, sehingga
+`range`-nya melaporkan kontras huruf, bukan wash. Diperbaiki dengan mengukur
+**selisih dua frame** (`contribution()`), yang mengisolasi kontribusi lapisan
+itu sendiri: `/en` **15.9**, praktik **12.1**, dan diperiksa bisa gagal dengan
+menaikkan ambangnya ke 99.
+
+**Instrumennya sendiri salah enam kali**, tiga kali mengarang cacat dan tiga
+kali menyembunyikannya. Semuanya ditulis di `TAHAP-34.md` §9.3.
+
+`DESIGN-SYSTEM.md` mendapat **§7: sepuluh baris di mana dokumen ini dan
+kodenya masih berbeda**, tiap baris menyebut Tahap yang menutupnya — utang
+yang diakui, bukan yang dibayar. Empat angka palsu di dokumen itu diperbaiki:
+`h1` 72→120 sebenarnya **38→120**, "18 pasang" sebenarnya **22 pengukuran**,
+kontras terendah **9.08:1** bukan 14.22:1, APCA terendah **Lc 60.6** bukan
+86.1.
+
+unit 443 · e2e **440 lulus, 0 gagal**, 16 dilewati · 2 berkas gerbang baru
+(9 asersi DOM, 5 asersi sumber) · nol dependensi baru · **satu hal tidak
+selesai dan disebut**: dokumen fixture `studioSettings` di dataset live masih
+membawa subline lama, jadi beranda terbangun masih merender satu em-dash
+sampai seseorang menjalankan ulang seed.
+
+---
+
 ## Tahap 33 — Situs yang tidak berhenti bergerak ✅
 
 > Spec: [`docs/stages/TAHAP-33.md`](./stages/TAHAP-33.md)

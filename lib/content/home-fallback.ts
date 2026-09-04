@@ -42,9 +42,9 @@ const FALLBACK_COPY = {
   en: {
     headline: 'Work that has to hold up',
     subline:
-      'Consulting, AI and data, and commissioned build — scoped to a brief and delivered against it.',
+      'Consulting, AI and data, and commissioned build, scoped to a brief and delivered against it.',
     statement: [
-      'Arth works to a brief. Every engagement starts from the constraint that makes the problem hard — the deadline, the legacy system, the decision that cannot be reversed — and not from a menu of services.',
+      'Arth works to a brief. Every engagement starts from the constraint that makes the problem hard (the deadline, the legacy system, the decision that cannot be reversed) and not from a menu of services.',
       'The work runs from a two-week architecture review to a build carried for several months. The scope and the estimate are agreed before anything starts rather than after, and what is delivered is measured against them.',
     ],
     portraitCaption: 'The studio',
@@ -52,9 +52,9 @@ const FALLBACK_COPY = {
   id: {
     headline: 'Karya yang harus bertahan',
     subline:
-      'Konsultasi, AI dan data, serta pengerjaan pesanan — dengan lingkup sesuai brief dan dikerjakan sesuai itu.',
+      'Konsultasi, AI dan data, serta pengerjaan pesanan, dengan lingkup sesuai brief dan dikerjakan sesuai itu.',
     statement: [
-      'Arth bekerja sesuai brief. Tiap penugasan dimulai dari kendala yang membuat masalahnya sulit — tenggatnya, sistem lamanya, keputusan yang tidak bisa ditarik kembali — bukan dari daftar layanan.',
+      'Arth bekerja sesuai brief. Tiap penugasan dimulai dari kendala yang membuat masalahnya sulit (tenggatnya, sistem lamanya, keputusan yang tidak bisa ditarik kembali), bukan dari daftar layanan.',
       'Pekerjaannya berkisar dari tinjauan arsitektur dua minggu sampai pengerjaan yang berjalan beberapa bulan. Lingkup dan perkiraannya disepakati sebelum apa pun dimulai, bukan sesudah, dan hasilnya diukur terhadap keduanya.',
     ],
     portraitCaption: 'Studio',

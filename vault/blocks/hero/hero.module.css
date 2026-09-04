@@ -16,7 +16,20 @@
    * CTA sits below the fold. svh is the smallest viewport state and is always
    * visible.
    */
-  min-height: 100svh;
+  /*
+   * 88, not 100 — the next section's top edge stays inside the first screen.
+   *
+   * This is the scroll cue, done structurally. Tahap 12 measured that a
+   * full-viewport hero on a 5749px document said nothing about the rest, and
+   * answered it with a `Scroll` label; Tahap 34 removed the label because
+   * `taste-skill` SKILL.md section 14 names it an AI tell, and moved the job
+   * here. Content peeking above the fold is the affordance a label was
+   * standing in for, and it survives being read aloud, being translated, and
+   * being looked at by someone who has seen a hundred of these pages.
+   *
+   * `vault/blocks/hero/index.tsx` carries the full argument.
+   */
+  min-height: 88svh;
   /*
    * Top padding clears the fixed header, which is `position: fixed` and so
    * takes no space of its own. Without it the index row starts underneath the
@@ -43,7 +56,7 @@
  * The frame: three anchors, not one centred column.
  *
  * Rows are `auto 1fr auto` so the index pins to the top and the headline and
- * cue to the bottom, with the slack in the middle where it costs nothing.
+ * action to the bottom, with the slack in the middle where it costs nothing.
  * That puts the index in the top right and the headline in the bottom left —
  * a diagonal across the screen — instead of three left-aligned elements of
  * descending width floating in the vertical centre.
@@ -96,27 +109,6 @@
   }
 }
 
-.cue {
-  grid-row: 3;
-  grid-column: 1 / -1;
-  align-self: end;
-  /*
-   * Bottom right at every width, and on mobile that is a collision fix.
-   *
-   * This was `justify-self: start` below 800px, on the idea that the cue
-   * would sit under the action. It does not: `.content` spans rows 2–4 there
-   * and the cue is in row 3, so both were bottom-left and the cue landed on
-   * top of the call to action — measured at 390×844, CTA `17→163` and cue
-   * `17→81`, overlapping for 64px.
-   */
-  justify-self: end;
-
-  @media (--desktop) {
-    grid-row: 3;
-    grid-column: 10 / -1;
-  }
-}
-
 .content {
   position: relative;
   z-index: 1;
@@ -143,8 +135,11 @@
      * measure — 9em is relative to the headline's own fluid size and holds at
      * every viewport, which a fraction of the grid does not.
      *
-     * This shares row 3 with `.cue`, deliberately. They cannot collide: 9em
-     * resolves to about 1035px at 1440 and the cue's track starts at 1068px.
+     * Row 3 is now this element's alone. It used to share the row with the
+     * scroll cue on the right, which is why the 9em cap exists: 9em resolves
+     * to about 1035px at 1440, and the cue's track started at 1068px. The cue
+     * left in Tahap 34; the cap stays because a headline wider than 9em is a
+     * headline nobody reads in one pass.
      */
     grid-column: 1 / -1;
   }
@@ -232,54 +227,6 @@
   @media (--desktop) {
     flex-direction: column;
     gap: desktop-vw(6px);
-  }
-}
-
-.cueLabel {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: mobile-vw(10px);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-
-  @media (--desktop) {
-    gap: desktop-vw(12px);
-  }
-}
-
-/*
- * The line that makes the cue a direction rather than a word.
- *
- * **Static, and that is the third answer rather than the first.**
- *
- * It began as a 1200ms keyframe looping forever, which was wrong twice:
- * `MOTION-SPEC.md` §5 names an autoplaying loop as exactly what reduced motion
- * is asking to be spared, and §9.5 allows a page two choreographed moments —
- * an animation that never ends is one of them, permanently, spent on a hint.
- * Recorded, it was the longest-moving element on the page by a factor of
- * three: 2453ms of a 2600ms sample, against 778ms for the headline.
- *
- * The second attempt drew it once with the hero, under the `[data-reveal]`
- * contract. Sampled per frame, it does not draw: the attribute lands at about
- * 200ms, after first paint, so the element renders at `scaleY(1)` with no
- * attribute, transitions *toward* 0 for the ~40ms it is `hidden`, and returns.
- * A dip of a few percent that nobody sees. The same round trip happens to
- * every `[data-reveal-item]`; on those it is masked by a stagger delay and an
- * opacity fade, and on a 1px rule it is simply not motion.
- *
- * So it is a rule that is there. It says "down" by being vertical under the
- * word, and it costs nothing from a budget of two.
- */
-.cueRule {
-  display: block;
-  inline-size: 1px;
-  block-size: mobile-vw(32px);
-  background-color: currentcolor;
-
-  @media (--desktop) {
-    block-size: desktop-vw(40px);
   }
 }
 

@@ -174,7 +174,23 @@ body {
    * browser's.
    */
   font-family: var(--font-display);
-  min-height: 100vh;
+  /*
+   * `svh`, not `vh` — the small viewport height, measured with the mobile
+   * browser's chrome visible.
+   *
+   * `100vh` is the *large* viewport: on a phone it is taller than what the
+   * reader can actually see, so a short page always carried a scrollbar it
+   * did not need, and the footer sat below the fold on a 404. It also changes
+   * as the chrome slides away, which is exactly when someone is scrolling.
+   * `vault/blocks/hero/hero.module.css:15` had already reached this answer for
+   * the hero; the body kept the starter's value until Tahap 34, when
+   * `taste-skill` SKILL.md section 14 ("Viewport stability") gave the rule a
+   * gate — `lib/styles/scripts/taste-rules.test.ts`.
+   *
+   * `dvh` would resize continuously and move the footer while the reader
+   * scrolls. `svh` is the floor that never moves.
+   */
+  min-height: 100svh;
   overscroll-behavior: none;
   background-color: var(--color-primary);
   color: var(--color-secondary);
