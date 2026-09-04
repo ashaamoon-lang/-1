@@ -176,5 +176,20 @@
     "nextEyebrow": "Next entry",
     "emptyTitle": "Nothing published here yet.",
     "emptyBody": "The studio writes when there is something worth writing down, which is not every week."
+  },
+  "search": {
+    "open": "Search",
+    "shortcut": "⌘K",
+    "label": "Search the site",
+    "placeholder": "Search work, practices and writing",
+    "empty": "Nothing matches that.",
+    "hint": "Enter to open, Escape to close.",
+    "close": "Close search",
+    "groups": {
+      "page": "Pages",
+      "practice": "Practices",
+      "project": "Work",
+      "journal": "Journal"
+    }
   }
 }

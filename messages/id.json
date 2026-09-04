@@ -176,5 +176,20 @@
     "nextEyebrow": "Entri berikutnya",
     "emptyTitle": "Belum ada yang diterbitkan di sini.",
     "emptyBody": "Studio menulis ketika ada yang layak dituliskan, dan itu bukan setiap minggu."
+  },
+  "search": {
+    "open": "Cari",
+    "shortcut": "⌘K",
+    "label": "Cari di situs ini",
+    "placeholder": "Cari karya, praktik, dan tulisan",
+    "empty": "Tidak ada yang cocok.",
+    "hint": "Enter untuk membuka, Escape untuk menutup.",
+    "close": "Tutup pencarian",
+    "groups": {
+      "page": "Halaman",
+      "practice": "Praktik",
+      "project": "Karya",
+      "journal": "Jurnal"
+    }
   }
 }

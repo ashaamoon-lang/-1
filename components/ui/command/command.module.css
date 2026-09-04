@@ -1,0 +1,358 @@
+/*
+ * The search trigger and its palette.
+ *
+ * Every value here is a token. The one number that is not — the popup's
+ * `max-inline-size` — is a reading measure, which `DESIGN-SYSTEM.md` treats
+ * the same way it treats `60ch` on a paragraph: a limit on line length, not a
+ * design value to theme.
+ */
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: desktop-vw(8px);
+  padding-block: mobile-vw(6px);
+  padding-inline: mobile-vw(10px);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  /* Only transform and opacity — `CLAUDE.md` #4. */
+  transition:
+    opacity var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-fast) var(--ease-out-quart);
+
+  @media (--desktop) {
+    padding-block: desktop-vw(6px);
+    padding-inline: desktop-vw(10px);
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-secondary);
+  }
+
+  /* `MOTION-SPEC.md` §10: COMMIT is a press, not a colour change. */
+  &[data-press='nav']:active {
+    transform: scale(0.97);
+  }
+}
+
+.triggerIcon {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+/*
+ * The label is the accessible name and must never be hidden — a trigger whose
+ * only visible content is a glyph is the pattern this component exists to
+ * avoid. Below the desktop breakpoint the header is already tight, so the
+ * shortcut hint goes rather than the word.
+ */
+.triggerLabel {
+  white-space: nowrap;
+}
+
+.triggerKey {
+  display: none;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  border: 1px solid var(--line);
+  padding-inline: desktop-vw(4px);
+
+  @media (--desktop) {
+    display: inline-block;
+  }
+}
+
+/* ── The palette ──────────────────────────────────────────────────────── */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: color-mix(in oklab, var(--color-primary) 72%, transparent);
+  backdrop-filter: blur(desktop-vw(6px));
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
+  opacity: 1;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+}
+
+.viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-block-start: calc(var(--header-height) + mobile-vw(24px));
+  padding-inline: var(--safe);
+  overflow: hidden;
+
+  @media (--desktop) {
+    padding-block-start: calc(var(--header-height) + desktop-vw(48px));
+  }
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  /* A reading measure for result prose, not a themed dimension. */
+  max-inline-size: 42rem;
+  /* Never taller than what is left below the header. */
+  max-block-size: calc(100svh - var(--header-height) - mobile-vw(48px));
+  background-color: var(--color-primary);
+  border: 1px solid var(--line-strong);
+  transition:
+    transform var(--duration-fast) var(--ease-out-quart),
+    opacity var(--duration-fast) var(--ease-out-quart);
+  opacity: 1;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: translateY(mobile-vw(-8px));
+  }
+
+  @media (--desktop) {
+    max-block-size: calc(100svh - var(--header-height) - desktop-vw(96px));
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      transform: translateY(desktop-vw(-8px));
+    }
+  }
+}
+
+/*
+ * Reduced motion: the palette still appears and disappears, it just stops
+ * travelling. Removing the transition entirely is the correct reading of
+ * `CLAUDE.md` #5 here — the end state is fully visible either way, and a cut
+ * is what someone who asked for less motion is asking for.
+ */
+@media (--reduced-motion) {
+  .backdrop,
+  .popup {
+    transition: none;
+  }
+
+  .popup[data-starting-style],
+  .popup[data-ending-style] {
+    transform: none;
+  }
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  gap: mobile-vw(12px);
+  padding-inline: mobile-vw(16px);
+  border-bottom: 1px solid var(--line);
+
+  @media (--desktop) {
+    gap: desktop-vw(12px);
+    padding-inline: desktop-vw(20px);
+  }
+}
+
+.inputIcon {
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.input {
+  flex: 1;
+  min-inline-size: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-secondary);
+  font-family: inherit;
+  font-size: inherit;
+  padding-block: mobile-vw(16px);
+
+  &::placeholder {
+    color: var(--text-muted);
+  }
+
+  /*
+   * The field is the dialog's initial focus and the palette's own frame is
+   * the focus indicator — a second ring inside a box that only exists because
+   * the field is focused is noise. Focus is never invisible here: the popup
+   * cannot be open without it.
+   */
+  &:focus {
+    outline: none;
+  }
+
+  @media (--desktop) {
+    padding-block: desktop-vw(16px);
+  }
+}
+
+/*
+ * The scrolling region.
+ *
+ * The shape is Base UI's own for this component — a flex Root that caps its
+ * own height and clips, with the Viewport as a flex child that may shrink —
+ * and it is here because the obvious alternative was measured and failed.
+ *
+ * Every gate was green while a list ran off the bottom of the frame: axe, the
+ * palette's keyboard and ranking tests, the route budget. It was found by
+ * looking at it. `docs/stages/TAHAP-28.md` §9.5.
+ */
+.listArea {
+  position: relative;
+  display: flex;
+  flex: 0 1 auto;
+  /* Lets this flex child shrink below its content; without it a flex item's
+     automatic minimum size is its content and the popup grows instead. */
+  min-block-size: 0;
+  /* The cap the viewport resolves against. A percentage height on the
+     viewport does not: measured, it stayed at its content height, 1286px
+     inside a 617px region, and the list ran 689px past the bottom of the
+     popup, over the hint bar and off the frame. */
+  max-block-size: 60svh;
+  overflow: hidden;
+}
+
+.listViewport {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overscroll-behavior: contain;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.groupLabel {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  padding-block: mobile-vw(12px) mobile-vw(4px);
+  padding-inline: mobile-vw(16px);
+
+  @media (--desktop) {
+    padding-block: desktop-vw(14px) desktop-vw(4px);
+    padding-inline: desktop-vw(20px);
+  }
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: mobile-vw(12px);
+  padding-block: mobile-vw(10px);
+  padding-inline: mobile-vw(16px);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  @media (--desktop) {
+    column-gap: desktop-vw(16px);
+    padding-block: desktop-vw(10px);
+    padding-inline: desktop-vw(20px);
+  }
+
+  /*
+   * The highlight is a background, not an opacity change on the text.
+   *
+   * `--row-recede` on the journal index dims what is *not* being read, which
+   * works because those rows stay in place. Here the highlight moves with
+   * every arrow key, and dimming eleven rows to mark one would flicker the
+   * whole list on each press.
+   */
+  &[data-highlighted] {
+    background-color: color-mix(
+      in oklab,
+      var(--color-secondary) 10%,
+      transparent
+    );
+  }
+}
+
+.itemLabel {
+  grid-column: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemMeta {
+  grid-column: 2;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.itemDescription {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+  /*
+   * Two lines at most. A result row is a promise about a page, not the page's
+   * summary — and an index whose rows are different heights reads as a list
+   * of paragraphs rather than a list of results.
+   */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/*
+ * The text, not the box.
+ *
+ * `Autocomplete.Empty` stays in the tree when there are results, so padding
+ * declared on it held a 56px gap under the field while seventeen results were
+ * showing. The padding belongs to an element that only exists when the message
+ * does.
+ */
+.empty {
+  margin: 0;
+  color: var(--text-muted);
+  padding-block: mobile-vw(24px);
+  padding-inline: mobile-vw(16px);
+
+  @media (--desktop) {
+    padding-block: desktop-vw(28px);
+    padding-inline: desktop-vw(20px);
+  }
+}
+
+.hint {
+  color: var(--text-muted);
+  border-top: 1px solid var(--line);
+  padding-block: mobile-vw(10px);
+  padding-inline: mobile-vw(16px);
+  margin: 0;
+
+  @media (--desktop) {
+    padding-block: desktop-vw(10px);
+    padding-inline: desktop-vw(20px);
+  }
+}
+
+.scrollbar {
+  inline-size: mobile-vw(4px);
+  background-color: var(--line);
+
+  @media (--desktop) {
+    inline-size: desktop-vw(4px);
+  }
+}
+
+.scrollbarThumb {
+  background-color: var(--line-strong);
+}

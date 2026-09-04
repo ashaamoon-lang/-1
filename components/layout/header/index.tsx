@@ -4,6 +4,7 @@ import cn from 'clsx'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
+import { CommandTrigger } from '@/components/ui/command'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { getLinkIntent, Link } from '@/components/ui/link'
 import { useActiveSection } from '@/lib/hooks/use-active-section'
@@ -147,6 +148,15 @@ export function Header({
           )}
         </ul>
       </nav>
+
+      {/*
+        Search sits beside the language switcher rather than inside the nav:
+        it is not a destination, it is a way of reaching every destination.
+        Its own file records why it is a visible button and not only a ⌘K
+        shortcut, and why almost nothing of it ships to a page that never
+        opens it.
+      */}
+      <CommandTrigger className={s.search} />
 
       <LanguageSwitcher className={s.language} />
     </header>

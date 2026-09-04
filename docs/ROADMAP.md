@@ -1814,6 +1814,53 @@ motion nol baris di bawah 0,99 · ponsel dua bahasa tanpa overflow.
 
 ---
 
+## Tahap 28 — Pencarian: satu permukaan yang menjangkau ke dalam halaman ✅
+
+> Spec: [`docs/stages/TAHAP-28.md`](./stages/TAHAP-28.md)
+
+Fase 4. Palette ⌘K di setiap rute, 17 entri dua bahasa dari sumber yang sudah
+ada — katalog rute, praktik, proyek, entri jurnal. **Nol konten baru, nol
+dependensi baru**: `dialog`, `autocomplete` dan `scroll-area` adalah tiga
+komponen Base UI yang scaffold catat sebagai terpasang tapi nol impor.
+
+Yang membedakannya dari hiasan ditulis di spec §1 dan dikerjakan: ia
+menjangkau **ke dalam** halaman (mengetik nama klien menemukan proyek yang
+judulnya tidak memuatnya), ia punya **tombol yang terlihat** karena pintasan
+tanpa pintu hanya melayani yang sudah tahu, dan ia **gratis sampai dibuka**.
+
+**Gerbang anggaran merah, dan penyebabnya bukan yang saya duga.** Tiga rute
+lewat plafon untuk kode yang belum dibuka siapa pun: `/en/work` 871 → **914**,
+praktik 874 → **917**. Bukan `next/dynamic` (diganti `React.lazy`, identik),
+bukan Base UI bocor (kode palette-nya memang tidak pernah tiba lebih awal).
+Penyebabnya **satu impor**: palette memakai `components/ui/link`, yang juga
+tinggal di chunk eager header — sebuah modul yang dipakai chunk eager _dan_
+async membuat webpack menggandakan seluruh grup chunk-nya, 43 KB dikirim dua
+kali. Dicabut: 914 → **880**. Barisnya tetap `<a href>` sungguhan dan navigasi
+kliennya dikembalikan lewat `router.push`. **Nol plafon dinaikkan**, padahal
+diizinkan — aturan file itu sendiri yang berlaku: perbaikan yang benar adalah
+berhenti mengirim beratnya.
+
+**Jawaban yang salah, dibuktikan merah.** Urutan struktural + sorot-yang-pertama
+berarti mengetik `scope` — kata pertama judul entri jurnal — membuka
+**beranda**, karena deskripsi beranda memuat "scopes". Diperbaiki dengan
+peringkat: judul-diawali > judul-memuat > baris-memuat, dan grupnya ikut
+diurutkan oleh jawaban terbaiknya.
+
+**Dua cacat tata letak yang nol gerbang temukan**, ditemukan dengan
+memandanginya sesudah semuanya hijau: daftarnya keluar **689px** di bawah
+bingkai (`max-block-size: 100%` bukan tinggi yang definit), dan kotak "tidak
+ada hasil" menahan 56px sementara tujuh belas hasil tampil. Keduanya kesalahan
+saya; ini persis yang `CLAUDE.md` maksud dengan gerbang hijau bukan situs yang
+benar.
+
+axe bersih **pada palette yang terbuka** dua bahasa — pelajaran Tahap 25 §7.5
+dalam bentuk baru, karena dialog yang tertutup tidak ada di DOM.
+
+e2e **362 lulus, 0 gagal**, 18 dilewati · unit **432** (dari 417) · `check`
+exit 0 · `route-budget` 9/9 · tanpa JS pemicunya tidak ditawarkan sama sekali.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

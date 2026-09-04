@@ -199,3 +199,15 @@
     transition: none;
   }
 }
+
+/*
+ * The search trigger.
+ *
+ * `margin-inline-start: auto` is deliberately absent: the nav already
+ * consumes the free space through the header's `justify-content:
+ * space-between`, and adding one here would push the language switcher off
+ * the end on a narrow viewport.
+ */
+.search {
+  flex-shrink: 0;
+}

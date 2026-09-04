@@ -64,6 +64,26 @@ import { expect, test } from '@playwright/test'
  * The practice route's 26KB is the one to watch: the scaffold's Fase 1 adds
  * motion primitives, and that is where they will land first. A red gate there
  * is this file working, not this file being in the way.
+ *
+ * ## Tahap 28: this file caught the thing it was written to catch
+ *
+ * The search palette (`components/ui/command`) is loaded on first open, so no
+ * route should have moved at all. Three did — `/en/work` 871 → **914**,
+ * `/en/work/arus-balik` 866 → 909, `/en/practice/consulting` 874 → **917**,
+ * all over ceiling — for code nobody had opened.
+ *
+ * The cause was not the palette. It was one import inside it: the palette
+ * used `components/ui/link`, which also lives in the header's eager chunk, so
+ * webpack duplicated that whole chunk to serve both the eager and the async
+ * graph. **~43KB of already-downloaded code, shipped twice.** Neither
+ * `next/dynamic` nor `React.lazy` changed it; removing that one import did,
+ * and `/en/work` came back to 880.
+ *
+ * **No ceiling was raised.** The rule this file states — the list is the
+ * decision, the number is only the ceiling — held: the fix was to stop
+ * shipping the weight, not to permit it. The generalisation is worth keeping:
+ * a module shared between an eager chunk and an async one can cost its whole
+ * chunk group twice, and the only way to see that is to measure.
  */
 
 /** Byte totals are uncompressed response bodies, not transfer size. */
