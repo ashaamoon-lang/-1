@@ -96,6 +96,20 @@ export interface CommandPaletteProps {
    * — would strand the reader. `./index.tsx` records when that happens.
    */
   finalFocus?: RefObject<HTMLElement | null> | undefined
+  /**
+   * The index, handed in rather than fetched.
+   *
+   * Ordinary dependency injection, and it exists because the alternative was
+   * worse: a Storybook story for this component would otherwise have to stub
+   * `fetch`, and what it then showed would be a mock of the plumbing rather
+   * than the component. With this, the story renders the real thing over real
+   * entries.
+   *
+   * It is also the seam for handing the index over from the server one day,
+   * with no round trip — see `app/[locale]/search.json/route.ts` for why that
+   * is not how it works today.
+   */
+  entries?: readonly SearchEntry[] | undefined
 }
 
 interface Group {
@@ -166,12 +180,13 @@ export function CommandPalette({
   open,
   onOpenChange,
   finalFocus,
+  entries: given,
 }: CommandPaletteProps) {
   const t = useTranslations('search')
   const locale = useLocale()
   const router = useRouter()
   const hintId = useId()
-  const [entries, setEntries] = useState<SearchEntry[]>([])
+  const [fetched, setFetched] = useState<SearchEntry[]>([])
   /*
    * Three states, because they say three different things.
    *
@@ -182,9 +197,13 @@ export function CommandPalette({
    * screen for 900ms. A failed fetch said the same thing, which was worse:
    * not "nothing matched" but "search is broken", told as if it were a result.
    */
-  const [status, setStatus] = useState<'loading' | 'ready' | 'failed'>(
-    'loading'
-  )
+  const [fetchStatus, setFetchStatus] = useState<
+    'loading' | 'ready' | 'failed'
+  >('loading')
+
+  // Given entries are ready by definition; there is nothing to wait for.
+  const entries = given ?? fetched
+  const status = given ? ('ready' as const) : fetchStatus
   /*
    * The query is controlled here because the ordering depends on it, and
    * `Autocomplete.Root` cannot order what it does not know is more relevant.
@@ -203,6 +222,8 @@ export function CommandPalette({
    * thing that breaks a page it was opened from.
    */
   useEffect(() => {
+    if (given) return
+
     const controller = new AbortController()
 
     fetch(`/${locale}/search.json`, { signal: controller.signal })
@@ -211,17 +232,17 @@ export function CommandPalette({
         return response.json()
       })
       .then((data: SearchEntry[]) => {
-        setEntries(data)
-        setStatus('ready')
+        setFetched(data)
+        setFetchStatus('ready')
       })
       .catch(() => {
         // An abort is this effect being cleaned up, not a failure the reader
         // should be told about; the component is going away either way.
-        if (!controller.signal.aborted) setStatus('failed')
+        if (!controller.signal.aborted) setFetchStatus('failed')
       })
 
     return () => controller.abort()
-  }, [locale])
+  }, [locale, given])
 
   const groups = useMemo<Group[]>(() => {
     const scored = entries

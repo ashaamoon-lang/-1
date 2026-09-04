@@ -1916,6 +1916,49 @@ palette **15/15 dua kali tanpa flake** · `route-budget` 9/9, nol plafon naik ·
 
 ---
 
+## Tahap 30 — Menutup yang ditunda, dan menyebut yang bukan penundaan ✅
+
+> Spec: [`docs/stages/TAHAP-30.md`](./stages/TAHAP-30.md)
+
+Tahap 28 dan 29 masing-masing berakhir dengan daftar "yang tidak dikerjakan".
+Pemilik proyek menolak daftar itu: **kalau aman dan sesuai rencana, kerjakan.**
+Aturannya benar, dan dua dari tiga item saya memang tidak punya alasan yang
+bertahan.
+
+**Pencocokan kata, dibuktikan merah terhadap indeks sungguhan.** `matchScore`
+mencocokkan satu substring, jadi: `balik arus` → **nol**, `tanjung 2025` →
+**nol**, `scope deliverable` → **nol**. Yang terakhir paling tajam — itu
+kata-kata judulnya sendiri, dalam urutannya sendiri, tanpa kata sambung yang
+tidak akan diketik siapa pun. Dan klien dan tahun ada di satu baris rel dipisah
+`·`, jadi mengetik keduanya tidak menemukan apa pun. Sekarang kuerinya dibaca
+sebagai kata dan **setiap kata harus ada** (AND, bukan OR — menambah kata
+selalu mempersempit, dan OR yang melebarkan adalah perilaku yang membuat
+pencarian terasa rusak). Keempatnya sekarang ketemu.
+
+**Story Storybook, didapat dengan mengubah komponennya bukan memalsu `fetch`.**
+`CommandPalette` menerima `entries` opsional; diberikan → dipakai, tidak →
+mengambil sendiri. Story-nya jadi merender palette yang sebenarnya. Dua story
+lulus sapuan axe, jadi palette sekarang **diaudit terisolasi dari halaman**.
+
+**Dua kolom: pertentangan, bukan penundaan — dan alasan lama saya keliru.**
+Barisnya tiga pita terukur 210 / 436 / 662px; dipecah dua kolom jadi 115 / 230
+/ **345px**, dan deskripsi 16px dalam 345px ≈ 24 karakter per baris. Jadi dua
+kolom bukan tambahan melainkan **penggantian**: lebih banyak hasil terlihat
+dengan membuang kolom deskripsi — pertukaran yang pemilik proyek putuskan.
+`Autocomplete.Row` menangani panah kiri/kanan dengan benar, jadi aksesibilitas
+**bukan** penghalangnya; itu yang saya katakan sebelumnya dan itu salah.
+
+**Satu kesalahan saya sendiri, ditangkap gerbang.** Fixture dan story pertama
+memakai **"Museum MACAN"** sebagai klien — nama yang saya karang; klien
+sebenarnya "Rumah Tanjung". Ketahuan karena gerbang e2e berjalan terhadap situs
+sungguhan: fixture-nya lulus, situsnya tidak. Proyek ini melarang mengarang
+nama klien, dan story Storybook adalah katalog yang bisa dijelajahi.
+
+unit **438** (dari 432) · e2e **372 lulus, 0 gagal**, 18 dilewati, nol flake ·
+palette 16/16 · `storybook-a11y` 94 lulus · anggaran rute tidak disentuh.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

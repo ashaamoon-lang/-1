@@ -238,9 +238,36 @@ export function matchScore(entry: SearchEntry, query: string): number {
   const needle = query.trim().toLowerCase()
   if (needle === '') return 1
 
+  /*
+   * Every word, anywhere, in any order.
+   *
+   * Matching the query as one substring was the second defect in this
+   * function, and it was not about sophistication. Measured before this
+   * changed, against an index holding "Arus Balik — Rumah Tanjung · 2025" and
+   * the entry "Scope is the deliverable":
+   *
+   *   "arus balik"        -> found
+   *   "balik arus"        -> nothing
+   *   "tanjung 2025"        -> nothing
+   *   "scope deliverable" -> nothing
+   *
+   * The last one is the sharpest: those are the title's own words in their
+   * own order, with the connectives a person would not bother typing. The
+   * client and the year sit on one row separated by a middot, so typing both
+   * — an obviously reasonable thing to do — matched nothing at all.
+   *
+   * AND rather than OR: every word must appear, so adding a word always
+   * narrows. An OR would do the opposite and make a second word *widen* the
+   * result set, which is the behaviour that makes a search feel broken.
+   */
+  const words = needle.split(/\s+/)
   const label = entry.label.toLowerCase()
-  if (label.startsWith(needle)) return 3
-  if (label.includes(needle)) return 2
 
-  return searchHaystack(entry).includes(needle) ? 1 : 0
+  // The whole query as typed, still the strongest signal — someone typing the
+  // opening of a title means that title.
+  if (label.startsWith(needle)) return 3
+  if (words.every((word) => label.includes(word))) return 2
+
+  const haystack = searchHaystack(entry)
+  return words.every((word) => haystack.includes(word)) ? 1 : 0
 }

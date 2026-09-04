@@ -111,6 +111,39 @@ test.describe('the search palette', () => {
     expect(results.join(' ')).toContain('Kedai')
   })
 
+  test('the words may arrive in any order', async ({ page }) => {
+    await page.goto('/en')
+    await page.waitForTimeout(1200)
+    await openWithShortcut(page)
+    await page.waitForSelector('[data-search-row]')
+
+    const results = async (query: string) => {
+      await page.fill('[role="combobox"]', '')
+      await page.keyboard.type(query)
+      await page.waitForTimeout(350)
+      return page.locator('[role="option"]').allTextContents()
+    }
+
+    /*
+     * All three found nothing before the query was read as words rather than
+     * as one substring — including the last, which is the entry's own title
+     * minus the connectives nobody types. `docs/stages/TAHAP-30.md` §2.
+     */
+    expect((await results('arus balik')).join(' ')).toContain('Arus Balik')
+    expect(
+      (await results('balik arus')).join(' '),
+      'reversing two words of a title loses the result'
+    ).toContain('Arus Balik')
+    expect(
+      (await results('tanjung 2025')).join(' '),
+      'the client and the year are one line of the row, and typing both finds nothing'
+    ).toContain('Arus Balik')
+    expect(
+      (await results('scope deliverable')).join(' '),
+      "an entry's own words, in order, without its connectives"
+    ).toContain('Scope is the deliverable')
+  })
+
   test('a title match outranks a passing mention', async ({ page }) => {
     await page.goto('/en')
     await page.waitForTimeout(1200)

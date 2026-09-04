@@ -65,7 +65,7 @@ describe('project entries', () => {
     {
       slug: { current: 'arus-balik' },
       title: 'Arus Balik',
-      client: 'Museum MACAN',
+      client: 'Rumah Tanjung',
       year: 2025,
       engagement: 'Commissioned work',
     },
@@ -81,14 +81,14 @@ describe('project entries', () => {
     expect(entries.length).toBe(1)
     expect(entries[0]?.label).toBe('Arus Balik')
     expect(entries[0]?.href).toBe('/en/work/arus-balik')
-    expect(entries[0]?.meta).toBe('Museum MACAN · 2025')
+    expect(entries[0]?.meta).toBe('Rumah Tanjung · 2025')
   })
 
   test('the client name is searchable even though the title omits it', () => {
     const [entry] = projectEntries('en', projects)
     expect(entry).toBeDefined()
     if (!entry) return
-    expect(searchHaystack(entry)).toContain('macan')
+    expect(searchHaystack(entry)).toContain('tanjung')
   })
 
   test('no projects is not an error', () => {
@@ -120,7 +120,7 @@ describe('the whole index', () => {
       {
         slug: { current: 'arus-balik' },
         title: 'Arus Balik',
-        client: 'Museum MACAN',
+        client: 'Rumah Tanjung',
         year: 2025,
         engagement: 'Commissioned work',
       },
@@ -198,5 +198,62 @@ describe('match score', () => {
     expect(scope).toBeDefined()
     if (!scope) return
     expect(matchScore(scope, '  SCOPE ')).toBe(3)
+  })
+})
+
+describe('word order and the query as words', () => {
+  const project = {
+    slug: { current: 'arus-balik' },
+    title: 'Arus Balik',
+    client: 'Rumah Tanjung',
+    year: 2025,
+    engagement: 'Architecture review, six weeks',
+  }
+  const index = buildSearchIndex('en', {
+    projects: [project],
+    journal: resolveJournalEntries('en', null),
+  })
+  const find = (query: string) =>
+    index.filter((entry) => matchScore(entry, query) > 0).map((e) => e.label)
+
+  /*
+   * Each of these returned nothing before the query was read as words.
+   * `docs/stages/TAHAP-30.md` §2 carries the measurement.
+   */
+  test('the words may arrive in any order', () => {
+    expect(find('arus balik')).toContain('Arus Balik')
+    expect(find('balik arus')).toContain('Arus Balik')
+  })
+
+  test('two facts from the same rail can be typed together', () => {
+    // "Rumah Tanjung · 2025" is one line on the row; typing both halves of it
+    // is an obviously reasonable thing to do, and it matched nothing.
+    expect(find('tanjung 2025')).toContain('Arus Balik')
+  })
+
+  test("a title's own words, without its connectives", () => {
+    expect(find('scope deliverable')).toContain('Scope is the deliverable')
+    expect(find('deliverable scope')).toContain('Scope is the deliverable')
+  })
+
+  test('every word must appear — a second word narrows, never widens', () => {
+    const one = find('scope')
+    const two = find('scope deliverable')
+    expect(two.length).toBeLessThan(one.length)
+    // An OR would have made this longer, which is the behaviour that makes a
+    // search feel broken.
+    expect(two.length).toBeGreaterThan(0)
+  })
+
+  test('a word that appears nowhere still excludes the row', () => {
+    expect(find('arus zzzz')).toEqual([])
+  })
+
+  test('the whole query as typed still outranks the same words scattered', () => {
+    const entry = index.find((e) => e.label === 'Scope is the deliverable')
+    expect(entry).toBeDefined()
+    if (!entry) return
+    expect(matchScore(entry, 'scope is')).toBe(3)
+    expect(matchScore(entry, 'deliverable scope')).toBe(2)
   })
 })
