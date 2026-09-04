@@ -113,3 +113,33 @@
   height: 100%;
   object-fit: cover;
 }
+
+/*
+ * The figure is a button now (Tahap 31), and a button brings its own agenda:
+ * a border, a background, a padding, and its own font. All of it is cleared
+ * so the picture is still the whole of what is seen — what the button adds is
+ * a tab stop, Enter and Space, and a name.
+ */
+.trigger {
+  display: block;
+  inline-size: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: zoom-in;
+  /* Only transform and opacity — `CLAUDE.md` #4. */
+  transition: transform var(--duration-fast) var(--ease-out-quart);
+
+  /* `MOTION-SPEC.md` §10: COMMIT is a press. */
+  &[data-press='nav']:active {
+    transform: scale(0.995);
+  }
+}
+
+@media (--reduced-motion) {
+  .trigger {
+    transition: none;
+  }
+}

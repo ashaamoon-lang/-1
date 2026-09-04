@@ -194,5 +194,14 @@
     "emptyHint": "Coba nama klien, tahun, atau sebuah praktik.",
     "loading": "Menyusun indeks…",
     "failed": "Pencarian sedang tidak tersedia. Seluruh halaman tetap bisa dicapai dari header dan footer."
+  },
+  "lightbox": {
+    "label": "Karya {position} dari {total}: {alt}",
+    "previous": "Gambar sebelumnya",
+    "next": "Gambar berikutnya",
+    "zoom": "Perbesar",
+    "close": "Tutup",
+    "goTo": "Ke gambar {position}",
+    "openImage": "Buka gambar {position} layar penuh"
   }
 }

@@ -1959,6 +1959,53 @@ palette 16/16 · `storybook-a11y` 94 lulus · anggaran rute tidak disentuh.
 
 ---
 
+## Tahap 31 — Galeri yang bisa dipegang ✅
+
+> Spec: [`docs/stages/TAHAP-31.md`](./stages/TAHAP-31.md)
+
+Fase 5. Karya pesanan sekarang bisa dibuka layar penuh, dijelajahi dengan
+panah, diperbesar satu langkah, lalu **digeser** untuk memeriksa detailnya —
+dan menggeser hanya hidup **setelah** diperbesar, karena menyeret gambar yang
+sudah pas di layar tidak berguna. Itu yang membuatnya informasi, bukan hiasan.
+
+Dialognya **tidak** di dalam galeri: paragraf "No lightbox, deliberately" di
+`vault/blocks/project-gallery` sudah menunjuk ke mana ia harus pergi kalau
+suatu saat dibangun — `components/ui/`, di samping dialog Base UI lain — dan
+di sanalah ia dibangun. Paragrafnya ditulis ulang, bukan dibiarkan berbohong.
+
+**Anggaran:** 878 → **879 KB** terhadap plafon 900. Dialog tetap di luar graf
+eager.
+
+**`Draggable` diukur, dan dugaan saya meleset.** Spec menduga ia akan
+mengulang cacat Tahap 28 (modul yang dipakai chunk eager _dan_ async
+menggandakan grup chunk-nya). Build percobaan yang benar-benar mengimpornya:
+**879 KB — nol penggandaan**, karena GSAP di rute ini sendiri tiba lewat batas
+`dynamic()` dan **tidak pernah ada di chunk eager** untuk digandakan dari.
+Aturan Tahap 28 ternyata tentang keanggotaan grup chunk, bukan waktu
+kedatangan. Jadi argumen beratnya gugur; yang memutuskan perilaku — inersia
+`Draggable` butuh `InertiaPlugin` berbayar, jadi tanpa itu keduanya sama dan
+satu tidak punya plugin untuk didaftarkan.
+
+**Empat cacat, semuanya ditemukan dengan menjalankannya:** panah tidak
+melakukan apa-apa (Base UI menghentikan perambatannya — pendengar fase capture
+melihatnya, fase bubble tidak sama sekali); menggeser **menutup dialognya**
+(`display: contents` tidak menghasilkan kotak, dan Base UI menilai tekanan
+luar dari geometri popup); gambarnya **terpotong** (baris grid implisit diukur
+oleh isinya, jadi `block-size: 100%` melingkar dan dibuang — 786px di panggung
+698px, sekarang 1240×698 rasio utuh); dan **jumlah gambarnya salah di spec
+saya sendiri** — "tiga" dihitung dari `data-span=`, atribut yang kartu proyek
+berikutnya juga pakai. Sebenarnya **dua**, dan angkanya penting karena ia yang
+memutuskan kontrol mana yang pantas ada.
+
+**Satu temuan isi:** kedua gambar galeri tiap proyek membawa `alt` identik.
+Itu isi CMS, bukan kode; nama dialognya tetap membedakan karena diawali posisi.
+
+unit 438 · e2e **382 lulus, 0 gagal**, 18 dilewati, nol flake · lightbox 10/10
+termasuk axe bersih pada dialog **terbuka** dua bahasa · `route-budget` lulus,
+nol plafon naik · tanpa JS galerinya tetap terbaca.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

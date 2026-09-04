@@ -1,7 +1,11 @@
 'use client'
 
 import cn from 'clsx'
+import { useTranslations } from 'next-intl'
+import type { ComponentType } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
+import type { LightboxProps } from '@/components/ui/lightbox'
 import { SanityImage } from '@/components/ui/sanity-image'
 import { useReveal } from '@/lib/hooks/use-reveal'
 import {
@@ -18,15 +22,23 @@ import s from './project-gallery.module.css'
  *
  * Provenance: original work for this project. No third-party code copied.
  *
- * ## No lightbox, deliberately
+ * ## The lightbox, and where this file said it would live
  *
- * A lightbox is a modal dialog: focus trap, escape handling, scroll lock,
- * restore-focus-on-close, and a keyboard story for the previous/next controls.
- * That is a component in its own right, not a detail of a gallery — and a
- * gallery without one is not degraded. The images render at the width the
- * layout gives them, and a reader who wants a closer look has the browser's
- * own zoom. If a lightbox is added later it belongs in `components/ui/`
- * beside the other Base UI dialogs, not here.
+ * This paragraph used to be titled "No lightbox, deliberately" and argued
+ * that a modal dialog is a component in its own right rather than a detail of
+ * a gallery. That argument still holds, and it is why the dialog is **not**
+ * in this file: it closed by naming where one would belong if it were ever
+ * added — `components/ui/`, beside the other Base UI dialogs — and Tahap 31
+ * built it exactly there.
+ *
+ * What lives here is the trigger and the index. Each figure is a real button
+ * that opens the lightbox **at its own image**, and the index is owned here
+ * rather than inside the dialog so that closing and reopening does not lose
+ * the reader's place.
+ *
+ * The dialog is imported on first open, not with the page: the project route
+ * measured 878KB against a 900KB ceiling, and `components/ui/lightbox`
+ * records what that constraint decided.
  *
  * ## Two widths, chosen by the picture's own shape
  *
@@ -85,45 +97,109 @@ interface ProjectGalleryProps {
   className?: string | undefined
 }
 
+/*
+ * The dialog's own props, imported as a type rather than restated here.
+ *
+ * A structural copy would have needed a cast at the `import()` — and a cast
+ * is a claim rather than a check: it would keep compiling after the dialog's
+ * props changed, and fail at runtime instead. Importing the type is free
+ * (types are erased) and makes the compiler prove the two agree.
+ */
+type LightboxComponent = ComponentType<LightboxProps>
+
 export function ProjectGallery({ images, className }: ProjectGalleryProps) {
   const ref = useReveal<HTMLUListElement>()
+  const t = useTranslations('lightbox')
+  const [Lightbox, setLightbox] = useState<LightboxComponent | null>(null)
+  const [open, setOpen] = useState(false)
+  const [index, setIndex] = useState(0)
+  /*
+   * The button that opened it, so focus goes back to the image the reader
+   * came from rather than to the top of the gallery. A ref rather than an
+   * index because that is what Base UI's `finalFocus` takes.
+   */
+  const triggerRef = useRef<HTMLElement | null>(null)
+
+  const openAt = useCallback(async (position: number, trigger: HTMLElement) => {
+    triggerRef.current = trigger
+    setIndex(position)
+
+    const mod = await import('@/components/ui/lightbox')
+    // The updater form: React would call a component passed to `setState`
+    // as if it were a reducer.
+    setLightbox(() => mod.Lightbox)
+    setOpen(true)
+  }, [])
 
   if (images.length === 0) return null
 
   return (
-    <ul ref={ref} className={cn(s.gallery, className)}>
-      {images.map((image) => {
-        const ratio = aspectRatioFor(image)
-        const full = isFullWidth(ratio)
+    <>
+      <ul ref={ref} className={cn(s.gallery, className)}>
+        {images.map((image, position) => {
+          const ratio = aspectRatioFor(image)
+          const full = isFullWidth(ratio)
 
-        return (
-          <li
-            key={image._key}
-            data-reveal-item
-            className={s.item}
-            data-span={full ? 'full' : 'half'}
-          >
-            <figure className={s.figure}>
-              <div className={s.media} style={ratioStyle(ratio)}>
-                <SanityImage
-                  image={toImageSource(image)}
-                  alt={image.alt ?? ''}
-                  className={s.image}
-                  maxWidth={full ? 1440 : 704}
-                  /*
-                   * Matched to the grid track, which the box now actually
-                   * fills. The derived default assumes an image fills the
-                   * viewport, so a half-width figure asked for 1440px to
-                   * render 691 — twice the pixels on the heaviest thing on
-                   * the page.
-                   */
-                  sizes={trackImageSizes(full ? 92 : 48)}
-                />
-              </div>
-            </figure>
-          </li>
-        )
-      })}
-    </ul>
+          return (
+            <li
+              key={image._key}
+              data-reveal-item
+              className={s.item}
+              data-span={full ? 'full' : 'half'}
+            >
+              <figure className={s.figure}>
+                {/*
+                  A real button, not a div with a click handler: it is
+                  reachable by Tab, activates on Enter and Space, and
+                  announces itself as something that does a thing. The
+                  accessible name says which image and what will happen,
+                  because "image" alone tells a screen reader nothing about
+                  the difference between three of them.
+                */}
+                <button
+                  type="button"
+                  className={s.trigger}
+                  data-gallery-trigger=""
+                  data-press="nav"
+                  data-intent=""
+                  aria-label={t('openImage', { position: position + 1 })}
+                  onClick={(event) => {
+                    void openAt(position, event.currentTarget)
+                  }}
+                >
+                  <div className={s.media} style={ratioStyle(ratio)}>
+                    <SanityImage
+                      image={toImageSource(image)}
+                      alt={image.alt ?? ''}
+                      className={s.image}
+                      maxWidth={full ? 1440 : 704}
+                      /*
+                       * Matched to the grid track, which the box now actually
+                       * fills. The derived default assumes an image fills the
+                       * viewport, so a half-width figure asked for 1440px to
+                       * render 691 — twice the pixels on the heaviest thing on
+                       * the page.
+                       */
+                      sizes={trackImageSizes(full ? 92 : 48)}
+                    />
+                  </div>
+                </button>
+              </figure>
+            </li>
+          )
+        })}
+      </ul>
+
+      {Lightbox && (
+        <Lightbox
+          images={images}
+          index={index}
+          onIndexChange={setIndex}
+          open={open}
+          onOpenChange={setOpen}
+          finalFocus={triggerRef}
+        />
+      )}
+    </>
   )
 }

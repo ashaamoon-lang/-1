@@ -1,0 +1,313 @@
+/*
+ * The lightbox for a project's gallery.
+ *
+ * Every value is a token, with two deliberate exceptions, both noted where
+ * they appear: the 44px touch floor (a minimum in real pixels, which a
+ * viewport unit cannot promise on a small phone) and the zoom/friction
+ * numbers, which are behaviour and live in `index.tsx` beside the code.
+ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  /*
+   * Nearly opaque, which is the point: a lightbox exists so the artwork is
+   * the only thing on screen. Built from the site's own ground rather than
+   * plain black, so the work sits on the surface it sits on everywhere else.
+   */
+  background-color: color-mix(in oklab, var(--color-primary) 94%, transparent);
+  opacity: 1;
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+
+  /* Leaving accelerates and is faster — the reasoning is recorded in
+     `components/ui/command/command.module.css`. */
+  &[data-ending-style] {
+    transition-duration: var(--duration-micro);
+    transition-timing-function: var(--ease-in-quart);
+  }
+}
+
+.viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 201;
+  display: grid;
+  pointer-events: none;
+}
+
+/*
+ * The popup is a real box, and that is not a styling preference.
+ *
+ * It was written as `display: contents` so the three rows could be children
+ * of the viewport grid — and an element with `display: contents` generates no
+ * box at all. Base UI decides "was this press outside the popup?" from the
+ * popup's geometry, so with no box every press was outside: measured, a drag
+ * across the picture **closed the dialog mid-gesture**.
+ *
+ * Giving it the grid instead of borrowing the viewport's costs nothing and
+ * gives the dialog something to be.
+ */
+.popup {
+  pointer-events: auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+/* ── The bar above ────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding-inline: var(--safe);
+  padding-block: mobile-vw(16px);
+
+  @media (--desktop) {
+    padding-block: desktop-vw(20px);
+  }
+}
+
+/* `01 / 03` — the counter `vault/blocks/step-sequence` uses for position in a
+   run. Here it answers which of the works is on screen. */
+.count {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+.countCurrent {
+  color: var(--color-secondary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: mobile-vw(8px);
+
+  @media (--desktop) {
+    gap: desktop-vw(12px);
+  }
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /*
+   * 44px is the touch floor `ui-ux-pro-max --domain ux` sets and the site's
+   * axe sweep already enforces. It is a minimum in real pixels, so it is
+   * written in px: a `vw` target shrinks below the floor on a small phone,
+   * which is exactly where it matters.
+   */
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition:
+    opacity var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-fast) var(--ease-out-quart);
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: var(--color-secondary);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* `MOTION-SPEC.md` §10 — COMMIT is a press. */
+  &[data-press='nav']:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+}
+
+.actionPressed {
+  color: var(--color-secondary);
+  border-color: var(--line-strong);
+}
+
+/* ── The stage ────────────────────────────────────────────────────────── */
+
+.stage {
+  position: relative;
+  display: grid;
+  /*
+   * One definite row and column, rather than `place-items: center` on an
+   * implicit grid.
+   *
+   * Measured: with an implicit row the frame's own `block-size: 100%`
+   * resolved against a track that was sized *by the frame's content*, which
+   * is circular, so the percentage was dropped and the picture rendered 786px
+   * tall inside a 698px stage — clipped top and bottom by the `overflow`
+   * below. A `1fr` row of a grid that already has a definite height is
+   * definite, so the chain resolves: stage 698 -> frame 698 -> image at most
+   * 698, letterboxed by `object-fit`.
+   */
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  min-block-size: 0;
+  padding-inline: var(--safe);
+  /*
+   * `overflow: hidden` is what makes panning mean anything: a zoomed frame is
+   * larger than this box, and this is the window it moves behind.
+   */
+  overflow: hidden;
+  /* The browser's own pan would fight ours; the component owns the gesture. */
+  touch-action: none;
+}
+
+/*
+ * The frame fills the stage, and the picture is centred inside it.
+ *
+ * It was written the other way round — a shrink-to-fit frame with
+ * `max-block-size: 100%` — and the percentage never applied: measured, the
+ * stage was 698px tall and the frame 786px, so the picture overflowed the
+ * window it was supposed to sit in. A percentage maximum against a parent
+ * whose own height is auto resolves to nothing, and both parent and child
+ * were auto. Giving the frame a definite box is what makes the image's own
+ * `max-block-size: 100%` mean something.
+ *
+ * It also fixed a second symptom: with the picture overflowing, a drag
+ * started at its centre began below the viewport, and releasing there read as
+ * a press outside the dialog, which closed it mid-gesture.
+ */
+.frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: 100%;
+  /* One transform carries both the zoom and the pan — `CLAUDE.md` #4. */
+  transition: transform var(--duration) var(--ease-out-expo);
+}
+
+/*
+ * While a pointer is down the frame follows it exactly, so the transition has
+ * to be off — otherwise every move is chased by a 400ms ease and the picture
+ * lags behind the hand.
+ */
+.frame[data-dragging] {
+  transition: none;
+  cursor: grabbing;
+}
+
+.frame[data-zoomed]:not([data-dragging]) {
+  cursor: grab;
+}
+
+.image {
+  max-block-size: 100%;
+  max-inline-size: 100%;
+  inline-size: auto;
+  block-size: auto;
+  object-fit: contain;
+  user-select: none;
+}
+
+/* ── The strip below ──────────────────────────────────────────────────── */
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(10px);
+  padding-inline: var(--safe);
+  padding-block: mobile-vw(16px);
+
+  @media (--desktop) {
+    gap: desktop-vw(12px);
+    padding-block: desktop-vw(20px);
+  }
+}
+
+.caption {
+  margin: 0;
+  color: var(--text-muted);
+  max-inline-size: 72ch;
+}
+
+/*
+ * Three previews in a flex row, and deliberately not a `ScrollArea`.
+ *
+ * Every project in the dataset carries exactly three images — measured on all
+ * six — so nothing overflows and a scroll container would be a control with
+ * no job. `docs/stages/TAHAP-31.md` §5 records this, and names the one line
+ * to change if a project ever ships enough images to need one.
+ */
+.strip {
+  display: flex;
+  gap: mobile-vw(8px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (--desktop) {
+    gap: desktop-vw(10px);
+  }
+}
+
+.stripButton {
+  display: block;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
+  /* The touch floor again — a thumbnail is a target before it is a picture. */
+  min-inline-size: 44px;
+  min-block-size: 44px;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
+}
+
+.stripButton[aria-current='true'] {
+  opacity: 1;
+  border-color: var(--color-secondary);
+}
+
+.thumb {
+  display: block;
+  inline-size: mobile-vw(64px);
+  block-size: mobile-vw(44px);
+  object-fit: cover;
+
+  @media (--desktop) {
+    inline-size: desktop-vw(76px);
+    block-size: desktop-vw(50px);
+  }
+}
+
+/*
+ * Reduced motion: everything still appears and disappears, it just stops
+ * travelling. Zoom and pan keep working — they are direct manipulation, a
+ * hand moving a picture, not an animation played at the reader. What goes is
+ * the eased settle afterwards.
+ */
+@media (--reduced-motion) {
+  .backdrop,
+  .frame,
+  .action,
+  .stripButton {
+    transition: none;
+  }
+}

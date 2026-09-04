@@ -194,5 +194,14 @@
     "emptyHint": "Try a client name, a year, or a practice.",
     "loading": "Building the index…",
     "failed": "Search is unavailable right now. Every page is still reachable from the header and the footer."
+  },
+  "lightbox": {
+    "label": "Work {position} of {total}: {alt}",
+    "previous": "Previous image",
+    "next": "Next image",
+    "zoom": "Zoom",
+    "close": "Close",
+    "goTo": "Go to image {position}",
+    "openImage": "Open image {position} full screen"
   }
 }

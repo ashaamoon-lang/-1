@@ -20,6 +20,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Form | `@/components/ui/form` | Client |
 | Image | `@/components/ui/image` | Client |
 | LanguageSwitcher | `@/components/ui/language-switcher` | Client |
+| Lightbox | `@/components/ui/lightbox` | Client |
 | Link | `@/components/ui/link` | Client |
 | Marquee | `@/components/ui/marquee` | Client |
 | Menu | `@/components/ui/menu` | Client |
