@@ -2054,6 +2054,65 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 33 — Situs yang tidak berhenti bergerak ✅
+
+> Spec: [`docs/stages/TAHAP-33.md`](./stages/TAHAP-33.md)
+
+Pemilik proyek menilai situs ini kurang animatif, kurang kreatif, kurang
+eksploratif. **Itu diukur sebelum dijawab**: tiap rute digulir melalui delapan
+posisi, dihitung berapa elemen membawa transform bukan-identitas.
+
+**Katalog karya — halaman portofolio utama — punya SATU frame berbeda di
+sepanjang 4,5 layar.** Nol dari 79 elemen bergerak. Indeks jurnal sama.
+Diagnosisnya bisa dinamai: gerak situs ini hampir seluruhnya **gerak masuk** —
+blok tiba lalu membeku. Penilaiannya benar, dan sekarang ada angkanya.
+
+Sebagian juga sudah dijanjikan scaffold lalu ditunda: dari empat primitif
+Fase 1, Tahap 23 menunda `sticky-stack` dan `counter`, dan menolak memasang
+`parallax`. Masing-masing masuk akal saat itu; **efek gabungannya** adalah
+tabel di atas.
+
+**Satu masukan baru, banyak pembaca** — bukan lima efek yang berebut.
+Kecepatan gulir yang Lenis sudah hitung dan tak seorang pun baca kini
+diterbitkan sekali per frame, **di dalam callback Tempus yang Lenis sudah
+jalankan** (nol loop RAF kedua), sebagai custom property dan sebagai angka
+untuk GPU. Plat karya membacanya sebagai regangan ≤3%, dan `vault/motion/parallax`
+memberi media kedalaman diferensial — **media saja, tidak pernah prosa**,
+yang justru aturan yang Tahap 23 benar tentangnya.
+
+| rute                  | sebelum     | sesudah       |
+| --------------------- | ----------- | ------------- |
+| `/en/work`            | **0/79, 1** | 6/85, **8**   |
+| `/en/work/arus-balik` | 1/43, 4     | 3/45, **8**   |
+| `/en`                 | 11/127, 7   | 14/131, **9** |
+
+**Fase 6 diulang, dan dugaan Tahap 32 ternyata salah.** Tahap 32 menolak pass
+postprocessing karena mengangkat warna (55,8/255) dan menduga sebabnya buffer
+`HalfFloatType`. Dugaan itu **diuji**: buffer dihapus, efeknya diganti dengan
+dispersi yang digerakkan kecepatan — yang saat diam menggeser sebesar nol,
+jadi secara matematis identitas. Diukur saat benar-benar diam: **58,7/255.
+Tidak membaik.**
+
+Jadi pengangkatannya bukan efeknya dan bukan buffer-nya — ia **manajemen warna
+komposer bertemu renderer yang proyek ini konfigurasikan dengan sengaja**
+(`flat` + sRGB, keduanya hasil pengukuran Tahap 17 §4, yang memperbaiki bug di
+mana tiap warna ber-shader mendarat sebagai `authored ^ 2.2`). Membuat komposer
+setuju berarti membuka lagi keputusan itu, dan efek ambien tidak sepadan
+dengan mempertaruhkan pipeline warna situs. Pass tetap tidak dikirim — tapi
+sekarang alasannya menyebut konflik sebenarnya, dan percobaan ketiga tahu harus
+mulai dari mana. Satu perbaikan tetap dikirim: flag `postprocessing` ada di
+`WebGLCanvas` dan **tidak bisa dicapai** dari `Wrapper`; celah itu ditutup.
+
+**Satu instrumen dikoreksi:** `/en/journal` tampak tidak berubah karena
+geraknya opacity dan probe-nya hanya menghitung transform. Diverifikasi
+terpisah: `1.00 0.70 0.70` → `0.70 1.00 0.70` → `0.70 0.70 1.00`.
+
+unit 438 · e2e **389 lulus, 0 gagal**, 16 dilewati, nol flake · 5 gerbang baru
+termasuk yang **merah** terhadap situs sebelum tahap ini · prosa nol transform ·
+reduced motion nol plat tergeser · anggaran tidak dinaikkan.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

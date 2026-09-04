@@ -128,6 +128,18 @@ type CanvasProps = PropsWithChildren<{
   /** Force WebGL even on mobile/non-WebGL devices */
   force?: boolean
   /**
+   * Composite the scene through `lib/webgl/components/postprocessing`.
+   *
+   * Off by default, and deliberately per-route rather than global: a pass is
+   * a full-screen draw every frame, and Tahap 32 measured what a careless one
+   * does to artwork. The one shipped here is an identity operation while the
+   * page is still — see that module for the measurement that decided both.
+   *
+   * Not destructured below: `{...props}` forwards it to `WebGLCanvas`, which
+   * is the component that owns the composer.
+   */
+  postprocessing?: boolean
+  /**
    * Which GPU simulations `FlowmapProvider` mounts (root canvas only).
    * Defaults to none (opt-in) — pass the sims you actually use, e.g.
    * `['flowmap']`, to avoid paying for a GPU pass and window listeners with

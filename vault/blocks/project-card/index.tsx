@@ -40,7 +40,7 @@
  */
 
 import cn from 'clsx'
-import { useState, ViewTransition } from 'react'
+import { useRef, useState, ViewTransition } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -49,6 +49,7 @@ import {
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
 import { transitionName } from '@/lib/motion/transition-name'
+import { useParallax } from '@/vault/motion/parallax'
 import { MaterialImage } from '@/vault/webgl/material-image'
 
 import s from './project-card.module.css'
@@ -138,6 +139,15 @@ export function ProjectCard({
    */
   const [released, setRelease] = useState(false)
 
+  /*
+   * Depth on the plate, which is what stops a grid of them being a still
+   * photograph of a grid. `docs/stages/TAHAP-33.md` §1 has the measurement
+   * that made this necessary: the catalogue had one distinct frame across
+   * four and a half screens.
+   */
+  const parallaxRef = useRef<HTMLDivElement>(null)
+  useParallax(parallaxRef)
+
   const span = spanOverride ?? project.span ?? 6
   const slug = project.slug?.current
   // A project without a slug has no page to link to. The schema requires one,
@@ -224,29 +234,39 @@ export function ProjectCard({
           default="none"
         >
           <div className={s.media}>
-            {project.cover &&
-              (material ? (
-                <MaterialImage
-                  image={toImageSource(project.cover)}
-                  alt={project.coverAlt ?? ''}
-                  maxWidth={maxWidth}
-                  sizes={sizes}
-                  className={s.image}
-                  data-intent=""
-                  preload={preload}
-                  released={released}
-                />
-              ) : (
-                <SanityImage
-                  image={toImageSource(project.cover)}
-                  alt={project.coverAlt ?? ''}
-                  maxWidth={maxWidth}
-                  sizes={sizes}
-                  className={s.image}
-                  data-intent=""
-                  preload={preload}
-                />
-              ))}
+            {/*
+              The parallax lives on an inner wrapper, not on `.media`.
+              `.media` is the element `<ViewTransition>` photographs for the
+              card-to-project morph, and a transform on a morphing element is
+              the same class of defect as splitting the text a morph is about
+              to capture: the browser measures one box and animates another.
+              An inner box moves freely inside a frame that holds still.
+            */}
+            <div ref={parallaxRef} className={s.parallax}>
+              {project.cover &&
+                (material ? (
+                  <MaterialImage
+                    image={toImageSource(project.cover)}
+                    alt={project.coverAlt ?? ''}
+                    maxWidth={maxWidth}
+                    sizes={sizes}
+                    className={s.image}
+                    data-intent=""
+                    preload={preload}
+                    released={released}
+                  />
+                ) : (
+                  <SanityImage
+                    image={toImageSource(project.cover)}
+                    alt={project.coverAlt ?? ''}
+                    maxWidth={maxWidth}
+                    sizes={sizes}
+                    className={s.image}
+                    data-intent=""
+                    preload={preload}
+                  />
+                ))}
+            </div>
           </div>
         </ViewTransition>
         <div className={s.caption}>

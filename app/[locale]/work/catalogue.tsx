@@ -140,6 +140,13 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
        */
       webgl
       simTypes={FLOWMAP_SIM}
+      /*
+       * The plates parallax as of Tahap 33, and a scrubbed ScrollTrigger has
+       * to run inside Tempus or it renders a frame behind the scroll — the
+       * ordering `components/layout/lenis` documents. `gsap` is what mounts
+       * that bridge.
+       */
+      gsap
     >
       <div className={s.page}>
         {/*

@@ -143,3 +143,25 @@
     transition: none;
   }
 }
+
+/*
+ * The travelling layer, taller than its frame by the travel it is given.
+ *
+ * Same shape and same reason as `vault/blocks/project-card`: without the
+ * overshoot each picture would show a sliver of its own frame at one end of
+ * every scroll pass. The velocity stretch is deliberately *not* repeated here
+ * — a project page is read slowly, one work at a time, and a page that
+ * breathes with the scroll while someone is studying a single image is
+ * distraction rather than life.
+ */
+.parallax {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: -4%;
+  block-size: 108%;
+}
+
+.parallax .image {
+  block-size: 100%;
+  object-fit: cover;
+}

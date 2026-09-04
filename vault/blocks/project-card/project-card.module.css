@@ -139,3 +139,54 @@
     scale: 1;
   }
 }
+
+/*
+ * The layer that carries the parallax, and the two properties that keep it
+ * from showing its own edges.
+ *
+ * It is taller than the frame by exactly the travel it is given
+ * (`vault/motion/parallax` moves ±3% by default, so 106% covers both ends
+ * with a little to spare) and pulled up by half of the excess, so at rest the
+ * picture sits exactly where the layout put it. Without the overshoot the
+ * plate would reveal a sliver of its own background at the top or bottom of
+ * every pass — the failure the preset warns about as layers overflowing their
+ * container.
+ */
+.parallax {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: -4%;
+  block-size: 108%;
+  /*
+   * The velocity of the reader's own scroll, read as a stretch.
+   *
+   * `--scroll-velocity` is published once per frame by
+   * `components/layout/lenis`, normalised to -1..1. A plate lengthens very
+   * slightly in the direction of travel and settles the instant the scroll
+   * does — the same idea as the material layer's response to a pointer, at
+   * the scale of the page rather than the plate. Only `transform`, so it can
+   * never trigger layout (`CLAUDE.md` #4).
+   *
+   * The coefficient is small on purpose: at full throw this is a 3% stretch,
+   * which reads as weight rather than as an effect. Anything larger turns a
+   * catalogue of artwork into a funhouse mirror.
+   */
+  transform: scaleY(calc(1 + var(--scroll-velocity, 0) * 0.03));
+  transform-origin: center;
+}
+
+.image {
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/*
+ * Reduced motion: no stretch, and `vault/motion/parallax` creates no trigger
+ * at all, so the layer sits at its untransformed position — which the 108%
+ * box is already centred on. Content ends exactly where the layout put it.
+ */
+@media (--reduced-motion) {
+  .parallax {
+    transform: none;
+  }
+}

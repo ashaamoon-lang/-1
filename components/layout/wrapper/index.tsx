@@ -74,6 +74,19 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
    */
   sections?: readonly SectionLink[] | undefined
   /**
+   * Composite this page's canvas through the postprocessing chain.
+   *
+   * Only meaningful together with `webgl`, and **no route passes it today**.
+   *
+   * The flag existed on `WebGLCanvas` and could not be reached from here —
+   * `Canvas` did not forward it — so Tahap 33 closed that gap while testing
+   * whether a pass could earn its place. It could not, twice, and
+   * `lib/webgl/components/postprocessing` records why with both
+   * measurements. The plumbing stays because it was broken and is now not;
+   * turning it on is a decision for whoever solves the colour conflict.
+   */
+  postprocessing?: boolean
+  /**
    * Mount the GSAP runtime for this page.
    *
    * Off by default. GSAP only earns its ~69KB on a page that actually uses a
@@ -148,6 +161,7 @@ export function Wrapper({
   lenis = true,
   webgl = false,
   simTypes,
+  postprocessing = false,
   gsap = false,
   sections,
   ...props
@@ -156,7 +170,11 @@ export function Wrapper({
     <Theme theme={theme} global>
       {/* Header is rendered here - do NOT add another in layout.tsx */}
       <Header {...(sections && { sections })} />
-      <Canvas root={webgl} {...(simTypes && { simTypes })}>
+      <Canvas
+        root={webgl}
+        {...(simTypes && { simTypes })}
+        {...(postprocessing && { postprocessing })}
+      >
         <main
           id="main-content"
           /*

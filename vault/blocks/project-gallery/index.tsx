@@ -14,6 +14,7 @@ import {
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
+import { useParallax } from '@/vault/motion/parallax'
 
 import s from './project-gallery.module.css'
 
@@ -107,6 +108,50 @@ interface ProjectGalleryProps {
  */
 type LightboxComponent = ComponentType<LightboxProps>
 
+/**
+ * One figure's picture, in its own component so it can hold its own ref.
+ *
+ * A hook cannot be called inside a `map`, and the alternative — one ref array
+ * threaded through — makes the parent own bookkeeping that belongs to the
+ * child. This is the smaller shape.
+ */
+function GalleryMedia({
+  image,
+  ratio,
+  full,
+}: {
+  image: GalleryImage
+  ratio: number | null
+  full: boolean
+}) {
+  const parallaxRef = useRef<HTMLDivElement>(null)
+  useParallax(parallaxRef)
+
+  return (
+    <div className={s.media} style={ratioStyle(ratio)}>
+      {/*
+        The travelling layer sits inside the ratio box, which clips it, so the
+        picture moves against a frame that holds the grid still.
+      */}
+      <div ref={parallaxRef} className={s.parallax}>
+        <SanityImage
+          image={toImageSource(image)}
+          alt={image.alt ?? ''}
+          className={s.image}
+          maxWidth={full ? 1440 : 704}
+          /*
+           * Matched to the grid track, which the box now actually fills. The
+           * derived default assumes an image fills the viewport, so a
+           * half-width figure asked for 1440px to render 691 — twice the
+           * pixels on the heaviest thing on the page.
+           */
+          sizes={trackImageSizes(full ? 92 : 48)}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function ProjectGallery({ images, className }: ProjectGalleryProps) {
   const ref = useReveal<HTMLUListElement>()
   const t = useTranslations('lightbox')
@@ -167,22 +212,7 @@ export function ProjectGallery({ images, className }: ProjectGalleryProps) {
                     void openAt(position, event.currentTarget)
                   }}
                 >
-                  <div className={s.media} style={ratioStyle(ratio)}>
-                    <SanityImage
-                      image={toImageSource(image)}
-                      alt={image.alt ?? ''}
-                      className={s.image}
-                      maxWidth={full ? 1440 : 704}
-                      /*
-                       * Matched to the grid track, which the box now actually
-                       * fills. The derived default assumes an image fills the
-                       * viewport, so a half-width figure asked for 1440px to
-                       * render 691 — twice the pixels on the heaviest thing on
-                       * the page.
-                       */
-                      sizes={trackImageSizes(full ? 92 : 48)}
-                    />
-                  </div>
+                  <GalleryMedia image={image} ratio={ratio} full={full} />
                 </button>
               </figure>
             </li>
