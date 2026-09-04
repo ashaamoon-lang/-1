@@ -190,6 +190,9 @@
       "practice": "Practices",
       "project": "Work",
       "journal": "Journal"
-    }
+    },
+    "emptyHint": "Try a client name, a year, or a practice.",
+    "loading": "Building the index…",
+    "failed": "Search is unavailable right now. Every page is still reachable from the header and the footer."
   }
 }

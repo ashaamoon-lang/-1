@@ -1,10 +1,22 @@
 /*
- * The search trigger and its palette.
+ * The search trigger, and a palette that is a page of this site.
  *
- * Every value here is a token. The one number that is not — the popup's
- * `max-inline-size` — is a reading measure, which `DESIGN-SYSTEM.md` treats
- * the same way it treats `60ch` on a paragraph: a limit on line length, not a
- * design value to theme.
+ * ## What Tahap 29 changed, and why
+ *
+ * Tahap 28's palette passed every gate and looked like a command palette from
+ * any developer tool: a centred dark box, one type size for title and
+ * description, a flat single column. `docs/stages/TAHAP-29.md` §1 records the
+ * three defects that are design rather than bugs — no typographic hierarchy,
+ * no asymmetry, and a dead end with no way out.
+ *
+ * What replaces it is **not a new style**. It is the grammar the journal index
+ * already speaks: a mono rail on the left carrying the facts, the reading
+ * column on the right, spaced-capital section markers, hairline rules. Same
+ * argument as Tahap 23 and Tahap 27 — a mechanism used once is an exception,
+ * used again it is a vocabulary.
+ *
+ * Zero new design values: no new colour, type size, radius or shadow. If this
+ * file introduced one, the stage would have failed its own thesis.
  */
 
 .trigger {
@@ -65,76 +77,100 @@
   }
 }
 
-/* ── The palette ──────────────────────────────────────────────────────── */
+/* ── The sheet ────────────────────────────────────────────────────────── */
 
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background-color: color-mix(in oklab, var(--color-primary) 72%, transparent);
-  backdrop-filter: blur(desktop-vw(6px));
+  background-color: color-mix(in oklab, var(--color-primary) 82%, transparent);
+  backdrop-filter: blur(desktop-vw(8px));
+  opacity: 1;
   transition: opacity var(--duration-fast) var(--ease-out-quart);
-  opacity: 1;
 
   &[data-starting-style],
   &[data-ending-style] {
     opacity: 0;
   }
-}
 
-.viewport {
-  position: fixed;
-  inset: 0;
-  z-index: 101;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-block-start: calc(var(--header-height) + mobile-vw(24px));
-  padding-inline: var(--safe);
-  overflow: hidden;
-
-  @media (--desktop) {
-    padding-block-start: calc(var(--header-height) + desktop-vw(48px));
-  }
-}
-
-.popup {
-  display: flex;
-  flex-direction: column;
-  inline-size: 100%;
-  /* A reading measure for result prose, not a themed dimension. */
-  max-inline-size: 42rem;
-  /* Never taller than what is left below the header. */
-  max-block-size: calc(100svh - var(--header-height) - mobile-vw(48px));
-  background-color: var(--color-primary);
-  border: 1px solid var(--line-strong);
-  transition:
-    transform var(--duration-fast) var(--ease-out-quart),
-    opacity var(--duration-fast) var(--ease-out-quart);
-  opacity: 1;
-
-  &[data-starting-style],
+  /*
+   * Leaving is faster than arriving, and its curve is the other way round.
+   *
+   * `ui-ux-pro-max --domain ux` states it directly: deceleration on arrival,
+   * acceleration on departure — and `CLAUDE.md` #2 already forbids using one
+   * in-out curve for everything. `--ease-in-quart` is a token from
+   * `lib/styles/css/easings.css`, which is what rule #1 requires; the curated
+   * JS set in `vault/motion/tokens.ts` carries no "in" curve simply because
+   * nothing in script-land has needed one yet.
+   */
   &[data-ending-style] {
-    opacity: 0;
-    transform: translateY(mobile-vw(-8px));
-  }
-
-  @media (--desktop) {
-    max-block-size: calc(100svh - var(--header-height) - desktop-vw(96px));
-
-    &[data-starting-style],
-    &[data-ending-style] {
-      transform: translateY(desktop-vw(-8px));
-    }
+    transition-duration: var(--duration-micro);
+    transition-timing-function: var(--ease-in-quart);
   }
 }
 
 /*
- * Reduced motion: the palette still appears and disappears, it just stops
- * travelling. Removing the transition entirely is the correct reading of
- * `CLAUDE.md` #5 here — the end state is fully visible either way, and a cut
- * is what someone who asked for less motion is asking for.
+ * A sheet across the page, not a box floating on top of it.
+ *
+ * It hangs from the header and keeps the page's own gutter, so it reads as a
+ * surface of this site rather than a widget borrowed from a developer tool.
+ * That is the whole thesis of the stage.
  */
+.viewport {
+  position: fixed;
+  inset-block-start: var(--header-height);
+  inset-inline: 0;
+  z-index: 101;
+  display: flex;
+  justify-content: center;
+  padding-inline: var(--safe);
+  padding-block-start: mobile-vw(12px);
+  pointer-events: none;
+
+  @media (--desktop) {
+    padding-block-start: desktop-vw(16px);
+  }
+}
+
+.popup {
+  pointer-events: auto;
+  inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  max-block-size: calc(100svh - var(--header-height) - mobile-vw(48px));
+  background-color: var(--color-primary);
+  border: 1px solid var(--line-strong);
+  opacity: 1;
+  transition:
+    transform var(--duration) var(--ease-out-expo),
+    opacity var(--duration) var(--ease-out-expo);
+
+  /*
+   * It arrives from above, because that is where it comes from: the trigger
+   * is in the header and the sheet hangs off it. A box that fades in from
+   * nowhere has no spatial story.
+   */
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: translateY(mobile-vw(-12px));
+  }
+
+  &[data-ending-style] {
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-in-quart);
+  }
+
+  @media (--desktop) {
+    max-block-size: calc(100svh - var(--header-height) - desktop-vw(72px));
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      transform: translateY(desktop-vw(-12px));
+    }
+  }
+}
+
 @media (--reduced-motion) {
   .backdrop,
   .popup {
@@ -147,16 +183,30 @@
   }
 }
 
-.inputGroup {
-  display: flex;
+/* ── The head: field on the left, count on the right ──────────────────── */
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: mobile-vw(12px);
   padding-inline: mobile-vw(16px);
   border-bottom: 1px solid var(--line);
 
   @media (--desktop) {
-    gap: desktop-vw(12px);
-    padding-inline: desktop-vw(20px);
+    gap: var(--gap);
+    padding-inline: desktop-vw(28px);
+  }
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  gap: mobile-vw(12px);
+  min-inline-size: 0;
+
+  @media (--desktop) {
+    gap: desktop-vw(14px);
   }
 }
 
@@ -173,50 +223,57 @@
   color: var(--color-secondary);
   font-family: inherit;
   font-size: inherit;
-  padding-block: mobile-vw(16px);
+  padding-block: mobile-vw(18px);
 
   &::placeholder {
     color: var(--text-muted);
   }
 
   /*
-   * The field is the dialog's initial focus and the palette's own frame is
-   * the focus indicator — a second ring inside a box that only exists because
-   * the field is focused is noise. Focus is never invisible here: the popup
-   * cannot be open without it.
+   * The sheet is the focus indicator — it cannot be open without this field
+   * being focused, so a ring inside it marks nothing the reader does not
+   * already know.
    */
   &:focus {
     outline: none;
   }
 
   @media (--desktop) {
-    padding-block: desktop-vw(16px);
+    padding-block: desktop-vw(20px);
   }
 }
 
 /*
- * The scrolling region.
+ * `03 / 17` — the counter idiom `vault/blocks/step-sequence` already uses for
+ * "where am I in this run". Here it answers how much of the index the query
+ * has left, which is a real question a filtered list otherwise hides.
  *
- * The shape is Base UI's own for this component — a flex Root that caps its
- * own height and clips, with the Viewport as a flex child that may shrink —
- * and it is here because the obvious alternative was measured and failed.
- *
- * Every gate was green while a list ran off the bottom of the frame: axe, the
- * palette's keyboard and ranking tests, the route budget. It was found by
- * looking at it. `docs/stages/TAHAP-28.md` §9.5.
+ * `aria-hidden` in the markup: the listbox already announces its own count.
  */
+.count {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.countCurrent {
+  color: var(--color-secondary);
+}
+
+/* ── The list ─────────────────────────────────────────────────────────── */
+
 .listArea {
   position: relative;
   display: flex;
   flex: 0 1 auto;
   /* Lets this flex child shrink below its content; without it a flex item's
-     automatic minimum size is its content and the popup grows instead. */
+     automatic minimum size is its content and the sheet grows instead. */
   min-block-size: 0;
   /* The cap the viewport resolves against. A percentage height on the
-     viewport does not: measured, it stayed at its content height, 1286px
-     inside a 617px region, and the list ran 689px past the bottom of the
-     popup, over the hint bar and off the frame. */
-  max-block-size: 60svh;
+     viewport does not: measured in Tahap 28, the list ran 689px past the
+     bottom of the frame with `max-block-size: 100%` set on it. */
+  max-block-size: 62svh;
   overflow: hidden;
 }
 
@@ -236,120 +293,198 @@
   flex-direction: column;
 }
 
+/*
+ * A section marker in the rail, not a heading above a list.
+ *
+ * Spaced capitals with a hairline rule is how this site already marks a
+ * section — the same treatment the journal and studio pages use for their
+ * eyebrows. On desktop it sits in the rail column, so the marker, the facts
+ * below it and the page's own grid all line up on one edge.
+ */
 .groupLabel {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  padding-block: mobile-vw(12px) mobile-vw(4px);
+  border-block-start: 1px solid var(--line);
+  padding-block: mobile-vw(16px) mobile-vw(6px);
   padding-inline: mobile-vw(16px);
 
   @media (--desktop) {
-    padding-block: desktop-vw(14px) desktop-vw(4px);
-    padding-inline: desktop-vw(20px);
+    padding-block: desktop-vw(20px) desktop-vw(8px);
+    padding-inline: desktop-vw(28px);
   }
 }
 
+/*
+ * One result: facts in the rail, title and description in the reading column.
+ *
+ * The three-column rail is the journal index's own expression, character for
+ * character, so the two surfaces line up on the same grid rather than merely
+ * resembling each other.
+ */
 .item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: mobile-vw(12px);
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: mobile-vw(2px);
   padding-block: mobile-vw(10px);
   padding-inline: mobile-vw(16px);
   color: inherit;
   text-decoration: none;
   cursor: pointer;
+  /* Only transform and opacity move — `CLAUDE.md` #4. */
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
 
+  /*
+   * Three bands on desktop: the fact, the name, the promise.
+   *
+   * Measured first as two — a three-column rail and everything else — and it
+   * was wrong twice over: the rail held eight characters of mono in 340px,
+   * and the description stopped at its reading measure leaving 400px of the
+   * sheet empty. Reading it as a table of contents instead (a folio, a title,
+   * a line about it) fills the width with content rather than with margin,
+   * and it is the shape an index in print has had for a very long time.
+   *
+   * 2 / 4 / 6 of the site's own twelve, so the sheet sits on the same grid as
+   * every page behind it.
+   */
   @media (--desktop) {
-    column-gap: desktop-vw(16px);
-    padding-block: desktop-vw(10px);
-    padding-inline: desktop-vw(20px);
+    grid-template-columns:
+      calc((100% - var(--gap) * 11) / 12 * 2 + var(--gap))
+      calc((100% - var(--gap) * 11) / 12 * 4 + var(--gap) * 3)
+      minmax(0, 1fr);
+    column-gap: var(--gap);
+    align-items: baseline;
+    row-gap: desktop-vw(4px);
+    padding-block: desktop-vw(14px);
+    padding-inline: desktop-vw(28px);
   }
 
   /*
-   * The highlight is a background, not an opacity change on the text.
+   * The highlight is a ground, not a dimming of everything else.
    *
-   * `--row-recede` on the journal index dims what is *not* being read, which
-   * works because those rows stay in place. Here the highlight moves with
-   * every arrow key, and dimming eleven rows to mark one would flicker the
-   * whole list on each press.
+   * The journal index recedes the rows that are *not* being read, which works
+   * because those rows hold still. Here the highlight moves on every arrow
+   * key, and dimming sixteen rows to mark one would flicker the whole list on
+   * each press.
    */
   &[data-highlighted] {
     background-color: color-mix(
       in oklab,
-      var(--color-secondary) 10%,
+      var(--color-secondary) 9%,
       transparent
     );
   }
 }
 
-.itemLabel {
-  grid-column: 1;
-  min-inline-size: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* The rail: mono, muted, tabular — the facts, not the name. */
+.itemMeta {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+
+  @media (--desktop) {
+    grid-column: 1;
+    grid-row: 1;
+  }
 }
 
-.itemMeta {
-  grid-column: 2;
-  color: var(--text-muted);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+/*
+ * The name, one step up the existing scale from its description.
+ *
+ * `p-big` and the muted body below it are two sizes this site already has;
+ * the pair is what makes a row scannable, which is the defect §1 records.
+ */
+.itemLabel {
+  color: var(--color-secondary);
+
+  @media (--desktop) {
+    grid-column: 2;
+    grid-row: 1;
+  }
 }
 
 .itemDescription {
-  grid-column: 1 / -1;
   color: var(--text-muted);
-  /*
-   * Two lines at most. A result row is a promise about a page, not the page's
-   * summary — and an index whose rows are different heights reads as a list
-   * of paragraphs rather than a list of results.
-   */
+  /* Two lines at most: a result promises a page, it does not summarise it,
+     and rows of unequal height stop reading as a list. The column itself now
+     sets the measure, so no `max-inline-size` is needed beside it. */
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-}
-
-/*
- * The text, not the box.
- *
- * `Autocomplete.Empty` stays in the tree when there are results, so padding
- * declared on it held a 56px gap under the field while seventeen results were
- * showing. The padding belongs to an element that only exists when the message
- * does.
- */
-.empty {
-  margin: 0;
-  color: var(--text-muted);
-  padding-block: mobile-vw(24px);
-  padding-inline: mobile-vw(16px);
 
   @media (--desktop) {
-    padding-block: desktop-vw(28px);
-    padding-inline: desktop-vw(20px);
+    grid-column: 3;
+    grid-row: 1;
   }
 }
 
-.hint {
+/* ── The dead end, with a way out ─────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(6px);
+  padding-block: mobile-vw(28px);
+  padding-inline: mobile-vw(16px);
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+    padding-block: desktop-vw(36px);
+    padding-inline: desktop-vw(28px);
+  }
+}
+
+.emptyTitle {
+  margin: 0;
+  color: var(--color-secondary);
+}
+
+/*
+ * "No results" that says what to try instead.
+ *
+ * `ui-ux-pro-max --domain ux`: _"Show 'No results' with suggestions"_ — a bare
+ * negation is a dead end. The suggestion names things this index actually
+ * holds, so following it works.
+ */
+.emptyBody {
+  margin: 0;
   color: var(--text-muted);
-  border-top: 1px solid var(--line);
+  max-inline-size: 52ch;
+}
+
+/* ── The foot ─────────────────────────────────────────────────────────── */
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  gap: mobile-vw(12px);
+  color: var(--text-muted);
+  border-block-start: 1px solid var(--line);
   padding-block: mobile-vw(10px);
   padding-inline: mobile-vw(16px);
   margin: 0;
 
   @media (--desktop) {
-    padding-block: desktop-vw(10px);
-    padding-inline: desktop-vw(20px);
+    padding-block: desktop-vw(12px);
+    padding-inline: desktop-vw(28px);
+  }
+}
+
+.footKeys {
+  display: none;
+
+  @media (--desktop) {
+    display: block;
+    font-family: var(--font-mono);
   }
 }
 
 .scrollbar {
-  inline-size: mobile-vw(4px);
+  inline-size: mobile-vw(3px);
   background-color: var(--line);
 
   @media (--desktop) {
-    inline-size: desktop-vw(4px);
+    inline-size: desktop-vw(3px);
   }
 }
 

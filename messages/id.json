@@ -190,6 +190,9 @@
       "practice": "Praktik",
       "project": "Karya",
       "journal": "Jurnal"
-    }
+    },
+    "emptyHint": "Coba nama klien, tahun, atau sebuah praktik.",
+    "loading": "Menyusun indeks…",
+    "failed": "Pencarian sedang tidak tersedia. Seluruh halaman tetap bisa dicapai dari header dan footer."
   }
 }

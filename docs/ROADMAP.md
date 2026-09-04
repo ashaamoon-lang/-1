@@ -1861,6 +1861,61 @@ exit 0 · `route-budget` 9/9 · tanpa JS pemicunya tidak ditawarkan sama sekali.
 
 ---
 
+## Tahap 29 — Palette itu halaman situs ini, bukan kotak gelap milik tool mana pun ✅
+
+> Spec: [`docs/stages/TAHAP-29.md`](./stages/TAHAP-29.md)
+
+Tahap 28 lulus setiap gerbang dan tampak seperti command palette mana pun:
+kotak gelap di tengah, satu ukuran huruf untuk judul dan deskripsi, satu kolom
+rata. Ia bekerja dan **tidak menyerupai situs ini sama sekali**.
+
+Yang menggantikannya **bukan gaya baru** — nol warna, ukuran, radius, atau
+bayangan ditambahkan. Ia bahasa yang indeks jurnal sudah pakai, diucapkan
+ketiga kalinya: rel mono di kiri, penanda bagian huruf kapital berjarak, dan
+grid dua belas kolom yang sama dengan halaman di belakangnya. Barisnya jadi
+tiga pita — **fakta · nama · janji** — yaitu bentuk daftar isi terbitan.
+
+**Angka:** kotak 672px → **lembar 1398px** selebar pelipir · satu ukuran huruf
+→ **12 / 20 / 16** · jarak antar pita **226px dan 452px** · penghitung
+`03 / 17` yang mengikuti kueri.
+
+**Koreografi, semuanya dari token:** latar 200ms masuk / 150ms keluar, lembar
+400ms `expo.out` turun dari −12px, baris berurut `0, 40, 80…ms` masing-masing
+200ms. **Menutup memakai kurva masuk dan lebih cepat** — deselerasi saat tiba,
+akselerasi saat pergi. Saat kuerinya berubah barisnya menyelesaikan diri
+dengan **satu** gerakan (`delay [0]`), karena stagger penuh pada tiap ketukan
+tombol terasa mabuk.
+
+**Bukan GSAP, dan itu diukur.** Pelajaran Tahap 28 masih baru: modul yang
+dipakai chunk eager _dan_ async membuat webpack menggandakan grup chunk-nya.
+`element.animate()` nol biaya impor, berjalan di compositor (jadi tidak
+menambah loop RAF kedua), dan hasilnya **880 → 881 KB**.
+
+**Cacat yang Tahap 28 kirim dengan seluruh gerbang hijau.** Indeksnya diambil
+saat palette pertama dibuka; ditahan 900ms, palette menjawab **"Nothing
+matches that"** di atas penghitung `00 / 00` — jawaban atas kueri yang belum
+diketik — selama seluruh perjalanan jaringan. Permintaan yang **gagal**
+mengatakan kalimat yang sama, yang lebih buruk lagi. Sekarang tiga keadaan:
+memuat, hasil, dan gagal yang menyebut apa yang masih bekerja.
+
+**Empat gerbang ditulis, tiga dibuang karena hampa.** `nama.left > rel.left`
+lulus dengan inset glif 7px; melewati lebar rel lulus karena span inline
+menyusut; berbagi `top` lulus karena `align-items: baseline` menggeser lebih
+jauh daripada tumpukan. Yang dipakai: jarak ≥100px antar pita — 226 dan 452
+terkirim, 7 dan −7 bertumpuk.
+
+**axe menangkap koreografinya, dan benar.** Gerbang jadi "flaky" dengan
+`color-contrast (3 node)`: baris yang setengah memudar memang gagal kontras.
+Staggernya dibatasi delapan baris (840ms → **520ms**) dan gerbangnya menunggu
+`animation.finished` sebelum mengaudit — WCAG bicara tentang keadaan
+istirahat.
+
+e2e **368 lulus, 0 gagal**, 18 dilewati · unit 432 · `check` exit 0 ·
+palette **15/15 dua kali tanpa flake** · `route-budget` 9/9, nol plafon naik ·
+320/360/390px nol overflow · reduced motion nol animasi, nol baris redup.
+
+---
+
 Lalu `/code-review` sebelum commit, dan `/run` untuk benar-benar melihat
 halamannya.
 

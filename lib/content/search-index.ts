@@ -98,7 +98,18 @@ export function pageEntries(locale: Locale): SearchEntry[] {
       label: route.label[locale],
       description: route.description[locale],
       href: localizedPath(locale, route.path),
-      meta: null,
+      /*
+       * The path, locale-free, because `meta` is "the fact that identifies
+       * this thing" and for a page that is where it lives. A project is
+       * identified by its client and year, an entry by its date; leaving a
+       * page's rail empty would be the only row in the index that answers
+       * nothing.
+       *
+       * Locale-free deliberately: `/journal` is the same page in both
+       * languages, and `/id/journal` in the rail would be repeating the
+       * prefix every row already shares.
+       */
+      meta: route.path,
     }
   })
 }
