@@ -16,6 +16,7 @@ import { collectionPageSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { PracticeFilter } from '@/vault/blocks/practice-filter'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
+import { Counter } from '@/vault/motion/counter'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
 
@@ -262,7 +263,26 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
 
         {projects.length > 0 ? (
           <>
-            <p className="caption">{t('count', { count: projects.length })}</p>
+            {/*
+              The count counts, because filtering is what makes it change —
+              Tahap 42. `vault/motion/counter` records why the plan's
+              count-up-on-arrival was moved here instead: 0 -> 6 on load says
+              nothing, 6 -> 2 on a filter says exactly what happened, and it
+              runs beside `catalogue-sift` rather than competing with it.
+
+              The sentences are precomputed on the server, one per value the
+              count can pass through, because a function cannot cross into a
+              client component and because pluralization belongs where
+              next-intl already is.
+            */}
+            <p className="caption">
+              <Counter
+                value={projects.length}
+                labels={Array.from({ length: projects.length + 1 }, (_, n) =>
+                  t('count', { count: n })
+                )}
+              />
+            </p>
             {/*
             `catalogue`, not the default `editorial` layout. A work's `span`
             composes the home page's curated selection; applied to a full

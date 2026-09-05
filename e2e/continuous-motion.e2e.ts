@@ -167,3 +167,116 @@ test.describe('the page keeps moving as it is read', () => {
     expect(exposed, exposed.join(', ')).toEqual([])
   })
 })
+
+/**
+ * The third category, spent — Tahap 42.
+ *
+ * `MOTION-SPEC.md` §0 names continuous response as a category of its own and
+ * gives it stricter rules than the other two *because* it never stops. These
+ * assert the two that cannot be read from source: that the thing actually
+ * moves, and that it actually stops when a reader asks it to.
+ */
+test.describe('the footer answers the reader', () => {
+  const STRIP = 'footer section[aria-label="Scrolling content"]'
+
+  async function stripTransforms(page: Page) {
+    return page.evaluate((selector: string) => {
+      const inner = document.querySelector(`${selector} > div`)
+      return inner ? getComputedStyle(inner).transform : null
+    }, STRIP)
+  }
+
+  test('the wordmark moves, and there is exactly one of it', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/en/work')
+    await page.waitForTimeout(1200)
+
+    /*
+     * One per page, never two. `taste-skill` §4 is explicit that two
+     * scrolling strips read as lazy filler, and this one is in the footer —
+     * which every route renders — so the site's single slot is spent here and
+     * a second one anywhere would be a violation on eleven pages at once.
+     */
+    expect(await page.locator(STRIP).count(), 'not exactly one marquee').toBe(1)
+
+    const before = await stripTransforms(page)
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    )
+    await page.waitForTimeout(900)
+    const after = await stripTransforms(page)
+
+    expect(before, 'the strip rendered no inner element').not.toBeNull()
+    expect(after, `the wordmark never moved: ${before} then ${after}`).not.toBe(
+      before
+    )
+  })
+
+  test('reduced motion stops it, and leaves it readable', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      reducedMotion: 'reduce',
+      viewport: { width: 1440, height: 900 },
+    })
+    const page = await context.newPage()
+    try {
+      await page.goto('/en/work')
+      await page.waitForTimeout(1200)
+      await page.evaluate(() =>
+        window.scrollTo(0, document.documentElement.scrollHeight)
+      )
+      await page.waitForTimeout(900)
+
+      const first = await stripTransforms(page)
+      await page.waitForTimeout(900)
+      const second = await stripTransforms(page)
+
+      /*
+       * §0.2 rule 4 — switched off, not slowed. A marquee has no end, so a
+       * slower one is still a thing that never stops for a reader who asked
+       * for exactly that.
+       */
+      expect(
+        second,
+        `the wordmark kept moving under reduced motion: ${first} then ${second}`
+      ).toBe(first)
+
+      // And still says what it says. A strip that stops must not also vanish.
+      const text = await page.locator(STRIP).innerText()
+      expect(
+        text.trim().length,
+        'the stopped strip rendered no text'
+      ).toBeGreaterThan(0)
+    } finally {
+      await context.close()
+    }
+  })
+
+  test('the count counts between filter states', async ({ page }) => {
+    await page.goto('/en/work')
+    await page.waitForLoadState('networkidle')
+
+    const counter = page.locator('[data-counter]')
+    const before = (await counter.textContent()) ?? ''
+    expect(before, 'no counter rendered').not.toBe('')
+
+    await page
+      .locator('[data-practice-filter] a', { hasText: 'Consulting' })
+      .click()
+    await page.waitForTimeout(1500)
+
+    const after = (await counter.textContent()) ?? ''
+    /*
+     * The assertion is the landing, not the intermediate frames: what a
+     * counter must never do is end on the wrong number. `vault/motion/counter`
+     * records why this animates on *change* rather than on arrival — a number
+     * crawling 0 to 6 on load communicates nothing, and only a state
+     * transition passes the test this project set itself.
+     */
+    expect(after, `the count did not change: ${before}`).not.toBe(before)
+    expect(after).toContain('2')
+  })
+})

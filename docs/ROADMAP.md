@@ -2060,6 +2060,69 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 42 — Kategori ketiga dinamai, lalu dibelanjakan ✅
+
+> Spec: [`docs/stages/TAHAP-42.md`](./stages/TAHAP-42.md)
+
+`MOTION-SPEC.md` mendamaikan CSS dan GSAP dan berhenti di situ, sementara
+**empat mekanisme tayang tanpa entri**: `--scroll-velocity` (dipublikasikan
+tiap frame sejak Tahap 33), parallax plat, kursor kustom, dan Web Animations
+API (baris palet, lalu `catalogue-sift`). Bukan pelanggaran yang lolos —
+sebuah **kategori** yang dokumennya tidak punya nama untuknya, jadi tidak ada
+satu pun yang bisa dicatat dengan benar. §0 sekarang menamai ketiganya:
+micro/standard, berkoreografi (dihitung §9.5, maksimal dua, wajib bernama),
+dan **respons berkelanjutan** — tidak dihitung, karena tidak punya awal dan
+akhir.
+
+Aturannya **lebih ketat** justru karena selalu berjalan: hanya
+`transform`/`opacity`; tidak pernah pada prosa; tidak pernah pada elemen yang
+difoto `<ViewTransition>`; **mati total** di bawah `prefers-reduced-motion`,
+bukan diperlambat; sinyalnya wajib yang sudah ada — nol loop RAF kedua.
+Sekaligus §7 berhenti menjanjikan cross-fade yang tidak pernah ada:
+reduced motion **menghapus** overlay, dan itu yang dikirim sejak Tahap 16.
+
+**Tiga koreksi terhadap rencana.**
+
+1. **`velocity-marquee` tidak ditulis** — `components/ui/marquee` sudah
+   membaca `--scroll-velocity`, sudah duduk di Tempus order 6, dan sudah nol
+   konsumen sejak fork. Modul baru akan jadi mekanisme kedua untuk pekerjaan
+   yang sama. Ia mendapat **rumah** (strip wordmark footer) dan satu hal yang
+   benar-benar hilang: `prefers-reduced-motion`.
+2. **`sticky-stack` ditolak, dan bukan karena biaya.** Kartu yang menumpuk
+   memindahkan isi ke belakang isi lain, dan §0.2 baru saja melarang kategori
+   ketiga menyentuh prosa. Alasannya ditulis di spec, bukan didiamkan sebagai
+   "belum sempat".
+3. **`counter` dipindahkan ke transisi status.** Rencana memintanya menghitung
+   saat masuk viewport — angka yang menari saat pertama dilihat adalah
+   dekorasi, dan uji `taste-skill` menolaknya. Ia sekarang menghitung **antar
+   keadaan filter**, di mana angkanya adalah umpan balik: `06 → 02`.
+   Pluralisasi dihitung di server (`labels: readonly string[]`), karena sebuah
+   **fungsi tidak bisa menyeberangi batas RSC** — typecheck lolos, build yang
+   akan gagal.
+
+**Regresi nyata yang ditangkap suite, dan akarnya bukan yang disangka.**
+`journey.e2e.ts` merah: keadaan `covering` tidak pernah tergambar pada
+navigasi Back. Probe RAF-poll diganti `MutationObserver` (masih merah — jadi
+bukan instrumen), lalu perubahan sumber di-stash dan build diulang (**lulus** —
+jadi memang perubahan ini). Akarnya kerapuhan yang Tahap 16a sudah catat:
+`covering` dan `revealing` bisa masuk satu commit React. Diperbaiki dengan
+lantai penjadwalan `MIN_COVER = 32` ms plus stempel `coveredAt`, memakai
+`setTimeout` karena gerbang proyek ini sendiri menolak `requestAnimationFrame`
+telanjang.
+
+**Dua cacat ditangkap saat menulis, bukan sesudah:** `.wordmarkWord` sempat
+membawa `font-size` sendiri — ukuran display **keempat** untuk satu strip,
+ditolak gerbang tipe Tahap 37, diganti utilitas `h1`; dan penghitung marquee
+melaporkan **5** strip di satu halaman karena `[class*="marquee"]` cocok
+dengan nama kelas yang CSS Modules hasilkan untuk `.inner` — diperbaiki
+dengan `data-marquee` plus asersi containment.
+
+unit 458 · e2e **518 lulus, 0 gagal**, 16 dilewati (11,2 menit) · +3 tepat
+sama dengan tiga asersi baru Tahap ini, jadi nol gerbang lama dilonggarkan ·
+Storybook dibangun ulang.
+
+---
+
 ## Tahap 41 — `journal-transport` ✅
 
 > Spec: [`docs/stages/TAHAP-41.md`](./stages/TAHAP-41.md)

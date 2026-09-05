@@ -377,15 +377,34 @@ test.describe('taste pre-flight: consistency locks', () => {
     test(`${path} runs at most one marquee`, async ({ page }) => {
       await settle(page, path)
 
-      const marquees = await page.evaluate(
-        () =>
-          document.querySelectorAll('[class*="marquee"], [data-marquee]').length
-      )
+      /*
+       * Instances, not class-name matches.
+       *
+       * This counted `[class*="marquee"]`, and CSS modules put the source
+       * filename into every class they generate — so the strip's own inner
+       * elements matched their own module's name and one marquee reported as
+       * five. A gate that counts a stylesheet cannot see a page.
+       *
+       * `[data-marquee]` counts roots. The second assertion keeps the net the
+       * loose selector was reaching for: anything that *looks* like a marquee
+       * and is not inside a marked one is a second implementation, and that
+       * is what the rule is actually about.
+       */
+      const { roots, unmarked } = await page.evaluate(() => ({
+        roots: document.querySelectorAll('[data-marquee]').length,
+        unmarked: [...document.querySelectorAll('[class*="marquee"]')].filter(
+          (node) => !node.closest('[data-marquee]')
+        ).length,
+      }))
 
       expect(
-        marquees,
+        roots,
         'two horizontal scrolling strips on one page reads as filler'
       ).toBeLessThanOrEqual(1)
+      expect(
+        unmarked,
+        'something marquee-shaped is not inside a marked marquee — a second implementation would slip past the count above'
+      ).toBe(0)
     })
   }
 })

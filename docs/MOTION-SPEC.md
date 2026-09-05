@@ -11,6 +11,65 @@ fifteen ad-hoc `gsap.to()` calls reads as cheap regardless of effort spent.
 
 ---
 
+## 0. Three categories, and which rules govern each
+
+Everything in this document was written for two: transitions in CSS, and
+timelines in GSAP. A third has been shipping since Tahap 33 and had no entry
+anywhere — so four live mechanisms were governed by nothing, and §9.5's budget
+could not say whether they counted.
+
+| Category                | Band                  | Counted by §9.5?                                      | Governed by |
+| ----------------------- | --------------------- | ----------------------------------------------------- | ----------- |
+| **Micro / standard**    | 150–600ms (§2)        | no                                                    | §1–§5       |
+| **Choreographed**       | 800–1200ms (§2)       | **yes** — at most two per page, each named in the DOM | §9.5        |
+| **Continuous response** | none — it has no band | **no**                                                | §11         |
+
+**What makes the third a category rather than three exceptions.** §9.5 already
+excused the material layer with a reason — _"no band, no beginning and no end…
+a reader meets it rather than watches it happen"_ — and Tahap 40 excused
+`project-spine` with the same one. Three identical exemptions are not
+exemptions; they are a category nobody had named. The spec did not need
+breaking, it needed to admit what it had already practised three times.
+
+### 0.1 What is in it, recorded late
+
+All four were shipping before this section existed:
+
+| Mechanism           | Where                                                      | Since    |
+| ------------------- | ---------------------------------------------------------- | -------- |
+| `--scroll-velocity` | `components/layout/lenis`, published every frame           | Tahap 33 |
+| Plate parallax      | `vault/motion/parallax`                                    | Tahap 33 |
+| The custom cursor   | `vault/primitives/cursor`, a permanent per-frame transform | the fork |
+| Web Animations API  | `vault/motion/flip` (`catalogue-sift`), palette rows       | Tahap 39 |
+
+`vault/blocks/project-spine` and `vault/webgl/material-image` belong here too;
+their exclusions in §9.5 and §11 are this category, written before it had a
+name.
+
+### 0.2 Its rules are stricter, precisely because it never stops
+
+A choreographed moment is over in a second. These run for the whole visit, so:
+
+1. **`transform` and `opacity` only.** No exceptions — `CLAUDE.md` #4 with no
+   room to argue, because a layout-triggering property here costs on every
+   frame rather than once.
+2. **Never on prose.** The parallax preset's own instruction, and what Tahap
+   23 was right about. `e2e/continuous-motion.e2e.ts` enforces it.
+3. **Never on an element `<ViewTransition>` photographs.** Tahap 33's lesson:
+   the browser measures one box and animates another.
+4. **Dead under `prefers-reduced-motion`** — switched off, not slowed down.
+   Slowing a thing that never ends produces a thing that never ends.
+5. **The signal must already exist.** `--scroll-velocity`, a ScrollTrigger, an
+   IntersectionObserver, or the browser's own animation timeline. **Never a
+   second `requestAnimationFrame` loop** (`CLAUDE.md` #6) — desynchronised
+   loops produce jitter that reads as cheap even at 60fps.
+6. **It is not counted, and that is not a loophole.** A page may not answer a
+   full §9.5 budget by moving its motion into this category. What decides the
+   category is whether the movement has a beginning and an end, not whether
+   the budget is full.
+
+---
+
 ## 1. Easing — pick from tokens, never author a curve
 
 All curves live in `lib/styles/css/easings.css` as Tailwind v4 `@theme`
@@ -173,12 +232,32 @@ in `vault/motion/` with the reasoning written out.
 
 ## 7. Page transitions
 
-Budget: **800–1200 ms total**, out and in combined.
+**This section describes what ships.** It used to describe an intention, and
+the two had drifted — Tahap 42 measured `vault/motion/page-transition` against
+it and corrected the document rather than the code, because the code was
+right.
 
-- The outgoing view must not simply vanish — give it a real exit, minimum
-  ~300 ms.
-- Never block the user from navigating during a transition.
-- Under reduced motion: cross-fade only, ~200 ms.
+What `page-transition.module.css` actually declares:
+
+| Phase                      | Duration                   | Curve              |
+| -------------------------- | -------------------------- | ------------------ |
+| Cover, on a link press     | `--duration-fast` (200ms)  | `--ease-out-quart` |
+| Uncover, on arrival        | `--duration` (400ms)       | `--ease-out-expo`  |
+| Cover, from Back/Forward   | `--duration-micro` (150ms) | `--ease-out-quart` |
+| Uncover, from Back/Forward | `--duration-fast` (200ms)  | `--ease-out-expo`  |
+
+Faster for a navigation the reader started with the browser's own controls,
+which is §9.4 rule 7.
+
+- Never block the reader from navigating during a transition;
+  `vault/motion/page-transition` carries a `maxWait` because this project has
+  already had a stuck screen.
+- **Under reduced motion the overlay is removed entirely** — not cross-faded.
+  The document said "cross-fade only, ~200 ms" and no such cross-fade has ever
+  existed. A reader who asked for no motion gets the new page, immediately.
+- A navigation with a shared-element morph stands the overlay down instead:
+  the two are mutually exclusive, and `lib/motion/navigation-signal.ts` is
+  where that is decided.
 - The transition must not delay data fetching. Overlap them.
 
 ---
@@ -413,6 +492,29 @@ this section counts movements that start, resolve, and are over.
 
 ---
 
+## 10. Review checklist
+
+Before any motion work is considered done:
+
+- [ ] Every duration comes from a band in §2 — no ad-hoc values
+- [ ] Every curve is an `--ease-*` token — no raw `cubic-bezier()`
+- [ ] Only `transform` / `opacity` animated
+- [ ] Reduced motion tested, and content is fully visible under it
+- [ ] ScrollTriggers and GSAP contexts cleaned up on unmount
+- [ ] Stagger total ≤ 600 ms (UI) / 900 ms (hero)
+- [ ] No second RAF loop introduced
+- [ ] Keyboard focus order unaffected by the animation
+- [ ] Every pressable element answers a press — §9 COMMIT, not just `:hover`
+- [ ] Every moment is reachable with Tab and Enter, not only with a cursor
+- [ ] No more than two choreographed-band movements on the page, and both named
+- [ ] Interrupting mid-TRANSPORT (double click, Back) leaves nothing stuck
+- [ ] No DOM element is hidden because a mesh is _assumed_ to have replaced it — §11.2
+- [ ] A mesh standing in for content hands it back at COMMIT — §11.3
+- [ ] No `data-reveal-item` sits on an element that carries `data-press` — §11.4
+- [ ] Every `data-press` noun is reachable without opening a disclosure — §11.4
+
+---
+
 ## 11. The material layer
 
 `vault/webgl/material-image`, added in Tahap 14a. This section exists because
@@ -493,26 +595,3 @@ answer the grammar, and marking it there makes the gate report a silent noun
 whose CSS is perfect. In `vault/blocks/practice-list` the `<summary>` is the
 marked noun, because opening a practice is the interaction the block adds; the
 link inside the panel is ordinary navigation.
-
----
-
-## 10. Review checklist
-
-Before any motion work is considered done:
-
-- [ ] Every duration comes from a band in §2 — no ad-hoc values
-- [ ] Every curve is an `--ease-*` token — no raw `cubic-bezier()`
-- [ ] Only `transform` / `opacity` animated
-- [ ] Reduced motion tested, and content is fully visible under it
-- [ ] ScrollTriggers and GSAP contexts cleaned up on unmount
-- [ ] Stagger total ≤ 600 ms (UI) / 900 ms (hero)
-- [ ] No second RAF loop introduced
-- [ ] Keyboard focus order unaffected by the animation
-- [ ] Every pressable element answers a press — §9 COMMIT, not just `:hover`
-- [ ] Every moment is reachable with Tab and Enter, not only with a cursor
-- [ ] No more than two choreographed-band movements on the page, and both named
-- [ ] Interrupting mid-TRANSPORT (double click, Back) leaves nothing stuck
-- [ ] No DOM element is hidden because a mesh is _assumed_ to have replaced it — §11.2
-- [ ] A mesh standing in for content hands it back at COMMIT — §11.3
-- [ ] No `data-reveal-item` sits on an element that carries `data-press` — §11.4
-- [ ] Every `data-press` noun is reachable without opening a disclosure — §11.4

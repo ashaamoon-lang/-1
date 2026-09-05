@@ -112,6 +112,19 @@ import s from './page-transition.module.css'
 type State = 'idle' | 'covering' | 'revealing'
 
 /**
+ * The shortest time the cover is allowed to be up before the reveal replaces
+ * it — two frames at 60fps.
+ *
+ * Not a duration anyone sees: it is the floor that makes the cover *exist*.
+ * `MOTION-SPEC.md` §9.4 rule 7 says a history navigation is dressed, and a
+ * state that never paints is not a dressing. See `reveal()` for the
+ * measurement that turned this from an assumption into a number.
+ */
+// motion-exempt: a scheduling floor, not a declared animation. A token would
+// be wrong — the value is "long enough for one paint", not one of the bands.
+const MIN_COVER = 32
+
+/**
  * Milliseconds after which the panel parks itself even if `transitionend`
  * never arrives. Longer than the slowest declared reveal (400ms) with room to
  * spare, so it is a floor and not a second timing decision.
@@ -150,6 +163,10 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
   // Set while a navigation is in flight, so the pathname effect can tell a
   // covered route change from a first paint, a back button, or a hash change.
   const covering = useRef(false)
+  /** The pending timer that lets the cover paint before the reveal replaces it. */
+  const paint = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** When the cover went up, so the reveal can tell whether it has been seen. */
+  const coveredAt = useRef(0)
   const safety = useRef<ReturnType<typeof setTimeout> | null>(null)
   const settle = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -157,7 +174,52 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
     if (!covering.current) return
     covering.current = false
     if (safety.current) clearTimeout(safety.current)
-    setState('revealing')
+
+    /*
+     * Never in the same commit as the cover — Tahap 42.
+     *
+     * The comment below has described this collapse since Tahap 16a: when
+     * `covering` and `revealing` land together, the DOM attribute goes
+     * straight from `idle` to `revealing` and the cover **never paints**. The
+     * fix then was to move the signal to the Navigation API, which fires
+     * ~14ms earlier — and that comment says exactly what was wrong with it:
+     * *"the two states are far enough apart" is a timing assumption*.
+     *
+     * Tahap 42 collected on that assumption. Adding a per-frame consumer to
+     * the footer — which every route renders — was enough to close the gap,
+     * and `e2e/journey.e2e.ts` reported a back navigation reaching
+     * `revealing:history` and `idle:history` with no `covering` in between.
+     * Isolated by building without the change and re-running: the same probe
+     * passed, so it was the timing, not the instrument.
+     *
+     * A history navigation is supposed to be *dressed* (`MOTION-SPEC.md` §9.4
+     * rule 7). One frame is the smallest thing that makes it true rather than
+     * likely: the cover has painted by the next animation frame, so the
+     * reveal has something to reveal from.
+     *
+     * A timer, not a `requestAnimationFrame`. The project's own motion gate
+     * rejects a bare rAF outside `lib/dev/` and `lib/scripts/` — correctly,
+     * since that is how a second loop gets in — and this file already keeps
+     * two timers for the other two nets, so the mechanism is the one it
+     * already uses. A timer is also the more robust of the two here: rAF is
+     * throttled in a background tab, and a navigation started before the tab
+     * was hidden would sit covered until it came back.
+     *
+     * The wait is what is *left* of the minimum, so a cover that has already
+     * been up longer than that reveals with no added delay at all — which is
+     * the normal case, and the reason this costs nothing on a slow route.
+     */
+    const shown = performance.now() - coveredAt.current
+    if (paint.current) clearTimeout(paint.current)
+    paint.current = setTimeout(
+      () => {
+        paint.current = null
+        setState('revealing')
+        if (settle.current) clearTimeout(settle.current)
+        settle.current = setTimeout(() => setState('idle'), SETTLE)
+      },
+      Math.max(0, MIN_COVER - shown)
+    )
     /*
      * A second net, for the other end of the sweep.
      *
@@ -179,8 +241,6 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
      * `SETTLE` is comfortably longer than the slowest reveal the stylesheet
      * declares, so it never pre-empts a transition that is genuinely running.
      */
-    if (settle.current) clearTimeout(settle.current)
-    settle.current = setTimeout(() => setState('idle'), SETTLE)
   }, [])
 
   useEffect(() => {
@@ -193,6 +253,7 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
       if (intent === 'morph') return
 
       covering.current = true
+      coveredAt.current = performance.now()
       setSource(from)
       setState('covering')
       if (safety.current) clearTimeout(safety.current)
@@ -210,6 +271,7 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
     () => () => {
       if (safety.current) clearTimeout(safety.current)
       if (settle.current) clearTimeout(settle.current)
+      if (paint.current) clearTimeout(paint.current)
     },
     []
   )

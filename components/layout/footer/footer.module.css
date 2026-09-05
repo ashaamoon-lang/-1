@@ -153,3 +153,52 @@
     transition: none;
   }
 }
+
+/*
+ * The wordmark strip — Tahap 42.
+ *
+ * A rule above it and nothing below: it introduces the footer rather than
+ * decorating it, so it reads as the studio signing the page rather than as a
+ * band of moving text stuck on top.
+ *
+ * `clip` rather than `hidden`: the strip is wider than the viewport by
+ * construction (that is how a marquee has anything to travel), and `hidden`
+ * on a horizontal axis makes the block a scroll container that a keyboard can
+ * focus and a trackpad can nudge sideways.
+ */
+.wordmark {
+  overflow: clip;
+  border-block-start: 1px solid var(--line);
+  padding-block: mobile-vw(16px);
+  margin-block-end: mobile-vw(48px);
+
+  @media (--desktop) {
+    padding-block: desktop-vw(24px);
+    margin-block-end: desktop-vw(64px);
+  }
+}
+
+/*
+ * Size, family and weight come from the `h1` utility on the element, not from
+ * here.
+ *
+ * This carried its own `font-size` for about a minute, and Tahap 37's type
+ * gate rejected it immediately and correctly: a fourth display size invented
+ * for one strip is exactly the drift that gate exists to stop, and the
+ * project's whole claim is one scale used consistently. The wordmark is
+ * display-scale text; `h1` is what display-scale text is.
+ */
+.wordmarkWord {
+  display: inline-block;
+  /*
+   * The gap between repeats travels with the word, so it is padding on the
+   * word rather than a gap on the row — a row gap would collapse at the seam
+   * where the marquee wraps.
+   */
+  padding-inline-end: mobile-vw(32px);
+  color: var(--text-muted);
+
+  @media (--desktop) {
+    padding-inline-end: desktop-vw(64px);
+  }
+}

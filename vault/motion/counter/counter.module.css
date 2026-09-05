@@ -1,0 +1,11 @@
+.counter {
+  /*
+   * The one property that matters here.
+   *
+   * Proportional digits are different widths, so a number counting 6 -> 2
+   * makes its own sentence twitch sideways on every step — the movement a
+   * reader notices is the layout, not the count. Tabular figures are the
+   * typographic fix, and they are why this is a component rather than a hook.
+   */
+  font-variant-numeric: tabular-nums;
+}

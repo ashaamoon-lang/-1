@@ -2,6 +2,7 @@ import cn from 'clsx'
 import { useTranslations } from 'next-intl'
 
 import { Link } from '@/components/ui/link'
+import { Marquee } from '@/components/ui/marquee'
 import { FALLBACK_CONTACT } from '@/lib/content/home-fallback'
 import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
 
@@ -62,7 +63,7 @@ const YEAR = new Date().getFullYear()
  * the home page's statement is: showing scaffolding is fine, showing it
  * unlabelled is not.
  */
-const { email: EMAIL, socials: SOCIAL } = FALLBACK_CONTACT
+const { name: SITE_NAME, email: EMAIL, socials: SOCIAL } = FALLBACK_CONTACT
 
 export function Footer() {
   const t = useTranslations('footer')
@@ -82,6 +83,42 @@ export function Footer() {
     // elements sharing one is a `duplicate-id` violation — which now fails the
     // suite outright, since Tahap 2 removed the critical/serious axe filter.
     <footer className={s.footer}>
+      {/*
+        The wordmark, moving with the reader — Tahap 42.
+
+        `components/ui/marquee` shipped with the fork and had **zero**
+        consumers for forty-one stages while occupying Tempus order 6 in the
+        loop table. This is its first home, and the first visible spend of
+        `--scroll-velocity`: the strip carries a base speed and the reader's
+        own scrolling adds to it, so the footer answers movement instead of
+        sitting still under it.
+
+        `MOTION-SPEC.md` §0's third category, and the purest case of it — no
+        beginning, no end, `transform` only, and switched off entirely under
+        `prefers-reduced-motion` (§0.2 rule 4), which the component did not do
+        until this stage.
+
+        **One per page, never two.** `taste-skill` §4 is explicit that two
+        scrolling strips read as lazy filler, and this one is in the footer,
+        which every route renders — so this is the site's only slot and it is
+        now spent.
+
+        `aria-hidden` on the whole strip: it is the studio's name, which the
+        page already carries in its `<title>`, its JSON-LD and the header
+        wordmark. Repeating it to a screen reader three times is noise, and
+        `Marquee` duplicates its children to fill the width, so the repeats
+        would be announced too.
+      */}
+      <Marquee
+        className={s.wordmark}
+        repeat={4}
+        speed={0.4}
+        aria-hidden="true"
+        data-nosnippet=""
+      >
+        <span className={cn('h1', s.wordmarkWord)}>{SITE_NAME}</span>
+      </Marquee>
+
       <div className={s.columns}>
         <section className={s.column}>
           <h2 className={cn('caption', s.heading)}>{t('contact')}</h2>

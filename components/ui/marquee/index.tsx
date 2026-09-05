@@ -6,6 +6,7 @@ import { useLenis } from 'lenis/react'
 import { type HTMLAttributes, useId, useRef } from 'react'
 import { useTempus } from 'tempus/react'
 
+import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
 import { modulo } from '@/utils/math'
 
 import s from './marquee.module.css'
@@ -54,6 +55,21 @@ export function Marquee({
 
   const lenis = useLenis()
 
+  /*
+   * The block this component never had — Tahap 42.
+   *
+   * A marquee is the purest case of `MOTION-SPEC.md` §0's third category: it
+   * has no beginning and no end, so it runs for the whole visit. §0.2 rule 4
+   * is explicit that such a thing is **switched off** under the preference
+   * rather than slowed — slowing something that never ends produces something
+   * that never ends.
+   *
+   * It shipped from the fork with no consumer, which is why nobody caught it:
+   * a component that renders nowhere violates nothing. Tahap 42 gives it a
+   * home, so the gap had to close first.
+   */
+  const prefersReducedMotion = usePreferredReducedMotion()
+
   // order: 6 — Lenis writes scroll state at order 5 (see
   // components/layout/lenis/index.tsx); without an explicit order here,
   // Tempus defaults this callback to order 0 and sequencing becomes
@@ -61,6 +77,20 @@ export function Marquee({
   useTempus(
     ({ deltaTime }) => {
       const entry = getEntry()
+
+      /*
+       * Read from `matchMedia` as well as the hook, the reason
+       * `vault/motion/text-reveal` records: the hook's server snapshot is
+       * `false`, so the first commit sees `false` even for a reader who has
+       * the preference on. Inside the frame callback we are on the client and
+       * `matchMedia` is truthful now.
+       */
+      if (
+        prefersReducedMotion ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ) {
+        return
+      }
 
       if (!intersection?.isIntersecting) return
       if (pauseOnHover && isHovered.current) return
@@ -99,6 +129,17 @@ export function Marquee({
     <section
       ref={setIntersectionRef}
       className={cn(className, s.marquee)}
+      /*
+       * Names one marquee, so a gate can count instances rather than guess
+       * from class names — Tahap 42.
+       *
+       * `e2e/taste-preflight.e2e.ts` enforces `taste-skill`'s one-marquee
+       * rule and counted `[class*="marquee"]`. CSS modules put the source
+       * filename into every generated class name, so `.inner` matched too and
+       * a single strip with four repeats reported as **five** marquees. The
+       * gate was measuring the stylesheet, not the page.
+       */
+      data-marquee=""
       aria-live="off"
       aria-label="Scrolling content"
       onMouseEnter={(e) => {

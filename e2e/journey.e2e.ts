@@ -253,18 +253,44 @@ test.describe('a reader moving through the site', () => {
     await page.waitForURL(`**/practice/${second}`)
     await page.waitForTimeout(1800)
 
+    /*
+     * A `MutationObserver`, not a `requestAnimationFrame` poll — Tahap 42.
+     *
+     * The poll sampled the overlay's `data-state` once a frame. The cover
+     * phase of a *history* navigation is `--duration-micro`, 150ms, the
+     * shortest state on the site, and it begins on the `goBack()` that
+     * follows this call across a CDP round trip. Tahap 42 added a per-frame
+     * consumer to the footer, which renders on every route, and the poll
+     * started losing that window: it reported `revealing:history,
+     * idle:history` — the overlay had plainly run and been marked as history,
+     * with only its first phase unseen.
+     *
+     * The right response to an instrument that misses a state is a better
+     * instrument, not a weaker assertion. An observer fires **on the
+     * attribute write itself**, so no phase can slip between samples however
+     * busy the frame is — and if `covering` genuinely never happened, this
+     * still fails and says so.
+     */
     await page.evaluate(() => {
       const seen: string[] = []
       globalThis.__states = seen
       const overlay = document.querySelector('[class*="page-transition"]')
-      const started = performance.now()
-      const tick = () => {
-        const state = overlay?.getAttribute('data-state')
-        const direction = overlay?.getAttribute('data-source')
+      if (!overlay) return
+
+      const record = () => {
+        const state = overlay.getAttribute('data-state')
+        const direction = overlay.getAttribute('data-source')
         if (state) seen.push(`${state}:${direction ?? 'none'}`)
-        if (performance.now() - started < 2000) requestAnimationFrame(tick)
       }
-      requestAnimationFrame(tick)
+
+      // The state it is already in, so a transition that begins and ends
+      // between two writes still has a starting point on the record.
+      record()
+
+      new MutationObserver(record).observe(overlay, {
+        attributes: true,
+        attributeFilter: ['data-state', 'data-source'],
+      })
     })
 
     await page.goBack()
