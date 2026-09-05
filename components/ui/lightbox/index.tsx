@@ -11,6 +11,12 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { Icon } from '@/vault/primitives/icon'
+import { arrowLeft } from '@/vault/primitives/icon/paths/arrow-left'
+import { arrowRight } from '@/vault/primitives/icon/paths/arrow-right'
+import { close } from '@/vault/primitives/icon/paths/close'
+import { zoomIn } from '@/vault/primitives/icon/paths/zoom-in'
+import { zoomOut } from '@/vault/primitives/icon/paths/zoom-out'
 
 import s from './lightbox.module.css'
 
@@ -295,7 +301,7 @@ export function Lightbox({
                   disabled={index === 0}
                   aria-label={t('previous')}
                 >
-                  ←
+                  <Icon path={arrowLeft} />
                 </button>
                 <button
                   type="button"
@@ -306,7 +312,7 @@ export function Lightbox({
                   disabled={index === count - 1}
                   aria-label={t('next')}
                 >
-                  →
+                  <Icon path={arrowRight} />
                 </button>
                 <button
                   type="button"
@@ -317,7 +323,14 @@ export function Lightbox({
                   aria-pressed={zoomed}
                   aria-label={t('zoom')}
                 >
-                  {zoomed ? '−' : '+'}
+                  {/*
+                    The glyph says which way the control goes, and the
+                    `aria-pressed` above says which state it is in. A plus
+                    and a minus were doing that job as text characters, which
+                    on a caption-sized control rendered as a hyphen on some
+                    platforms.
+                  */}
+                  <Icon path={zoomed ? zoomOut : zoomIn} />
                 </button>
                 <Dialog.Close
                   className={cn('caption', s.action)}
@@ -325,7 +338,7 @@ export function Lightbox({
                   data-intent=""
                   aria-label={t('close')}
                 >
-                  ✕
+                  <Icon path={close} />
                 </Dialog.Close>
               </div>
             </div>

@@ -2060,6 +2060,88 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 43 — Lapisan eksploratif: `DESIGN_VARIANCE` 3 → 7 ✅
+
+> Spec: [`docs/stages/TAHAP-43.md`](./stages/TAHAP-43.md)
+
+Dial `DESIGN_VARIANCE` disetel ke 7 di Tahap 34 dan katalognya berjalan di 3
+selama sembilan tahap. Itu bisa diukur meski dialnya tidak: enam karya duduk
+di **dua** nilai `x` dan **tiga** nilai `y`, jarak antar baris 935px tiga kali
+berturut-turut, tiga dari tiga baris berbagi `top` yang identik, dan setiap
+kartu 691 × 919 sampai pikselnya. Sesudahnya: **enam** nilai `top` berbeda,
+nol kartu berbagi baris, dan selisih drift antar kolom di mana sebelumnya
+kedua kolom melaporkan `1.863183333333333` lawan `1.863183333333333` —
+identik sampai tiga belas desimal.
+
+Empat butir dibangun, **satu ditolak dengan pengukurannya**.
+
+**`type-pressure` ditolak, dan rencana ini salah menebak paruh mana yang
+gagal.** Ia menyebut versi `h1` berisiko dan versi wordmark **aman** karena
+"kotaknya tetap". Diukur pada header sebenarnya: pada rentang 640–760 yang
+diminta, wordmark tumbuh 42,61px → 57,61px dan `<nav>` header bergeser
+**10 piksel**; pada `<h1>` beranda, bobot 760 menambah satu baris dan
+menumbuhkan judul 204px → **306px**. Sumbu bobot bukan `transform` maupun
+`opacity`, dan `MOTION-SPEC.md` §0.2 — ditulis tahap lalu — melarangnya.
+Dilonggarkan satu tahap setelah ditulis adalah cara gerbang berhenti berarti,
+jadi butirnya dibuang, bukan dikecualikan.
+
+**Tema ternyata bukan keputusan server, dan itu memaksa perbaikan
+arsitektur.** Rencana memperlakukan "pindahkan `/journal` ke terang" sebagai
+satu prop. `data-theme` ditulis oleh **efek klien**, dan root layout mengirim
+`dark` hardcoded: lima dari lima rute, diukur dengan `curl`. Rute terang akan
+berkedip, dan tanpa JavaScript tidak pernah berubah sama sekali — melanggar
+"terbaca tanpa JavaScript" dalam bentuk paling terlihat. Dua jalan ditolak
+dengan alasan (membaca `headers()` mendinamiskan seluruh situs; root layout
+kedua memaksa muat ulang penuh dan **membunuh morph Tahap 41**), dan tema
+mendapat elemennya sendiri di dalam halaman.
+
+**Tiga regresi lahir dari perbaikan itu, semuanya nyata, semuanya diukur.**
+Token turunan (`--surface`, `--text-muted`, wash) dideklarasikan di `:root`,
+jadi begitu `<html>` berhenti bertema semuanya terhitung terhadap palet
+terang — pada 404 axe mengukur tujuh simpul di **1.06–1.1:1**, kertas di atas
+kertas. Tiga hero wash hilang karena `z-index: -1` yang mengandalkan latar
+`body` dipropagasikan ke kanvas; `visual-substance` melaporkan halaman
+ber-aksen dan kontrolnya **identik sampai lima belas desimal**. Dan plat
+katalog memperlihatkan bingkainya sendiri karena overshoot lapisan
+di-_hardcode_ terhadap distance 6 sementara kolom kanan naik ke 9.
+
+**Satu perbaikan saya sendiri membuatnya lebih buruk, dan itu ditulis.**
+Menghapus latar `body` terbaca benar dan lulus pengukuran langsung — keenam
+rute bersih — lalu empat gerbang merah. Selisihnya `settleReveals()`, yang
+menggulir lalu kembali ke atas: axe jatuh ke warna dokumen untuk elemen di
+luar layar, dan tanpa latar `body` wordmark footer terukur **1.08:1 terhadap
+`#ffffff`**. Ground tetap yang memutuskan tema; `body` melukis kertas di
+bawahnya lagi.
+
+**Recede jurnal disapu ulang di tema yang benar.** `--row-recede: 0.7`
+ditetapkan Tahap 27 oleh sapuan axe di tema gelap. Di terang ia memberi
+3,80:1. Disapu ulang: 0,75 → 4,27:1, **0,80 bersih**. Lantai terang 0,80,
+nilainya satu langkah di atas — aturan yang sama, angka yang sapuan gelap
+tidak mungkin tahu.
+
+**Nol plafon anggaran dinaikkan.** `/en/practice/consulting` menyentuh tepat
+900KB terhadap plafon 900, dibuktikan dua arah dengan gerbangnya sendiri.
+Rencana Tahap ini mengizinkan menaikkan dengan alasan; `route-budget.e2e.ts`
+sudah dua kali mencatat bahwa perbaikannya adalah berhenti mengirim
+beratnya. Satu record ikon harus mengirim setiap entri ke apa pun yang
+membaca satu entri, jadi halaman dengan breadcrumb mengunduh empat glyph
+lightbox juga. Dipecah satu glyph per modul.
+
+Ikonografi lahir: tujuh path Phosphor (**MIT, diverifikasi dengan membaca
+`LICENSE` repo itu sendiri**, bukan badge) menggantikan `/`, `←`, `→`, `−`,
+`+`, `✕`, `⌕`, dengan nol dependensi runtime. `docs/PROVENANCE.md` §6
+dikoreksi di commit yang sama: ia berbunyi "No third-party source has been
+copied" sampai tahap ini menyalin tujuh path.
+
+**Dua perbaikan saya sendiri dibatalkan setelah diukur** — satu latar strip
+yang tidak memperbaiki apa pun (9 dari 12 kali masih gagal), dan satu
+komentar yang mengklaim hasil yang tidak pernah terjadi. Yang tersisa berdiri
+di atas alasannya sendiri.
+
+unit 458 · e2e **529 lulus, 0 gagal, 0 flaky**, 16 dilewati (11,5 menit) ·
++11 tepat: delapan asersi gerbang baru dan tiga story `Icon` · Storybook
+dibangun ulang · nol plafon anggaran dinaikkan.
+
 ## Tahap 42 — Kategori ketiga dinamai, lalu dibelanjakan ✅
 
 > Spec: [`docs/stages/TAHAP-42.md`](./stages/TAHAP-42.md)

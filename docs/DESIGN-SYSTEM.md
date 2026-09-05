@@ -51,6 +51,26 @@ VARIANCE 7". What is gated is the mechanical half of the skill —
 `e2e/taste-preflight.e2e.ts` and `lib/styles/scripts/taste-rules.test.ts` —
 and every stage from 34 on names the dial it is spending in its §Hasil.
 
+**Where `DESIGN_VARIANCE` was actually spent — Tahap 43.** The dial was set
+to 7 in Tahap 34 and the catalogue went on running at 3 for nine stages. That
+is measurable even though the dial is not: at 1440x900 the six works sat at
+**two** distinct `x` values and **three** distinct `y` values, with a row
+pitch of 935px three times running and three of three rows sharing an
+identical top. Every card was 691 x 919 to the pixel.
+
+`work-constellation` gives the catalogue three editorial offsets cycled by
+index, so no row runs level, and gives the two columns different parallax
+distances (4 and 9) so their relationship changes as the page is read. After:
+**six** distinct tops rather than three, and a per-column drift difference
+where there was none — measured at `1.863183333333333` against
+`1.863183333333333` before, identical to thirteen decimal places.
+
+The ceiling in the same row of the table still holds: the offsets are three
+fixed values from the grid step, not masonry, and
+`e2e/exploratory-layer.e2e.ts` asserts no two cards ever overlap at any of
+twelve scroll positions. A grid that stays legible as a grid is still how six
+works get compared to each other.
+
 ### What was adopted, and what was refused
 
 `docs/stages/TAHAP-34.md` §5 lists the thirteen rules adopted and the defect

@@ -175,9 +175,28 @@ export const workIndexQuery = defineQuery(`
   }
 `)
 
-/** Which practices actually have listed work, for the filter chips. */
+/**
+ * Every listed work's practice, for the filter chips.
+ *
+ * ## Why the raw list rather than `array::unique`
+ *
+ * Until Tahap 43 this was `array::unique(…)` and answered one question:
+ * which practices have work behind them, so a chip is never a dead end. The
+ * chips now also state **how much** work is behind each one — the count the
+ * reader sees before pressing, and the payload the cursor carries — and a
+ * deduplicated list cannot answer that.
+ *
+ * Counting happens in TypeScript rather than in a second GROQ round trip:
+ * the values are already crossing the wire, six of them, and `Catalogue`
+ * needs both answers from the same snapshot. Two queries could disagree.
+ *
+ * `defined(practice)` is gone for the same reason. A listed work with no
+ * practice still counts towards the "All" chip's total, and dropping it here
+ * would have made that total quietly smaller than the catalogue it labels.
+ * Nulls are filtered where the values are counted.
+ */
 export const practicesQuery = defineQuery(`
-  array::unique(*[${isListed} && defined(practice)].practice)
+  *[${isListed}].practice
 `)
 
 /**

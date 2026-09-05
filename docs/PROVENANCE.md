@@ -242,16 +242,37 @@ of it is here.
 Every file in `vault/` must appear here, and must carry a header comment with
 the same information.
 
-| Vault file                                              | Origin | Licence | Notes |
-| ------------------------------------------------------- | ------ | ------- | ----- |
-| _(see `vault/PROVENANCE-NOTE.md` and per-file headers)_ |        |         |       |
+| Vault file                                                                | Origin                                                                           | Licence                                    | Notes                                                                                   |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `vault/primitives/icon/index.tsx`                                         | [Phosphor Icons](https://github.com/phosphor-icons/core), `assets/regular/*.svg` | **MIT**, Copyright (c) 2023 Phosphor Icons | **Code copied**: the `d` attribute of seven glyphs. Everything else original. Tahap 43. |
+| _(everything else — see `vault/PROVENANCE-NOTE.md` and per-file headers)_ |                                                                                  |                                            |                                                                                         |
 
-Current status: all `vault/` code is **original work written for this
-project**, built against the public APIs of MIT/Apache dependencies
-(Lenis, GSAP, Tempus, R3F) and following patterns documented in those
-projects' own docs. No third-party source has been copied. Where a file
-implements a technique observed elsewhere, the header names the source of the
-_idea_ and states explicitly that no code was copied.
+Current status, corrected in Tahap 43: `vault/` is **almost entirely original
+work written for this project**, built against the public APIs of MIT/Apache
+dependencies (Lenis, GSAP, Tempus, R3F) and following patterns documented in
+those projects' own docs. Where a file implements a technique observed
+elsewhere, the header names the source of the _idea_ and states explicitly
+that no code was copied.
+
+**The one exception is the row above, and it is stated rather than glossed.**
+This section read "No third-party source has been copied" until Tahap 43,
+when `vault/primitives/icon` copied seven Phosphor path definitions. That
+sentence would then have been a document lying about its own code — the
+failure mode this project has already caught eleven times in
+`DESIGN-SYSTEM.md` — so it was corrected in the same commit as the copy.
+
+The licence was verified by reading `LICENSE` in `phosphor-icons/core`
+itself (MIT, Copyright (c) 2023 Phosphor Icons), and separately in
+`phosphor-icons/react` (MIT, Copyright (c) 2020 Phosphor Icons) — the
+package that was **not** installed. Neither was taken from a badge or an
+article, per §7 rule 1 and `CLAUDE.md` #18.
+
+**Why the paths rather than the package.** `e2e/route-budget.e2e.ts` allows
+`/en/work`, `/en/work/[slug]` and `/en/ai` no JavaScript beyond the
+framework. Installing an icon library to draw seven glyphs would have spent
+a budget two stages were spent defending; MIT permits the copy provided the
+notice travels with it, and the notice is in the file's header as well as
+here.
 
 ---
 

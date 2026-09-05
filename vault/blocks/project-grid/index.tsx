@@ -66,6 +66,37 @@ import s from './project-grid.module.css'
 
 export type { Project }
 
+/**
+ * How far each column's covers travel — `work-constellation`, Tahap 43.
+ *
+ * Two values, not a formula, and the gap between them is the whole point.
+ * Measured before this stage, both catalogue columns reported an identical
+ * parallax offset — `1.863183333333333` against `1.863183333333333`, to
+ * thirteen decimal places. Two columns moving in perfect lockstep are one
+ * column drawn twice.
+ *
+ * The difference is 5, inside the ceiling of 6 that
+ * `e2e/exploratory-layer.e2e.ts` holds. Above that the columns stop reading
+ * as one grid with depth and start reading as two grids that disagree, which
+ * is the "distracting desync" `vault/motion/parallax` records the preset
+ * warning about.
+ */
+const COLUMN_DRIFT = [4, 9] as const
+
+/**
+ * The three editorial offsets, in grid steps, cycled by card index.
+ *
+ * Three values rather than a random per-card figure, because irregularity has
+ * to read as a decision. A random offset reads as a bug — the eye cannot find
+ * the rule, so it assumes there isn't one. A repeating three-value figure
+ * against a two-column grid never lets a row line up (0/1, 2/0, 1/2) while
+ * staying recognisably periodic.
+ *
+ * Non-negative on purpose: a negative offset on the first row would pull a
+ * card up out of the grid's own top edge and into the section above it.
+ */
+const OFFSET_CYCLE = 3
+
 interface ProjectGridProps {
   projects: Project[]
   /**
@@ -141,10 +172,22 @@ export function ProjectGrid({
         ref.current = node
       }}
       className={cn(s.grid, className)}
+      // Read by the stylesheet: the editorial offsets are a catalogue
+      // composition and must not touch the home page's curated selection,
+      // which composes with `span` instead.
+      data-layout={layout}
       {...(epic && { 'data-epic': epic })}
     >
       {projects.map((project, index) => {
         const span = layout === 'catalogue' ? 6 : (project.span ?? 6)
+        const constellation = layout === 'catalogue'
+        /*
+         * The catalogue is two equal columns, so the column a card lands in
+         * is its index's parity. Derived rather than measured: reading the
+         * real column back from the DOM would need layout, and this runs
+         * during render.
+         */
+        const drift = COLUMN_DRIFT[index % COLUMN_DRIFT.length] ?? undefined
 
         return (
           <li
@@ -156,12 +199,14 @@ export function ProjectGrid({
             {...{ [FLIP_ID]: project._id }}
             className={s.item}
             data-span={span}
+            {...(constellation && { 'data-offset': index % OFFSET_CYCLE })}
           >
             <ProjectCard
               project={project}
               span={span}
               preload={index < preloadCount}
               material={material}
+              {...(constellation && drift !== undefined && { drift })}
             />
           </li>
         )

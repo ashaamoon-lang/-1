@@ -1,0 +1,65 @@
+/*
+ * The themed ground — Tahap 43.
+ *
+ * ## Why the theme has an element at all now
+ *
+ * Until this stage `data-theme` was written onto `<html>` by an effect, and
+ * the root layout server-rendered a hardcoded `dark`. Measured with `curl`
+ * and no JavaScript, all five reachable routes shipped `data-theme="dark"` —
+ * including the two that declare `theme="light"`. So a light route flashed
+ * dark and then turned, and with JavaScript off it never turned at all.
+ * `docs/stages/TAHAP-43.md` §3 has the table.
+ *
+ * The theme selectors were already written as `[data-theme=light]` rather
+ * than `:root[data-theme=light]`, so the tokens have always been able to
+ * cascade from any element. What was missing was the element.
+ *
+ * ## Why it paints the ground rather than `body`
+ *
+ * `body` cannot carry the route's theme — it lives in the root layout, which
+ * does not know which page is rendering — so if `body` kept painting
+ * `--color-primary` it would resolve against the un-themed root and paint the
+ * wrong colour behind a themed page. Moving the paint here puts the ground
+ * and the tokens that decide it on the same element.
+ *
+ * `flex: 1` and the column direction are inherited responsibilities, not
+ * decoration: `body` is the flex column and `main` inside this carries
+ * `grow`, so without them the footer would stop being pushed to the bottom of
+ * a short page.
+ */
+.ground {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  /*
+   * A stacking context, and it is load-bearing rather than tidy.
+   *
+   * `body`'s background is special: with `<html>` unpainted the browser
+   * propagates it to the canvas, which is drawn behind *everything*,
+   * including negative `z-index`. Three hero washes rely on that — the
+   * practice page, the studio page and `vault/webgl/scene-shell` all paint a
+   * `linear-gradient` at `z-index: -1` so the wash sits under the content and
+   * over the ground.
+   *
+   * Moving the ground onto an ordinary element broke that: an ordinary
+   * background is painted in normal flow, so a `z-index: -1` descendant went
+   * *behind* it and every wash disappeared. Measured on
+   * `/en/practice/consulting` — `e2e/visual-substance.e2e.ts` reported the lit
+   * page and the unlit control at 16.977343750000337 apiece, identical to
+   * fifteen decimal places, which is what "the accent painted nothing" looks
+   * like.
+   *
+   * `isolation: isolate` makes this element a stacking context, and inside
+   * one the element's own background paints first, negative-`z-index`
+   * children second, in-flow content third. The washes are above the ground
+   * and below the text again.
+   *
+   * `isolation`, specifically — not `transform`, `filter` or `will-change`,
+   * which also create stacking contexts but additionally become the
+   * containing block for `position: fixed`. That would re-anchor the header,
+   * the cursor and the WebGL canvas to this element instead of the viewport.
+   */
+  isolation: isolate;
+}

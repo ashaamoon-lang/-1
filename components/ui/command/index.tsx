@@ -5,6 +5,9 @@ import { useTranslations } from 'next-intl'
 import type { ComponentType } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { Icon } from '@/vault/primitives/icon'
+import { search } from '@/vault/primitives/icon/paths/search'
+
 import type { CommandPaletteProps } from './palette'
 
 import s from './command.module.css'
@@ -123,8 +126,14 @@ export function CommandTrigger({
           setOpen(true)
         }}
       >
-        <span aria-hidden="true" className={s.triggerIcon}>
-          ⌕
+        {/*
+          A drawn magnifier, not `⌕` — Tahap 43. U+2315 is a rare codepoint
+          that most system fonts do not carry, so the trigger fell back to a
+          different glyph, or to a tofu box, depending on the machine. An icon
+          is the same shape everywhere.
+        */}
+        <span className={s.triggerIcon}>
+          <Icon path={search} />
         </span>
         <span className={s.triggerLabel}>{t('open')}</span>
         {/*

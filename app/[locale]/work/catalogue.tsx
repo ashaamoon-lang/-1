@@ -139,6 +139,20 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
   // compared, not mutated, and `PRACTICES` stays the authority on which
   // ones are offered.
   const present = practices as readonly (string | null)[]
+  /*
+   * How much work sits behind each chip — Tahap 43.
+   *
+   * Counted here rather than fetched again because `practicesQuery` now
+   * returns every listed work's practice rather than the deduplicated set;
+   * one snapshot answers both "which chips exist" and "how big is each",
+   * and two queries could disagree with each other.
+   *
+   * `present` is derived from the same array, so a practice with a count of
+   * zero cannot appear: the chip and its number come from one source.
+   */
+  const countOf = (value: string) =>
+    present.filter((entry) => entry === value).length
+
   const available = PRACTICES.filter((value) => present.includes(value)).map(
     (value) => ({
       value,
@@ -147,6 +161,7 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
       // still builds the latter and is still used, below, to send a reader
       // from the narrowed list to the page *about* what they narrowed to.
       href: filteredWorkHref(locale, value),
+      count: countOf(value),
     })
   )
 
@@ -257,6 +272,13 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
           allLabel={t('all')}
           allHref={basePath}
           options={available}
+          /*
+            The unfiltered total, which is every listed work rather than
+            `projects.length` — that is the *current* view, and on a narrowed
+            catalogue it would label the "All" chip with the size of the
+            filter the reader is trying to leave.
+          */
+          allCount={present.length}
           active={practice}
           label={t('filterLabel')}
         />

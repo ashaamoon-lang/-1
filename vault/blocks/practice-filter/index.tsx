@@ -56,6 +56,8 @@ export interface DisciplineOption {
   label: string
   /** Localized URL for this view. Built by `app/[locale]/work/hrefs.ts`. */
   href: string
+  /** How many listed works this chip narrows to. */
+  count: number
 }
 
 interface PracticeFilterProps {
@@ -64,6 +66,8 @@ interface PracticeFilterProps {
   /** Where the "no filter" chip points — the work index for this locale. */
   allHref: string
   options: DisciplineOption[]
+  /** How many listed works there are in total — the "All" chip's number. */
+  allCount: number
   /** The active practice, or `null` for all. */
   active: string | null
   /** Accessible name for the group. */
@@ -75,6 +79,7 @@ export function PracticeFilter({
   allLabel,
   allHref,
   options,
+  allCount,
   active,
   label,
   className,
@@ -83,7 +88,10 @@ export function PracticeFilter({
   // rather than a control that cannot change anything.
   if (options.length < 2) return null
 
-  const chips = [{ value: null, label: allLabel, href: allHref }, ...options]
+  const chips = [
+    { value: null, label: allLabel, href: allHref, count: allCount },
+    ...options,
+  ]
 
   return (
     /*
@@ -104,12 +112,32 @@ export function PracticeFilter({
       <ul className={s.list}>
         {chips.map((chip) => {
           const isActive = chip.value === active
+          /*
+           * Two digits, so the number is the same width in every chip and the
+           * row does not reflow as the counts change. `padStart` rather than
+           * `tabular-nums` alone because a one-character count next to a
+           * two-character one still reads as ragged even in a monospaced
+           * figure.
+           */
+          const count = String(chip.count).padStart(2, '0')
 
           return (
             <li key={chip.value ?? 'all'}>
               <Link
                 href={chip.href}
                 className={cn('caption', s.chip)}
+                /*
+                 * What the cursor says when it is over this chip — Tahap 43.
+                 *
+                 * The reader learns the size of the result before committing
+                 * to it. The same number is rendered below, and that is a
+                 * rule rather than a nicety: `vault/primitives/cursor` is
+                 * never mounted on a coarse pointer, so anything that lives
+                 * only in the ring does not exist for a reader on a phone.
+                 * `e2e/exploratory-layer.e2e.ts` holds it.
+                 */
+                data-cursor="view"
+                data-cursor-label={count}
                 // `MOTION-SPEC.md` §9. Both roles on one element: a chip is
                 // its own acknowledgment.
                 data-press="chip"
@@ -146,6 +174,18 @@ export function PracticeFilter({
                 {...(isActive && { 'aria-current': 'true' })}
               >
                 {chip.label}
+                {/*
+                  The count, in the DOM rather than only in the cursor.
+
+                  `aria-hidden`: the chip's accessible name is its practice,
+                  and appending a bare number to it would have a screen
+                  reader announce "Consulting 02" as one label. The number is
+                  a visual aid to a sighted reader deciding where to press;
+                  the control it decorates already says what it does.
+                */}
+                <span aria-hidden="true" className={s.count}>
+                  {count}
+                </span>
               </Link>
             </li>
           )

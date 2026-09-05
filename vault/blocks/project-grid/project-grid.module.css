@@ -48,3 +48,42 @@
     grid-column: span 12;
   }
 }
+
+/*
+ * `work-constellation` — Tahap 43.
+ *
+ * Editorial offsets, so the catalogue's two columns never run level. Measured
+ * before this stage at 1440x900: two distinct `x` values, three distinct `y`
+ * values, a row pitch of 935px three times running, and **three of three rows
+ * with both cards sharing an identical top**. A grid a reader can predict in
+ * full from its first two cards is `DESIGN_VARIANCE` 3; Tahap 34 set the dial
+ * to 7.
+ *
+ * `margin-block-start`, not `transform`. `CLAUDE.md` #4 governs *animation*,
+ * and nothing here animates: this is composition, fixed at layout time and
+ * identical on every frame. A transform would also lie to `vault/motion/flip`,
+ * which measures `getBoundingClientRect()` to decide where a card travelled.
+ *
+ * Catalogue only. The home page composes with `span` — one work runs full
+ * width because the studio decided it should — and stacking a second
+ * composition system on top of that would be two rules fighting over one
+ * grid.
+ */
+@media (--desktop) {
+  .grid[data-layout='catalogue'] {
+    .item[data-offset='1'] {
+      margin-block-start: desktop-vw(48px);
+    }
+
+    .item[data-offset='2'] {
+      margin-block-start: desktop-vw(96px);
+    }
+  }
+}
+
+/*
+ * Below the desktop breakpoint the catalogue is a single column, where an
+ * offset is not a composition — it is just a bigger gap before one card.
+ * Stated rather than left to the media query above, so the intent survives a
+ * future edit to the breakpoint.
+ */

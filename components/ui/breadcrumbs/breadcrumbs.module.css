@@ -56,6 +56,15 @@
 
 .separator {
   color: var(--line-strong);
+  /*
+   * A flex box so the drawn caret centres against the labels rather than
+   * sitting on the text baseline the way the `/` glyph it replaced did.
+   */
+  display: inline-flex;
+  align-items: center;
+  /* The caret is a direction, not a character: it reads smaller than a slash
+     at the same size, so it is stepped down rather than left at 1em. */
+  font-size: 0.75em;
 }
 
 @media (--reduced-motion) {

@@ -79,3 +79,21 @@
     transition: none;
   }
 }
+
+/*
+ * The count beside a chip's label — Tahap 43.
+ *
+ * Muted and stepped down, because it is the second thing read: the practice
+ * names what the filter does, the number says how big the result is. A count
+ * at label weight would compete with the label for the same glance.
+ *
+ * `tabular-nums` so two chips whose counts differ do not sit at different
+ * widths, which on a wrapping chip row is what makes a line re-break as the
+ * catalogue is filtered.
+ */
+.count {
+  font-size: 0.75em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  margin-inline-start: 0.5ch;
+}

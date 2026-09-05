@@ -27,8 +27,33 @@ html {
  * so they adapt automatically across every [data-theme] without new palette
  * entries. `--color-contrast` carries interactive state (focus rings,
  * checked controls); since Tahap 1 v2 it is the ink itself, not an accent.
+ *
+ * ## `:root, [data-theme]`, and why the second half is not belt-and-braces
+ *
+ * The sentence above — "they adapt automatically across every `[data-theme]`"
+ * — was true only for as long as `:root` *was* the themed element. A custom
+ * property declared on `:root` is computed once, there, against `:root`'s own
+ * `--color-primary` and `--color-secondary`; descendants inherit the finished
+ * colour, not the recipe.
+ *
+ * Tahap 43 moved the theme onto an element inside the page, because a theme
+ * written to `<html>` by an effect is a theme that does not exist without
+ * JavaScript. The moment `<html>` stopped carrying `data-theme`, every token
+ * in this block silently resolved against the un-themed defaults — the light
+ * palette — for every page, dark ones included.
+ *
+ * It was not subtle. On the 404, `--surface` came out at `oklab(0.9322 …)`
+ * behind text at `--color-secondary`, which on the dark theme is paper:
+ * axe measured seven nodes at contrast ratios of **1.06, 1.07 and 1.1** —
+ * paper on near-paper, an invisible page.
+ *
+ * Adding `[data-theme]` to the selector makes the recipe recompute on the
+ * element that sets the palette, which is what the paragraph above always
+ * claimed. `:root` stays so anything outside a themed subtree still has
+ * values rather than none.
  */
-:root {
+:root,
+[data-theme] {
   --surface: color-mix(
     in oklab,
     var(--color-secondary) 4%,
@@ -261,6 +286,24 @@ body {
    */
   min-height: 100svh;
   overscroll-behavior: none;
+  /*
+   * The page's ground is painted by `components/layout/theme` — Tahap 43 —
+   * and this is the paper underneath it.
+   *
+   * `body` lives in the root layout, which cannot know which route is
+   * rendering, so it cannot carry that route's theme in the HTML. The themed
+   * element inside the page does, and it is opaque and fills the body, so
+   * what a reader sees is always that one.
+   *
+   * These two declarations still matter, and removing them was a mistake
+   * worth recording. `<html>` is themed by an effect once hydrated, so this
+   * resolves to the right colour then; before that it is the un-themed
+   * default, behind an opaque ground. What it buys is a document that has a
+   * background at all: axe falls back to the document colour when an element
+   * is off-screen, and with nothing here it measured the footer wordmark at
+   * **1.08:1** against `#ffffff` on four routes, plus every Storybook story,
+   * which has no ground element at all.
+   */
   background-color: var(--color-primary);
   color: var(--color-secondary);
   display: flex;

@@ -113,7 +113,26 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
   const url = `${SITE.url}${localizedPath(locale, `/journal/${slug}`)}`
 
   return (
-    <Wrapper theme="dark" gsap>
+    <Wrapper
+      theme="light"
+      /*
+        The journal is a reading surface — Tahap 43.
+
+        Every other route on this site is a *looking* surface: work sits on
+        ink so the plates carry the light. A journal entry is prose, and a
+        site that turns the paper on when the reader stops looking and starts
+        reading is a site that was composed rather than themed once.
+
+        It is also the fix for a system half of which was never exercised.
+        `contrast.test.ts` measures eleven pairs in **both** themes, and
+        before this stage the light half guarded zero reachable routes:
+        `error.tsx` only paints on a runtime error, and the markdown
+        catch-all always resolves to not-found because no `page` document is
+        published. Measured: `curl /en/about` returns 200 and the words "Page
+        not found". `docs/stages/TAHAP-43.md` §1.2.
+      */
+      gsap
+    >
       {/*
         `articleSchema()` was written, typed, exported and never called —
         Tahap 38's audit found three builders in that state. An entry is the

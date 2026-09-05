@@ -28,12 +28,21 @@ export default function ChromeLayout({ children }: PropsWithChildren) {
       lang="en"
       dir="ltr"
       className={fontsVariable}
-      // Default theme rendered server-side for no-flash initial paint; the
-      // client <Theme> updates data-theme per route via effect.
-      data-theme="dark"
-      // NOTE: data-theme is updated client-side per route, which would
-      // otherwise trip a hydration warning.
-      suppressHydrationWarning
+      /*
+        No `data-theme` — Tahap 43.
+        
+        It used to sit here as a hardcoded `dark`, written for a "no-flash
+        initial paint" that it did not deliver: `components/layout/theme`
+        then corrected it in an effect, so a route declaring `theme="light"`
+        painted dark first and, without JavaScript, stayed dark. Measured on
+        all five reachable routes (`docs/stages/TAHAP-43.md` §3).
+        
+        The theme now renders as an element inside the page, which is the
+        only place that knows which route it is. `suppressHydrationWarning`
+        went with it: nothing mutates this element after hydration any more,
+        so a mismatch here would be a real defect rather than an expected
+        one.
+      */
     >
       <body>{children}</body>
     </html>

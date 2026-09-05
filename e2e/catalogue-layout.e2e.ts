@@ -155,10 +155,33 @@ test.describe('the filter filters', () => {
     const chips = page.locator(FILTER).locator('a')
     expect(await chips.count(), 'no filter chips').toBeGreaterThan(2)
 
+    /*
+     * The chip's *name*, not its `textContent` — Tahap 43.
+     *
+     * Since Tahap 43 a chip also renders how many works it narrows to, in an
+     * `aria-hidden` span, so `textContent` reads "Consulting02" while the
+     * control's accessible name is still "Consulting". This assertion is
+     * about which chip is marked current, and the answer to that question is
+     * the name a reader is given, so the count is excluded here rather than
+     * baked into the expectation — an expectation of "Consulting02" would go
+     * red the next time a work is published, which is not a defect.
+     */
     const current = await chips.evaluateAll((nodes) =>
       nodes
         .filter((node) => node.getAttribute('aria-current') !== null)
-        .map((node) => node.textContent?.trim() ?? '')
+        .map((node) =>
+          [...node.childNodes]
+            .filter(
+              (child) =>
+                !(
+                  child instanceof Element &&
+                  child.getAttribute('aria-hidden') === 'true'
+                )
+            )
+            .map((child) => child.textContent ?? '')
+            .join('')
+            .trim()
+        )
     )
 
     expect(current, `chips marked current: ${current.join(', ')}`).toEqual([

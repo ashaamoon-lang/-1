@@ -3,6 +3,8 @@ import cn from 'clsx'
 import { Link } from '@/components/ui/link'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { breadcrumbSchema } from '@/lib/seo/schemas'
+import { Icon } from '@/vault/primitives/icon'
+import { caretRight } from '@/vault/primitives/icon/paths/caret-right'
 
 import s from './breadcrumbs.module.css'
 
@@ -76,8 +78,18 @@ export function Breadcrumbs({ label, trail, className }: BreadcrumbsProps) {
                   </Link>
                 )}
                 {!last && (
-                  <span aria-hidden="true" className={s.separator}>
-                    /
+                  /*
+                   * A drawn caret, not a `/` character — Tahap 43.
+                   *
+                   * The slash was a text glyph, so it took the display face's
+                   * metrics and sat at whatever height Syne puts a solidus,
+                   * which is not the optical centre of the labels beside it.
+                   * `Icon` is a box at `1em` with `aria-hidden` already on
+                   * it, so the trail still reads as "Work, Arus Balik" rather
+                   * than "Work slash Arus Balik".
+                   */
+                  <span className={s.separator}>
+                    <Icon path={caretRight} />
                   </span>
                 )}
               </li>

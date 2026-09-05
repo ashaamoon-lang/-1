@@ -46,6 +46,30 @@ All four were shipping before this section existed:
 their exclusions in §9.5 and §11 are this category, written before it had a
 name.
 
+**Added in Tahap 43**, and recorded when they shipped rather than nine stages
+later:
+
+| Mechanism             | Where                                              | Since    |
+| --------------------- | -------------------------------------------------- | -------- |
+| `constellation-drift` | `vault/blocks/project-grid`, per-column `distance` | Tahap 43 |
+| The cursor's payload  | `vault/primitives/cursor`, `data-cursor-label`     | Tahap 43 |
+
+Neither is counted by §9.5, and both satisfy §0.2 below. `constellation-drift`
+is the existing parallax given a different `distance` per column — no new
+mechanism, no second signal, and the reader registers the _difference_ between
+the columns rather than either travel. The cursor's payload changes only
+`opacity` and `transform` on a `aria-hidden` element whose text is required to
+exist in the DOM as well, which `e2e/exploratory-layer.e2e.ts` holds.
+
+**What §0.2 refused in the same stage.** Tahap 43 planned `type-pressure` —
+Syne's variable `wght` axis driven by `--scroll-velocity`. Measured on the
+real header: across the proposed 640-760 range the wordmark grew from 42.61px
+to 57.61px and the header's `<nav>` moved **10 pixels**; on the home page's
+`<h1>`, weight 760 added a line and grew the heading from 204px to 306px. A
+weight axis is neither `transform` nor `opacity`, and those two numbers are
+why that rule exists. It was dropped rather than granted an exemption —
+`docs/stages/TAHAP-43.md` §2.
+
 ### 0.2 Its rules are stricter, precisely because it never stops
 
 A choreographed moment is over in a second. These run for the whole visit, so:

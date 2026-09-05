@@ -60,8 +60,20 @@ const CURSOR_STATES = new Set<CursorState>([
   'hidden',
 ])
 
-function readCursorState(target: EventTarget | null): CursorState {
-  if (!(target instanceof Element)) return 'default'
+/** What the ring is showing: a state, and the payload that goes with it. */
+interface CursorReading {
+  state: CursorState
+  /**
+   * The text inside the ring, when the element under the pointer names one.
+   *
+   * `null` falls back to the mount-wide `viewLabel`, which is what every
+   * `data-cursor="view"` element got before Tahap 43.
+   */
+  label: string | null
+}
+
+function readCursor(target: EventTarget | null): CursorReading {
+  if (!(target instanceof Element)) return { state: 'default', label: null }
   const match = target.closest<HTMLElement>('[data-cursor]')
   const value = match?.dataset.cursor
   // SAFETY: `value` is arbitrary author-supplied text from a data attribute,
@@ -69,9 +81,22 @@ function readCursorState(target: EventTarget | null): CursorState {
   // first cast only lets `Set.has` accept the wider string; the second is
   // reached only when that check passed. Anything unrecognised falls through
   // to 'default', so a typo in markup degrades rather than breaking.
-  return value && CURSOR_STATES.has(value as CursorState)
-    ? (value as CursorState)
-    : 'default'
+  const state =
+    value && CURSOR_STATES.has(value as CursorState)
+      ? (value as CursorState)
+      : 'default'
+
+  /*
+   * The payload is read from the **same element** as the state, not from a
+   * second `closest()` call.
+   *
+   * Two lookups could resolve to different ancestors — a card inside a
+   * labelled section would take its state from the card and its text from the
+   * section — and the ring would then confidently show a number belonging to
+   * something else. One element answers both questions or neither.
+   */
+  const label = match?.dataset.cursorLabel?.trim()
+  return { state, label: label ? label : null }
 }
 
 interface CursorProps {
@@ -115,6 +140,12 @@ export function Cursor({ viewLabel = 'View' }: CursorProps) {
    */
   const [state, setState] = useState<CursorState>('hidden')
   /*
+   * The payload, kept apart from `state` so a move between two elements that
+   * share a state still swaps the text. Two chips are both `view`; only the
+   * number tells them apart.
+   */
+  const [label, setLabel] = useState<string | null>(null)
+  /*
    * A fine pointer is a device capability, not a render-time guess, so it is
    * read through the same `useSyncExternalStore` shape the rest of the
    * codebase uses for preferences. The server snapshot is `false`, so a phone
@@ -144,13 +175,18 @@ export function Cursor({ viewLabel = 'View' }: CursorProps) {
         position.current.y = event.clientY
       }
 
-      setState(readCursorState(event.target))
+      const reading = readCursor(event.target)
+      setState(reading.state)
+      setLabel(reading.label)
     }
 
     // The pointer leaving the window should hide the ring rather than freeze
     // it at the last known edge position.
     const onPointerOut = (event: PointerEvent) => {
-      if (!event.relatedTarget) setState('hidden')
+      if (!event.relatedTarget) {
+        setState('hidden')
+        setLabel(null)
+      }
     }
 
     window.addEventListener('pointermove', onPointerMove, { passive: true })
@@ -213,7 +249,20 @@ export function Cursor({ viewLabel = 'View' }: CursorProps) {
   return (
     <div ref={ref} className={s.cursor} data-state={state} aria-hidden="true">
       <span className={s.ring} />
-      <span className={s.label}>{viewLabel}</span>
+      {/*
+        `key` on the payload, so a changed value mounts a fresh element and
+        the enter animation in the stylesheet runs again — Tahap 43.
+
+        The outgoing payload is cut rather than faded. A two-phase swap would
+        spend `--duration-micro` twice, 300ms, to hide two characters that the
+        reader is not looking at during the swap; and while it ran, the ring
+        would show *neither* the old count nor the new one, which is worse
+        than showing the new one immediately. The arrival is animated because
+        that is the part a reader notices.
+      */}
+      <span key={label ?? viewLabel} className={s.label}>
+        {label ?? viewLabel}
+      </span>
     </div>
   )
 }

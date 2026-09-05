@@ -52,9 +52,36 @@
  * So the floor is 0.65 and the value below is one step above it. The title's
  * threshold really is 3:1 rather than 4.5 — that was **measured**, not assumed
  * from its size. `docs/stages/TAHAP-27.md` §7.3 carries the sweep.
+ *
+ * ## The sweep above was run on the dark theme, and only the dark theme
+ *
+ * Tahap 43 moved this page to the light theme, and the same 0.7 went red
+ * immediately: six nodes at **3.8:1**. That is not a regression in the value,
+ * it is the value being asked a question it had never been asked. A recede is
+ * a fraction of the distance between the text and its ground, and on paper
+ * that distance starts smaller — `--text-muted` carries its own 75% alpha, so
+ * a receded caption composites at 0.75 x 0.7 = 0.525 of the ink.
+ *
+ * Re-swept the same way, on the rendered light page with rows receded:
+ *
+ *   0.70 → 3.80:1     0.75 → 4.27:1     0.80 → clean     0.85 → clean
+ *
+ * The light floor is **0.80**, and the value below is one step above it —
+ * the same rule the dark sweep followed, applied to the number the dark
+ * sweep could not have known.
  */
 .list {
   --row-recede: 0.7;
+
+  /*
+   * A recede is a contrast decision wearing a motion decision's clothes, so
+   * it is the one value here that has to know which theme it is on. Scoped
+   * with `:where()` so it adds no specificity and the reduced-motion and
+   * COMMIT rules below still win where they should.
+   */
+  :where([data-theme='light']) & {
+    --row-recede: 0.85;
+  }
 
   display: flex;
   flex-direction: column;

@@ -203,6 +203,13 @@ export function ProjectGallery({
         {images.map((image, position) => {
           const ratio = aspectRatioFor(image)
           const full = isFullWidth(ratio)
+          /*
+           * `01 / 04`, padded, so the counter is the same width on every
+           * plate and the column edge below the images stays straight.
+           */
+          const positionLabel = `${String(position + 1).padStart(2, '0')} / ${String(
+            images.length
+          ).padStart(2, '0')}`
 
           return (
             <li
@@ -227,12 +234,38 @@ export function ProjectGallery({
                   data-press="nav"
                   data-intent=""
                   aria-label={t('openImage', { position: position + 1 })}
+                  /*
+                   * The plate's place in the set, carried in the ring —
+                   * Tahap 43. Where it is in a sequence is the one thing a
+                   * reader cannot see from the picture itself, and until now
+                   * it existed only in the `aria-label` above: announced to a
+                   * screen reader, invisible to everyone else.
+                   *
+                   * The same string is rendered below, because
+                   * `vault/primitives/cursor` never mounts on a coarse
+                   * pointer and information that lives only in the ring does
+                   * not exist on a phone.
+                   */
+                  data-cursor="view"
+                  data-cursor-label={positionLabel}
                   onClick={(event) => {
                     void openAt(position, event.currentTarget)
                   }}
                 >
                   <GalleryMedia image={image} ratio={ratio} full={full} />
                 </button>
+                {/*
+                  `aria-hidden`, because the button above already announces
+                  "Open image 2 of 4" as its accessible name. Announcing the
+                  figure's number again would have a screen reader read the
+                  position twice for one plate.
+                */}
+                <figcaption
+                  aria-hidden="true"
+                  className={cn('caption', s.position)}
+                >
+                  {positionLabel}
+                </figcaption>
               </figure>
             </li>
           )

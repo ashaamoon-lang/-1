@@ -155,8 +155,30 @@
 .parallax {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: -4%;
-  block-size: 108%;
+  /*
+   * The overshoot follows the travel — Tahap 43.
+   *
+   * `useParallax` moves this layer by `distance / 2` percent of its own
+   * height in each direction, so the layer has to be taller than its frame by
+   * exactly that much on each side or the frame shows its own edge at the
+   * ends of the pass. It was written as a fixed `-4%` / `108%` against the
+   * hook's default distance of 6, which left no margin at all once
+   * `work-constellation` gave the right-hand column a distance of 9:
+   * `e2e/continuous-motion.e2e.ts` reported 2 exposed plates at three of four
+   * scroll positions.
+   *
+   * `--card-drift` is set by `ProjectCard` from the same number it hands the
+   * hook, so the two cannot drift apart — the failure above was precisely
+   * two numbers that were supposed to agree and had no way to.
+   *
+   * The `+ 2` is headroom for sub-pixel rounding, not a guess at the travel:
+   * a layer sized to exactly its own travel lands flush with the frame edge
+   * and shows a hairline on fractional device pixel ratios.
+   */
+  --card-drift: 6;
+
+  inset-block-start: calc((var(--card-drift) + 2) * -0.5%);
+  block-size: calc(100% + (var(--card-drift) + 2) * 1%);
   /*
    * The velocity of the reader's own scroll, read as a stretch.
    *

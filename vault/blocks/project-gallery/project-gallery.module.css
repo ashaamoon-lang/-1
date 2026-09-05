@@ -165,3 +165,24 @@
   block-size: 100%;
   object-fit: cover;
 }
+
+/*
+ * The plate's number in the set — Tahap 43.
+ *
+ * A gallery numbers its plates; that is what a catalogue of work does, and it
+ * is the one fact about an image that the image cannot state. It lived in the
+ * trigger's `aria-label` and nowhere a sighted reader could reach.
+ *
+ * Muted and small, sitting under the plate rather than on it: an overlaid
+ * counter would cover part of the artwork, which on a page whose subject is
+ * the artwork is the wrong trade.
+ */
+.position {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-block-start: mobile-vw(8px);
+
+  @media (--desktop) {
+    margin-block-start: desktop-vw(8px);
+  }
+}

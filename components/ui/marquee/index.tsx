@@ -159,8 +159,26 @@ export function Marquee({
             // oxlint-disable-next-line react/no-array-index-key -- i can't come up with anything better tbh
             key={`marquee-item-${i}`}
             className={s.inner}
-            aria-hidden={i !== 0}
-            data-nosnippet={i !== 0 ? '' : undefined}
+            /*
+             * Presence, not a boolean string — Tahap 43.
+             *
+             * This read `aria-hidden={i !== 0}`, which renders
+             * `aria-hidden="false"` on the first track. ARIA has no way to
+             * un-hide a subtree inside a hidden ancestor, and the footer's
+             * wordmark strip is exactly that case — a `<section
+             * aria-hidden="true">` — so the attribute asserted something that
+             * cannot be true.
+             *
+             * Omitting it is the same idiom this codebase already uses for
+             * `data-active` on the journal rows: an absent attribute is the
+             * off state, and `false` is not a way of saying absent.
+             *
+             * **This did not fix the contrast finding it was reached for**,
+             * and that is worth recording: `color-contrast` measures text a
+             * sighted reader can see, so `aria-hidden` never exempted it. The
+             * change stands on being correct markup, not on a result.
+             */
+            {...(i !== 0 && { 'aria-hidden': true, 'data-nosnippet': '' })}
             ref={(node) => {
               if (!node) {
                 // React calls the ref callback with null on detach — clear the

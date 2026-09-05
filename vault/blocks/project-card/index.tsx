@@ -40,6 +40,7 @@
  */
 
 import cn from 'clsx'
+import type { CSSProperties } from 'react'
 import { useRef, useState, ViewTransition } from 'react'
 
 import { Link } from '@/components/ui/link'
@@ -114,6 +115,18 @@ interface ProjectCardProps {
    * which is the Tahap 7 decision this must not quietly undo.
    */
   material?: boolean | undefined
+  /**
+   * How far this card's cover travels across its own scroll pass, as a
+   * percentage of its height — `useParallax`'s `distance`.
+   *
+   * Given per card rather than fixed inside it because `work-constellation`
+   * (Tahap 43) gives the catalogue's two columns *different* values. What a
+   * reader registers is not the size of either travel but the difference
+   * between them: two columns moving at unequal rates keep changing their
+   * relationship to each other, so the page never shows the same composition
+   * twice. Omitted, the hook's own quiet default applies.
+   */
+  drift?: number | undefined
   className?: string | undefined
 }
 
@@ -122,6 +135,7 @@ export function ProjectCard({
   span: spanOverride,
   preload = false,
   material = false,
+  drift,
   className,
 }: ProjectCardProps) {
   /*
@@ -146,7 +160,24 @@ export function ProjectCard({
    * four and a half screens.
    */
   const parallaxRef = useRef<HTMLDivElement>(null)
-  useParallax(parallaxRef)
+  /*
+   * `drift` is spread rather than passed as `distance: drift` because the
+   * hook's options are `exactOptionalPropertyTypes`-strict: handing it an
+   * explicit `undefined` is not the same as omitting the key, and only
+   * omitting it falls through to the hook's own default.
+   */
+  useParallax(parallaxRef, { ...(drift !== undefined && { distance: drift }) })
+  /*
+   * The same number, handed to the stylesheet so the layer's overshoot
+   * matches the travel. See `.parallax` in the module: sizing the layer
+   * against a hardcoded default while the hook moved it further is what
+   * exposed the plate's own frame on the column with the larger distance.
+   */
+  // SAFETY: CSS custom properties are valid in a React style object at
+  // runtime; `CSSProperties` has no index signature to express one. Same
+  // shape as `lib/utils/image-sizes.ts`'s `ratioStyle`.
+  const parallaxStyle: CSSProperties =
+    drift === undefined ? {} : ({ '--card-drift': drift } as CSSProperties)
 
   const span = spanOverride ?? project.span ?? 6
   const slug = project.slug?.current
@@ -242,7 +273,15 @@ export function ProjectCard({
               to capture: the browser measures one box and animates another.
               An inner box moves freely inside a frame that holds still.
             */}
-            <div ref={parallaxRef} className={s.parallax}>
+            <div
+              ref={parallaxRef}
+              className={s.parallax}
+              // SAFETY: a CSS custom property is not in React's CSSProperties
+              // map, so the object is widened rather than the value coerced.
+              // The value is a number this component received and passes
+              // straight through; nothing is parsed or trusted.
+              style={parallaxStyle}
+            >
               {project.cover &&
                 (material ? (
                   <MaterialImage

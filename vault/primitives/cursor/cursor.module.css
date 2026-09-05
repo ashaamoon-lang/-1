@@ -84,6 +84,38 @@
 
 .cursor[data-state='view'] .label {
   opacity: 1;
+  /*
+   * The payload arrives — Tahap 43.
+   *
+   * `payload-enter` runs whenever a new value mounts, which the component
+   * forces with a `key`. `--duration-micro` because this is the smallest
+   * state flip on the site and the reader's attention is on the thing under
+   * the ring, not on the ring.
+   *
+   * `both` so the element is already at the animation's first frame before
+   * it paints — without it the text flashes at full opacity for one frame
+   * and then animates in from nothing, which reads as a stutter.
+   */
+  animation: payload-enter var(--duration-micro) var(--ease-out-quart) both;
+}
+
+/*
+ * Only `opacity` and `transform`, because a payload change is a continuous
+ * response in the sense `MOTION-SPEC.md` §0 defines: it has no beginning the
+ * reader chose and no end they wait for. It is also why it never morphs — a
+ * number that interpolates between two values reads as a glitch rather than
+ * as information.
+ */
+@keyframes payload-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 2px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 /* Off-window, or over media that should not be occluded. */
@@ -100,5 +132,15 @@
   .ring,
   .label {
     transition: none;
+  }
+
+  /*
+   * The payload appears rather than arrives. `none`, not a shortened
+   * duration: the animation's only job is the arrival, so removing it leaves
+   * the information intact and fully visible, which is what `CLAUDE.md` #5
+   * requires.
+   */
+  .cursor[data-state='view'] .label {
+    animation: none;
   }
 }

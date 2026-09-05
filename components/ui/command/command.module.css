@@ -53,6 +53,10 @@
 .triggerIcon {
   font-size: 1.1em;
   line-height: 1;
+  /* A flex box so the drawn magnifier centres against the label beside it
+     rather than sitting on the text baseline the glyph it replaced used. */
+  display: inline-flex;
+  align-items: center;
 }
 
 /*

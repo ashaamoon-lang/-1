@@ -216,6 +216,39 @@ test.describe('project detail', () => {
 
     await page.goto(`/en/work/${slugs[0]}`, { waitUntil: 'domcontentloaded' })
 
+    /*
+     * Settle the reveals before measuring — Tahap 43.
+     *
+     * This ran axe straight after `domcontentloaded`, which measures a page
+     * whose entrance animations are still interpolating. It passed for as
+     * long as this page had no revealing *text* below the fold that axe could
+     * reach; Tahap 43 gave each gallery plate its position (`01 / 04`), and
+     * the frame at `opacity: 0.02` reported 1.04:1 — along with the next-work
+     * eyebrow and heading, which had been mid-fade the whole time and simply
+     * had no caption beside them to draw a look.
+     *
+     * Measured both ways on the same build at 390x844: unsettled, three
+     * `color-contrast` nodes at 1.04, 1.04 and 1.05; settled, **clean**. What
+     * changed is when the tool looked, not what a reader sees.
+     *
+     * This is the same instrument correction `e2e/route-sweep.e2e.ts` already
+     * carries as `settleReveals()`, and the same reason Tahap 26 capped the
+     * catalogue's stagger at eight cards — "to prevent axe auditing a frame
+     * mid-fade". Scrolling the page also matters on its own: the reveals are
+     * `IntersectionObserver`-driven, so content below the fold never even
+     * starts until it has been seen.
+     */
+    await page.evaluate(async () => {
+      const step = window.innerHeight
+      for (let y = 0; y < document.body.scrollHeight; y += step) {
+        window.scrollTo(0, y)
+        await new Promise((resolve) => setTimeout(resolve, 120))
+      }
+      window.scrollTo(0, 0)
+    })
+    // Longer than the slowest reveal plus the largest stagger.
+    await page.waitForTimeout(1200)
+
     const results = await new AxeBuilder({ page }).withTags(axeTags()).analyze()
     expect(
       results.violations.map(
