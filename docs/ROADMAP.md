@@ -2054,6 +2054,58 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 36 — Skala yang punya langit-langit ✅
+
+> Spec: [`docs/stages/TAHAP-36.md`](./stages/TAHAP-36.md)
+
+Satu-satunya cacat dalam audit kurator yang bisa ditemukan juri dalam sepuluh
+detik, dengan menyeret sudut jendela. Nol `clamp()` di seluruh token, nol
+container `max-width`, setiap ukuran `vw` linear murni dijangkarkan pada dua
+lebar desain dengan satu breakpoint.
+
+**Diukur di browser, bukan dihitung di kertas.** Menyeberangi 800px: `h1`
+turun 17,7%, `--gap` runtuh 3,8×, dan `caption` jatuh dari **23,4px ke 6,7px**
+— satu piksel lebar jendela, dan caption menyusut jadi seperempatnya. Di
+320px caption merender 9,4px; di 2560px `h1` mencapai 213px dan header 128px.
+`DESIGN-SYSTEM.md` §2 sudah menulis aturannya sendiri ("koefisien viewport
+kecil, 1–1,5vw; penskalaan `vw` agresif adalah petunjuk amatir yang andal");
+koefisien sebenarnya 10,13vw.
+
+**Tidak ada 377 perbaikan. Ada dua.** Setiap angka itu dipancarkan dua
+generator dengan bentuk yang sama. `fluidCalc()` menggantinya dengan **satu
+garis terjepit melalui kedua jangkar desain**, jadi tidak ada deklarasi kedua
+untuk berselisih dengan yang pertama; dan `mobile-vw()`/`desktop-vw()`
+dibatasi pita `[320/375, 1920/1440]`, yang mengikat 377 pemanggilan komponen
+**tanpa satu pun disentuh**.
+
+Sesudahnya, 799 dan 800 **identik di setiap kolom**. Caption hidup di
+11,0–12,5 alih-alih berayun 6,7–23,4. Gutter 16px di mana pun, yang memang
+selalu maksudnya — nilai yang 16px di 375 _dan_ 16px di 1440 tidak pernah
+dimaksudkan jadi 34px di 799.
+
+**Sifat yang membuat ini pembatasan dan bukan desain ulang: di 375 dan 1440
+tidak ada yang bergerak sepiksel pun.** Itu asersi keempat gerbangnya, dan ia
+hijau sebelum maupun sesudah — kontrol, bukan formalitas.
+
+Gerbangnya lalu menemukan **satu elemen di seluruh situs** yang tetap melanggar
+lantai keterbacaan: tombol hero, 10,2px di 320px, karena ia menulis sendiri
+`font-size: mobile-vw(12px)` alih-alih memakai utilitas `cta` yang sudah persis
+itu. Satu dari 54 deklarasi yang melewati skala tipe, dan satu-satunya yang
+benar-benar jatuh di bawah lantai.
+
+**Instrumennya salah dua kali:** pembulatan tiga desimal memindahkan jangkar
+(`desktop-vw(32)` mendarat di 31,9968px di 1440), dan klaim "sekitar 1,2×" di
+spec adalah tebakan — sisa langkahnya **1,5625×**, aritmetika `plafon/lantai`,
+sekarang dipaku unit test. Ditambah satu kesalahan yang bukan instrumen: `cn`
+dipakai tanpa diimpor, dilewatkan `tsc`, ditangkap build produksi.
+
+unit 448 (5 baru untuk dua fungsi yang sebelumnya **nol cakupan**) · e2e
+**463 lulus, nol gagal di jalan pertama** · nol gerbang lama ikut merah ·
+**sisa yang disebut**: langkah 1,5625× di 377 pemanggilan komponen, dan 53
+deklarasi `font-size` lain yang masih melewati skala — keduanya Tahap 37.
+
+---
+
 ## Tahap 35 — Kejujuran ✅
 
 > Spec: [`docs/stages/TAHAP-35.md`](./stages/TAHAP-35.md)

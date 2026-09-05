@@ -76,9 +76,17 @@
 
 .heroCta {
   display: inline-block;
-  font-family: var(--font-mono);
-  font-size: mobile-vw(12px);
-  line-height: 100%;
+  /*
+   * Family, size and leading come from the `cta` utility now — Tahap 36.
+   *
+   * They were hand-rolled here, and `font-size: mobile-vw(12px)` floors at
+   * 10.24px on a 320px screen, under the 11px readability floor
+   * `typography.ts` set on purpose. `e2e/scale-continuity.e2e.ts` found it:
+   * one element on the whole site, and the only one.
+   *
+   * Only the tracking stays local, because this control is set uppercase and
+   * the scale's -0.01em is for lower case.
+   */
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
@@ -101,7 +109,7 @@
     transform var(--duration-micro) var(--ease-out-quart);
 
   @media (--desktop) {
-    font-size: desktop-vw(14px);
+    /* No `font-size` here either: `cta` already runs 12 to 14 as one curve. */
     padding: desktop-vw(16px) desktop-vw(32px);
   }
 

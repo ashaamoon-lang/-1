@@ -1,3 +1,4 @@
+import cn from 'clsx'
 import { getTranslations } from 'next-intl/server'
 import { locale as localeRootParam } from 'next/root-params'
 
@@ -184,7 +185,7 @@ export default async function Home() {
              JavaScript disabled, which is a stated Tahap 3 exit criterion. */
           <a
             href={hasWork ? '#work' : '#contact'}
-            className={s.heroCta}
+            className={cn('cta', s.heroCta)}
             // Both attributes on one element: this control is its own
             // acknowledgment (the fill inverts on hover), so INTENT and
             // COMMIT live in the same place. `MOTION-SPEC.md` §9.

@@ -47,8 +47,7 @@
 	font-weight: 700;
 	line-height: 85%;
 	letter-spacing: -0.04em;
-	font-size: calc(((38 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((120 * 100) / var(--device-width)) * 1vw); }
+	font-size: clamp(38px, calc(9.127px + 7.7vw), 156.958px);
 }
 @utility h2 {
   font-family: var(--next-font-display);
@@ -56,8 +55,7 @@
 	font-weight: 600;
 	line-height: 90%;
 	letter-spacing: -0.025em;
-	font-size: calc(((32 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((48 * 100) / var(--device-width)) * 1vw); }
+	font-size: clamp(32px, calc(26.366px + 1.502vw), 55.211px);
 }
 @utility p-big {
   font-family: var(--next-font-display);
@@ -65,8 +63,7 @@
 	font-weight: 400;
 	line-height: 125%;
 	letter-spacing: -0.02em;
-	font-size: calc(((16 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((20 * 100) / var(--device-width)) * 1vw); }
+	font-size: clamp(16px, calc(14.592px + 0.376vw), 21.803px);
 }
 @utility p {
   font-family: var(--next-font-display);
@@ -75,8 +72,7 @@
 	line-height: 125%;
 	@variant dt { line-height: 120%; }
 	letter-spacing: -0.01em;
-	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
+	font-size: clamp(12px, calc(11.296px + 0.188vw), 14.901px);
 }
 @utility caption {
   font-family: var(--next-font-mono);
@@ -85,8 +81,7 @@
 	line-height: 125%;
 	@variant dt { line-height: 120%; }
 	letter-spacing: -0.01em;
-	font-size: calc(((11 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((12 * 100) / var(--device-width)) * 1vw); }
+	font-size: clamp(11px, calc(10.648px + 0.094vw), 12.451px);
 }
 @utility cta {
   font-family: var(--next-font-mono);
@@ -94,8 +89,7 @@
 	font-weight: 400;
 	line-height: 100%;
 	letter-spacing: -0.01em;
-	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
+	font-size: clamp(12px, calc(11.296px + 0.188vw), 14.901px);
 }
 @utility link {
   font-family: var(--next-font-mono);
@@ -104,8 +98,7 @@
 	line-height: 125%;
 	@variant dt { line-height: 120%; }
 	letter-spacing: -0.01em;
-	font-size: calc(((12 * 100) / var(--device-width)) * 1vw);
-	@variant dt { font-size: calc(((14 * 100) / var(--device-width)) * 1vw); }
+	font-size: clamp(12px, calc(11.296px + 0.188vw), 14.901px);
 }
 
 @utility desktop-only {

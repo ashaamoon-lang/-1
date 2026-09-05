@@ -12,26 +12,39 @@
 	--device-width: 375;
 	--device-height: 650;
 
+	/*
+	 * One declaration per token, not one per breakpoint.
+	 *
+	 * These were emitted twice — once here against a 375 device width and once
+	 * inside `@variant dt` against 1440 — and the two branches met nowhere.
+	 * Crossing 800px the gutter fell 34.1px to 8.9px. `fluidCalc` draws a
+	 * single clamped line through both design anchors instead, so there is no
+	 * second declaration to disagree with the first. See `./utils.ts`.
+	 */
 	--columns: 4;
-	--gap: calc(((16 * 100) / var(--device-width)) * 1vw);
-	--safe: calc(((16 * 100) / var(--device-width)) * 1vw);
+	--gap: 16px;
+	--safe: 16px;
 
-	--header-height: calc(((58 * 100) / var(--device-width)) * 1vw);
-	--section-lead: calc(((32 * 100) / var(--device-width)) * 1vw);
+	--header-height: clamp(58px, calc(53.07px + 1.315vw), 78.31px);
+	--section-lead: clamp(32px, calc(26.366px + 1.502vw), 55.211px);
 
 	--layout-width: calc(100vw - (2 * var(--safe)));
 	--column-width: calc((var(--layout-width) - (var(--columns) - 1) * var(--gap)) / var(--columns));
 
 	@variant dt {
+    /*
+     * `--columns` is the one thing that still switches at the breakpoint,
+     * and it should: 4 columns and 12 columns are different grids, not two
+     * sizes of one. `--column-width` therefore still steps here, which is
+     * why `e2e/scale-continuity.e2e.ts` does not measure it.
+     *
+     * `--device-width` stays because `generate-scale.ts` still resolves the
+     * `dr-*` numeric utilities against it.
+     */
     --device-width: 1440;
     --device-height: 816;
 
     --columns: 12;
-		--gap: calc(((16 * 100) / var(--device-width)) * 1vw);
-		--safe: calc(((16 * 100) / var(--device-width)) * 1vw);
-
-    --header-height: calc(((72 * 100) / var(--device-width)) * 1vw);
-		--section-lead: calc(((48 * 100) / var(--device-width)) * 1vw);
 	}
 }
   

@@ -1,16 +1,23 @@
 import type { Config } from '../config'
-import { formatObject, scalingCalc } from './utils'
+import { fluidCalc, formatObject } from './utils'
 
 export function generateTailwind({
   breakpoints,
   colors,
   customSizes,
   fonts,
+  screens,
   themes,
   typography,
 }: Pick<
   Config,
-  'breakpoints' | 'colors' | 'customSizes' | 'fonts' | 'themes' | 'typography'
+  | 'breakpoints'
+  | 'colors'
+  | 'customSizes'
+  | 'fonts'
+  | 'screens'
+  | 'themes'
+  | 'typography'
 >) {
   // Theme
   // NOTE: @theme is the single source of truth for the raw color palette.
@@ -72,10 +79,13 @@ ${Object.entries(typography)
           // SAFETY: key === 'font-size' and TypeStyles only allows an object
           // value for font-size as { mobile: number; desktop: number }.
           const v = value as { mobile: number; desktop: number }
-          return [
-            `font-size: ${scalingCalc(v.mobile)};`,
-            `@variant dt { font-size: ${scalingCalc(v.desktop)}; }`,
-          ].join('\n\t')
+          /*
+           * One clamped curve, not a mobile size and a desktop size that
+           * disagree at the breakpoint. `caption` used to render 23.4px at
+           * 799 and 6.7px at 800; it now runs 11px to 12.5px across every
+           * width the site supports. `./utils.ts` carries the derivation.
+           */
+          return `font-size: ${fluidCalc(v.mobile, v.desktop, screens.mobile.width, screens.desktop.width)};`
         }
 
         return `font-size: ${String(value)};`
