@@ -197,6 +197,43 @@ const MARKERS = {
   three: /WebGLRenderer/,
   gsap: /GreenSock/,
   sanity: /sanityFetch|SanityClient/,
+  /*
+   * Theatre.js — Tahap 46.
+   *
+   * `lib/dev/theatre` is a development tool: it exists so the Studio editor
+   * can bind to a live project while curves are being authored. `@theatre/core`
+   * is nevertheless a **runtime** dependency, and `SheetProvider` is imported
+   * by `lib/webgl/components/canvas/webgl.tsx`, which every WebGL route
+   * mounts — so "it is dev-only" was a property of one `process.env.NODE_ENV`
+   * branch and nothing checked it.
+   *
+   * `docs/ROADMAP.md` claimed this was already guarded here. It was not: the
+   * three markers above were the whole list. Adding it is the difference
+   * between a dev tool that is believed to stay out of production and one
+   * that is measured to.
+   *
+   * ## The marker took three attempts, and the first two were false positives
+   *
+   * This is the hard case for a string scan: the wrapper is *named after* the
+   * library and mirrors its API, so the obvious markers match the code that
+   * exists precisely to avoid loading it.
+   *
+   * 1. `/theatrejs|@theatre\/core/` reported `/en loaded theatre`. Measured:
+   *    one 34KB chunk, one occurrence — `id === "theatrejs-studio-root"`, a
+   *    DOM check compiled in from the CSS reset. Plus `lib/dev/theatre` holds
+   *    `() => import('@theatre/core')` at module scope, so the module's *name*
+   *    sits in the eager chunk as the reference webpack needs to fetch the
+   *    lazy one. A marker matching a module's name matches the code that
+   *    decides not to load it.
+   * 2. `/SheetObject|onValuesChange/` also reported red. Measured: two 39KB
+   *    chunks, and the context is `{ onValuesChange, lazy, deps }` — the
+   *    options bag of **our own** `useTheatreObject` hook.
+   *
+   * `createRafDriver` is the library's own export and appears nowhere in
+   * `lib/dev/theatre`: 4 occurrences in `@theatre/core`'s dist, 0 in ours.
+   * It is only in a fetched chunk when the library itself has been fetched.
+   */
+  theatre: /createRafDriver/,
 } satisfies Record<string, RegExp>
 
 /** Below this a chunk is too small to be a library; scanning it is waste. */

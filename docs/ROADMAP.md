@@ -2066,6 +2066,56 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 46 — Story yang hilang, keputusan Theatre.js, dan pandangan akhir ✅
+
+> Spec: [`docs/stages/TAHAP-46.md`](./stages/TAHAP-46.md)
+
+Tahap terakhir rencana ini, dan dua dari tiga butirnya berubah bentuk setelah
+diukur.
+
+**"25 komponen tanpa story" salah dua kali.** Aturan tertulis proyek ini —
+`CLAUDE.md`, dan checklist dokumen ini sendiri — berbunyi _"tiap primitive
+punya story"_. Ketiga `vault/primitives/` sudah punya, dan sudah punya sebelum
+tahap ini mulai. Yang audit hitung adalah hal lain (direktori komponen mana
+pun) lalu menilainya terhadap aturan yang tidak mengatakan itu. Angkanya juga
+**24**, bukan 25, setelah Tahap 45 menghapus sepuluh direktori.
+
+Empat story tetap ditulis, untuk keadaan yang justru paling sulit dilihat di
+halaman aslinya: chip filter dalam keadaan terpilih — yang sebelum Tahap 39
+**tidak bisa dicapai sama sekali** — `step-sequence`, `next-practice` di kedua
+bahasa, dan `counter` pada satu-satunya keadaan yang penting, yaitu angka yang
+**berubah**. Dua puluh sisanya tidak, dikelompokkan dengan alasan per
+kelompok: cangkang aplikasi yang story-nya akan menguji tiruannya, komponen
+yang butuh CMS atau kanvas hidup dan sudah diukur `visual-substance` dengan
+piksel, dan hook yang tidak punya permukaan untuk dirender.
+
+**Klaim dokumen ini tentang Theatre.js tidak dijaga apa pun.** Ia menulis
+`@theatre/studio` "dijaga `route-budget.e2e.ts`"; `MARKERS` di berkas itu
+berisi tiga entri dan tidak satu pun Theatre. Itu bukan detail:
+`@theatre/core` adalah dependensi **runtime** dan `SheetProvider` diimpor oleh
+canvas yang tiap rute WebGL pasang, jadi "dev-only" adalah properti satu
+cabang `NODE_ENV` yang tidak ada yang periksa.
+
+**Marker-nya butuh tiga percobaan.** Pembungkusnya dinamai seperti pustakanya
+dan meniru API-nya, jadi dua marker pertama cocok dengan kode yang ada untuk
+**menghindari** memuatnya: sekali dengan `id="theatrejs-studio-root"` dari
+reset CSS, sekali dengan tas opsi hook kami sendiri. `createRafDriver` —
+4 kemunculan di dist pustakanya, 0 di kode kami — bersih. Lalu gerbangnya
+dibuktikan **bisa merah**, dengan import sungguhan yang dipasang sementara.
+Hasil terukur: runtime `@theatre/core` **tidak** mencapai produksi di rute
+mana pun, dan sekarang ada yang menjaganya.
+
+**Mengarang kurva secara visual dengan Studio tidak dikerjakan**, dan
+alasannya bukan waktu: tidak ada browser interaktif di lingkungan ini, dan
+"nilai terukur" yang dikarang tanpanya adalah persis yang `CLAUDE.md` #19
+larang.
+
+unit 410 lulus · e2e **538 lulus, 0 gagal, 0 flaky**, 15 dilewati (12,0
+menit) · +9 tepat: empat berkas story baru, 80 story → 89 · satu gerbang baru,
+dibuktikan merah lalu hijau.
+
+---
+
 ## Tahap 45 — Material rute kedua, pipeline warna, dan pembersihan ✅
 
 > Spec: [`docs/stages/TAHAP-45.md`](./stages/TAHAP-45.md)
