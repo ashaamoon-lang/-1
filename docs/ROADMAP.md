@@ -2060,6 +2060,64 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 44 — Permukaan buta mendapat mata ✅
+
+> Spec: [`docs/stages/TAHAP-44.md`](./stages/TAHAP-44.md)
+
+Tiga dari delapan permukaan manusia merender **nol gambar**, diukur pada HTML
+server: `/studio`, `/journal`, `/journal/<slug>` — sepertiga situs yang
+subjeknya karya komisi, buta. Bukan karena kekurangan aset: enam sampul sudah
+terbit dan sudah dipakai di tiga rute lain. Yang hilang pemakaiannya, bukan
+gambarnya. Sesudahnya: **3, 3, dan 1**.
+
+**Nol konten dikarang dan nol koreografi baru**, keduanya disengaja — menambah
+gerak ke halaman kosong hanya membuat kekosongannya bergerak.
+
+**Premis rencana salah untuk keempat tahap berturut-turut.** Ia meminta gambar
+pembuka "bila entri menyebut proyek". `schemas/journalEntry.ts` tidak punya
+field untuk menyebut satu pun. Menambahkannya berarti mengirim kolom tanpa
+data di belakangnya — nol dari enam fixture akan mengisinya, jadi halamannya
+tetap merender nol gambar, hanya dengan lebih banyak skema. Yang dipakai
+adalah **praktik** yang entrinya sudah nyatakan: ketiganya membawa praktik
+nyata, dan tiap praktik punya karya. Hubungan itu sudah ada di data.
+
+**Tiga koreksi lagi, semuanya dari pengukuran.** Satu sampul per praktik
+membuat dua baris `/journal` membawa **gambar yang sama** — tiga gambar, dua
+deskripsi — karena dua dari tiga entri berpraktik `consulting`; tiap praktik
+sekarang menyimpan daftarnya dan baris mengambil bergiliran. Build gagal
+dengan `param $locale referenced, but not provided`, dan tambalan pertama
+saya — `locale: 'en'` — akan mendeskripsikan plat setiap halaman Indonesia
+dalam bahasa Inggris, pada satu-satunya string di halaman yang dibaca
+**alih-alih** dilihat. Dan `alt` galeri ternyata milik platnya, bukan
+proyeknya: keenam karya mengambil dua plat yang sama.
+
+**Cacat Tahap 31 ditutup, dan ia sampai ke pembaca.** Tiga gambar tiap proyek
+berbagi satu string — pembaca layar mendengar deskripsi sampul tiga kali, dua
+di antaranya salah. Perbaikan skrip saja tidak mengubah situs (proyek dibaca
+dari Sanity, tanpa fallback), jadi seed ulang **ditanyakan lebih dulu** karena
+ia tulisan ke CMS; Anda menyetujuinya. Sesudahnya tiga gambar, tiga deskripsi,
+dan versi Indonesianya benar-benar Indonesia.
+
+**Satu jebakan pengukuran tertangkap:** setelah seed sukses halaman masih
+menampilkan `alt` lama. Dataset diperiksa langsung — benar. `apicdn` diperiksa
+— benar. Yang basi cache `'use cache'` Next, karena server lama masih berjalan
+saat build diulang. Berhenti di pengukuran pertama berarti melaporkan seed
+yang gagal padahal yang gagal cara mengukurnya.
+
+**Nol plafon anggaran dinaikkan**, meski dua rute melewatinya. `/en/journal`
+870 → 901: barisnya pulau klien, jadi `SanityImage` dan seluruh dependensinya
+ikut masuk ke bundelnya — sampulnya sekarang dirender di server dan diserahkan
+sebagai `ReactNode`, karena sebuah elemen adalah nilai dan menyeberangi batas
+RSC tanpa membawa implementasinya. `/en/studio` 856 → 902: `ProjectGrid`
+memanggil `useFlipGrid` untuk filter yang halaman ini tidak punya — enam baris
+CSS menggantikan 46KB JavaScript.
+
+unit 458 · e2e **547 lulus, 0 gagal, 0 flaky**, 16 dilewati (12,1 menit) ·
++18 tepat: sembilan asersi baru × dua proyek Playwright · Storybook dibangun
+ulang.
+
+---
+
 ## Tahap 43 — Lapisan eksploratif: `DESIGN_VARIANCE` 3 → 7 ✅
 
 > Spec: [`docs/stages/TAHAP-43.md`](./stages/TAHAP-43.md)

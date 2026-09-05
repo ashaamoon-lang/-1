@@ -197,3 +197,28 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/*
+ * The opening plate — Tahap 44.
+ *
+ * No caption, deliberately: the picture is context for the essay, not an
+ * exhibit with its own title. A caption would claim the work is what the
+ * entry is about, which is one step further than the data supports — the
+ * entry names a practice, and this is work from it.
+ */
+.opening {
+  margin: 0;
+  overflow: clip;
+}
+
+.openingImage {
+  /*
+   * Wider than the catalogue card's 4/5. A portrait plate at the head of an
+   * essay pushes the first paragraph off the screen; 16/9 sits in the reading
+   * flow the way a plate in a periodical does.
+   */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  inline-size: 100%;
+  block-size: auto;
+}

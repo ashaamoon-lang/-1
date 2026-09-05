@@ -97,13 +97,29 @@ const COLUMN_DRIFT = [4, 9] as const
  */
 const OFFSET_CYCLE = 3
 
+/**
+ * The column each layout forces, or `undefined` to honour the work's own.
+ *
+ * `editorial` is the one that defers: a work's `span` says how the studio
+ * wants that piece to sit among curated neighbours, and that authority is the
+ * whole reason the field exists. The other two override it because a listing
+ * and a strip want one rhythm, not six opinions.
+ */
+const LAYOUT_SPAN = {
+  editorial: undefined,
+  catalogue: 6,
+  strip: 4,
+} as const
+
 interface ProjectGridProps {
   projects: Project[]
   /**
    * `editorial` (default) honours each work's `span`; `catalogue` gives every
-   * work the same column. See the layout note above for the measurement.
+   * work the same half-width column; `strip` gives every work a third, for a
+   * single row of evidence beside prose rather than a listing. See the layout
+   * note above for the measurement.
    */
-  layout?: 'editorial' | 'catalogue' | undefined
+  layout?: 'editorial' | 'catalogue' | 'strip' | undefined
   /**
    * How many leading cards are preloaded. Two is what fits above the fold at
    * desktop width; raising it to cover the whole grid defeats the point.
@@ -179,7 +195,7 @@ export function ProjectGrid({
       {...(epic && { 'data-epic': epic })}
     >
       {projects.map((project, index) => {
-        const span = layout === 'catalogue' ? 6 : (project.span ?? 6)
+        const span = LAYOUT_SPAN[layout] ?? project.span ?? 6
         const constellation = layout === 'catalogue'
         /*
          * The catalogue is two equal columns, so the column a card lands in

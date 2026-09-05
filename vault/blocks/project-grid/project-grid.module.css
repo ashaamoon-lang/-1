@@ -87,3 +87,21 @@
  * Stated rather than left to the media query above, so the intent survives a
  * future edit to the breakpoint.
  */
+
+/*
+ * `strip` — one row of evidence, Tahap 44.
+ *
+ * Three works across the 12-column grid rather than a listing's two. It sits
+ * beside prose on `/studio`, where the job is "here is the work this text is
+ * about", not "here is everything". Two would have meant truncating four
+ * featured works by a rule nothing states; four would have been two full rows,
+ * which is a gallery, and `/work` is already the gallery.
+ *
+ * Mobile keeps the single column every other layout uses: three cards at a
+ * third of 390px is 130px, below anything a cover can be read at.
+ */
+@media (--desktop) {
+  .item[data-span='4'] {
+    grid-column: span 4;
+  }
+}

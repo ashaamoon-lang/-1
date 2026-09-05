@@ -8,7 +8,10 @@ import { Link } from '@/components/ui/link'
 import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
+import { sanityFetch } from '@/lib/integrations/sanity/live'
+import { featuredProjectsQuery } from '@/lib/integrations/sanity/queries'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
@@ -70,6 +73,43 @@ export async function generateMetadata(_props: StudioPageProps) {
   })
 }
 
+/**
+ * The work this page's prose is about — Tahap 44.
+ *
+ * ## Why a page that was entirely static now fetches
+ *
+ * `/en/studio` rendered **zero images**, measured on the production build's
+ * server HTML, on a site whose subject is commissioned artwork. It was the
+ * longest page after the catalogue and had nothing on it to look at.
+ *
+ * That was never a content problem: six covers were already published and
+ * already rendering on three other routes. This page simply never asked for
+ * them, because it had no reason to fetch anything at all.
+ *
+ * `'use cache'` for the same reason every other route uses it — the page is
+ * statically prerendered and must stay that way; `e2e/response-headers.e2e.ts`
+ * asserts it is cacheable.
+ */
+async function evidence(locale: string) {
+  'use cache'
+  const projects = await sanityFetch({
+    query: featuredProjectsQuery,
+    // `$locale` picks the reader's language out of each internationalized
+    // field; the query coalesces to English when a field has no translation.
+    params: { locale },
+    perspective: 'published',
+    stega: false,
+  })
+  /*
+   * Three, not four. The strip is one row of the 12-column grid at
+   * `span 4`; a fourth would wrap and make this a listing, which is what
+   * `/work` already is. Sliced here rather than in the query so the query
+   * stays the same one the home page reads — two queries that differ only by
+   * a limit are two things to keep in step.
+   */
+  return projects.data.slice(0, 3)
+}
+
 export default async function StudioPage() {
   /*
    * `workIndex`, not `work`.
@@ -80,9 +120,13 @@ export default async function StudioPage() {
    * `work` renders the key path instead of the label: this page shipped
    * `work.consulting` as a visible heading until it was looked at.
    */
-  const [t, tPractice] = await Promise.all([
+  const requested = await localeRootParam()
+  const locale = isLocale(requested) ? requested : routing.defaultLocale
+
+  const [t, tPractice, works] = await Promise.all([
     getTranslations('studio'),
     getTranslations('workIndex'),
+    evidence(locale),
   ])
 
   /*
@@ -203,6 +247,60 @@ export default async function StudioPage() {
             {t('statement')}
           </ProgressText>
         </section>
+
+        {/*
+          The work the statement above is about — Tahap 44.
+
+          Placed after the statement rather than before it, and that ordering
+          is the whole argument: a studio page that opens with pictures is a
+          portfolio, and `/work` is already the portfolio. This page says what
+          the studio does and then shows that it has done it. Evidence follows
+          a claim; it does not replace one.
+
+          `Reveal` and nothing else — no new named moment, no `data-epic`.
+          `MOTION-SPEC.md` §9.5 already allots this page two, and each card
+          brings its own `work-transport` for the navigation it starts. Adding
+          motion to a page that was short of *content* would only have made
+          the emptiness move.
+        */}
+        {works.length > 0 && (
+          <Reveal as="section" className={s.evidence}>
+            <p data-reveal-item className={cn('caption', s.eyebrow)}>
+              {t('evidenceEyebrow')}
+            </p>
+            {/*
+              The cards directly, not `ProjectGrid` — and this is a
+              measurement, not a preference.
+
+              `ProjectGrid` calls `useFlipGrid`, because the catalogue needs
+              to animate surviving cards when a filter changes the list under
+              them. Nothing on this page ever changes this list, so the FLIP
+              module and its ScrollTrigger import were weight shipped to run
+              nothing: `/en/studio` went from 856KB to **902KB** against a
+              900KB ceiling in `e2e/route-budget.e2e.ts`.
+
+              `ProjectCard` is still reused — it is the card, and this strip
+              must be the same object the rest of the site shows. What is not
+              reused is the grid host, which exists for a behaviour this page
+              does not have.
+            */}
+            <ul className={s.evidenceList}>
+              {works.map((project) => (
+                <li data-reveal-item key={project._id}>
+                  <ProjectCard
+                    project={project}
+                    span={4}
+                    /*
+                      Zero preloaded: this sits several screens down, and
+                      marking cards above the fold is what `preload` is for.
+                    */
+                    preload={false}
+                  />
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        )}
 
         {/*
           `studio-process` — the page's second choreographed moment, and the

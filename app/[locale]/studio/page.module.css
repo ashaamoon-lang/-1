@@ -344,3 +344,41 @@
     }
   }
 }
+
+/*
+ * The evidence strip — Tahap 44.
+ *
+ * The same shape every other section on this page uses: a column, the section
+ * eyebrow, then the content, separated by `--section-lead`. That is the point
+ * rather than a shortcut — this page's rhythm was set in Tahap 24 and a strip
+ * of covers is a section like any other, not a special case that deserves its
+ * own spacing.
+ */
+.evidence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+}
+
+/*
+ * The strip's own row — three works across the 12-column grid.
+ *
+ * Written here rather than reached for from `vault/blocks/project-grid`,
+ * because taking the grid would also take the FLIP machinery it hosts for the
+ * catalogue's filter, and this list never changes. Six lines of CSS against
+ * 46KB of JavaScript is not a close call.
+ */
+.evidenceList {
+  display: grid;
+  /* minmax(0, 1fr), never bare 1fr — a long title in a bare track refuses to
+     shrink and pushes the page sideways. */
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  @media (--desktop) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

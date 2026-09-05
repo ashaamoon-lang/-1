@@ -681,3 +681,99 @@ test.describe('a footer under a canvas is still readable', () => {
     })
   }
 })
+
+/**
+ * Routes a reader can land on, and whether they are allowed to be imageless.
+ *
+ * ## The defect this holds, measured
+ *
+ * Counted on the production build's server HTML before Tahap 44, `<img>` per
+ * route:
+ *
+ * | route                    | images |
+ * | ------------------------ | -----: |
+ * | `/en`                    | 5      |
+ * | `/en/work`               | 6      |
+ * | `/en/work/<slug>`        | 4      |
+ * | `/en/practice/<value>`   | 2      |
+ * | **`/en/studio`**         | **0**  |
+ * | **`/en/journal`**        | **0**  |
+ * | **`/en/journal/<slug>`** | **0**  |
+ *
+ * Three of the eight human surfaces on a site whose subject is commissioned
+ * artwork rendered nothing to look at. Not for want of assets — six project
+ * covers were already in the CMS and already used on the other three routes.
+ *
+ * `/en/ai` is the exception and it is declared rather than skipped: it is the
+ * machine-readable view, and an image there would be weight served to
+ * something that cannot see it.
+ */
+const IMAGE_ROUTES = [
+  '/en',
+  '/en/work',
+  `/en/work/${FEATURED_WORK}`,
+  `/en/practice/${PRACTICES[0]}`,
+  '/en/studio',
+  '/en/journal',
+  '/en/journal/scope-is-the-deliverable',
+] as const
+
+test.describe('every surface a reader lands on has something to look at', () => {
+  for (const route of IMAGE_ROUTES) {
+    test(`${route} renders its work`, async ({ page }) => {
+      await page.setViewportSize({ width: 1440, height: 900 })
+      await page.goto(route)
+      await page.waitForLoadState('networkidle')
+
+      const images = await page.evaluate(
+        () =>
+          [...document.querySelectorAll('main img')].filter((img) => {
+            const rect = img.getBoundingClientRect()
+            // A rendered image, not a 1px tracking pixel or a hidden preload.
+            return rect.width > 32 && rect.height > 32
+          }).length
+      )
+
+      expect(images, `${route} renders ${images} images`).toBeGreaterThan(0)
+    })
+  }
+
+  test('the machine view stays imageless on purpose', async ({ page }) => {
+    await page.goto('/en/ai')
+    await page.waitForLoadState('networkidle')
+
+    const images = await page.evaluate(
+      () => document.querySelectorAll('main img').length
+    )
+    /*
+     * Asserted, not skipped. "This route has no images" and "this route was
+     * forgotten" look identical from the outside, and the difference is the
+     * whole point of the block above — so the one route that is deliberately
+     * imageless says so in a test rather than in a comment.
+     */
+    expect(images, '/en/ai is the machine view and carries no images').toBe(0)
+  })
+})
+
+test.describe('a description describes its own image', () => {
+  test('no project repeats one alt across its plates', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`/en/work/${FEATURED_WORK}`)
+    await page.waitForLoadState('networkidle')
+
+    const alts = await page.evaluate(() =>
+      [...document.querySelectorAll('main img')]
+        .map((img) => img.getAttribute('alt') ?? '')
+        .filter((alt) => alt.length > 0)
+    )
+
+    // Anti-vacuum: a page with one image cannot repeat anything.
+    expect(alts.length).toBeGreaterThan(1)
+
+    const distinct = new Set(alts)
+    expect(
+      distinct.size,
+      `${alts.length} described images share ${distinct.size} description(s): ${[...distinct].join(' / ')}`
+    ).toBe(alts.length)
+  })
+})

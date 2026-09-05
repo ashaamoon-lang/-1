@@ -85,6 +85,23 @@ export interface Project {
     | null
 }
 
+/**
+ * What each column is worth, in pixels and in `sizes`.
+ *
+ * A table rather than a chain of ternaries: three branches was the point at
+ * which the expression stopped being readable, and a record keeps the request
+ * width and the `sizes` string for one column *on the same line*, where a
+ * mismatch between them is visible.
+ *
+ * The numbers are the 12-column grid at the 1440 desktop anchor in
+ * `lib/styles/layout.mjs`, rounded up — a third, a half, the whole width.
+ */
+const COLUMN = {
+  4: { maxWidth: 480, sizes: '(max-width: 800px) 100vw, 32vw' },
+  6: { maxWidth: 704, sizes: '(max-width: 800px) 100vw, 48vw' },
+  12: { maxWidth: 1440, sizes: '(max-width: 800px) 100vw, 96vw' },
+} as const
+
 interface ProjectCardProps {
   project: Project
   /**
@@ -98,7 +115,7 @@ interface ProjectCardProps {
    * keeps the image request width, the `sizes` attribute and the crop all
    * agreeing with the column the card is actually placed in.
    */
-  span?: 6 | 12 | undefined
+  span?: 4 | 6 | 12 | undefined
   /**
    * Preload this card's image. Set it on the cards above the fold only —
    * marking every card is the same as marking none. `preload`, not the
@@ -204,12 +221,21 @@ export function ProjectCard({
    * roughly four times the bytes. 704 is one half of the 12-column grid at
    * the 1440 desktop width in `lib/styles/layout.mjs`, rounded up.
    */
-  const maxWidth = span === 12 ? 1440 : 704
-
-  const sizes =
-    span === 12
-      ? '(max-width: 800px) 100vw, 96vw'
-      : '(max-width: 800px) 100vw, 48vw'
+  /*
+   * Three column widths, because the card is placed in three of them.
+   *
+   * `SanityImage` derives its own `sizes` from `maxWidth`, so a card in a
+   * ~469px box asking for 704 is the exact failure `components/ui/image`
+   * warns about: it never errors, it just downloads roughly twice the bytes.
+   * The numbers are the 12-column grid at the 1440 desktop anchor in
+   * `lib/styles/layout.mjs`, rounded up — a third, a half, the whole width.
+   *
+   * `span 4` arrived with Tahap 44's studio strip. It is a **layout**
+   * decision rather than a schema value: `project.span` is still `6 | 12`,
+   * and this is the same kind of override `layout="catalogue"` already makes
+   * when it forces every card to 6.
+   */
+  const { maxWidth, sizes } = COLUMN[span]
 
   // Client and year read as one line of metadata, and either may be absent.
   const meta = [project.engagement, project.client, project.year]

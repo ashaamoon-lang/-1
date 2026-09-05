@@ -329,3 +329,38 @@
   color: var(--text-muted);
   max-width: 52ch;
 }
+
+/*
+ * Work from the row's practice — Tahap 44.
+ *
+ * The date rail, under the date. A periodical indexes its entries down a
+ * narrow left column and puts the plate there too; it also means the reading
+ * column keeps its full measure, which a cover set beside the title would
+ * have cut into.
+ *
+ * On mobile the row is one column, so this simply follows the summary. It is
+ * capped rather than left to fill: a full-width cover under a three-line
+ * summary makes the picture the entry and the entry a caption.
+ */
+.cover {
+  overflow: clip;
+  margin-block-start: mobile-vw(16px);
+  max-inline-size: mobile-vw(200px);
+
+  @media (--desktop) {
+    margin-block-start: desktop-vw(24px);
+    max-inline-size: none;
+  }
+}
+
+.coverImage {
+  /*
+   * The catalogue card's ratio, so a cover reads as the same kind of object
+   * wherever it appears. `object-fit: cover` because the stored assets are
+   * not all this shape and a letterboxed plate looks like a mistake.
+   */
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  inline-size: 100%;
+  block-size: auto;
+}

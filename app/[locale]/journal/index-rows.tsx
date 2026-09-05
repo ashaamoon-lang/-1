@@ -31,7 +31,7 @@
  */
 
 import cn from 'clsx'
-import { useRef, ViewTransition } from 'react'
+import { type ReactNode, useRef, ViewTransition } from 'react'
 
 import { Link } from '@/components/ui/link'
 import type { JournalEntry } from '@/lib/content/journal-fallback'
@@ -45,6 +45,27 @@ export interface JournalRow extends JournalEntry {
   dateLabel: string
   /** The practice's display name, or null. */
   practiceLabel: string | null
+  /**
+   * A cover from this entry's practice — **already rendered**, on the server.
+   *
+   * A `ReactNode` rather than an image source, and that is a measurement
+   * rather than a style preference. These rows are a client island, so
+   * importing `SanityImage` here put it and its dependencies into the
+   * island's bundle: `/en/journal` went from 870KB to **901KB** against a
+   * 900KB ceiling in `e2e/route-budget.e2e.ts`.
+   *
+   * An element crosses the RSC boundary fine — it is a value, not a function
+   * — so the page renders the image where it already renders the date and
+   * the practice label, and the island receives finished markup. The rule
+   * this stays inside is the one `vault/motion/counter` learned in Tahap 42:
+   * a *function* cannot cross that boundary; the output of one can.
+   *
+   * `null` when the entry has no practice, or the practice has no listed work
+   * behind it. That is designed absence rather than a placeholder: an empty
+   * frame says "an image failed", and nothing says "there is nothing here to
+   * show yet", which is the truth.
+   */
+  cover: ReactNode
 }
 
 export function JournalIndexRows({ rows }: { rows: readonly JournalRow[] }) {
@@ -145,6 +166,23 @@ export function JournalIndexRows({ rows }: { rows: readonly JournalRow[] }) {
             </ViewTransition>
 
             <p className={s.summary}>{row.summary}</p>
+
+            {/*
+              Work from the practice this row already names — Tahap 44.
+
+              Inside `.row`, and that placement is the whole motion argument:
+              the row already carries `--row-recede`, so the cover strengthens
+              as its row becomes the one being read and fades back when it is
+              not, **without a single new motion declaration**. The
+              `journal-index` moment is already counted by `MOTION-SPEC.md`
+              §9.5; a second mechanism on a new element would have needed a
+              budget amendment for something inheritance gives free.
+
+              Not a link. The row's own `<Link>` is stretched across it in CSS,
+              and a second control inside that area would put two targets in
+              one place and two names on one row.
+            */}
+            {row.cover && <div className={s.cover}>{row.cover}</div>}
           </div>
         </article>
       ))}

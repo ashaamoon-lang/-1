@@ -4,6 +4,7 @@ import { draftMode } from 'next/headers'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { Wrapper } from '@/components/layout/wrapper'
+import { SanityImage } from '@/components/ui/sanity-image'
 import {
   type JournalEntry,
   resolveJournalEntries,
@@ -12,7 +13,11 @@ import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
-import { journalEntriesQuery } from '@/lib/integrations/sanity/queries'
+import {
+  journalEntriesQuery,
+  projectsQuery,
+} from '@/lib/integrations/sanity/queries'
+import { toImageSource } from '@/lib/integrations/sanity/utils/image'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { collectionPageSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
@@ -100,13 +105,69 @@ export async function generateMetadata() {
   })
 }
 
+/**
+ * One work per practice, so a journal row has something to look at —
+ * Tahap 44.
+ *
+ * ## Why the practice and not a named project
+ *
+ * The plan asked for the project an entry "names". `schemas/journalEntry.ts`
+ * has no field that can name one — `title`, `slug`, `date`, `summary`,
+ * `body`, `practice`, `listed`, and nothing else. Adding a reference field
+ * would have shipped a column with no data behind it: none of the entries
+ * would set it, so the page would render the same zero images it renders
+ * now, only with more schema.
+ *
+ * Every entry does carry a practice, and every practice has work behind it.
+ * An essay about a practice sitting beside work from that practice is a
+ * relationship the data already asserts — nothing here is invented, which is
+ * what `docs/ROADMAP.md`'s standing rule 10 requires.
+ *
+ * ## Why a list per practice rather than one cover per practice
+ *
+ * Measured on `/en/journal` with a single cover per practice: two of the
+ * three entries are `consulting`, so two rows carried **the same picture** —
+ * three images, two descriptions. A repeated image down an index does not
+ * read as "these share a practice", it reads as a bug: the eye finds the
+ * repetition before it finds the reason.
+ *
+ * So each practice keeps its whole list in catalogue order and the rows draw
+ * from it in turn, wrapping when there are more entries than works.
+ * `projectsQuery` is already ordered `order asc, publishedAt desc`, so a
+ * given entry gets a given cover on every render rather than one that moves
+ * between builds.
+ */
+async function coversByPractice(locale: string) {
+  'use cache'
+  const projects = await sanityFetch({
+    query: projectsQuery,
+    // `$locale` picks the reader's language out of each internationalized
+    // field — here it is the cover's own `alt`, which must be in the language
+    // of the page a screen reader is reading.
+    params: { locale },
+    perspective: 'published',
+    stega: false,
+  })
+
+  const byPractice = new Map<string, typeof projects.data>()
+  for (const project of projects.data) {
+    if (!project.practice) continue
+    byPractice.set(project.practice, [
+      ...(byPractice.get(project.practice) ?? []),
+      project,
+    ])
+  }
+  return byPractice
+}
+
 export default async function JournalPage() {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
-  const [t, tWork, entries] = await Promise.all([
+  const [t, tWork, entries, covers] = await Promise.all([
     getTranslations('journal'),
     getTranslations('workIndex'),
     entriesForRequest(locale),
+    coversByPractice(locale),
   ])
 
   /*
@@ -123,11 +184,54 @@ export default async function JournalPage() {
     day: 'numeric',
   })
 
-  const rows: JournalRow[] = entries.map((entry) => ({
-    ...entry,
-    dateLabel: entry.date ? formatter.format(new Date(entry.date)) : '',
-    practiceLabel: entry.practice ? tWork(entry.practice) : null,
-  }))
+  /*
+   * How many entries of each practice have already been given a cover, so the
+   * next one takes the next work rather than the same one again.
+   */
+  const drawn = new Map<string, number>()
+
+  const rows: JournalRow[] = entries.map((entry) => {
+    const pool = entry.practice ? covers.get(entry.practice) : undefined
+    const taken = entry.practice ? (drawn.get(entry.practice) ?? 0) : 0
+    if (entry.practice && pool?.length) {
+      drawn.set(entry.practice, taken + 1)
+    }
+    // Wraps: more entries than works is the normal case as the journal grows,
+    // and repeating in order is better than dropping the image entirely.
+    const work = pool?.length ? pool[taken % pool.length] : undefined
+    return {
+      ...entry,
+      dateLabel: entry.date ? formatter.format(new Date(entry.date)) : '',
+      practiceLabel: entry.practice ? tWork(entry.practice) : null,
+      /*
+       * Rendered here, on the server, as `dateLabel` and `practiceLabel` are
+       * resolved here — and for a sharper reason than symmetry.
+       *
+       * The rows are a client island. Importing `SanityImage` into it put the
+       * component and its dependencies into that island's bundle and took
+       * `/en/journal` from 870KB to **901KB** against a 900KB ceiling. An
+       * already-rendered element is a value, so it crosses the boundary
+       * without taking its implementation with it.
+       */
+      cover: work?.cover ? (
+        <SanityImage
+          image={toImageSource(work.cover)}
+          alt={work.coverAlt ?? ''}
+          /*
+            The column this actually renders in — the date rail, 3 of the
+            12-column grid, which is ~330px at the 1440 desktop anchor,
+            rounded up. The default of 1920 would fetch a full-desktop
+            candidate for a box a quarter that wide: `components/ui/image`
+            records that this never errors, it just downloads several times
+            the bytes.
+          */
+          maxWidth={360}
+          sizes="(max-width: 800px) 100vw, 25vw"
+          className={s.coverImage}
+        />
+      ) : null,
+    }
+  })
 
   return (
     <Wrapper

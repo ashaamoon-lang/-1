@@ -149,6 +149,7 @@
     "factsNote": "Founded, based and team are scaffolding values, not verified facts. They are replaced by the studio's own once it supplies them.",
     "statementEyebrow": "How we think about it",
     "statement": "Most work fails before anyone writes code. It fails in the week where the brief is still soft, where nobody has said out loud which decisions are actually open and which are already made, and where the cost of being wrong has not been written down. So that is where we start. We read the system that exists, we name the trade-offs, and we put a number on the thing everyone is guessing at. What gets built after that is smaller than what was asked for, and it survives longer.",
+    "evidenceEyebrow": "Work it produced",
     "processEyebrow": "How we work",
     "process": {
       "scopeTitle": "Scope",

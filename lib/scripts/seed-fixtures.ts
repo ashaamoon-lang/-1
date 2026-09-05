@@ -491,6 +491,71 @@ const PLATES = {
 type PlateName = keyof typeof PLATES
 
 /**
+ * What each gallery plate actually shows — Tahap 44.
+ *
+ * ## The defect this closes
+ *
+ * Every project seeded its cover **and both gallery plates** with one
+ * `project.alt`. Measured on the rendered page before this stage:
+ *
+ * ```
+ *    1 alt=""
+ *    3 alt="Diagram of a system under review, one mass lit from the left"
+ * ```
+ *
+ * Three images, one description. A screen-reader user heard the cover
+ * described three times, and twice it described something they were not
+ * looking at — the gallery plates are not the cover.
+ *
+ * ## Why the description belongs to the plate, not the project
+ *
+ * The gallery assets are **shared**: all six works draw their two plates from
+ * `plate-wide` and `plate-tall`, in one order or the other. So the honest
+ * description is of the plate itself, written once, rather than six
+ * paraphrases of the same two pictures. The cover keeps `project.alt`,
+ * because a cover is that work's own image.
+ *
+ * `plate-square` has no consumer today and is described anyway: it is one of
+ * the three gallery plates the generator makes, and a description written
+ * only when something starts using it is a description written under
+ * deadline.
+ */
+const PLATE_ALT = {
+  'plate-wide': i18n(
+    'A low horizon in warm brown, a single mass catching light from the upper right',
+    'Cakrawala rendah dalam cokelat hangat, satu massa menangkap cahaya dari kanan atas'
+  ),
+  'plate-tall': i18n(
+    'An upright green field, a pale mass standing left of centre',
+    'Bidang hijau tegak, satu massa pucat berdiri di kiri tengah'
+  ),
+  'plate-square': i18n(
+    'A square plum field, a rose-lit mass low and to the right',
+    'Bidang plum persegi, massa bersinar merah muda di bawah kanan'
+  ),
+} as const satisfies Partial<Record<PlateName, ReturnType<typeof i18n>>>
+
+/**
+ * The plate's description, or the project's when the plate has none.
+ *
+ * A function rather than an index expression because `PLATE_ALT` covers only
+ * the three gallery plates: indexing it with a cover's name is a type error,
+ * and widening the record to every `PlateName` would mean inventing
+ * descriptions for images that already carry the project's own.
+ */
+function altFor(
+  name: PlateName,
+  fallback: ReturnType<typeof i18n>
+): ReturnType<typeof i18n> {
+  // SAFETY: the `in` check above is the narrowing — the cast only tells the
+  // compiler what that check already established, and the other branch is
+  // what runs for every name `PLATE_ALT` does not carry.
+  return name in PLATE_ALT
+    ? PLATE_ALT[name as keyof typeof PLATE_ALT]
+    : fallback
+}
+
+/**
  * One fixture work.
  *
  * Typed out rather than inferred so `cover` and `gallery` are checked against
@@ -736,7 +801,14 @@ async function seed() {
           gallery: project.gallery.map((name, index) => ({
             ...ref(name),
             _key: `g${index + 1}`,
-            alt: project.alt,
+            /*
+             * The plate's own description, not the project's — Tahap 44.
+             *
+             * `alt: project.alt` gave all three of a project's images the
+             * same string, which described the cover and was wrong for the
+             * two plates beside it. See `PLATE_ALT`.
+             */
+            alt: altFor(name, project.alt),
           })),
           ...(project.client && { client: project.client }),
           year: project.year,
