@@ -82,9 +82,27 @@ describe('color authoring rules', () => {
   it('authors every colour in hand-written CSS as oklch', async () => {
     const offenders: string[] = []
 
-    for await (const path of new Glob('{app,components,lib}/**/*.css').scan(
-      repoRoot
-    )) {
+    /*
+     * `vault/` was missing from this glob, and `vault/` is the site.
+     *
+     * Every block that renders a page — hero, project-grid, project-gallery,
+     * project-hero, studio-note, step-sequence, contact-block, practice-list,
+     * next-project — sat outside the one gate that checks authored colour.
+     * There were no violations there when this was widened in Tahap 37; the
+     * hole was structural, not a bug waiting to be found.
+     */
+    for await (const path of new Glob(
+      '{app,components,lib,vault}/**/*.css'
+    ).scan(repoRoot)) {
+      /*
+       * `lib/dev/` is tooling, not the site. The grid overlay is a magenta
+       * chosen precisely because it belongs to no palette: it has to stay
+       * visible against whatever the design is doing, which is the opposite
+       * of what a design token is for. Same carve-out, same reason, as
+       * `taste-rules.test.ts`.
+       */
+      if (path.startsWith('lib/dev/')) continue
+
       const css = await Bun.file(join(repoRoot, path)).text()
 
       for (const { groups } of css.matchAll(DECLARATION)) {
@@ -97,10 +115,22 @@ describe('color authoring rules', () => {
           .replace(/var\([^)]*\)/g, '')
           .replace(/url\([^)]*\)/g, '')
 
+        /*
+         * `oklch()` is on this list since Tahap 37, and it is the one that
+         * was actually being violated. The rule read as "author colour in
+         * oklch", so a literal `oklch()` looked compliant — and thirteen
+         * shipped, three of them chromatic: a green, a red and a blue at
+         * chroma 0.19-0.22, the most saturated colours on a site whose
+         * palette declares no chromatic accent at all.
+         *
+         * The palette is `lib/styles/colors.ts`; a component reaches it
+         * through a semantic token, never by writing the colour again.
+         */
         if (
           NAMED_COLOR.test(value) ||
           /#[0-9a-f]{3,8}\b/i.test(value) ||
-          /\b(rgba?|hsla?)\(/i.test(value)
+          /\b(rgba?|hsla?)\(/i.test(value) ||
+          /\boklch\(/i.test(value)
         ) {
           offenders.push(`${path}: ${property}: ${rawValue.trim()}`)
         }

@@ -1,3 +1,17 @@
+/*
+ * scale-exempt-file: this component has zero consumers and is scheduled for
+ * deletion in Tahap 45c.
+ *
+ * Its type is hand-written rather than taken from the scale, and converting
+ * it would mean making design decisions about a component that renders on no
+ * route, in order to delete it two stages later. The exemption is the honest
+ * record of that: the rule still sees the file, and the reason for skipping
+ * it is here rather than in a silence.
+ *
+ * `docs/stages/TAHAP-37.md` §7 lists every file carrying this marker. If a
+ * consumer ever arrives, the marker goes and the type comes from the scale.
+ */
+
 .field {
   display: flex;
   flex-direction: column;
@@ -10,7 +24,7 @@
   &.error {
     .input,
     .textarea {
-      border-color: oklch(0.577 0.2152 27.33);
+      border-color: var(--color-status-negative);
     }
   }
 
@@ -23,16 +37,17 @@
 
 .label {
   font-size: 0.875rem;
-  font-weight: 500;
+  /* 600, not 500: the scale ships three weights (DESIGN-SYSTEM.md §2). */
+  font-weight: 600;
   color: var(--color-secondary);
   transition: color var(--duration-micro) var(--ease-out-quart);
 }
 
 .input,
 .textarea {
-  padding: mobile-vw(10px) mobile-vw(12px);
+  padding: mobile-vw(12px) mobile-vw(12px);
   border: 1px solid var(--color-secondary);
-  border-radius: mobile-vw(4px);
+  border-radius: var(--radius-md);
   background-color: transparent;
   color: var(--color-secondary);
   font-size: inherit;
@@ -41,8 +56,8 @@
   width: 100%;
 
   @media (--desktop) {
-    padding: desktop-vw(10px) desktop-vw(12px);
-    border-radius: desktop-vw(4px);
+    padding: desktop-vw(12px) desktop-vw(12px);
+    border-radius: var(--radius-md);
   }
 
   &::placeholder {
@@ -68,7 +83,7 @@
 
 .errorMessage {
   font-size: 0.75rem;
-  color: oklch(0.577 0.2152 27.33);
+  color: var(--color-status-negative);
   margin-top: mobile-vw(2px);
 
   @media (--desktop) {
@@ -87,7 +102,8 @@
 
 .groupLabel {
   font-size: 0.875rem;
-  font-weight: 500;
+  /* 600, not 500: the scale ships three weights (DESIGN-SYSTEM.md §2). */
+  font-weight: 600;
   color: var(--color-secondary);
 }
 
@@ -105,9 +121,9 @@
   display: flex;
   align-items: center;
   gap: mobile-vw(8px);
-  padding: mobile-vw(6px) mobile-vw(12px);
+  padding: mobile-vw(8px) mobile-vw(12px);
   border: 1px solid var(--color-secondary);
-  border-radius: mobile-vw(4px);
+  border-radius: var(--radius-md);
   background-color: transparent;
   color: var(--color-secondary);
   font-size: 0.875rem;
@@ -119,8 +135,8 @@
 
   @media (--desktop) {
     gap: desktop-vw(8px);
-    padding: desktop-vw(6px) desktop-vw(12px);
-    border-radius: desktop-vw(4px);
+    padding: desktop-vw(8px) desktop-vw(12px);
+    border-radius: var(--radius-md);
   }
 
   @media (--hover) {
@@ -133,5 +149,34 @@
     background-color: var(--color-contrast);
     border-color: var(--color-contrast);
     color: var(--color-primary);
+  }
+}
+
+/*
+ * Stand down — Tahap 37.
+ *
+ * `global.css` explains why every stylesheet needs its own block: the `*`
+ * kill switch sits at specificity 0,0,0 and loses to any component class, so
+ * a module that declares a transition and nothing else silently ignores the
+ * reader's setting. Fourteen stylesheets were in that state and nothing could
+ * see it — the rule lived in a doc comment until
+ * `lib/styles/scripts/motion-rules.test.ts` was taught to check it.
+ */
+@media (--reduced-motion) {
+  .checkboxGroup,
+  .errorMessage,
+  .field,
+  .groupLabel,
+  .input,
+  .label,
+  .option,
+  .options,
+  .textarea {
+    /* motion-exempt: the standard reduced-motion kill switch. A token would
+       defeat it — the value has to be "effectively instant", not "the
+       project's fast duration". */
+    transition-duration: 0.01ms !important;
+    /* motion-exempt: as above. */
+    animation-duration: 0.01ms !important;
   }
 }

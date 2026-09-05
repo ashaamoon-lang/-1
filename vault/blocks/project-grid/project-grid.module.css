@@ -6,7 +6,7 @@
    * once, which the -25% rootMargin keeps small.
    */
   --reveal-transform: translateY(mobile-vw(32px));
-  --reveal-stagger: 70ms;
+  --reveal-stagger: var(--stagger-cards);
   /*
    * Standard band, not choreographed.
    *

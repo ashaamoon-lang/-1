@@ -91,7 +91,7 @@
   text-transform: uppercase;
   text-decoration: none;
   color: var(--color-secondary);
-  padding: mobile-vw(14px) mobile-vw(24px);
+  padding: mobile-vw(16px) mobile-vw(24px);
   /* Outline rather than border: it does not change the box, so the magnetic
      wrapper's transform has nothing to fight. */
   outline: 1px solid var(--color-secondary);

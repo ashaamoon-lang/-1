@@ -1,0 +1,25 @@
+/*
+ * The error view's one interactive treatment — Tahap 37.
+ *
+ * These three controls carried `transition-colors` in their className.
+ * Tailwind's utility ships the browser's default curve and its own duration,
+ * which is exactly what `CLAUDE.md` #1 and #2 forbid — and
+ * `lib/styles/scripts/motion-rules.test.ts` could not see it, because it
+ * reads `.css` and this lived in a `.tsx` string. `scale-rules.test.ts` now
+ * refuses the utility in markup, so the declaration lives here where the
+ * existing gate can read it.
+ *
+ * 200ms `--ease-out-quart` is the INTENT band of `docs/MOTION-SPEC.md` §9,
+ * the same treatment every other control on the site uses.
+ */
+.action {
+  transition:
+    background-color var(--duration-fast) var(--ease-out-quart),
+    color var(--duration-fast) var(--ease-out-quart);
+}
+
+@media (--reduced-motion) {
+  .action {
+    transition: none;
+  }
+}

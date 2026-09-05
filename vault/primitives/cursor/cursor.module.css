@@ -43,7 +43,7 @@
   width: 32px;
   height: 32px;
   border: calc(1px / var(--ring-scale)) solid var(--color-secondary);
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   scale: var(--ring-scale);
   transition:
     scale var(--duration-fast) var(--ease-out-quart),
@@ -54,6 +54,14 @@
 
 .label {
   position: absolute;
+  /*
+   * scale-exempt: fixed, and not from the scale, because the cursor is drawn
+   * in screen space rather than in the page. A label that scaled with the
+   * viewport would change size as the ring crossed a breakpoint while the
+   * ring itself did not. 10px is below the 11px readability floor and that is
+   * acceptable here alone: the ring is `aria-hidden` decoration whose text is
+   * always also in the DOM.
+   */
   font-size: 10px;
   letter-spacing: 0.02em;
   text-transform: uppercase;

@@ -1,3 +1,4 @@
+import cn from 'clsx'
 import type { ReactNode } from 'react'
 
 import s from './not-found-view.module.css'
@@ -32,7 +33,7 @@ interface NotFoundViewProps {
 
 const DEFAULT_HOME_LINK = (
   // oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- root not-found renders under the bare root layout, outside the (site) group's router context, so the Link component cannot be used here
-  <a href="/" className={s.cta}>
+  <a href="/" className={cn('cta', s.cta)}>
     Go Home
   </a>
 )
@@ -75,10 +76,10 @@ export function NotFoundView({
   return (
     <section className={s.section}>
       <div className={s.panel}>
-        <div className={s.label}>{label}</div>
+        <div className={cn('caption', s.label)}>{label}</div>
         <h1 className={s.code}>404</h1>
-        <p className={s.message}>{message}</p>
-        <p className={s.description}>
+        <p className={cn('p-big', s.message)}>{message}</p>
+        <p className={cn('caption', s.description)}>
           {description}
           <br />
           {tryPrefix} {recoveryLinks}.

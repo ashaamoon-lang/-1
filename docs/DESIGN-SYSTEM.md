@@ -279,8 +279,34 @@ per device category.
 
 ### Spacing
 
-Derive spacing from the grid gap (16px) rather than inventing a parallel
-scale: 8 / 16 / 24 / 32 / 48 / 64 / 96 / 128.
+**Spacing is a multiple of 4**, and 8 / 16 / 24 / 32 / 48 / 64 / 96 / 128 is
+the preferred subset.
+
+Both halves of that sentence are load-bearing, and the second half used to be
+the whole rule. Tahap 37 read the histogram before enforcing it:
+
+```
+ 8 x51   16 x51   12 x39    4 x32   24 x31   20 x30   32 x18
+ 6 x16   48 x15   10 x15    2 x13   96 x9    28 x8   160 x8   ...
+```
+
+12 ships 39 times and 20 ships 30 times — an author following this system for
+36 stages, repeatedly needing the step between 8 and 16 and between 16 and 24,
+which the named ladder cannot express. Forcing 69 of those to move would have
+shifted real pixels on real pages to satisfy a ladder written before the site
+existed. The multiple-of-4 rule still rejects the twenty-nine-arbitrary-values
+problem outright, and `lib/styles/scripts/scale-rules.test.ts` enforces it.
+
+**Below one step is not spacing.** 1, 2 and 3px are hairline alignment and
+optical inset — a switch's inner padding, a tab's baseline nudge. Rounding a
+2px inset to 4px doubles it. The grid governs steps.
+
+**Radius, elevation.** Both were born in Tahap 37 because neither existed:
+nineteen distinct `border-radius` declarations and six hand-written
+`box-shadow`s, all six of the latter inside Base UI wrappers and none in a
+`vault/` block — the shape of a system that never decided it had elevation.
+`--radius-hairline|sm|md|lg|full` and `--shadow-sm|md|lg`. Radii are fixed
+pixels, not scaled: a corner is an edge treatment, not a measure of space.
 
 **Whitespace is the cheapest expensive-looking asset there is.** The most
 common failure in "almost premium" work is sections that are too tight.
@@ -334,18 +360,10 @@ Kept here rather than quietly fixed in prose, because a design document that
 describes a system nobody built is worse than no document. Each line names the
 stage that closes it; until then, the code is the truth and this is the debt.
 
-| This document says                                                                                                          | The code does                                                                                                                                                                                                                                        | Closes in |
-| --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| §2 "fluid sizing: `clamp()` with a small viewport coefficient, 1–1.5vw; aggressive `vw` scaling is a reliable amateur tell" | **Zero tokens use `clamp()`.** Every size is uncapped linear `vw`: `h1` is 10.13vw on mobile and 8.33vw on desktop. Crossing 800px, `h1` shrinks 18%, the gutter collapses 3.8× and body type drops from 25.6px to 7.8px                             | Tahap 36  |
-| §3 "derive spacing from the grid gap: 8 / 16 / 24 / 32 / 48 / 64 / 96 / 128"                                                | 29 distinct values ship; **192 of 375 occurrences (51%) are off that ladder**, and there is no `--spacing-*` token to reference                                                                                                                      | Tahap 37  |
-| §2 "two to three weights"                                                                                                   | **Four.** `font-weight: 500` ships in `fields`, `select` and `toast`                                                                                                                                                                                 | Tahap 37  |
-| §2 the seven-class scale                                                                                                    | **54 `font-size` declarations bypass it.** `not-configured` and `not-found-view` (which ships as the 404) each carry a complete parallel scale, hand-inlined as `calc(N / 375 * 100vw)`. There is no `h3`, and nothing fills the 48→120 gap          | Tahap 37  |
-| §3 "always `minmax(0, 1fr)`, never bare `1fr`"                                                                              | `components/ui/select/select.module.css:71` violates it, and so does **`dr-grid`, this project's own grid utility**. Nothing enforces the rule                                                                                                       | Tahap 37  |
-| §6.1 "a raw `#fff`, `16px` or `400ms` in a component is a defect"                                                           | Only the colour and duration halves are enforced. Raw `44px`, `4px`, `0.875rem`, `1.125rem`, `1.1em` all ship                                                                                                                                        | Tahap 37  |
-| §6.2 "semantic tokens, not literals"                                                                                        | **Eight raw `oklch()` literals ship, three of them chromatic** — a green, a red and a blue in `toast`, `alert-dialog` and `form/fields`, at chroma 0.19–0.22. The colour gate forbids hex, rgb, hsl and named colours; it does not look at `oklch()` | Tahap 37  |
-| §1 "no chromatic accent at all"                                                                                             | True of the palette, false of the page: see the row above                                                                                                                                                                                            | Tahap 37  |
-| §1 the colour gate                                                                                                          | `setup-styles.test.ts` globs `{app,components,lib}` — **`vault/` is not scanned**, and `vault/` is the site                                                                                                                                          | Tahap 37  |
-| §6.4 "every primitive gets a Storybook story"                                                                               | **25 component directories have none**, including five vault blocks, `parallax`, both `vault/webgl/*` and the lightbox                                                                                                                               | Tahap 46  |
+| This document says                            | The code does                                                                                                                                                                                                                                                                              | Closes in |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| §2 the seven-class scale                      | `h3` now fills the 20→48 gap and the 404's parallel scale is gone. **Seven stylesheets still hand-write their type** under a `scale-exempt-file:` marker naming the reason: every one has zero consumers and is deleted in Tahap 45c. Six per-line exemptions remain, each with its reason | Tahap 45c |
+| §6.4 "every primitive gets a Storybook story" | **25 component directories have none**, including five vault blocks, `parallax`, both `vault/webgl/*` and the lightbox                                                                                                                                                                     | Tahap 46  |
 
 The measurements behind every row are in the curator audit that opened Tahap
 34; none of them is an estimate.

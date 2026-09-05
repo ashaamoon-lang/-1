@@ -39,13 +39,19 @@
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.03em;
-  font-size: mobile-vw(18px);
+  /*
+   * scale-exempt: the wordmark is a mark, not text, and it is 20px at both
+   * design anchors on purpose — a brand that shrinks on mobile reads as an
+   * accident. `p-big` would take it to 16 at 375.
+   */
+  font-size: mobile-vw(20px);
   line-height: 100%;
   text-decoration: none;
   color: var(--color-secondary);
   flex-shrink: 0;
 
   @media (--desktop) {
+    /* scale-exempt: see the note on the mobile size above. */
     font-size: desktop-vw(20px);
   }
 
@@ -83,7 +89,7 @@
 .navList {
   display: flex;
   align-items: center;
-  gap: mobile-vw(18px);
+  gap: mobile-vw(20px);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -149,7 +155,7 @@
     color: var(--color-secondary);
     outline: 2px solid var(--color-contrast);
     outline-offset: 4px;
-    border-radius: 1px;
+    border-radius: var(--radius-hairline);
   }
 }
 

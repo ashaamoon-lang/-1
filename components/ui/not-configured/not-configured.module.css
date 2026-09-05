@@ -1,3 +1,17 @@
+/*
+ * scale-exempt-file: this component has zero consumers and is scheduled for
+ * deletion in Tahap 45c.
+ *
+ * Its type is hand-written rather than taken from the scale, and converting
+ * it would mean making design decisions about a component that renders on no
+ * route, in order to delete it two stages later. The exemption is the honest
+ * record of that: the rule still sees the file, and the reason for skipping
+ * it is here rather than in a silence.
+ *
+ * `docs/stages/TAHAP-37.md` §7 lists every file carrying this marker. If a
+ * consumer ever arrives, the marker goes and the type comes from the scale.
+ */
+
 .container {
   display: flex;
   flex-grow: 1;
@@ -17,12 +31,12 @@
   max-width: calc(460 / 375 * 100vw);
   background: var(--surface);
   border: 1px solid var(--line-strong);
-  border-radius: calc(6 / 375 * 100vw);
+  border-radius: var(--radius-md);
   overflow: hidden;
 
   @media (--desktop) {
     max-width: calc(560 / 1440 * 100vw);
-    border-radius: calc(6 / 1440 * 100vw);
+    border-radius: var(--radius-md);
   }
 }
 
@@ -161,13 +175,13 @@
   padding: calc(12 / 375 * 100vw) calc(14 / 375 * 100vw);
   background: var(--surface-2);
   border: 1px solid var(--line);
-  border-radius: calc(4 / 375 * 100vw);
+  border-radius: var(--radius-md);
 
   @media (--desktop) {
     gap: calc(5 / 1440 * 100vw);
     margin-top: calc(10 / 1440 * 100vw);
     padding: calc(14 / 1440 * 100vw) calc(16 / 1440 * 100vw);
-    border-radius: calc(4 / 1440 * 100vw);
+    border-radius: var(--radius-md);
   }
 }
 
@@ -187,7 +201,7 @@
   font-size: 0.9em;
   background: var(--surface-2);
   padding: 0.1em 0.3em;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--line);
 }
 
@@ -246,5 +260,42 @@
   @media (--desktop) {
     gap: calc(6 / 1440 * 100vw);
     font-size: calc(11 / 1440 * 100vw);
+  }
+}
+
+/*
+ * Stand down — Tahap 37.
+ *
+ * `global.css` explains why every stylesheet needs its own block: the `*`
+ * kill switch sits at specificity 0,0,0 and loses to any component class, so
+ * a module that declares a transition and nothing else silently ignores the
+ * reader's setting. Fourteen stylesheets were in that state and nothing could
+ * see it — the rule lived in a doc comment until
+ * `lib/styles/scripts/motion-rules.test.ts` was taught to check it.
+ */
+@media (--reduced-motion) {
+  .accent,
+  .code,
+  .container,
+  .description,
+  .docsLink,
+  .envBlock,
+  .envVar,
+  .footer,
+  .hint,
+  .instructions,
+  .instructionsLabel,
+  .label,
+  .meta,
+  .panel,
+  .steps,
+  .stepsAfter,
+  .title {
+    /* motion-exempt: the standard reduced-motion kill switch. A token would
+       defeat it — the value has to be "effectively instant", not "the
+       project's fast duration". */
+    transition-duration: 0.01ms !important;
+    /* motion-exempt: as above. */
+    animation-duration: 0.01ms !important;
   }
 }

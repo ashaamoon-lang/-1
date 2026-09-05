@@ -261,7 +261,7 @@
 .colophonEntry {
   display: flex;
   flex-direction: column;
-  gap: desktop-vw(6px);
+  gap: desktop-vw(8px);
   min-width: 0;
 }
 
@@ -297,7 +297,7 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
   border: 1px solid var(--line);
-  padding: mobile-vw(14px) mobile-vw(24px);
+  padding: mobile-vw(16px) mobile-vw(24px);
   /*
    * A 44px minimum target, which `e2e/keyboard-focus.e2e.ts` and axe's WCAG
    * 2.2 target-size rule both read. Stated here rather than left to the

@@ -1,10 +1,13 @@
 'use client'
 
+import cn from 'clsx'
 import { useTranslations } from 'next-intl'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { ErrorView } from '@/components/ui/error-view'
 import { Link } from '@/components/ui/link'
+
+import s from '@/components/ui/error-view/error-view.module.css'
 
 interface ErrorPageProps {
   error: Error & { digest?: string }
@@ -41,7 +44,10 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         homeLink={
           <Link
             href="/"
-            className="border border-secondary dr-px-24 dr-py-12 cta uppercase transition-colors hover:bg-secondary hover:text-primary"
+            className={cn(
+              'border border-secondary dr-px-24 dr-py-12 cta uppercase hover:bg-secondary hover:text-primary',
+              s.action
+            )}
           >
             {t('home')}
           </Link>

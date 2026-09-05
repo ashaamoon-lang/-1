@@ -226,7 +226,7 @@
 .foot {
   display: flex;
   flex-direction: column;
-  gap: mobile-vw(10px);
+  gap: mobile-vw(12px);
   padding-inline: var(--safe);
   padding-block: mobile-vw(16px);
 
@@ -258,7 +258,7 @@
   list-style: none;
 
   @media (--desktop) {
-    gap: desktop-vw(10px);
+    gap: desktop-vw(12px);
   }
 }
 
@@ -293,7 +293,7 @@
 
   @media (--desktop) {
     inline-size: desktop-vw(76px);
-    block-size: desktop-vw(50px);
+    block-size: desktop-vw(48px);
   }
 }
 

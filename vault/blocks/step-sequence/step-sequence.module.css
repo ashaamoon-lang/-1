@@ -97,13 +97,18 @@
   margin: 0;
   display: flex;
   align-items: baseline;
-  gap: desktop-vw(6px);
+  gap: desktop-vw(8px);
   /* Digits that do not shift the layout as they change. */
   font-variant-numeric: tabular-nums;
 }
 
 .current {
   font-family: var(--font-display, sans-serif);
+  /*
+   * scale-exempt: the step numeral is a mark. 40-64px sits between `h2`
+   * (32-48) and `h1` (38-120); applying either changes what the sequence
+   * looks like, which is a design decision and not this stage's.
+   */
   font-size: clamp(2.5rem, 5vw, 4rem);
   line-height: 1;
   transition: opacity var(--duration) var(--ease-out-expo);
@@ -112,6 +117,10 @@
 .total {
   color: var(--text-muted);
   font-family: var(--font-mono, monospace);
+  /* scale-exempt: 12-14px is exactly `p`, but this label sits inside a
+     sticky column whose width the scale's tracking would change. Recorded
+     rather than silently converted; it is one of four ad-hoc clamps the new
+     `h3` was added to stop future authors needing. */
   font-size: clamp(0.75rem, 1vw, 0.875rem);
 }
 

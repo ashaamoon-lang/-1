@@ -2054,6 +2054,59 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 37 — Menutup lubang gerbang ✅
+
+> Spec: [`docs/stages/TAHAP-37.md`](./stages/TAHAP-37.md)
+
+Tahap yang membuat Tahap 34–36 **tinggal**. Repo ini punya lapisan penegakan
+yang lebih baik dari kebanyakan studio yang pernah menang — dan lapisan itu
+absen persis di tempat sistem desainnya paling lemah. Spasi, ukuran tipe,
+bobot, radius, elevasi dan `1fr` **tidak punya gerbang sama sekali**.
+
+Sepuluh gerbang ditulis, sepuluh merah: 159 baris spasi di luar kisi, 52
+`font-size` melewati skala, 44 radius tulisan tangan, 14 stylesheet yang
+menganimasikan tanpa pernah berhenti untuk `prefers-reduced-motion` (dua di
+antaranya tayang), 14 warna yang gate-nya tidak bisa lihat, dan enam knob
+reveal yang membawa literal.
+
+**Satu keputusan diambil terbuka: tangganya diganti, bukan ditegakkan.**
+Dokumen menyebut 8/16/24/32/48/64/96/128 dan 51% kemunculan di luarnya. Sebelum
+menegakkan, histogramnya dibaca: **12 dikirim 39 kali, 20 dikirim 30 kali** —
+penulis yang mengikuti sistem 36 Tahap dan berulang kali butuh langkah antara
+8 dan 16. Memaksa 69 di antaranya pindah berarti menggeser piksel nyata demi
+tangga yang ditulis sebelum situsnya ada. Aturannya jadi **kelipatan 4**, yang
+tetap menolak masalah dua-puluh-sembilan-nilai-sembarang, dan
+`DESIGN-SYSTEM.md` §3 dikoreksi dengan histogramnya sebagai alasan. **Dan yang
+di bawah satu langkah bukan spasi**: 1, 2, 3px adalah hairline dan inset optis,
+dan membulatkan inset 2px ke 4px menggandakannya.
+
+Empat token lahir, semuanya diturunkan: **radius** (19 deklarasi → lima token,
+piksel tetap karena sudut adalah perlakuan tepi bukan ukuran ruang),
+**elevasi** (enam bayangan tulisan tangan, semuanya di pembungkus Base UI dan
+nol di `vault/` — bentuk sistem yang tidak pernah memutuskan ia punya
+elevasi), **`h3`** (skala melompat dari 20 ke 48; empat `clamp()` ad-hoc adalah
+lubang itu diisi tangan), dan **tiga warna status** — chroma 0,19–0,22, warna
+paling jenuh di seluruh situs, di sistem yang menyatakan tidak punya aksen
+kromatik. Plus `--stagger-hero`, untuk literal 120ms yang tak terlihat siapa
+pun.
+
+**Instrumennya salah empat kali**, semuanya dalam arah yang mengarang
+pelanggaran atau menyembunyikan pengecualian: aturan `font-size` menandai
+`inherit` dan `1.1em`; pengecualian hanya membaca satu baris di atas, jadi
+**tiap pengecualian multi-baris di repo terbaca sebagai tidak-dikecualikan**;
+penjelajah komentar berhenti di tengah blok; dan regex pengecualian
+tingkat-berkas tidak bisa melewati `*` pembuka komentar. Ditambah satu yang
+benar: blok reduced-motion yang saya sisipkan memakai `0.01ms` dan
+`motion-rules` #8 menolaknya, tepat sebagaimana mestinya.
+
+unit **457** (49 berkas) · e2e **464 lulus, nol gagal di jalan pertama**,
+untuk Tahap yang menyentuh hampir setiap stylesheet · **yang disebut belum
+selesai**: tujuh stylesheet nol-konsumen membawa `scale-exempt-file:` yang
+menamai Tahap 45c sebagai penghapusnya, dan enam pengecualian per-baris
+masing-masing dengan alasannya.
+
+---
+
 ## Tahap 36 — Skala yang punya langit-langit ✅
 
 > Spec: [`docs/stages/TAHAP-36.md`](./stages/TAHAP-36.md)

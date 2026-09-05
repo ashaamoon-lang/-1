@@ -14,6 +14,9 @@
 	--color-contrast: oklch(0.17 0.006 66);
   --color-ink: oklch(0.17 0.006 66);
 	--color-paper: oklch(0.964 0.006 92);
+	--color-status-positive: oklch(0.7227 0.192 149.58);
+	--color-status-negative: oklch(0.577 0.2152 27.33);
+	--color-status-notice: oklch(0.6231 0.188 259.81);
 
   --spacing-*: initial;
 	--spacing-0: 0;
@@ -56,6 +59,14 @@
 	line-height: 90%;
 	letter-spacing: -0.025em;
 	font-size: clamp(32px, calc(26.366px + 1.502vw), 55.211px);
+}
+@utility h3 {
+  font-family: var(--next-font-display);
+	font-style: normal;
+	font-weight: 600;
+	line-height: 100%;
+	letter-spacing: -0.02em;
+	font-size: clamp(24px, calc(21.183px + 0.751vw), 35.606px);
 }
 @utility p-big {
   font-family: var(--next-font-display);
@@ -115,7 +126,7 @@
 
 @utility dr-grid {
 	display: grid;
-	grid-template-columns: repeat(var(--columns), 1fr);
+	grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
 	column-gap: var(--gap);
 }
 

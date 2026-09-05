@@ -61,6 +61,25 @@ const typography = {
     'letter-spacing': '-0.025em',
     'font-size': { mobile: 32, desktop: 48 },
   },
+  /*
+   * h3 — added in Tahap 37 to close a hole, not to add a size.
+   *
+   * The scale ran p-big (20 desktop) straight to h2 (48). Anything a section
+   * needed between those had to be invented locally, and four ad-hoc
+   * `clamp()` declarations across the site are exactly that hole being filled
+   * by hand. 24 to 32 sits where those four were reaching.
+   *
+   * Display family and the same negative tracking discipline: large type
+   * tightens, small type breathes.
+   */
+  h3: {
+    'font-family': `var(${fonts.display})`,
+    'font-style': 'normal',
+    'font-weight': 600,
+    'line-height': '100%',
+    'letter-spacing': '-0.02em',
+    'font-size': { mobile: 24, desktop: 32 },
+  },
   'p-big': {
     'font-family': `var(${fonts.display})`,
     'font-style': 'normal',

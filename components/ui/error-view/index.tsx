@@ -1,7 +1,10 @@
 'use client'
 
+import cn from 'clsx'
 import type { ReactNode } from 'react'
 import { useEffect } from 'react'
+
+import s from './error-view.module.css'
 
 interface ErrorViewProps {
   /*
@@ -29,7 +32,10 @@ const DEFAULT_HOME_LINK = (
   // oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- global-error renders outside the router, so the Link component cannot be used here
   <a
     href="/"
-    className="border border-secondary dr-px-24 dr-py-12 cta uppercase transition-colors hover:bg-secondary hover:text-primary"
+    className={cn(
+      'border border-secondary dr-px-24 dr-py-12 cta uppercase hover:bg-secondary hover:text-primary',
+      s.action
+    )}
   >
     Go Home
   </a>
@@ -76,7 +82,10 @@ export function ErrorView({
         <button
           onClick={reset}
           type="button"
-          className="border border-secondary bg-secondary dr-px-24 dr-py-12 cta text-primary uppercase transition-colors hover:bg-transparent hover:text-secondary"
+          className={cn(
+            'border border-secondary bg-secondary dr-px-24 dr-py-12 cta text-primary uppercase hover:bg-transparent hover:text-secondary',
+            s.action
+          )}
         >
           {retryLabel}
         </button>

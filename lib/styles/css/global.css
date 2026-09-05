@@ -103,6 +103,46 @@ html {
   --text-muted: color-mix(in oklab, var(--color-secondary) 75%, transparent);
 
   /*
+   * Radius — Tahap 37.
+   *
+   * Nineteen distinct `border-radius` declarations shipped with no token to
+   * point at, so every component picked its own: `mobile-vw(4px)` six times,
+   * `2px` four times, `1px` five, plus 3, 6, 8, 12, `50%` and
+   * `calc(var(--tap-target) / 2)`. Five tokens cover all nineteen.
+   *
+   * Fixed pixels, not scaled. A radius is an edge treatment, not a measure of
+   * space: at 2560px a `desktop-vw(4px)` corner was 7.1px, which reads as a
+   * different shape rather than the same shape larger.
+   *
+   * Mappings that moved a value more than 2px, recorded rather than hidden:
+   * 12px to `lg` (8px) on the `not-configured` panel, and 6px to `md` (4px)
+   * on the two `calc(6 / …)` cases. Both were single sites and neither is on
+   * a shipped route.
+   */
+  --radius-hairline: 1px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  /* Pills and circles. Large enough that no box out-grows it. */
+  --radius-full: 999px;
+
+  /*
+   * Elevation — Tahap 37.
+   *
+   * Six `box-shadow` declarations, six different opacities and six different
+   * offsets, every one hand-written, and all six inside Base UI wrappers —
+   * none in a `vault/` block, which is the shape of a system that never
+   * decided it had elevation. Three tokens cover all six.
+   *
+   * Authored through the palette rather than as a literal, so the colour gate
+   * can see them: `oklch(0 0 0 / …)` in a component was exactly the class of
+   * value that gate could not read until this stage.
+   */
+  --shadow-sm: 0 1px 3px color-mix(in oklab, var(--color-ink) 20%, transparent);
+  --shadow-md: 0 4px 12px color-mix(in oklab, var(--color-ink) 15%, transparent);
+  --shadow-lg: 0 8px 32px color-mix(in oklab, var(--color-ink) 20%, transparent);
+
+  /*
    * Three durations, and the bands they belong to (CLAUDE.md #3):
    * 150-250ms micro, 300-600ms standard, 800-1200ms choreographed.
    */
@@ -131,6 +171,19 @@ html {
    */
   --stagger-words: 50ms;
   --stagger-cards: 70ms;
+  /*
+   * The hero beat — named in Tahap 37 rather than left as a literal.
+   *
+   * `hero.module.css` carried `--reveal-stagger: 120ms` and nothing could see
+   * it: `motion-rules` #8 reads `transition`/`animation` declarations, and a
+   * custom property is neither. 120 is outside the per-step table in
+   * `docs/MOTION-SPEC.md` §3 (40-60 words, 60-80 cards) and inside its total
+   * cap (§2, 900ms for a hero): four items at 120 is 480ms. A hero has few
+   * elements and can afford a longer beat, which is a third band rather than
+   * a violation of the two that existed — so it gets a name and §3 gets a
+   * row.
+   */
+  --stagger-hero: 120ms;
 
   /* Per-item reveal duration; overridable per group. */
   /*
@@ -276,7 +329,9 @@ html.screenshot {
   transition:
     opacity var(--reveal-duration) var(--ease-out-expo),
     transform var(--reveal-duration) var(--ease-out-expo);
-  transition-delay: calc(var(--reveal-index, 0) * var(--reveal-stagger, 60ms));
+  transition-delay: calc(
+    var(--reveal-index, 0) * var(--reveal-stagger, var(--stagger-cards))
+  );
 }
 
 [data-reveal='visible'] [data-reveal-item] {

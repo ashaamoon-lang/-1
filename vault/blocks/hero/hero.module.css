@@ -5,7 +5,7 @@
    * duration reads as sequence rather than as two things fading together.
    */
   --reveal-transform: translateY(16px);
-  --reveal-stagger: 120ms;
+  --reveal-stagger: var(--stagger-hero);
   --reveal-duration: var(--duration);
 
   position: relative;
@@ -105,7 +105,7 @@
   @media (--desktop) {
     /* The four columns the headline's 9em measure leaves free. */
     grid-column: 9 / -1;
-    gap: desktop-vw(10px);
+    gap: desktop-vw(12px);
   }
 }
 
@@ -226,12 +226,15 @@
 
   @media (--desktop) {
     flex-direction: column;
-    gap: desktop-vw(6px);
+    gap: desktop-vw(8px);
   }
 }
 
 .subline {
   font-family: var(--font-mono, monospace);
+  /* scale-exempt: 14-18px, between `p` (12-14) and `p-big` (16-20). One of
+     the four ad-hoc clamps the audit found; converting it changes the hero's
+     balance, which Tahap 12 measured. Left as a recorded decision. */
   font-size: clamp(0.875rem, 1vw, 1.125rem);
   line-height: 140%;
   letter-spacing: -0.01em;

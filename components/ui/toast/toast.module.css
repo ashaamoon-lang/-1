@@ -1,3 +1,17 @@
+/*
+ * scale-exempt-file: this component has zero consumers and is scheduled for
+ * deletion in Tahap 45c.
+ *
+ * Its type is hand-written rather than taken from the scale, and converting
+ * it would mean making design decisions about a component that renders on no
+ * route, in order to delete it two stages later. The exemption is the honest
+ * record of that: the rule still sees the file, and the reason for skipping
+ * it is here rather than in a silence.
+ *
+ * `docs/stages/TAHAP-37.md` §7 lists every file carrying this marker. If a
+ * consumer ever arrives, the marker goes and the type comes from the scale.
+ */
+
 .viewport {
   position: fixed;
   bottom: mobile-vw(16px);
@@ -22,8 +36,8 @@
   padding: mobile-vw(12px) mobile-vw(16px);
   background-color: var(--color-primary);
   border: 1px solid var(--color-secondary);
-  border-radius: mobile-vw(8px);
-  box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   position: relative;
 
   /* Base UI animation states */
@@ -46,20 +60,20 @@
   @media (--desktop) {
     gap: desktop-vw(12px);
     padding: desktop-vw(12px) desktop-vw(16px);
-    border-radius: desktop-vw(8px);
+    border-radius: var(--radius-lg);
   }
 
   /* Toast types */
   &.success {
-    border-left: 4px solid oklch(0.7227 0.192 149.58);
+    border-left: 4px solid var(--color-status-positive);
   }
 
   &.error {
-    border-left: 4px solid oklch(0.577 0.2152 27.33);
+    border-left: 4px solid var(--color-status-negative);
   }
 
   &.info {
-    border-left: 4px solid oklch(0.6231 0.188 259.81);
+    border-left: 4px solid var(--color-status-notice);
   }
 
   &.default {
@@ -70,7 +84,8 @@
 .title {
   flex: 1;
   color: var(--color-secondary);
-  font-weight: 500;
+  /* 600, not 500: the scale ships three weights (DESIGN-SYSTEM.md §2). */
+  font-weight: 600;
 }
 
 .description {
@@ -104,5 +119,30 @@
   &:focus-visible {
     outline: 2px solid var(--color-contrast);
     outline-offset: 2px;
+  }
+}
+
+/*
+ * Stand down — Tahap 37.
+ *
+ * `global.css` explains why every stylesheet needs its own block: the `*`
+ * kill switch sits at specificity 0,0,0 and loses to any component class, so
+ * a module that declares a transition and nothing else silently ignores the
+ * reader's setting. Fourteen stylesheets were in that state and nothing could
+ * see it — the rule lived in a doc comment until
+ * `lib/styles/scripts/motion-rules.test.ts` was taught to check it.
+ */
+@media (--reduced-motion) {
+  .close,
+  .description,
+  .root,
+  .title,
+  .viewport {
+    /* motion-exempt: the standard reduced-motion kill switch. A token would
+       defeat it — the value has to be "effectively instant", not "the
+       project's fast duration". */
+    transition-duration: 0.01ms !important;
+    /* motion-exempt: as above. */
+    animation-duration: 0.01ms !important;
   }
 }

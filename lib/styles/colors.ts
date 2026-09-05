@@ -39,6 +39,34 @@ const colors = {
   ink: 'oklch(0.17 0.006 66)',
   /** Warm off-white, gallery-wall rather than paper-white. #f4f3ef */
   paper: 'oklch(0.964 0.006 92)',
+
+  /*
+   * Status, and deliberately not an accent — Tahap 37.
+   *
+   * These three shipped as raw `oklch()` literals inside `toast`,
+   * `alert-dialog` and `form/fields`: chroma 0.19-0.22, the **most saturated
+   * colours on the whole site**, in a system whose own documentation says it
+   * has no chromatic accent at all. Nothing caught them, because the colour
+   * gate forbade hex, rgb, hsl and named colours and read a literal `oklch()`
+   * as compliance with "author colour in oklch".
+   *
+   * Named here rather than deleted because the meaning is real: a toast that
+   * reports a failure has to say so with something other than the ink, and
+   * §1 of `docs/DESIGN-SYSTEM.md` reserves `--color-contrast` for interactive
+   * state, not for outcome. What they are *not* is brand: no page furniture,
+   * no heading, no link, no border on anything that is merely emphasised.
+   *
+   * They stay outside `themes` on purpose. A status colour means the same
+   * thing on paper and on ink, and putting them in the theme record would
+   * hand `contrast.test.ts` six new role pairs to reason about for a meaning
+   * that does not change between themes.
+   */
+  /** Success. Green, held to the same lightness band as the others. */
+  'status-positive': 'oklch(0.7227 0.192 149.58)',
+  /** Failure. */
+  'status-negative': 'oklch(0.577 0.2152 27.33)',
+  /** Neutral notice. */
+  'status-notice': 'oklch(0.6231 0.188 259.81)',
 } as const
 
 /*

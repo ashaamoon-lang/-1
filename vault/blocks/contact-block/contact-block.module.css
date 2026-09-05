@@ -64,7 +64,7 @@
 .socials {
   display: flex;
   flex-direction: column;
-  gap: mobile-vw(10px);
+  gap: mobile-vw(12px);
   flex-shrink: 0;
 
   @media (--desktop) {
@@ -83,13 +83,13 @@
 .socialsList {
   display: flex;
   flex-direction: column;
-  gap: mobile-vw(6px);
+  gap: mobile-vw(8px);
   list-style: none;
   margin: 0;
   padding: 0;
 
   @media (--desktop) {
-    gap: desktop-vw(6px);
+    gap: desktop-vw(8px);
   }
 }
 
@@ -108,7 +108,7 @@
   &:focus-visible {
     outline: 2px solid var(--color-contrast);
     outline-offset: 3px;
-    border-radius: 1px;
+    border-radius: var(--radius-hairline);
   }
 }
 

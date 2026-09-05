@@ -41,7 +41,7 @@
 
 .bar {
   height: 2px;
-  border-radius: 1px;
+  border-radius: var(--radius-hairline);
   background-color: var(--color-secondary);
   opacity: 0.2;
   animation: pulse var(--duration-slow) var(--ease-in-out-cubic) infinite;

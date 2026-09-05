@@ -9,7 +9,14 @@
    * stays well inside the ~0.6s cap `vault/motion/tokens.ts` sets on stagger.
    */
   --reveal-transform: translateY(mobile-vw(24px));
-  --reveal-stagger: 90ms;
+  /*
+   * `cards`, down from a literal 90ms — Tahap 37.
+   *
+   * 90 sat between the two bands `docs/MOTION-SPEC.md` §3 defines and was not
+   * a considered number; this block reveals a meta list, which is what the
+   * cards beat is for. 20ms per step, four steps.
+   */
+  --reveal-stagger: var(--stagger-cards);
   --reveal-duration: var(--duration-slow);
 
   @media (--desktop) {
@@ -133,7 +140,7 @@
   min-width: 0;
 
   @media (--desktop) {
-    gap: desktop-vw(6px);
+    gap: desktop-vw(8px);
   }
 }
 

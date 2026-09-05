@@ -128,7 +128,7 @@ ${Object.entries(typography)
 
 @utility dr-grid {
 	display: grid;
-	grid-template-columns: repeat(var(--columns), 1fr);
+	grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
 	column-gap: var(--gap);
 }
 

@@ -5,7 +5,7 @@
    * peers, and the same rhythm the work grid uses is the right one here.
    */
   --reveal-transform: translateY(mobile-vw(32px));
-  --reveal-stagger: 70ms;
+  --reveal-stagger: var(--stagger-cards);
   /* Standard band — same correction as `project-grid`. The detail page's two
      choreographed moments are the cover's arrival and the next-project
      transport, not the gallery filling in behind them. */
