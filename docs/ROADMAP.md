@@ -2097,7 +2097,7 @@ karena penyebabnya belum ditemukan. Butir 404 dikirim setengah dan dicatat
 sebagai terbuka, bukan diam-diam dianggap selesai (`TAHAP-38.md` §7.4).
 `e2e/no-javascript.e2e.ts` memang tidak pernah mencakup 404.
 
-unit 457 · e2e **488 lulus, 0 gagal**, 16 dilewati · dua gerbang baru, keduanya
+unit 458 · e2e **492 lulus, 0 gagal**, 16 dilewati · dua gerbang baru, keduanya
 merah lebih dulu terhadap situs sebelum tahap ini · Storybook dibangun ulang
 dengan story `Breadcrumbs`.
 

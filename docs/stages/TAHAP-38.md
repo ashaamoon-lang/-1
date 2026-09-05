@@ -325,7 +325,7 @@ bertahan sampai sekarang tanpa terlihat.
 bun run build            ✅
 bun run check            ✅  oxlint · oxfmt · tsc · 457 unit · manifest · assets
 bun run build-storybook  ✅
-CI=true bun run test:e2e ✅  488 passed · 16 skipped · 0 failed
+CI=true bun run test:e2e ✅  492 passed · 16 skipped · 0 failed
 ```
 
 Dua kegagalan pada jalan pertama, keduanya diperkirakan dan keduanya milik
