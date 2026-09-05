@@ -81,7 +81,12 @@
     "year": "Year",
     "nextProject": "Next project",
     "engagement": "Engagement",
-    "scope": "Scope"
+    "scope": "Scope",
+    "spineLabel": "On this page",
+    "overview": "Overview",
+    "notes": "Notes",
+    "images": "Images",
+    "onward": "Next"
   },
   "notFound": {
     "label": "Error",

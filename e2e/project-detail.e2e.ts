@@ -25,6 +25,7 @@ import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 
 import { axeTags } from './axe-tags'
+import { FEATURED_WORK } from './fixtures'
 
 /** Slugs of published projects, read from the site's own sitemap. */
 async function publishedSlugs(request: {
@@ -237,6 +238,138 @@ test.describe('project detail', () => {
           `/${locale}/work/${slug}</loc>`
         )
       }
+    }
+  })
+})
+
+/**
+ * `project-spine` — where the reader is in a page 4.7 screens long.
+ *
+ * ## Measured before it existed
+ *
+ * The project page is the site's second-longest and had **not one
+ * subheading**: one undifferentiated scroll, with no way to tell how much was
+ * left or what kinds of thing were below (`docs/stages/TAHAP-40.md` §1).
+ *
+ * ## What these assert, and what they deliberately do not
+ *
+ * They assert that exactly one row is marked at any scroll position, that the
+ * rows correspond to regions that actually render, and that reduced motion
+ * leaves every row readable.
+ *
+ * They do **not** assert that each row becomes active in turn. Whether the
+ * prose region is ever the one being read depends on how long the prose is,
+ * and today a project body is a single Portable Text block — so on the seeded
+ * data the reading band can pass from the hero to the gallery without
+ * stopping. Asserting otherwise would pin the gate to the fixtures rather
+ * than to the behaviour.
+ */
+test.describe('project-spine', () => {
+  test('the index names regions that exist, and only those', async ({
+    page,
+  }) => {
+    await page.goto(`/en/work/${FEATURED_WORK}`)
+    await page.waitForLoadState('networkidle')
+
+    const { rows, regions } = await page.evaluate(() => ({
+      rows: [...document.querySelectorAll('[data-project-spine] li a')].map(
+        (node) => (node.getAttribute('href') ?? '').replace('#', '')
+      ),
+      regions: [...document.querySelectorAll('[data-region]')].map(
+        (node) => node.id
+      ),
+    }))
+
+    expect(rows.length, 'the spine rendered no rows').toBeGreaterThan(1)
+    // Every row points at a region that is really on the page, in order. A
+    // row for a gallery a project does not have is a link to nothing.
+    expect(rows).toEqual(regions)
+  })
+
+  test('exactly one row is marked, wherever the reader is', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`/en/work/${FEATURED_WORK}`)
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(700)
+
+    const seen = new Set<string>()
+
+    for (const y of [0, 1200, 2600, 4200]) {
+      await page.evaluate((value: number) => window.scrollTo(0, value), y)
+      await page.waitForTimeout(800)
+
+      const state = await page.evaluate(() => ({
+        active: [
+          ...document.querySelectorAll('[data-project-spine] li[data-active]'),
+        ].map((node) => node.textContent?.trim() ?? ''),
+        current: document.querySelectorAll(
+          '[data-project-spine] [aria-current]'
+        ).length,
+      }))
+
+      expect(
+        state.active.length,
+        `at ${y}px the spine marked ${state.active.length} rows: ${state.active.join(', ')}`
+      ).toBe(1)
+      // What is drawn and what is announced are the same one.
+      expect(state.current).toBe(1)
+      for (const label of state.active) seen.add(label)
+    }
+
+    // Anti-vacuum: a spine stuck on its first row would satisfy every
+    // assertion above while telling the reader nothing.
+    expect(
+      [...seen],
+      'the marked row never changed across the whole page'
+    ).not.toHaveLength(1)
+  })
+
+  test('reduced motion keeps the index readable and still', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      reducedMotion: 'reduce',
+      viewport: { width: 1440, height: 900 },
+    })
+    const page = await context.newPage()
+    try {
+      await page.goto(`/en/work/${FEATURED_WORK}`)
+      await page.waitForLoadState('networkidle')
+      await page.evaluate(() => window.scrollTo(0, 2600))
+      await page.waitForTimeout(800)
+
+      const state = await page.evaluate(() => ({
+        opacities: [
+          ...document.querySelectorAll('[data-project-spine] li'),
+        ].map((node) => getComputedStyle(node).opacity),
+        transforms: [
+          ...document.querySelectorAll('[data-project-spine] li'),
+        ].map((node) => getComputedStyle(node).transform),
+      }))
+
+      expect(state.opacities.length).toBeGreaterThan(1)
+      /*
+       * `useActiveInSequence` creates no trigger under this preference and
+       * returns 0 for the whole visit, so without the stylesheet's own
+       * promise every row after the first would sit at 0.45 permanently —
+       * content stranded by a skipped animation, `CLAUDE.md` #5. The hook's
+       * doc comment names this as the consumer's job; this is where it is
+       * checked for the third consumer.
+       */
+      expect(
+        state.opacities.every((value) => value === '1'),
+        `rows receded under reduced motion: ${state.opacities.join(', ')}`
+      ).toBe(true)
+      expect(
+        state.transforms.every(
+          (value) => value === 'none' || value === 'matrix(1, 0, 0, 1, 0, 0)'
+        ),
+        `rows carried a transform under reduced motion: ${state.transforms.join(', ')}`
+      ).toBe(true)
+    } finally {
+      await context.close()
     }
   })
 })

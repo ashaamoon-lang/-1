@@ -141,7 +141,15 @@ export function Hero({
         )}
 
         <div className={s.content}>
-          <TextReveal as="h1" split="lines" className={cn('h1', s.headline)}>
+          <TextReveal
+            as="h1"
+            split="lines"
+            // `hero-arrival` is this section's named moment (see `data-epic`
+            // above), so the heading is allowed the choreographed band. Every
+            // other masthead on the site takes the 400ms default — Tahap 40.
+            pace="epic"
+            className={cn('h1', s.headline)}
+          >
             {headline}
           </TextReveal>
 

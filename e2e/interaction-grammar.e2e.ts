@@ -336,130 +336,160 @@ test.describe('interaction grammar', () => {
     ).toEqual([])
   })
 
-  test('spends no more than two choreographed moments per page', async ({
-    browser,
-  }) => {
-    /*
-     * The epic-moment budget, `MOTION-SPEC.md` §9.5 — measured from motion
-     * that actually happened, not from what a stylesheet declares.
-     *
-     * That distinction is the whole difficulty, and the stage spec named it
-     * as this stage's largest risk (`docs/stages/TAHAP-12.md` §8.3): counting
-     * choreographed movements from static CSS misses every GSAP tween, and
-     * counting declarations catches transitions that never run. Both fail
-     * *green*. So this samples `requestAnimationFrame` while the page arrives
-     * and asks what moved, which is the same method that proved the route
-     * morph in Tahap 11d and the COMMIT compression in 12c.
-     *
-     * `data-epic="<name>"` marks a moment. §9.5 requires the two to be
-     * *named*; naming them in the DOM is what makes that requirement
-     * checkable, and it means a failure says which moment overspent rather
-     * than pointing at an anonymous `<div>`.
-     *
-     * The threshold is 600ms — the standard band's ceiling (§2). Anything
-     * that moves longer than that has left the band a page is allowed to
-     * spend freely.
-     */
-    const context = await browser.newContext()
-    const page = await context.newPage()
+  /**
+   * Every page `MOTION-SPEC.md` §9.5 names, not just the home page.
+   *
+   * ## What running on one route hid
+   *
+   * This sampler existed from Tahap 12e and visited `/en` and nothing else,
+   * while §9.5's table names seven page types. Four of them declared no
+   * `data-epic` at all and were never counted — so the budget was enforced on
+   * one seventh of the surface it governs.
+   *
+   * `docs/stages/TAHAP-40.md` §Hasil carries what widening it found.
+   *
+   * ## Why the whole table, rather than the pages that looked suspicious
+   *
+   * A budget checked where you expect trouble is not a budget. The list below
+   * is generated from §9.5's own rows, so a page added to that table without
+   * a corresponding route here is the kind of drift this file exists to stop.
+   */
+  const EPIC_ROUTES = [
+    '/en',
+    '/en/work',
+    `/en/work/${FEATURED_WORK}`,
+    '/en/practice/consulting',
+    '/en/studio',
+    '/en/journal',
+    '/en/journal/scope-is-the-deliverable',
+  ] as const
 
-    try {
-      await page.addInitScript(() => {
-        const started = performance.now()
-        const spans = new Map<
-          Element,
-          { first: number; last: number; state: string }
-        >()
-        globalThis.__epic = spans
+  for (const route of EPIC_ROUTES)
+    test(`${route} spends no more than two choreographed moments`, async ({
+      browser,
+    }) => {
+      /*
+       * The epic-moment budget, `MOTION-SPEC.md` §9.5 — measured from motion
+       * that actually happened, not from what a stylesheet declares.
+       *
+       * That distinction is the whole difficulty, and the stage spec named it
+       * as this stage's largest risk (`docs/stages/TAHAP-12.md` §8.3): counting
+       * choreographed movements from static CSS misses every GSAP tween, and
+       * counting declarations catches transitions that never run. Both fail
+       * *green*. So this samples `requestAnimationFrame` while the page arrives
+       * and asks what moved, which is the same method that proved the route
+       * morph in Tahap 11d and the COMMIT compression in 12c.
+       *
+       * `data-epic="<name>"` marks a moment. §9.5 requires the two to be
+       * *named*; naming them in the DOM is what makes that requirement
+       * checkable, and it means a failure says which moment overspent rather
+       * than pointing at an anonymous `<div>`.
+       *
+       * The threshold is 600ms — the standard band's ceiling (§2). Anything
+       * that moves longer than that has left the band a page is allowed to
+       * spend freely.
+       */
+      const context = await browser.newContext()
+      const page = await context.newPage()
 
-        const sample = () => {
-          const elapsed = performance.now() - started
-          if (elapsed > 2600) return
+      try {
+        await page.addInitScript(() => {
+          const started = performance.now()
+          const spans = new Map<
+            Element,
+            { first: number; last: number; state: string }
+          >()
+          globalThis.__epic = spans
 
-          for (const el of document.querySelectorAll('main *, header *')) {
-            const style = getComputedStyle(el)
-            const matrix = new DOMMatrixReadOnly(style.transform)
-            /*
-             * Rounded, and that is a fix rather than a convenience.
-             *
-             * Comparing the computed `matrix()` string counts float noise as
-             * movement: the first version of this probe reported the hero
-             * headline as moving for 2738ms when it settles by about 1000ms,
-             * because the matrix kept jittering in the last decimal place
-             * after the tween visually finished.
-             */
-            const state = `${[
-              matrix.a,
-              matrix.b,
-              matrix.c,
-              matrix.d,
-              matrix.e,
-              matrix.f,
-            ]
-              .map((n) => Math.round(n * 100) / 100)
-              .join(',')}|${Math.round(Number(style.opacity) * 100) / 100}`
+          const sample = () => {
+            const elapsed = performance.now() - started
+            if (elapsed > 2600) return
 
-            const seen = spans.get(el)
-            if (!seen) {
-              spans.set(el, { first: -1, last: -1, state })
-              continue
+            for (const el of document.querySelectorAll('main *, header *')) {
+              const style = getComputedStyle(el)
+              const matrix = new DOMMatrixReadOnly(style.transform)
+              /*
+               * Rounded, and that is a fix rather than a convenience.
+               *
+               * Comparing the computed `matrix()` string counts float noise as
+               * movement: the first version of this probe reported the hero
+               * headline as moving for 2738ms when it settles by about 1000ms,
+               * because the matrix kept jittering in the last decimal place
+               * after the tween visually finished.
+               */
+              const state = `${[
+                matrix.a,
+                matrix.b,
+                matrix.c,
+                matrix.d,
+                matrix.e,
+                matrix.f,
+              ]
+                .map((n) => Math.round(n * 100) / 100)
+                .join(',')}|${Math.round(Number(style.opacity) * 100) / 100}`
+
+              const seen = spans.get(el)
+              if (!seen) {
+                spans.set(el, { first: -1, last: -1, state })
+                continue
+              }
+              if (state !== seen.state) {
+                if (seen.first === -1) seen.first = elapsed
+                seen.last = elapsed
+                seen.state = state
+              }
             }
-            if (state !== seen.state) {
-              if (seen.first === -1) seen.first = elapsed
-              seen.last = elapsed
-              seen.state = state
-            }
+
+            requestAnimationFrame(sample)
           }
-
           requestAnimationFrame(sample)
-        }
-        requestAnimationFrame(sample)
-      })
+        })
 
-      await page.goto('/en', { waitUntil: 'load' })
-      await page.waitForTimeout(2800)
+        await page.goto(route, { waitUntil: 'load' })
+        await page.waitForTimeout(2800)
 
-      const { moved, names } = await page.evaluate(() => ({
-        moved: [...globalThis.__epic.entries()]
-          .filter(
-            ([, span]) => span.first !== -1 && span.last - span.first > 600
-          )
-          .map(([el, span]) => ({
-            ms: Math.round(span.last - span.first),
-            epic: el.closest('[data-epic]')?.getAttribute('data-epic') ?? null,
-            what: `${el.tagName.toLowerCase()} "${(el.textContent ?? '').trim().slice(0, 18)}"`,
-          })),
-        names: [
-          ...new Set(
-            [...document.querySelectorAll('[data-epic]')].map(
-              (el) => el.getAttribute('data-epic') ?? ''
+        const { moved, names } = await page.evaluate(() => ({
+          moved: [...globalThis.__epic.entries()]
+            .filter(
+              ([, span]) => span.first !== -1 && span.last - span.first > 600
             )
-          ),
-        ],
-      }))
+            .map(([el, span]) => ({
+              ms: Math.round(span.last - span.first),
+              epic:
+                el.closest('[data-epic]')?.getAttribute('data-epic') ?? null,
+              what: `${el.tagName.toLowerCase()} "${(el.textContent ?? '').trim().slice(0, 18)}"`,
+            })),
+          names: [
+            ...new Set(
+              [...document.querySelectorAll('[data-epic]')].map(
+                (el) => el.getAttribute('data-epic') ?? ''
+              )
+            ),
+          ],
+        }))
 
-      // A page where nothing moved would pass both assertions below without
-      // examining anything.
-      expect(
-        await page.evaluate(() => globalThis.__epic.size),
-        'the sampler observed no elements at all'
-      ).toBeGreaterThan(20)
+        // A page where nothing moved would pass both assertions below without
+        // examining anything.
+        expect(
+          await page.evaluate(() => globalThis.__epic.size),
+          'the sampler observed no elements at all'
+        ).toBeGreaterThan(20)
 
-      const unnamed = moved.filter((item) => item.epic === null)
-      expect(
-        unnamed.map((item) => `${item.what} moved ${item.ms}ms`),
-        'movement past the standard band that belongs to no named moment'
-      ).toEqual([])
+        const unnamed = moved.filter((item) => item.epic === null)
+        expect(
+          unnamed.map((item) => `${item.what} moved ${item.ms}ms`),
+          `${route}: movement past the standard band that belongs to no named moment`
+        ).toEqual([])
 
-      expect(
-        names,
-        `a page may spend two choreographed moments; this one declares ${names.length}`
-      ).not.toHaveLength(3)
-      expect(names.length).toBeLessThanOrEqual(2)
-    } finally {
-      await context.close()
-    }
-  })
+        expect(
+          names,
+          `${route} may spend two choreographed moments; it declares ${names.length}: ${names.join(', ')}`
+        ).not.toHaveLength(3)
+        expect(names.length).toBeLessThanOrEqual(2)
+      } finally {
+        await context.close()
+      }
+    })
 
   test('reduced motion keeps the state change and drops the transition', async ({
     browser,

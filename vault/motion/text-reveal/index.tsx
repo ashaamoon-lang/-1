@@ -93,6 +93,39 @@ interface TextRevealProps {
   start?: string | undefined
   /** Play once and stay (default), or replay on every re-entry. */
   once?: boolean | undefined
+  /**
+   * Which band this reveal belongs to — Tahap 40.
+   *
+   * ## The measurement that made this a prop
+   *
+   * It was `duration.slow` (800ms) unconditionally, which is the
+   * **choreographed** band (`MOTION-SPEC.md` §2). Every page's `<h1>` uses
+   * this component, so every page was spending a choreographed-band movement
+   * on its title appearing — and §9.5's budget never saw it, because the
+   * sampler only ever ran on `/en`.
+   *
+   * Widening the sampler to the seven pages §9.5 names turned **five** of
+   * them red, and every failure was the same element: the `<h1>`'s own line
+   * masks, moving 662–766ms. `docs/stages/TAHAP-40.md` §Hasil has the table.
+   *
+   * ## Why the default is the standard band, not the slow one
+   *
+   * §9.5 opens with the point: award sites make *one or two* things epic and
+   * keep everything else quiet. A page title arriving is how a page starts —
+   * it happens on all seven — and a budget that counts the same movement
+   * seven times is not measuring restraint, it is measuring a default.
+   *
+   * So `arrival` (400ms, `duration.base`) is what a masthead gets, and it is
+   * the default because it is the common case.
+   *
+   * `epic` (800ms) is for the two places where the heading arriving **is**
+   * the page's named moment and §9.5 already says so: the home hero
+   * (`hero-arrival`) and the project page (`project-arrival`). Both are
+   * full-viewport statements; both sit inside a `data-epic`. Passing `epic`
+   * outside a named moment puts the page over budget, and the sampler says
+   * so by name.
+   */
+  pace?: 'arrival' | 'epic' | undefined
   className?: string | undefined
 }
 
@@ -109,6 +142,7 @@ export function TextReveal({
   split = 'lines',
   start = 'top 85%',
   once = true,
+  pace = 'arrival',
   className,
 }: TextRevealProps) {
   const containerRef = useRef<HTMLElement>(null)
@@ -175,7 +209,7 @@ export function TextReveal({
 
       const tween = gsap.from(parts, {
         yPercent: 100,
-        duration: duration.slow,
+        duration: pace === 'epic' ? duration.slow : duration.base,
         ease: easing.outExpo.gsap,
         // `amount` (total) rather than `each` (per item): the reveal takes the
         // same time whether the heading splits into two lines or six, so a
@@ -201,7 +235,7 @@ export function TextReveal({
     },
     {
       scope: containerRef,
-      dependencies: [prefersReducedMotion, split, start, once],
+      dependencies: [prefersReducedMotion, split, start, once, pace],
     }
   )
 

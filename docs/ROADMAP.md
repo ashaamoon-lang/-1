@@ -2060,6 +2060,56 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 40 — `project-spine`, dan gerbang epik yang melihat tujuh halaman ✅
+
+> Spec: [`docs/stages/TAHAP-40.md`](./stages/TAHAP-40.md)
+
+Anggaran momen epik §9.5 mengatur **tujuh** jenis halaman dan samplernya hanya
+pernah mengunjungi **satu**. Diperluas ke ketujuhnya, dan rencana memperkirakan
+satu halaman akan tertangkap — yang tertangkap **lima**, semuanya elemen yang
+sama: mask baris `<h1>` masing-masing halaman, bergerak 662–766ms.
+
+`vault/motion/text-reveal` memakai `duration.slow` — 800ms, pita
+berkoreografi — tanpa syarat, jadi **setiap** halaman membelanjakan gerak
+pita-berkoreografi untuk judulnya muncul. Perbaikannya bukan menamai lima
+"momen epik" baru: itu akan menaruh `/work` dan `/studio` di tiga, melewati
+plafon, dan membatalkan keputusan "nol, sengaja" milik `/journal/<slug>`.
+Gerak yang identik di tujuh halaman adalah **default**, bukan momen. Jadi
+`TextReveal` mendapat prop `pace`: `arrival` (400ms) untuk tiap masthead,
+`epic` (800ms) hanya untuk dua tempat yang §9.5 sudah namai. `ProjectHero`
+akhirnya mendapat `data-epic="project-arrival"` — namanya ada sejak Tahap 11d,
+atributnya tidak pernah. **Tujuh dari tujuh lulus.**
+
+**`project-spine`** menutup cacat B5: halaman terpanjang kedua di situs, 4,7
+layar, nol subjudul. Indeks sticky yang menandai wilayah yang sedang dibaca —
+diukur: Overview → Images → Next, rail `scaleY` 0,25 → 0,75 → 1,00, tepat satu
+baris aktif di tiap posisi. Reduced motion: semua baris `opacity: 1`, nol
+transform, indeks terbaca penuh.
+
+Premisnya dikoreksi lagi: rencana menamai baris _Brief · Approach · Outcome_,
+dan bagian itu **tidak ada** — sebuah proyek punya satu blok Portable Text.
+Menulisnya berarti mengarang konten. Spine mengindeks wilayah yang benar-benar
+dirender, dan baris hanya muncul untuk wilayah yang ada.
+
+**Empat cacat ditangkap gerbang, dan satu di antaranya komentar saya sendiri.**
+axe menolak spine versi pertama dua kali: `color-contrast` karena recede 0,45
+— dan komentar yang saya tulis tepat di atasnya mengklaim 0,45 adalah nilai
+terukur `step-sequence`, padahal nilainya **0,7**; dan `target-size` karena
+tautan seukuran caption. `visual-substance` menolak spine di kolom kiri karena
+dua kolom sebelum konten mendorong `<h1>` keluar dari gutter yang setiap
+halaman lain pakai — spine pindah ke kanan alih-alih gerbangnya dilonggarkan.
+`continuous-motion` melaporkan label nav sebagai prosa yang di-parallax;
+selektornya dipersempit supaya mengukur apa yang komentarnya sudah klaim.
+
+Ditambah satu temuan sampingan: `vault/motion/flip` (Tahap 39) membaca
+`--space-2xs`, **token yang tidak pernah ada** — proyek ini tidak punya skala
+spasi runtime. Menamai token yang tidak ada terbaca sebagai ter-tokenisasi dan
+berperilaku sebagai hardcoded; diganti dengan angka yang ditulis apa adanya.
+
+unit 458 · e2e **512 lulus, 0 gagal**, 16 dilewati · Storybook dibangun ulang.
+
+---
+
 ## Tahap 39 — Filter yang benar-benar memfilter, lalu `catalogue-sift` ✅
 
 > Spec: [`docs/stages/TAHAP-39.md`](./stages/TAHAP-39.md)

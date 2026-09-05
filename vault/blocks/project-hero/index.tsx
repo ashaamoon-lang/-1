@@ -43,6 +43,15 @@ export interface ProjectMeta {
 }
 
 interface ProjectHeroProps {
+  /**
+   * Anchor target and spine marker — Tahap 40.
+   *
+   * Declared rather than spread: this block takes no arbitrary props, and a
+   * marker `vault/blocks/project-spine` reads to decide which region is being
+   * read is worth naming in the type so it cannot be typo'd into silence.
+   */
+  id?: string | undefined
+  'data-region'?: string | undefined
   title: string
   cover?: (ImageSource & { alt?: unknown }) | null | undefined
   /** Localized by GROQ (`coverAlt`); the schema marks it required. */
@@ -68,6 +77,8 @@ export function ProjectHero({
   coverAlt,
   meta,
   transitionName,
+  id,
+  'data-region': region,
   className,
 }: ProjectHeroProps) {
   const facts = meta.filter(
@@ -96,6 +107,17 @@ export function ProjectHero({
     <header
       ref={ref}
       className={cn(s.hero, className)}
+      {...(id && { id })}
+      {...(region !== undefined && { 'data-region': region })}
+      /*
+       * `MOTION-SPEC.md` §9.5 has called this "the project's arrival" since
+       * Tahap 11d and it was never marked in the DOM — so when Tahap 40
+       * widened the epic sampler from `/en` to all seven pages §9.5 names,
+       * this block's 800ms reveal reported as "movement past the standard
+       * band that belongs to no named moment". The name existed; only the
+       * attribute was missing.
+       */
+      data-epic="project-arrival"
       /*
        * Which shape the cover took, stated rather than inferred.
        *
@@ -112,7 +134,14 @@ export function ProjectHero({
         `ViewTransition` below — the practice page's heading, which is inside
         one, deliberately keeps its plain form (`docs/stages/TAHAP-23.md` §3.2).
       */}
-      <TextReveal as="h1" split="lines" className={cn('h1', s.title)}>
+      <TextReveal
+        as="h1"
+        split="lines"
+        // One of exactly two places that spend the choreographed band on a
+        // heading, and the only two §9.5 names for it. See the `pace` prop.
+        pace="epic"
+        className={cn('h1', s.title)}
+      >
         {title}
       </TextReveal>
 

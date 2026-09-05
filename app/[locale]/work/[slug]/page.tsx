@@ -25,6 +25,7 @@ import { generateSanityMetadata } from '@/lib/utils/metadata'
 import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
 import { ProjectHero } from '@/vault/blocks/project-hero'
+import { ProjectSpine, type SpineRegion } from '@/vault/blocks/project-spine'
 
 import s from './page.module.css'
 
@@ -256,6 +257,25 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   // which TS cannot unify with next-sanity's PortableTextBlock.
   const body = project.body as PortableTextBlock[] | null
 
+  const hasBody = Boolean(body)
+  const hasGallery = Boolean(project.gallery && project.gallery.length > 0)
+
+  /*
+   * The page's own regions, in document order, and only the ones that render.
+   *
+   * A row for a gallery that does not exist is a link to nothing — the same
+   * lie Tahap 39 removed from the filter chips. `vault/blocks/project-spine`
+   * records why these are regions rather than the Brief/Approach/Outcome the
+   * plan named: a project has one `body` of Portable Text, so those sections
+   * do not exist and writing them would be inventing content.
+   */
+  const regions: SpineRegion[] = [
+    { id: 'overview', label: t('overview') },
+    ...(hasBody ? [{ id: 'notes', label: t('notes') }] : []),
+    ...(hasGallery ? [{ id: 'images', label: t('images') }] : []),
+    { id: 'onward', label: t('onward') },
+  ]
+
   return (
     <Wrapper theme="dark" lenis={{ anchors: true }}>
       <article className={s.article}>
@@ -289,77 +309,92 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           ]}
         />
 
-        <ProjectHero
-          title={project.title || humanizeSlug(slug)}
-          cover={project.cover}
-          coverAlt={project.coverAlt ?? ''}
-          // Pairs this cover with the catalogue card the reader came from, so
-          // the browser morphs one into the other. Both ends derive the name
-          // from `lib/motion/transition-name.ts` — a mismatch produces no
-          // error, just a morph that silently stops happening.
-          transitionName={transitionName(slug)}
-          meta={[
-            { label: t('client'), value: project.client },
-            { label: t('year'), value: project.year },
-            { label: t('engagement'), value: project.engagement },
-            { label: t('scope'), value: project.scope },
-          ]}
-        />
+        <ProjectSpine label={t('spineLabel')} regions={regions}>
+          <ProjectHero
+            id="overview"
+            data-region=""
+            title={project.title || humanizeSlug(slug)}
+            cover={project.cover}
+            coverAlt={project.coverAlt ?? ''}
+            // Pairs this cover with the catalogue card the reader came from,
+            // so the browser morphs one into the other. Both ends derive the
+            // name from `lib/motion/transition-name.ts` — a mismatch produces
+            // no error, just a morph that silently stops happening.
+            transitionName={transitionName(slug)}
+            meta={[
+              { label: t('client'), value: project.client },
+              { label: t('year'), value: project.year },
+              { label: t('engagement'), value: project.engagement },
+              { label: t('scope'), value: project.scope },
+            ]}
+          />
 
-        {body && (
-          <div className={s.body}>
-            <RichText content={body} />
+          {body && (
+            <div id="notes" data-region="" className={s.body}>
+              <RichText content={body} />
+            </div>
+          )}
+
+          {hasGallery && project.gallery && (
+            <ProjectGallery
+              id="images"
+              data-region=""
+              className={s.gallery}
+              images={project.gallery.map((image) => ({
+                ...image,
+                alt: image.alt,
+              }))}
+            />
+          )}
+
+          {/*
+            Everything that leads out of this page, as one region.
+
+            The practice chips and the next project answer the same question —
+            "where now" — so the spine indexes them as one row rather than two
+            that a reader would have to tell apart.
+          */}
+          <div id="onward" data-region="" className={s.onward}>
+            {/*
+              The practice this work belongs to, linked — Tahap 38.
+
+              `app/[locale]/work/practice/[value]/page.tsx` has existed and
+              been prerendered for all three values since Tahap 15, and **no
+              page ever linked to it**. This page knew the project's practice
+              and did not say it.
+            */}
+            {project.practice && (
+              <nav aria-label={tNav('relatedPractice')} className={s.practices}>
+                <Link
+                  className={cn('caption', s.practiceChip)}
+                  href={`/${PRACTICE_SEGMENT}/${project.practice}`}
+                  data-press="chip"
+                  data-intent=""
+                >
+                  {tWork(project.practice)}
+                </Link>
+                <Link
+                  className={cn('caption', s.practiceChip)}
+                  href="/work"
+                  data-press="chip"
+                  data-intent=""
+                >
+                  {tWork('allWork')}
+                </Link>
+              </nav>
+            )}
+
+            {next?.slug?.current && (
+              <NextProject
+                className={s.next}
+                eyebrow={t('nextProject')}
+                title={next.title ?? next.slug.current}
+                slug={next.slug.current}
+                cover={next.cover}
+              />
+            )}
           </div>
-        )}
-
-        {project.gallery && project.gallery.length > 0 && (
-          <ProjectGallery
-            className={s.gallery}
-            images={project.gallery.map((image) => ({
-              ...image,
-              alt: image.alt,
-            }))}
-          />
-        )}
-
-        {/*
-          The practice this work belongs to, linked — Tahap 38.
-
-          `app/[locale]/work/practice/[value]/page.tsx` has existed and been
-          prerendered for all three values since Tahap 15, and **no page ever
-          linked to it**. This page knew the project's practice and did not
-          say it.
-        */}
-        {project.practice && (
-          <nav aria-label={tNav('relatedPractice')} className={s.practices}>
-            <Link
-              className={cn('caption', s.practiceChip)}
-              href={`/${PRACTICE_SEGMENT}/${project.practice}`}
-              data-press="chip"
-              data-intent=""
-            >
-              {tWork(project.practice)}
-            </Link>
-            <Link
-              className={cn('caption', s.practiceChip)}
-              href="/work"
-              data-press="chip"
-              data-intent=""
-            >
-              {tWork('allWork')}
-            </Link>
-          </nav>
-        )}
-
-        {next?.slug?.current && (
-          <NextProject
-            className={s.next}
-            eyebrow={t('nextProject')}
-            title={next.title ?? next.slug.current}
-            slug={next.slug.current}
-            cover={next.cover}
-          />
-        )}
+        </ProjectSpine>
       </article>
     </Wrapper>
   )

@@ -342,15 +342,15 @@ The list, kept current as routes are added. A page missing from it has no
 choreographed movement, and that is a legitimate answer — the journal _entry_
 page is deliberately on this list at zero (`docs/stages/TAHAP-27.md` §5).
 
-| Page                | Moments                                                                                                                                           | Added         |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full                                                 | Tahap 12e     |
-| `/practice/<value>` | 1. **practice morph** — the home page's practice name becoming the hero<br>2. **the scrubbed passage** — `ProgressText`                           | Tahap 15      |
-| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index                                                      | Tahap 24, 25  |
-| `/journal`          | 1. **`journal-index`** — the row being read leads                                                                                                 | Tahap 27      |
-| `/journal/<slug>`   | _none, deliberately_ — it is a long read                                                                                                          | Tahap 26      |
-| `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too<br>2. **`catalogue-sift`** — the list rearranging under a filter | Tahap 11d, 39 |
-| `/work/<slug>`      | 1. **the project's arrival** — the receiving half of that transition, via `transitionName`                                                        | Tahap 11d, 19 |
+| Page                | Moments                                                                                                                                           | Added             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full                                                 | Tahap 12e         |
+| `/practice/<value>` | 1. **practice morph** — the home page's practice name becoming the hero<br>2. **the scrubbed passage** — `ProgressText`                           | Tahap 15          |
+| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index                                                      | Tahap 24, 25      |
+| `/journal`          | 1. **`journal-index`** — the row being read leads                                                                                                 | Tahap 27          |
+| `/journal/<slug>`   | _none, deliberately_ — it is a long read                                                                                                          | Tahap 26          |
+| `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too<br>2. **`catalogue-sift`** — the list rearranging under a filter | Tahap 11d, 39     |
+| `/work/<slug>`      | 1. **`project-arrival`** — the receiving half of that transition, via `transitionName`. Marked in the DOM since Tahap 40; the name is older       | Tahap 11d, 19, 40 |
 
 Everything else is micro or standard. A filter chip does not get 1200ms —
 and `catalogue-sift` is not the chip. The chip's own acknowledgment is the
@@ -359,6 +359,25 @@ the **grid** does afterwards, which is a movement with a start, a resolution
 and an end, and therefore exactly what this budget counts.
 
 `/work` is now at two, which is the ceiling. Nothing else may be added to it.
+
+**A page's heading arriving is not one of the two, and Tahap 40 is where that
+was settled.** `vault/motion/text-reveal` ran at `duration.slow` — 800ms, the
+choreographed band — on every `<h1>` on the site. The budget never saw it
+because the sampler only ever ran on `/en`; widening it to all seven pages
+turned **five** of them red on the same element, each page's own title.
+
+The fix was not five new names. Award sites make one or two things epic and
+keep everything else quiet, and a movement that happens identically on seven
+pages is a default, not a moment. `TextReveal` takes a `pace` prop now:
+`arrival` (400ms, the standard band) is the default every masthead gets, and
+`epic` (800ms) is spent only where the heading arriving **is** the named
+moment — the home hero and the project hero, both of which this table already
+listed and both of which sit inside a `data-epic`.
+
+**The spine is not counted either.** `vault/blocks/project-spine` responds to
+reading position continuously: it has no band, no beginning and no end, which
+is the same test that excludes the material layer below. `/work/<slug>` still
+has one moment and one slot spare.
 
 **The material layer is not counted here, and this is where that is decided.**
 `vault/webgl/material-image` renders on the home page beside the two moments

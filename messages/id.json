@@ -81,7 +81,12 @@
     "year": "Tahun",
     "nextProject": "Karya berikutnya",
     "engagement": "Keterlibatan",
-    "scope": "Lingkup"
+    "scope": "Lingkup",
+    "spineLabel": "Di halaman ini",
+    "overview": "Ringkasan",
+    "notes": "Catatan",
+    "images": "Gambar",
+    "onward": "Berikutnya"
   },
   "notFound": {
     "label": "Galat",

@@ -166,12 +166,27 @@ export function useFlipGrid(
 
     const styles = getComputedStyle(document.documentElement)
     const moveMs = cssMs(styles, '--duration-slow', 800)
-    const enterMs = cssMs(styles, '--duration-base', 400)
+    const enterMs = cssMs(styles, '--duration', 400)
     const exitMs = cssMs(styles, '--duration-fast', 200)
     const stepMs = cssMs(styles, '--stagger-cards', 70)
     const moveEase = cssEase(styles, '--ease-in-out-quart', 'ease-in-out')
     const enterEase = cssEase(styles, '--ease-out-quart', 'ease-out')
-    const rise = styles.getPropertyValue('--space-2xs').trim() || '8px'
+    /*
+     * A literal, and it is the honest option rather than the tidy one.
+     *
+     * This read `--space-2xs`, a token that **does not exist** — Tahap 37
+     * created radius, shadow and stagger tokens but no spacing scale, because
+     * the spacing ladder is expressed through `mobile-vw()`/`desktop-vw()` at
+     * author time, which a runtime `getPropertyValue` cannot reach. So the
+     * lookup silently returned '' and this always used the fallback.
+     *
+     * Naming a token that is not there is worse than a number: it reads as
+     * tokenised and behaves as hardcoded. 8px is two steps on the ladder, it
+     * is the distance an entering card rises, and it is written as what it is.
+     */
+    // scale-exempt: an entrance offset in a script, not a layout value — it
+    // cannot be authored through the postcss functions the ladder uses.
+    const rise = '8px'
 
     /*
      * ScrollTrigger measures positions, and every card's cover is parallaxed

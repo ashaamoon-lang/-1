@@ -85,9 +85,22 @@ test.describe('the page keeps moving as it is read', () => {
      * media only. A paragraph that drifts against its own column hurts
      * reading comfort, and it is the single way this kind of motion goes
      * wrong.
+     *
+     * `:not(nav *)` since Tahap 40, and the narrowing is deliberate rather
+     * than convenient. The rule is about **prose** — the sentence above says
+     * so, and names the cost as reading comfort. `main li` was a proxy for
+     * that, and it over-matched: `vault/blocks/project-spine` marks the
+     * region being read by nudging its row 4px, and the probe reported the
+     * nav label "Images" as moved prose.
+     *
+     * A row in a `<nav>` with an accessible name is a control, not a column
+     * of text; nobody reads it the way this rule protects. Excluding
+     * navigation makes the selector measure what the comment already claimed
+     * it measured. Every paragraph and every list item that is actually
+     * content is still in scope.
      */
     const moved = await page.evaluate(() =>
-      [...document.querySelectorAll('main p, main li')]
+      [...document.querySelectorAll('main p:not(nav *), main li:not(nav *)')]
         .filter((el) => {
           const t = getComputedStyle(el).transform
           return t && t !== 'none' && t !== 'matrix(1, 0, 0, 1, 0, 0)'

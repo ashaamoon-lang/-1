@@ -1,0 +1,238 @@
+/*
+ * The spine's layout and its two states.
+ *
+ * Every value is a token, every animated property is `transform` or
+ * `opacity`, and the whole thing is inert under `prefers-reduced-motion`
+ * while staying completely readable — the index is information first and a
+ * choreography second.
+ */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: mobile-vw(24px);
+
+  @media (--desktop) {
+    /*
+     * The work first, the index second — and the order is a fix, not a
+     * preference.
+     *
+     * The index started in the left column, which is the obvious place for
+     * it, and `e2e/visual-substance.e2e.ts` failed: putting two columns
+     * before the content pushes the `<h1>` in by that much, so the project
+     * page's title no longer started where the wordmark above it does. Every
+     * other page on the site aligns those two edges, and "the page starts
+     * where its own chrome starts" is a rule worth more than which side an
+     * index sits on.
+     *
+     * On the right the content column keeps the gutter it always had, the
+     * title lines up again, and the index is where a reader's eye is not.
+     * Two of twelve for it: a label on the page, not a peer of it.
+     */
+    grid-template-columns: minmax(0, 1fr) columns(2);
+    gap: var(--gap);
+    align-items: start;
+  }
+}
+
+.spine {
+  /*
+   * Second column on desktop, first row on mobile — set explicitly rather
+   * than left to source order, because the DOM order is deliberately the
+   * other way round: the index is a `<nav>` for this page, so a keyboard
+   * reaches it before the content it indexes, and a phone shows it above.
+   */
+  @media (--desktop) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /*
+   * Sticky under the header on both sizes. On mobile it becomes a single
+   * horizontal row rather than disappearing: this page feels *longest* on a
+   * phone, which is exactly where knowing what is left matters most.
+   */
+  position: sticky;
+  top: calc(var(--header-height) + mobile-vw(8px));
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(8px);
+
+  @media (--desktop) {
+    top: calc(var(--header-height) + desktop-vw(24px));
+    gap: desktop-vw(12px);
+  }
+}
+
+.spineLabel {
+  margin: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+
+  /* On a phone the row is the index; a label above it costs a line and says
+     what the four words already say. */
+  @media not (--desktop) {
+    display: none;
+  }
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: mobile-vw(16px);
+
+  @media (--desktop) {
+    flex-direction: column;
+    gap: desktop-vw(8px);
+  }
+}
+
+/*
+ * The receding state, and the value is not a taste call.
+ *
+ * The plan for this stage said 0.45, this file shipped 0.45, and a comment
+ * right here claimed it was "the same recede `step-sequence` uses, set by an
+ * axe contrast sweep". That comment was **false**, and axe said so within a
+ * minute: `serious: color-contrast (3 nodes)` on the receded rows.
+ *
+ * `step-sequence.module.css` sets `--step-recede: 0.7`, and its own note says
+ * why — 0.7 is one step above the contrast floor, so a later palette
+ * adjustment cannot silently cross it. 0.45 is well below it. Reusing the
+ * measured number keeps "this one is being read" one idea across three
+ * blocks instead of three nearly-equal opacities, which is what the comment
+ * claimed and is now actually true.
+ */
+.row {
+  opacity: 0.7;
+  color: var(--text-muted);
+  /*
+   * WCAG 2.2 target size: a caption-sized link is a target of about 14px,
+   * and axe reported `serious: target-size (3 nodes)` for exactly that. Half
+   * the tap target as a minimum block size, which is what
+   * `lib/styles/css/global.css` says covers the site's small controls, and
+   * the rule the header nav already follows.
+   */
+  display: flex;
+  align-items: center;
+  min-block-size: calc(var(--tap-target) / 2);
+  /*
+   * In over 400ms, out over 200ms. Leaving faster than arriving is what makes
+   * the move read as **one** marker travelling down the list rather than two
+   * rows blinking at each other — the difference between an index that feels
+   * built and one that feels wired up. `MOTION-SPEC.md` §9.
+   */
+  transition:
+    opacity var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-fast) var(--ease-out-quart);
+
+  &[data-active] {
+    opacity: 1;
+    /* 4px at the design width — the smallest step on the spacing ladder
+       `docs/stages/TAHAP-37.md` settled, and the whole travel a marker needs
+       to read as having moved without leaving its column. */
+    transform: translate3d(desktop-vw(4px), 0, 0);
+    transition:
+      opacity var(--duration) var(--ease-out-quart),
+      transform var(--duration) var(--ease-out-quart);
+  }
+}
+
+.link {
+  color: inherit;
+  text-decoration: none;
+  /* The whole row is the target, not just the glyphs. */
+  display: flex;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: calc(var(--tap-target) / 2);
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 4px;
+  }
+}
+
+.rail {
+  /* A hairline the fill travels down. Hidden on mobile, where the list is a
+     row and a vertical rail beside it would measure nothing. */
+  display: none;
+
+  @media (--desktop) {
+    display: block;
+    position: relative;
+    inline-size: 1px;
+    block-size: desktop-vw(64px);
+    background-color: var(--line);
+  }
+}
+
+.railFill {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-secondary);
+  /*
+   * `scaleY`, never `height` — `CLAUDE.md` #4. The value is reading position,
+   * so it has no duration of its own; the transition is only what turns a
+   * step between rows into a slide.
+   */
+  transform-origin: top;
+  transform: scaleY(var(--spine-progress, 0));
+  transition: transform var(--duration) var(--ease-out-quart);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: inherit;
+  min-inline-size: 0;
+
+  @media (--desktop) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+@media (--reduced-motion) {
+  /*
+   * Everything readable, nothing moving. `useActiveInSequence` creates no
+   * trigger at all under this preference and returns 0 permanently, so
+   * without these rules every row after the first would sit at 0.45 for the
+   * whole visit — the hook's own doc comment names this as the consumer's
+   * responsibility, and both existing consumers carry the same block.
+   */
+  .row {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .row[data-active] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    /*
+     * The current row still says which it is, without motion and without
+     * layout: colour, from the same token the rail uses.
+     *
+     * This was an inset `box-shadow`, and Tahap 37's elevation gate rejected
+     * it — correctly. That gate exists because six hand-rolled shadows had
+     * six different opacities; a rule drawn as a shadow is exactly the abuse
+     * it was written to catch, whatever it looks like. Colour is the better
+     * answer regardless: it needs no new mechanism and it matches the rail.
+     */
+    color: var(--color-secondary);
+  }
+
+  .railFill {
+    /* Full rather than empty: an index that works has been read to somewhere,
+       and a rail stuck at zero reads as broken rather than as still. */
+    transform: scaleY(1);
+    transition: none;
+  }
+}

@@ -94,6 +94,15 @@ export function isFullWidth(ratio: number | null): boolean {
 }
 
 interface ProjectGalleryProps {
+  /**
+   * Anchor target and spine marker — Tahap 40.
+   *
+   * Declared rather than spread: this block takes no arbitrary props, and a
+   * marker `vault/blocks/project-spine` reads to decide which region is being
+   * read is worth naming in the type so it cannot be typo'd into silence.
+   */
+  id?: string | undefined
+  'data-region'?: string | undefined
   images: readonly GalleryImage[]
   className?: string | undefined
 }
@@ -152,7 +161,12 @@ function GalleryMedia({
   )
 }
 
-export function ProjectGallery({ images, className }: ProjectGalleryProps) {
+export function ProjectGallery({
+  images,
+  id,
+  'data-region': region,
+  className,
+}: ProjectGalleryProps) {
   const ref = useReveal<HTMLUListElement>()
   const t = useTranslations('lightbox')
   const [Lightbox, setLightbox] = useState<LightboxComponent | null>(null)
@@ -180,7 +194,12 @@ export function ProjectGallery({ images, className }: ProjectGalleryProps) {
 
   return (
     <>
-      <ul ref={ref} className={cn(s.gallery, className)}>
+      <ul
+        ref={ref}
+        className={cn(s.gallery, className)}
+        {...(id && { id })}
+        {...(region !== undefined && { 'data-region': region })}
+      >
         {images.map((image, position) => {
           const ratio = aspectRatioFor(image)
           const full = isFullWidth(ratio)

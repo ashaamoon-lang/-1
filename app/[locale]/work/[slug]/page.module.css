@@ -3,6 +3,12 @@
  * Same division as the home page — see `app/[locale]/page.module.css`.
  */
 
+/*
+ * The page's outer rhythm. Since Tahap 40 the article holds two children —
+ * the breadcrumb trail and `ProjectSpine` — and the spine owns the rhythm
+ * *inside* itself, inheriting this same gap so the two-column region keeps
+ * the spacing the one-column page had.
+ */
 .article {
   display: flex;
   flex-direction: column;
@@ -117,5 +123,19 @@
       transform: none;
       transition: none;
     }
+  }
+}
+
+/*
+ * Everything that leads out of this page, indexed by the spine as one region
+ * — the practice chips and the next project answer the same question.
+ */
+.onward {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(64px);
+
+  @media (--desktop) {
+    gap: desktop-vw(112px);
   }
 }
