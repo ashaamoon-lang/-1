@@ -90,6 +90,26 @@
 /* ── The prose ────────────────────────────────────────────────────────── */
 
 .body {
+  /*
+   * SETTLE — the second half of `journal-transport`, Tahap 41.
+   *
+   * The morph puts the title where it belongs in 400ms; these blocks arrive
+   * after it rather than alongside it, so the moment reads as one gesture
+   * with two parts instead of two things happening at once.
+   *
+   * `--stagger-items` (40ms) rather than the `--stagger-cards` default (70ms)
+   * the global reveal contract falls back to: cards are objects a reader
+   * counts, paragraphs are a body of text they read, and the tighter beat is
+   * what stops a long entry turning its own arrival into a wait.
+   *
+   * The whole moment therefore spans the choreographed band by its *length*
+   * — 400ms of morph plus a staggered settle — rather than by inflating any
+   * single duration to reach it. `docs/stages/TAHAP-41.md` §2.1 records why
+   * that distinction decided against the 1200ms the plan asked for.
+   */
+  --reveal-duration: var(--duration);
+  --reveal-stagger: var(--stagger-items);
+
   display: flex;
   flex-direction: column;
   gap: desktop-vw(24px);

@@ -2,6 +2,7 @@ import cn from 'clsx'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { locale as localeRootParam } from 'next/root-params'
+import { ViewTransition } from 'react'
 
 import { Wrapper } from '@/components/layout/wrapper'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
@@ -15,12 +16,12 @@ import {
 import { practiceTemplate } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
+import { transitionName } from '@/lib/motion/transition-name'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { articleSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { Reveal } from '@/vault/motion/reveal'
-import { TextReveal } from '@/vault/motion/text-reveal'
 
 import s from './page.module.css'
 
@@ -178,9 +179,31 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
             ) : null}
           </p>
 
-          <TextReveal as="h1" split="lines" className={cn('h1', s.title)}>
-            {entry.title}
-          </TextReveal>
+          {/*
+            The receiving half of `journal-transport` — Tahap 41.
+
+            A plain `<h1>`, not a `TextReveal`, and that is the same call
+            `docs/stages/TAHAP-23.md` §3.2 made for the practice page's
+            heading: `<ViewTransition>` photographs real DOM, and SplitText
+            takes ownership of the text nodes of the element it is given. The
+            two cannot both have this element.
+
+            The trade runs the right way. The morph **is** this page's
+            arrival; a line reveal on top of it would be a second arrival
+            competing with the first. `vault/blocks/practice-hero` is the
+            shape this copies.
+
+            A measured side effect: Tahap 40 found this heading moving
+            702–766ms with no named moment behind it. It is not split at all
+            now.
+          */}
+          <ViewTransition
+            name={transitionName(`journal-${slug}`)}
+            share="morph"
+            default="none"
+          >
+            <h1 className={cn('h1', s.title)}>{entry.title}</h1>
+          </ViewTransition>
 
           <Reveal>
             <p data-reveal-item className={cn('p-big', s.summary)}>

@@ -465,6 +465,178 @@ test.describe('motion', () => {
     ).toBe(true)
   })
 
+  /**
+   * The journal's row title carries itself into the entry — Tahap 41.
+   *
+   * ## Proved red first
+   *
+   * Before this stage `/journal` had no morph at all: pressing a headline ran
+   * the route overlay, the screen covered, and another page appeared. Two
+   * reading surfaces on the same site, one treated as an event and one as a
+   * reload. The engine had been built and gated since Tahap 11d; only the use
+   * was missing.
+   */
+  test('a journal row morphs into its entry', async ({ page }) => {
+    const slug = 'scope-is-the-deliverable'
+    const name = transitionName(`journal-${slug}`)
+
+    const morph = await captureMorph(page, '/en/journal', `/en/journal/${slug}`)
+
+    expect(morph.calls, 'no view transition was started').toBeGreaterThan(0)
+    expect(morph.names, 'the shared name was never applied').toContain(name)
+
+    // A `group` only exists when the browser matched an old and a new element
+    // under one name — the difference between the title moving and the title
+    // being replaced by another that reads the same.
+    expect(
+      morph.pseudo.filter((p) => p.includes(`view-transition-group(${name})`))
+        .length,
+      `no morph pair formed; pseudo-elements seen: ${morph.pseudo.join(', ')}`
+    ).toBeGreaterThan(0)
+
+    for (const half of ['old', 'new']) {
+      expect(
+        morph.pseudo.some((p) =>
+          p.includes(`view-transition-${half}(${name})`)
+        ),
+        `the ${half} half of the pair is missing`
+      ).toBe(true)
+    }
+  })
+
+  /**
+   * `MOTION-SPEC.md` §9.4 rule 5 — **one shared-element morph per
+   * navigation** — asserted for the first time.
+   *
+   * The rule has been binding since Tahap 12 and was never checked. The
+   * harness above already recorded every name the browser applied and every
+   * pseudo-element it built; what was missing was only the count. More than
+   * one pair is, in the rule's own words, "not legible and very hard to
+   * time" — and it is the failure a third morph would introduce silently,
+   * because nothing about it errors.
+   *
+   * Asserted on all three pairs the site has, not just the new one: a rule
+   * enforced where you just added something is not a rule.
+   */
+  test('a navigation forms exactly one morph pair', async ({ page }) => {
+    const journeys: [from: string, to: string][] = [
+      ['/en/work', `/en/work/${FEATURED_WORK}`],
+      ['/en/journal', '/en/journal/scope-is-the-deliverable'],
+    ]
+
+    for (const [from, to] of journeys) {
+      const morph = await captureMorph(page, from, to)
+
+      const groups = new Set(
+        morph.pseudo
+          .filter((p) => p.includes('view-transition-group('))
+          // The `root` group is the browser's own full-page pair and is not a
+          // shared element; the rule is about named pairs the site declares.
+          .filter((p) => !p.includes('view-transition-group(root)'))
+      )
+
+      expect(
+        groups.size,
+        `${from} -> ${to} formed ${groups.size} morph pairs: ${[...groups].join(', ')}`
+      ).toBe(1)
+    }
+  })
+
+  /**
+   * COMMIT on the journal index — the list stands back for the row chosen.
+   *
+   * Written entirely in CSS (`.list:has(.row:active) .row:not(:has(:active))`)
+   * rather than in component state, which is what `MOTION-SPEC.md` §9 asks
+   * for: "Write COMMIT in CSS, with `:active`". The press is held rather than
+   * clicked, because the whole state exists only while the pointer is down.
+   *
+   * Measured on the production build: rows sit at `1 / 0.7 / 0.7` (the reading
+   * recede) and go to `1 / 0.35 / 0.35` under a press.
+   */
+  test('pressing a journal row stands the others back', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/en/journal')
+    await page.waitForTimeout(1200)
+
+    const rows = page.locator('[data-journal-entry]')
+    expect(await rows.count(), 'no journal rows to press').toBeGreaterThan(1)
+
+    const opacities = () =>
+      rows.evaluateAll((nodes) =>
+        nodes.map((node) => getComputedStyle(node).opacity)
+      )
+
+    const rest = await opacities()
+
+    const target = page.locator('[data-press="entry"]').first()
+    const box = await target.boundingBox()
+    expect(box, 'the row link has no box to press').not.toBeNull()
+
+    await page.mouse.move((box?.x ?? 0) + 8, (box?.y ?? 0) + 8)
+    await page.mouse.down()
+    try {
+      await page.waitForTimeout(320)
+      const pressed = await opacities()
+
+      // Anti-vacuum: identical arrays would mean the rule never applied, and
+      // a comparison of two equal things passes just as happily.
+      expect(
+        pressed,
+        `nothing changed under a press: ${rest.join(', ')}`
+      ).not.toEqual(rest)
+
+      const receded = pressed.filter((value) => Number(value) < 0.5)
+      expect(receded.length, `no row stood back: ${pressed.join(', ')}`).toBe(
+        pressed.length - 1
+      )
+      // The chosen one stays whole.
+      expect(pressed.filter((value) => value === '1')).toHaveLength(1)
+    } finally {
+      await page.mouse.up()
+    }
+  })
+
+  test('reduced motion drops the press recede entirely', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      reducedMotion: 'reduce',
+      viewport: { width: 1440, height: 900 },
+    })
+    const page = await context.newPage()
+    try {
+      await page.goto('/en/journal')
+      await page.waitForTimeout(1200)
+
+      const rows = page.locator('[data-journal-entry]')
+      const target = page.locator('[data-press="entry"]').first()
+      const box = await target.boundingBox()
+
+      await page.mouse.move((box?.x ?? 0) + 8, (box?.y ?? 0) + 8)
+      await page.mouse.down()
+      try {
+        await page.waitForTimeout(320)
+        const pressed = await rows.evaluateAll((nodes) =>
+          nodes.map((node) => getComputedStyle(node).opacity)
+        )
+        /*
+         * §9.4 rule 3 — the state still changes, the transition does not.
+         * Here the state is transient and carries no information a reader
+         * needs, so "the outcome is unchanged" means dropping it: every row
+         * stays fully legible, `CLAUDE.md` #5.
+         */
+        expect(
+          pressed.every((value) => value === '1'),
+          `rows receded under reduced motion: ${pressed.join(', ')}`
+        ).toBe(true)
+      } finally {
+        await page.mouse.up()
+      }
+    } finally {
+      await context.close()
+    }
+  })
+
   test('the overlay stands aside for a morph', async ({ page }) => {
     /*
      * The two are mutually exclusive: a morph is only legible if the reader
@@ -674,7 +846,7 @@ test.describe('motion', () => {
  * that the difference between a competent site and an award one is restraint
  * applied *consistently*.
  *
- * ## Why the practice route is not in this list
+ * ## Why two routes are not in this list
  *
  * `vault/blocks/practice-hero` wraps its `h1` in `<ViewTransition
  * share="morph">` — the practice name travels from the list into its own
@@ -683,13 +855,20 @@ test.describe('motion', () => {
  * entrance, and `MOTION-SPEC.md` §9.5 caps a page at two choreographed moves
  * anyway.
  *
- * Its absence is a decision; this comment is where it is written down.
+ * **`/en/journal/<slug>` joined it in Tahap 41**, for the identical reason
+ * and by the identical mechanism: `journal-transport` carries the row's
+ * headline into the entry's `h1`, so that `h1` cannot also be split. The
+ * morph **is** that page's arrival, and a line reveal on top of it would be a
+ * second arrival competing with the first.
+ *
+ * Both absences are decisions; this comment is where they are written down —
+ * and the test above (`a journal row morphs into its entry`) is what stops
+ * the route quietly ending up with neither entrance.
  */
 const SPLIT_HEADING_ROUTES = [
   '/en',
   '/id',
   '/en/journal',
-  '/en/journal/scope-is-the-deliverable',
   '/en/studio',
   '/en/work',
   `/en/work/${FEATURED_WORK}`,

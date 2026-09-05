@@ -162,6 +162,29 @@
 }
 
 /*
+ * COMMIT — the list stands back for the row being pressed, Tahap 41.
+ *
+ * `MOTION-SPEC.md` §9 says COMMIT is written in CSS with `:active`, and this
+ * is that rule applied to a *sibling* rather than to the pressed element
+ * itself: `:has()` lets the list ask which of its rows is under a press
+ * without any component state, any handler, or any client code at all.
+ *
+ * It answers the keyboard too, which is the point §9.4 rule 2 makes: `:active`
+ * fires for Enter on a link, so a reader who never produces a pointer event
+ * gets the same acknowledgement.
+ *
+ * 0.35, deeper than the reading recede above it, because the two say
+ * different things: `--row-recede` means "you are not reading this one" and
+ * has to stay legible; this means "you have chosen another one" and lasts
+ * only as long as the press. It is transient and never a resting state, so
+ * the contrast floor that governs `--row-recede` does not govern it.
+ */
+.list:has(.row:active) .row:not(:has(:active)) {
+  opacity: 0.35;
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+/*
  * Reduced motion: nothing recedes, promised by the stylesheet.
  *
  * `useActiveInSequence` creates no trigger under the preference, so
@@ -171,6 +194,14 @@
  * fully visible, and this is the only layer that can guarantee it.
  */
 @media (--reduced-motion) {
+  /* The press recede goes too — §9.4 rule 3: the state still changes, the
+     transition does not. Here the state is transient, so dropping it entirely
+     is what "the outcome is unchanged" means. */
+  .list:has(.row:active) .row:not(:has(:active)) {
+    opacity: 1;
+    transition: none;
+  }
+
   .row,
   .row[data-active] {
     opacity: 1;

@@ -170,6 +170,22 @@ html {
    * TypeScript one silently did nothing (`docs/AUDIT-2026-08.md` §Tier 3).
    */
   --stagger-words: 50ms;
+  /*
+   * 40ms — the prose beat, named in Tahap 41.
+   *
+   * `stagger.items` has been in `vault/motion/tokens.ts` since Tahap 12b with
+   * no CSS counterpart, so a CSS reveal of a *body of text* had only the
+   * cards beat (70ms) to reach for. `docs/MOTION-SPEC.md` §3's per-step table
+   * separates the two on purpose: cards are objects a reader counts,
+   * paragraphs are text they read, and the tighter beat is what keeps a long
+   * entry from turning its own arrival into a wait.
+   *
+   * Written here rather than as a literal in the journal's stylesheet for
+   * exactly the reason the block above records: two sources for one number is
+   * how the TypeScript one silently stops mattering. `tokens.test.ts` pairs
+   * them, and now covers this one too.
+   */
+  --stagger-items: 40ms;
   --stagger-cards: 70ms;
   /*
    * The hero beat — named in Tahap 37 rather than left as a literal.

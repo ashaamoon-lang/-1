@@ -2060,6 +2060,59 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 41 — `journal-transport` ✅
+
+> Spec: [`docs/stages/TAHAP-41.md`](./stages/TAHAP-41.md)
+
+`/work` → `/work/<slug>` punya morph kelas atas sejak Tahap 11d. `/journal` →
+`/journal/<slug>` **tidak punya apa-apa**: dibuktikan merah, nol
+`document.startViewTransition` dan nol pasangan. Dua permukaan baca di situs
+yang sama, satu diperlakukan sebagai peristiwa dan satu sebagai muat ulang.
+Mesinnya sudah ada dan teruji; yang belum ada hanyalah pemakaiannya.
+
+Judul yang pembaca pilih sekarang membawa dirinya sendiri ke entri. Diukur:
+pasangan `view-transition-group` terbentuk dengan kedua paruh; baris lain
+mundur `1 · 0,7 · 0,7` → **`1 · 0,35 · 0,35`** saat satu ditekan, dan
+`1 · 1 · 1` di bawah reduced motion.
+
+**Tiga koreksi terhadap rencana, semuanya dengan bukti di repo.**
+
+1. **Durasi tetap 400ms, bukan 1200ms.** Rencana meminta pita berkoreografi
+   supaya `--duration-choreographed` mendapat konsumen pertamanya.
+   `global.css` sudah menyetel **setiap** morph di situs ke `var(--duration)`
+   dengan alasan tertulis, dan membuat jurnal tiga kali lebih lambat menukar
+   konsistensi — satu-satunya standar yang `CLAUDE.md` sebut penting — dengan
+   sebuah centang. Momennya tetap berkoreografi lewat **rentang**-nya: morph,
+   lalu prosa mengendap di belakangnya. Tokennya tetap nol konsumen, dan itu
+   dicatat sebagai keputusan.
+2. **Judul entri berhenti jadi `TextReveal`.** SplitText mengganti node teks
+   yang morph potret — panggilan yang Tahap 23 §3.2 sudah buat untuk halaman
+   praktik. Morph **adalah** kedatangannya. Diukur sesudahnya: `h1Split: 0`.
+3. **COMMIT ditulis di CSS**, bukan di state klien:
+   `.list:has(.row:active) .row:not(:has(:active))`. §9 memang memintanya
+   begitu, dan `:active` menyala untuk Enter — jadi keyboard mendapat COMMIT
+   yang sama.
+
+**§9.4 aturan 5 ("satu morph per navigasi") akhirnya diasersikan** — mengikat
+sejak Tahap 12 dan tidak pernah diperiksa — pada **kedua** pasangan yang situs
+ini punya, bukan hanya yang baru.
+
+**Satu gerbang merah yang benar:** `every page enters the same way` menuntut
+tiap `<h1>` di-split. Gerbang itu sudah punya pengecualian identik untuk rute
+praktik, tertulis lengkap dengan alasannya; entri jurnal bergabung lewat
+mekanisme yang sama. Bukan pelonggaran — pengecualiannya ditukar dengan asersi
+morph yang baru, bukan dengan ketiadaan.
+
+**Dan satu token yang tidak ada, lagi:** SETTLE minta `--stagger-items`, yang
+hanya hidup di TypeScript sejak Tahap 12b. Kelas cacat yang sama dengan
+`--space-2xs` di Tahap 40 — tapi di sini pasangannya memang seharusnya ada,
+jadi ia dibuat dan `tokens.test.ts` diperluas untuk menjaganya.
+
+unit 458 · e2e **515 lulus, 0 gagal**, 16 dilewati · empat asersi baru,
+semuanya merah lebih dulu · Storybook dibangun ulang.
+
+---
+
 ## Tahap 40 — `project-spine`, dan gerbang epik yang melihat tujuh halaman ✅
 
 > Spec: [`docs/stages/TAHAP-40.md`](./stages/TAHAP-40.md)

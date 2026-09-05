@@ -127,6 +127,7 @@ describe('motion tokens: CSS and GSAP say the same thing', () => {
     // token we deliberately did not add exists.
     const pairs: readonly (readonly [keyof typeof stagger, string])[] = [
       ['words', '--stagger-words'],
+      ['items', '--stagger-items'],
       ['cards', '--stagger-cards'],
     ]
 

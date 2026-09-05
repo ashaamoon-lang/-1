@@ -31,10 +31,11 @@
  */
 
 import cn from 'clsx'
-import { useRef } from 'react'
+import { useRef, ViewTransition } from 'react'
 
 import { Link } from '@/components/ui/link'
 import type { JournalEntry } from '@/lib/content/journal-fallback'
+import { transitionName } from '@/lib/motion/transition-name'
 import { useActiveInSequence } from '@/vault/motion/use-active-in-sequence'
 
 import s from './page.module.css'
@@ -92,23 +93,56 @@ export function JournalIndexRows({ rows }: { rows: readonly JournalRow[] }) {
               ) : null}
             </p>
 
-            <h2 className={cn('h2', s.entryTitle)}>
-              {/*
-                The whole row is the target, but the link wraps the title only
-                and is stretched over the row in CSS. That keeps one accessible
-                name on one control instead of an anchor whose name would be
-                the date, the title and the summary read as one sentence.
-              */}
-              <Link
-                href={`/journal/${row.slug}`}
-                className={s.link}
-                // `MOTION-SPEC.md` §9 — the row is a pressable noun.
-                data-press="entry"
-                data-intent=""
-              >
-                {row.title}
-              </Link>
-            </h2>
+            {/*
+              `journal-transport` — Tahap 41. The headline the reader chose is
+              the headline they get: it carries itself to the entry rather
+              than being replaced by one that happens to read the same.
+
+              The name is composed from `transitionName`, as both ends of
+              every pair on this site are, because the whole mechanism is a
+              string match — a typo produces no error and no morph. The
+              `journal-` prefix keeps entry slugs out of the space work slugs
+              already occupy.
+            */}
+            <ViewTransition
+              name={transitionName(`journal-${row.slug}`)}
+              share="morph"
+              default="none"
+            >
+              <h2 className={cn('h2', s.entryTitle)}>
+                {/*
+                  The whole row is the target, but the link wraps the title
+                  only and is stretched over the row in CSS. That keeps one
+                  accessible name on one control instead of an anchor whose
+                  name would be the date, the title and the summary read as
+                  one sentence.
+                */}
+                <Link
+                  href={`/journal/${row.slug}`}
+                  className={s.link}
+                  // `MOTION-SPEC.md` §9 — the row is a pressable noun.
+                  data-press="entry"
+                  data-intent=""
+                  /*
+                    Stands the route overlay down for this navigation so the
+                    title above can morph instead. `lib/motion/navigation-
+                    signal.ts` defines `cover` as an overlay that exists
+                    "precisely to stop them seeing either" state, so without
+                    this the whole moment runs behind a curtain — measured on
+                    the catalogue in Tahap 39.
+                  */
+                  transition="morph"
+                  /*
+                    The moment's name, for §9.5's budget sampler. It spends
+                    nothing at load: it moves on navigation, exactly like
+                    `work-transport` on the catalogue card.
+                  */
+                  data-epic="journal-transport"
+                >
+                  {row.title}
+                </Link>
+              </h2>
+            </ViewTransition>
 
             <p className={s.summary}>{row.summary}</p>
           </div>
