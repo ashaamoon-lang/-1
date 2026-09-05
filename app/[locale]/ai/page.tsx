@@ -96,7 +96,13 @@ export default async function AiPage() {
       <p>{facts.description}</p>
 
       <h2>{t('facts')}</h2>
-      <dl>
+      {/*
+        Named so a gate can find it. `e2e/promises.e2e.ts` asserts this list
+        carries no English conjunction in the Indonesian locale, and it has to
+        scan *this* list: the page also lists every static route in both
+        languages, so English prose on `/id/ai` is correct everywhere else.
+      */}
+      <dl data-site-facts>
         {facts.foundingDate && (
           <>
             <dt>{t('founded')}</dt>
@@ -124,13 +130,13 @@ export default async function AiPage() {
         {facts.services.length > 0 && (
           <>
             <dt>{t('services')}</dt>
-            <dd>{formatList(facts.services)}</dd>
+            <dd>{formatList(facts.services, locale)}</dd>
           </>
         )}
         {facts.knowsAbout.length > 0 && (
           <>
             <dt>{t('expertise')}</dt>
-            <dd>{formatList(facts.knowsAbout)}</dd>
+            <dd>{formatList(facts.knowsAbout, locale)}</dd>
           </>
         )}
       </dl>

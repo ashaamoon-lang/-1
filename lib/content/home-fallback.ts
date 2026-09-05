@@ -62,7 +62,19 @@ const FALLBACK_COPY = {
 } as const satisfies Record<Locale, HomeCopy>
 
 /** Placeholder contact details. Replaced by `studioSettings` when it exists. */
-const FALLBACK_CONTACT = {
+/**
+ * The one placeholder contact, shared.
+ *
+ * Exported since Tahap 35. `components/layout/footer` had its own copy of the
+ * same address and the same two bare domains — a third, after this file and
+ * `lib/seo/site.ts` — and nothing tied them together, so a studio filling in
+ * its real address would have found two of the three.
+ *
+ * `lib/seo/site.ts` no longer carries one at all: a reserved-TLD address is a
+ * placeholder to a person and a fact to a crawler, so the machine surfaces
+ * omit it and the human surfaces label it. `docs/stages/TAHAP-35.md` §3.1.
+ */
+export const FALLBACK_CONTACT = {
   name: 'Arth',
   email: 'studio@arth.example',
   socials: [
@@ -82,13 +94,46 @@ export interface HomeContent {
   statement: unknown[] | null
   /** Plain paragraphs, used only when `statement` is null. */
   statementFallback: readonly string[]
-  /** True when no `studioSettings` document was found at all. */
-  isPlaceholder: boolean
+  /**
+   * Which rendered fields came from this file rather than from the CMS.
+   *
+   * Per field, because the resolution below is per field. It used to be one
+   * boolean meaning "no `studioSettings` document exists at all", and that is
+   * a different question: with a half-filled document present — the normal
+   * state while a studio is onboarding, and the exact case this resolver was
+   * written for — the flag read `false` while the fallback paragraphs
+   * rendered anyway. The home page's "Placeholder copy…" note is driven by
+   * this, so the note went unshown and scaffolding shipped unlabelled.
+   * `docs/stages/TAHAP-35.md` §2 has the measurement.
+   */
+  fallbacks: {
+    headline: boolean
+    subline: boolean
+    email: boolean
+    socials: boolean
+    statement: boolean
+  }
 }
 
 /** A CMS string that is present and not merely an empty box an editor left. */
 function usable(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim() !== ''
+}
+
+/**
+ * A field's value together with where it came from.
+ *
+ * The two have to be decided in one place. Deriving "did this fall back?"
+ * from a separate `usable()` call is how the two drift, and drift here means
+ * a page that renders scaffolding while reporting that it did not.
+ */
+function pick(
+  cms: string | null | undefined,
+  fallback: string
+): { value: string; fromCms: boolean } {
+  return usable(cms)
+    ? { value: cms, fromCms: true }
+    : { value: fallback, fromCms: false }
 }
 
 /**
@@ -120,18 +165,30 @@ export function resolveHomeContent(
     )
     .map((social) => ({ label: social.label, url: social.url }))
 
+  const name = pick(settings?.name, FALLBACK_CONTACT.name)
+  const headline = pick(settings?.headline, copy.headline)
+  const subline = pick(settings?.subline, copy.subline)
+  const email = pick(settings?.email, FALLBACK_CONTACT.email)
+  const statement =
+    settings?.statement && settings.statement.length > 0
+      ? settings.statement
+      : null
+
   return {
-    name: usable(settings?.name) ? settings.name : FALLBACK_CONTACT.name,
-    headline: usable(settings?.headline) ? settings.headline : copy.headline,
-    subline: usable(settings?.subline) ? settings.subline : copy.subline,
-    email: usable(settings?.email) ? settings.email : FALLBACK_CONTACT.email,
+    name: name.value,
+    headline: headline.value,
+    subline: subline.value,
+    email: email.value,
     socials: socials.length > 0 ? socials : FALLBACK_CONTACT.socials,
     portraitCaption: copy.portraitCaption,
-    statement:
-      settings?.statement && settings.statement.length > 0
-        ? settings.statement
-        : null,
+    statement,
     statementFallback: copy.statement,
-    isPlaceholder: settings === null,
+    fallbacks: {
+      headline: !headline.fromCms,
+      subline: !subline.fromCms,
+      email: !email.fromCms,
+      socials: socials.length === 0,
+      statement: statement === null,
+    },
   }
 }

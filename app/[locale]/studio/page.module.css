@@ -116,6 +116,23 @@
   min-width: 0;
 }
 
+/*
+ * The scaffolding note under the facts.
+ *
+ * Muted and set small on purpose: it is a qualification on the list above it,
+ * not a section of its own. `--text-muted` is the token the contrast gate
+ * already measures at 9.08:1 on dark, so quiet here still means legible.
+ */
+.factsNote {
+  margin: mobile-vw(16px) 0 0;
+  color: var(--text-muted);
+  max-width: 46ch;
+
+  @media (--desktop) {
+    margin-block-start: desktop-vw(16px);
+  }
+}
+
 .factList {
   display: flex;
   flex-direction: column;

@@ -144,6 +144,26 @@ export default async function StudioPage() {
                 )
               )}
             </dl>
+            {/*
+              Said out loud — Tahap 35.
+
+              Three of these four are invented. This page's own header comment
+              records that everything but the colophon is scaffolding, and
+              `Founded 2021` / `Jakarta, working remotely` / `Four, plus
+              specialists` were shipped with no qualification at all, in the
+              one place a reader goes to learn who the studio is.
+
+              `lib/seo/site.ts` deliberately publishes none of them: copying
+              them into `schema.org` would have multiplied the invention
+              rather than reconciled it. Silence there, a label here. The same
+              shape `practice.placeholderNote` already uses on three pages.
+
+              Not an eyebrow, and not styled as one: `taste-skill` caps
+              eyebrows per section and this is a footnote, not a category.
+            */}
+            <p data-reveal-item className={cn('caption', s.factsNote)}>
+              {t('factsNote')}
+            </p>
           </Reveal>
         </header>
 

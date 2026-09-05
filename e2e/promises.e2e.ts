@@ -179,3 +179,147 @@ test.describe('locale parity', () => {
     expect(await organizationId('/id')).toBe(await organizationId('/en'))
   })
 })
+
+/**
+ * Honesty about what the site does not yet know — Tahap 35.
+ *
+ * `CLAUDE.md` §Honesty says: if something was skipped or failed, say so
+ * explicitly rather than quietly narrowing scope. These four assertions are
+ * that rule pointed at the site's own published surfaces, and all four went
+ * red against the site as it stood.
+ */
+test.describe('the site does not assert what it does not know', () => {
+  /*
+   * `.example` is RFC 2606's reserved TLD: it exists so that an address can
+   * never resolve. Showing one to a person is a placeholder; publishing one
+   * as `schema.org/Organization.email` hands a machine a fact it will index.
+   *
+   * Human surfaces are deliberately not covered here — see
+   * `docs/stages/TAHAP-35.md` §3.1 for why the split runs where it does.
+   */
+  const MACHINE_SURFACES = [
+    '/llms.txt',
+    '/sitemap.xml',
+    '/en/ai',
+    '/id/ai',
+  ] as const
+
+  for (const path of MACHINE_SURFACES) {
+    test(`${path} publishes no reserved-TLD address`, async ({ request }) => {
+      const body = await (await request.get(path)).text()
+
+      // Anti-vacuum: an empty response must not pass.
+      expect(body.length, `${path} returned nothing`).toBeGreaterThan(200)
+      expect(body, `${path} publishes a .example address`).not.toContain(
+        '.example'
+      )
+    })
+  }
+
+  for (const locale of routing.locales) {
+    test(`the ${locale} JSON-LD publishes no reserved-TLD address`, async ({
+      request,
+    }) => {
+      const html = await (await request.get(`/${locale}`)).text()
+      const blocks = [
+        ...html.matchAll(
+          /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g
+        ),
+      ].map((match) => match[1] ?? '')
+
+      expect(blocks.length, 'no JSON-LD on the page').toBeGreaterThan(0)
+      for (const block of blocks) {
+        expect(block, 'JSON-LD publishes a .example address').not.toContain(
+          '.example'
+        )
+      }
+    })
+  }
+
+  /*
+   * The defect this was written for: `isPlaceholder` was
+   * `settings === null`, while every field fell back independently. With a
+   * half-filled settings document the flag read false, the note went unshown,
+   * and the fallback paragraphs shipped as if the studio had written them.
+   */
+  for (const locale of routing.locales) {
+    test(`${locale} labels fallback prose as fallback`, async ({ page }) => {
+      await page.goto(`/${locale}`)
+      await page.waitForLoadState('networkidle')
+
+      const shown = await page.evaluate(() => {
+        const note = document.querySelector('[data-placeholder-note]')
+        const statement = document.querySelector('[data-statement]')
+        return {
+          hasNote: note !== null,
+          fromFallback:
+            statement?.getAttribute('data-statement') === 'fallback',
+          foundStatement: statement !== null,
+        }
+      })
+
+      // Anti-vacuum: the statement block must exist for the claim to mean
+      // anything.
+      expect(shown.foundStatement, 'no statement block on the page').toBe(true)
+
+      if (shown.fromFallback) {
+        expect(
+          shown.hasNote,
+          'the page shows fallback prose without saying so'
+        ).toBe(true)
+      }
+    })
+  }
+
+  /*
+   * A 308 still answers 200 once the client follows it, which is why the
+   * older assertion above passed while the guidance pointed at
+   * `/en/work/practice/consulting` — a path that has redirected since the
+   * route was renamed. Sending an agent to a redirect is stale guidance.
+   */
+  test('agent guidance names no path that redirects', async ({ request }) => {
+    const guidance = await (await request.get('/llms.txt')).text()
+    const paths = [
+      ...guidance.matchAll(/(?:^|[\s(])(\/(?:en|id)\/[a-z0-9\-/]*)/gm),
+    ]
+      .map((match) => match[1] ?? '')
+      .filter(Boolean)
+
+    expect(paths.length).toBeGreaterThan(0)
+
+    for (const path of new Set(paths)) {
+      const response = await request.get(path, { maxRedirects: 0 })
+      expect(
+        response.status(),
+        `${path} redirects; name the destination instead`
+      ).toBeLessThan(300)
+    }
+  })
+
+  test('the Indonesian machine view uses an Indonesian conjunction', async ({
+    page,
+  }) => {
+    /*
+     * The site-facts list only, not the page.
+     *
+     * The first shape of this scanned all of `/id/ai` and stayed red after
+     * the fix landed — correctly, but for the wrong reason: the machine view
+     * lists every static route in **both** locales with `hrefLang`, so the
+     * English descriptions are supposed to be there. `formatList` feeds this
+     * one list, and this list is what the rule is about.
+     */
+    await page.goto('/id/ai')
+    const text = await page
+      .locator('[data-site-facts]')
+      .evaluate((el) => el.textContent ?? '')
+
+    // Anti-vacuum: the list must have been found and must hold the services.
+    expect(text.length, 'no site-facts list on /id/ai').toBeGreaterThan(60)
+    expect(text, 'an English conjunction in Indonesian copy').not.toMatch(
+      /,\s+and\s+\S/
+    )
+    expect(text, 'the Indonesian conjunction is missing').toMatch(
+      /,\s+dan\s+\S/
+    )
+  })
+})

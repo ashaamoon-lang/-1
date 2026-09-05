@@ -2,6 +2,7 @@ import cn from 'clsx'
 import { useTranslations } from 'next-intl'
 
 import { Link } from '@/components/ui/link'
+import { FALLBACK_CONTACT } from '@/lib/content/home-fallback'
 import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
 
 import s from './footer.module.css'
@@ -47,12 +48,21 @@ import s from './footer.module.css'
  */
 const YEAR = new Date().getFullYear()
 
-const EMAIL = 'studio@arth.example'
-
-const SOCIAL = [
-  { href: 'https://instagram.com/', label: 'Instagram' },
-  { href: 'https://are.na/', label: 'Are.na' },
-] as const
+/*
+ * One source, not a third copy — Tahap 35.
+ *
+ * These were literals here: `studio@arth.example` and two bare domains,
+ * duplicating `lib/content/home-fallback.ts` exactly. The home page resolves
+ * the same fields against the CMS; this footer cannot, because it renders
+ * inside the client `Wrapper` and has no server data of its own. Sharing the
+ * constant is what makes that a *fallback* rather than a second opinion, and
+ * what makes wiring the CMS through later one edit instead of three.
+ *
+ * They are marked as placeholders in the markup below, for the same reason
+ * the home page's statement is: showing scaffolding is fine, showing it
+ * unlabelled is not.
+ */
+const { email: EMAIL, socials: SOCIAL } = FALLBACK_CONTACT
 
 export function Footer() {
   const t = useTranslations('footer')
@@ -146,8 +156,8 @@ export function Footer() {
           <h2 className={cn('caption', s.heading)}>{t('elsewhere')}</h2>
           <ul className={s.list}>
             {SOCIAL.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className={cn('caption', s.link)}>
+              <li key={item.url}>
+                <Link href={item.url} className={cn('caption', s.link)}>
                   {item.label}
                 </Link>
               </li>

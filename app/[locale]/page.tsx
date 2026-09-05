@@ -261,22 +261,35 @@ export default async function Home() {
           portrait={settings?.portrait ?? null}
           {...(settings?.portraitAlt && { portraitAlt: settings.portraitAlt })}
         >
-          {content.statement ? (
-            // SAFETY: `statement` is the CMS's Portable Text for this locale.
-            // `resolveHomeContent` widens it to `unknown[]` because it also
-            // accepts the fallback shape; the query types it as `RichText`,
-            // and `RichText` renders nothing for a block it does not know.
-            <RichText content={content.statement as never} />
-          ) : (
-            content.statementFallback.map((paragraph) => (
-              <p key={paragraph.slice(0, 32)} className="p-big">
-                {paragraph}
-              </p>
-            ))
-          )}
+          {/*
+            `data-statement` names where this prose came from, and the note
+            below is driven by the same fact rather than by a second one.
+            They were separate until Tahap 35: the note asked "does a
+            `studioSettings` document exist?" while the prose asked "does it
+            have a statement?", and with the fixture document present the
+            answers disagreed — placeholder paragraphs shipped with no label.
+          */}
+          <div data-statement={content.statement ? 'cms' : 'fallback'}>
+            {content.statement ? (
+              // SAFETY: `statement` is the CMS's Portable Text for this
+              // locale. `resolveHomeContent` widens it to `unknown[]` because
+              // it also accepts the fallback shape; the query types it as
+              // `RichText`, and `RichText` renders nothing for a block it does
+              // not know.
+              <RichText content={content.statement as never} />
+            ) : (
+              content.statementFallback.map((paragraph) => (
+                <p key={paragraph.slice(0, 32)} className="p-big">
+                  {paragraph}
+                </p>
+              ))
+            )}
+          </div>
 
-          {content.isPlaceholder && (
-            <p className={`caption ${s.placeholder}`}>{t('placeholderNote')}</p>
+          {content.fallbacks.statement && (
+            <p data-placeholder-note className={`caption ${s.placeholder}`}>
+              {t('placeholderNote')}
+            </p>
           )}
         </StudioNote>
 
@@ -288,6 +301,9 @@ export default async function Home() {
           email={content.email}
           emailLabel={t('emailLabel', { name: content.name })}
           socials={content.socials}
+          {...(content.fallbacks.email && {
+            note: t('contactPlaceholderNote'),
+          })}
           socialsHeading={t('socialsHeading')}
         />
       </div>

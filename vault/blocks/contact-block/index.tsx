@@ -35,6 +35,15 @@ interface ContactBlockProps {
   emailLabel: string
   socials: readonly { label: string; url: string }[]
   socialsHeading: ReactNode
+  /**
+   * A qualification on the address above it, rendered only when there is one.
+   *
+   * Optional because a real address needs no note. The home page passes it
+   * when `resolveHomeContent` reports the email came from the fallback rather
+   * than the CMS — Tahap 35, where an unlabelled placeholder counted as a
+   * defect rather than a rough edge.
+   */
+  note?: ReactNode | undefined
   className?: string | undefined
 }
 
@@ -46,6 +55,7 @@ export function ContactBlock({
   emailLabel,
   socials,
   socialsHeading,
+  note,
   className,
 }: ContactBlockProps) {
   return (
@@ -74,6 +84,12 @@ export function ContactBlock({
           >
             {email}
           </Link>
+
+          {note && (
+            <p data-placeholder-note className={cn('caption', s.note)}>
+              {note}
+            </p>
+          )}
 
           {socials.length > 0 && (
             <div className={s.socials}>

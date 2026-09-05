@@ -118,3 +118,20 @@
     transition: none;
   }
 }
+
+/*
+ * The placeholder qualification under the address.
+ *
+ * Only rendered when the address is a fallback, so it is a note about a
+ * specific fact rather than page furniture; muted and narrow so it reads as
+ * one.
+ */
+.note {
+  margin: mobile-vw(12px) 0 0;
+  color: var(--text-muted);
+  max-width: 46ch;
+
+  @media (--desktop) {
+    margin-block-start: desktop-vw(12px);
+  }
+}

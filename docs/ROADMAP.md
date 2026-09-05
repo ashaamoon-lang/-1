@@ -2054,6 +2054,66 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 35 — Kejujuran ✅
+
+> Spec: [`docs/stages/TAHAP-35.md`](./stages/TAHAP-35.md)
+
+`CLAUDE.md` §Honesty menuntut satu hal di atas segalanya: kalau sesuatu
+dilewati atau gagal, **katakan eksplisit**. Audit kurator menemukan situs ini
+melanggar semangat itu bukan di kodenya, melainkan di **apa yang ia katakan
+tentang dirinya sendiri**. Lima cacat, semuanya kecil, tidak satu pun terlihat
+oleh gerbang mana pun.
+
+**Gerbangnya merah di 8 dari 10 asersi.** Dua yang sudah hijau berguna: mereka
+mempersempit cacatnya — alamat cadangan itu tidak pernah mencapai `/llms.txt`
+maupun sitemap, jadi yang terkontaminasi persis `/ai` di kedua locale dan graf
+Organization di tiap halaman.
+
+**Label mengikuti bidang, bukan dokumen.** `isPlaceholder: settings === null`
+adalah pertanyaan yang berbeda dari yang dijawab resolvernya: dengan dokumen
+fixture yang setengah terisi, flag-nya `false` sementara paragraf placeholder
+tetap tayang. Salinan sementara terbit tanpa label. Diganti satu boolean per
+bidang, dengan helper yang memutuskan nilai **dan** asalnya di satu tempat.
+Satu asersi unit yang sudah ada ternyata cacat itu ditulis sebagai tes:
+`expect(resolved.isPlaceholder).toBe(false)` pada dokumen yang subline, email,
+dan seluruh statement-nya masih fallback.
+
+**Diam di permukaan mesin, label di permukaan manusia.** `studio@arth.example`
+adalah TLD cadangan RFC 2606 — placeholder bagi orang, fakta bagi crawler.
+`SITE.email` dikosongkan sehingga bidangnya **dihilangkan** dari JSON-LD,
+`/ai`, dan `/llms.txt`; beranda tetap menampilkannya, kini dengan catatan yang
+hilang sendiri begitu CMS terisi. Tiga salinan alamat itu jadi satu.
+
+**`/studio` berhenti mengasersikan yang tidak diketahui siapa pun.** `Founded
+2021`, `Jakarta, working remotely`, `Four, plus specialists` adalah scaffolding
+— halaman itu sendiri mengatakannya di komentarnya — dan tayang tanpa
+kualifikasi. Audit membingkainya sebagai "yang dibaca mesin yang bisu";
+penyelesaiannya **ke arah sebaliknya**: menyalin `2021` dan `Jakarta` ke
+`schema.org` akan memperbanyak karangannya. Diamnya benar; yang kurang
+labelnya.
+
+Ditambah dua yang lebih kecil: `formatList` menyuntik konjungsi Inggris ke
+`/id/ai` (`…Rekayasa AI dan data, **and** Pengerjaan pesanan`), dan panduan
+agen menyuruh agen ke `/en/work/practice/consulting`, yang sekarang 308.
+
+**Instrumennya salah sekali, dan merahnya menyesatkan.** Asersi konjungsi
+memindai seluruh `/id/ai` dan tetap merah setelah perbaikannya mendarat —
+benar merahnya, salah alasannya: halaman itu sengaja mencantumkan setiap rute
+statis di **kedua** locale, jadi prosa Inggris di sana memang seharusnya ada.
+
+**Dua temuan audit sengaja tidak ditindaklanjuti**, dan alasannya ditulis:
+`/llms.txt` dan `manifest.webmanifest` "hanya bahasa Inggris" keduanya sudah
+punya argumen tertulis yang benar. Mengubahnya berarti membatalkan keputusan
+yang sudah dipikirkan demi mencentang temuan.
+
+unit 443 · e2e **459 lulus**, 16 dilewati, nol flake · 10 asersi baru di
+`promises.e2e.ts` · nol konten baru, nol dependensi, nol gerak · **satu hal
+disebut belum selesai**: footer tidak bisa tahu apakah CMS punya alamat asli
+(ia dirender di dalam `Wrapper` yang client), jadi placeholder-nya tetap tanpa
+label sampai sebuah provider dipasang di layout.
+
+---
+
 ## Tahap 34 — Selera diberi angka ✅
 
 > Spec: [`docs/stages/TAHAP-34.md`](./stages/TAHAP-34.md)

@@ -165,8 +165,26 @@ export const SITE: SiteFacts = {
       'Perangkat lunak pesanan',
     ],
   },
-  // TODO(studio): real address, and remove `.example`.
-  email: 'studio@arth.example',
+  /*
+   * No email, on purpose — Tahap 35.
+   *
+   * This carried `studio@arth.example` with a TODO beside it. `.example` is
+   * RFC 2606's reserved TLD: it is guaranteed never to resolve, which makes
+   * it a fine placeholder for a person to look at and a fabricated fact for a
+   * machine to record. It reached `schema.org/Organization.email` on every
+   * page, plus `/en/ai` and `/id/ai`.
+   *
+   * Both consumers already guard on its absence (`lib/seo/schemas.ts:139`,
+   * `app/[locale]/ai/page.tsx:118`), so leaving it unset omits the field
+   * rather than publishing an empty one. Silence is not a claim; a reserved
+   * address is.
+   *
+   * The human-facing pages still show a placeholder contact, labelled as one.
+   * `docs/stages/TAHAP-35.md` §3.1 is where that split is argued.
+   *
+   * TODO(studio): the real address goes here, and the gate in
+   * `e2e/promises.e2e.ts` keeps `.example` from coming back with it.
+   */
   // Deliberately empty. `sameAs` asserts "these profiles are the same entity";
   // a guessed handle asserts it about someone else's account.
   sameAs: [],
@@ -185,7 +203,7 @@ export const SITE: SiteFacts = {
         },
       ],
       howToUse: [
-        'Browse the full catalogue at /en/work (English) or /id/work (Indonesian); narrow it at /en/work/practice/consulting, /ai-data or /commission. Each engagement lists client, year, engagement and scope.',
+        'Browse the full catalogue at /en/work (English) or /id/work (Indonesian); narrow it at /en/practice/consulting, /en/practice/ai-data or /en/practice/commission. Each engagement lists client, year, engagement and scope.',
         'Email the agency with the problem, the constraint that makes it hard, and when a decision is needed.',
         'Expect a scope and an estimate before anything is agreed rather than after.',
       ],
@@ -204,7 +222,7 @@ export const SITE: SiteFacts = {
         },
       ],
       howToUse: [
-        'Telusuri katalog lengkapnya di /id/work (Bahasa Indonesia) atau /en/work (Inggris); persempit di /id/work/practice/consulting, /ai-data, atau /commission. Tiap penugasan mencantumkan klien, tahun, keterlibatan, dan lingkup.',
+        'Telusuri katalog lengkapnya di /id/work (Bahasa Indonesia) atau /en/work (Inggris); persempit di /id/practice/consulting, /id/practice/ai-data, atau /id/practice/commission. Tiap penugasan mencantumkan klien, tahun, keterlibatan, dan lingkup.',
         'Kirim surel berisi masalahnya, kendala yang membuatnya sulit, dan kapan keputusannya dibutuhkan.',
         'Lingkup dan perkiraan diberikan sebelum apa pun disepakati, bukan sesudah.',
       ],
@@ -278,7 +296,28 @@ export function siteFacts(
 }
 
 /** "a, b, and c" — prose-friendly list for entity copy. */
-export function formatList(items: readonly string[]): string {
+const CONJUNCTION = {
+  en: 'and',
+  id: 'dan',
+} satisfies Record<Locale, string>
+
+/**
+ * "a, b, and c" in English; "a, b, dan c" in Indonesian.
+ *
+ * The locale argument arrived in Tahap 35. Before it, `/id/ai` printed
+ * "Konsultasi strategi dan arsitektur, Rekayasa AI dan data, **and**
+ * Pengerjaan pesanan" — an English conjunction inside a page whose every
+ * other word is Indonesian, on the surface built for machines to read.
+ *
+ * The default keeps `/llms.txt` and the manifest unchanged: both are
+ * single-origin, unlocalized documents by convention, and both carry written
+ * reasoning for resolving to the default locale.
+ */
+export function formatList(
+  items: readonly string[],
+  locale: Locale = routing.defaultLocale
+): string {
   if (items.length <= 1) return items[0] ?? ''
-  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
+  const last = items[items.length - 1]
+  return `${items.slice(0, -1).join(', ')}, ${CONJUNCTION[locale]} ${last}`
 }

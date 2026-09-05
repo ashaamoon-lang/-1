@@ -23,7 +23,8 @@ describe('resolveHomeContent', () => {
     expect(en.headline.length).toBeGreaterThan(0)
     expect(id.headline.length).toBeGreaterThan(0)
     expect(en.headline).not.toBe(id.headline)
-    expect(en.isPlaceholder).toBe(true)
+    expect(en.fallbacks.statement).toBe(true)
+    expect(en.fallbacks.headline).toBe(true)
     expect(en.statement).toBeNull()
     expect(en.statementFallback.length).toBeGreaterThan(0)
   })
@@ -39,7 +40,18 @@ describe('resolveHomeContent', () => {
     // Untouched fields keep the placeholder rather than blanking out.
     expect(resolved.subline.length).toBeGreaterThan(0)
     expect(resolved.email.length).toBeGreaterThan(0)
-    expect(resolved.isPlaceholder).toBe(false)
+
+    /*
+     * The assertion this replaced read `isPlaceholder === false`, and that
+     * *was* the defect: this settings document supplies a name and a headline
+     * and nothing else, so the subline, the email and the whole statement are
+     * still this file's words — and the page reported that none of them were.
+     * Origin is per field because resolution is per field.
+     */
+    expect(resolved.fallbacks.headline).toBe(false)
+    expect(resolved.fallbacks.subline).toBe(true)
+    expect(resolved.fallbacks.email).toBe(true)
+    expect(resolved.fallbacks.statement).toBe(true)
   })
 
   it('treats an emptied field as absent, not as content', () => {
