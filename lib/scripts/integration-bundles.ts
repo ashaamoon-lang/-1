@@ -128,7 +128,15 @@ export const INTEGRATION_BUNDLES = defineBundles({
     folders: [
       'lib/integrations/sanity',
       'components/ui/sanity-image',
-      'app/studio',
+      /*
+       * The real path, at last. This read `app/studio` — a directory that
+       * has not existed since the `(chrome)` restructure, so dropping Sanity
+       * left the Studio route behind, importing a `lib/integrations/sanity`
+       * that had just been deleted. Tahap 38 moved the route again (to
+       * `/cms`, because `/studio` is a public page); the stale entry only
+       * surfaced because the rename made every reference worth reading.
+       */
+      'app/(chrome)/cms',
     ],
     files: ['app/api/draft-mode/enable/route.ts'],
     envVars: [

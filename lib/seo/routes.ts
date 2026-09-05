@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { isConfigured } from '@/integrations/registry'
 import { sanityFetch } from '@/integrations/sanity/live'
 import { urlForReference } from '@/integrations/sanity/utils/link'
+import { resolveJournalEntries } from '@/lib/content/journal-fallback'
 import { localizedPath } from '@/lib/i18n/paths'
 import { type Locale, routing } from '@/lib/i18n/routing'
 import { MARKDOWN_HANDLER_PATH } from '@/lib/seo/markdown-path'
@@ -39,7 +40,7 @@ export interface ContentRoute {
  * `sitemap.xml`/`llms.txt`. See `RESERVED_PATHS` below for routes that must
  * be excluded from CMS dedup without being advertised themselves.
  *
- * - `/studio` — `app/(chrome)/studio/[[...tool]]/page.tsx`, Sanity Studio.
+ * - `/cms` — `app/(chrome)/cms/[[...tool]]/page.tsx`, Sanity Studio.
  * - `/work` — `app/[locale]/work/page.tsx`, the catalogue added in Tahap 8.
  *   A project slugged `work` would otherwise shadow the page that lists it.
  * - `/agent-content` — the internal Markdown negotiation handler proxy.ts
@@ -47,8 +48,8 @@ export interface ContentRoute {
  *   `agent-content` would otherwise be advertised in the sitemap/`/ai` while
  *   direct requests to it still 404 (see `MACHINE_PATHS` in `proxy.ts`).
  *
- * Without this, a CMS document slugged `studio` or `work` would resolve to
- * `/studio` or `/work` via `urlForReference` and get emitted into the
+ * Without this, a CMS document slugged `cms` or `work` would resolve to
+ * `/cms` or `/work` via `urlForReference` and get emitted into the
  * sitemap/llms.txt, even though the real route at that path serves something
  * else entirely. `/sanity` used to be listed here for a wiring-tutorial route
  * Phase A deleted, so it blocked a legitimate slug for eight stages. (`/api` needs no entry: there's no page/route at that root
@@ -66,7 +67,7 @@ const staticPaths = new Set(STATIC_ROUTE_TEMPLATES.map((route) => route.path))
  * and real: the catalogue route added in Tahap 8 would otherwise be shadowed
  * by a project whose slug happened to be `work`.
  */
-const RESERVED_PATHS = new Set(['/studio', '/work', MARKDOWN_HANDLER_PATH])
+const RESERVED_PATHS = new Set(['/cms', '/work', MARKDOWN_HANDLER_PATH])
 
 /**
  * Every document type with a `slug` — kept permissive (`nullable()` fields)
@@ -268,6 +269,74 @@ export function localizedContentRoutes(
 
 export async function getCmsRoutes(): Promise<ContentRoute[]> {
   return (await fetchCmsRoutesResult()).routes
+}
+
+/**
+ * The journal's entries, as advertisable routes — Tahap 38.
+ *
+ * ## The defect this closes
+ *
+ * `routableContentQuery` above covers `page` and `project` only, and
+ * `STATIC_ROUTE_TEMPLATES` carries `/journal` but none of its children. So
+ * six real URLs — three entries in two languages — were absent from
+ * `sitemap.xml`, `/llms.txt` and `/ai` while being present in the search
+ * palette and reachable by a reader. Measured before this existed: the string
+ * `/journal/` appeared **once** in the sitemap, for the index.
+ *
+ * ## Why the labels are localized here and the CMS's are not
+ *
+ * `localizedContentRoutes` expands a path across locales; it cannot translate
+ * a label, because a CMS document's title arrives as one string from one
+ * projection. These entries carry both languages already, so the label is
+ * resolved per locale rather than left English — which is what
+ * `/id/ai` needs, and what it still does not get for projects.
+ *
+ * ## The gap this leaves, stated rather than hidden
+ *
+ * `resolveJournalEntries(locale, null)` returns the scaffolding, and the entry
+ * route reads the same scaffolding (`fallbackEntry`), so the two agree today
+ * and every advertised URL resolves. When the studio publishes real entries,
+ * **both** have to start reading the CMS together — advertising CMS slugs
+ * while the route still serves the fallback would put 404s in the sitemap.
+ * `app/[locale]/journal/[slug]/page.tsx` already records that gap as open;
+ * this is the second place it now has to be closed.
+ */
+export function journalContentRoutes(locale?: Locale): ContentRoute[] {
+  const locales = locale ? [locale] : routing.locales
+
+  return locales.flatMap((each) =>
+    resolveJournalEntries(each, null).map((entry) => ({
+      path: localizedPath(each, `/journal/${entry.slug}`),
+      label: entry.title,
+      // The entry's own date. An `Invalid Date` here would serialize as an
+      // empty `<lastmod>` and invalidate the whole sitemap entry, so a
+      // malformed one falls back to now rather than being emitted broken.
+      lastModified: Number.isNaN(new Date(entry.date).getTime())
+        ? new Date()
+        : new Date(entry.date),
+    }))
+  )
+}
+
+/**
+ * Everything beyond the static catalogue that a machine surface advertises,
+ * already expanded to real URLs.
+ *
+ * The sitemap, `/llms.txt` and `/ai` all call this and nothing else, which is
+ * the point: the three used to assemble their own lists and drifted twice —
+ * once over locale expansion (`localizedContentRoutes`' own doc comment) and
+ * once over the journal, which reached all three only when it was added here.
+ *
+ * Pass `locale` for a surface that is itself locale-scoped (`/ai`); omit it
+ * for the two single documents that cover the whole site.
+ */
+export async function getAdvertisedRoutes(
+  locale?: Locale
+): Promise<ContentRoute[]> {
+  return [
+    ...journalContentRoutes(locale),
+    ...localizedContentRoutes(await getCmsRoutes(), locale),
+  ]
 }
 
 /** Outage-aware accessor — see `CmsRoutesResult.degraded`. Used by markdown-document.ts. */

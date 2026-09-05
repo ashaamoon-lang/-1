@@ -33,13 +33,26 @@ export default async function NotFound() {
             {t('home')}
           </Link>
         }
+        /*
+          Pages, not endpoints — Tahap 38.
+        
+          This offered `/ai`, `/llms.txt` and `/sitemap.xml`: three
+          machine-readable surfaces, handed to the one visitor on the site who
+          is definitely a person who just got lost. Measured, they were three
+          of the four links on the page.
+        
+          Nothing is lost on the machine side. `app/robots.ts` already
+          advertises the sitemap, which is where a crawler looks for it, and
+          `/ai` is in the sitemap itself. A 404 was never how either was
+          discovered.
+        */
         recoveryLinks={
           <>
-            <Link href="/ai">{t('agentIndex')}</Link>
+            <Link href="/work">{t('work')}</Link>
             {' · '}
-            <Link href="/llms.txt">llms.txt</Link>
+            <Link href="/studio">{t('studio')}</Link>
             {' · '}
-            <Link href="/sitemap.xml">{t('sitemap')}</Link>
+            <Link href="/journal">{t('journal')}</Link>
           </>
         }
       />

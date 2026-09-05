@@ -3,11 +3,7 @@ import { locale as localeRootParam } from 'next/root-params'
 
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, LOCALE_TAGS, routing } from '@/lib/i18n/routing'
-import {
-  getCmsRoutes,
-  localizedContentRoutes,
-  STATIC_ROUTES,
-} from '@/lib/seo/routes'
+import { getAdvertisedRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
 import { formatList, SITE, siteFacts } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 
@@ -88,7 +84,7 @@ export default async function AiPage() {
   // They used to be the bare templates, which 307 to whichever locale the
   // fetching agent's `Accept-Language` happens to imply — not necessarily
   // the language of the page the link was found on.
-  const cmsRoutes = localizedContentRoutes(await getCmsRoutes(), locale)
+  const cmsRoutes = await getAdvertisedRoutes(locale)
 
   return (
     <>

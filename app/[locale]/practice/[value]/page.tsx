@@ -5,6 +5,8 @@ import { locale as localeRootParam } from 'next/root-params'
 
 import { ProgressText } from '@/components/effects/progress-text'
 import { Wrapper } from '@/components/layout/wrapper'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
+import { Link } from '@/components/ui/link'
 import { SectionHeader } from '@/components/ui/section-header'
 import {
   PRACTICES,
@@ -17,6 +19,7 @@ import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { workIndexQuery } from '@/lib/integrations/sanity/queries'
+import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { NextPractice } from '@/vault/blocks/next-practice'
 import { PracticeHero } from '@/vault/blocks/practice-hero'
@@ -135,7 +138,7 @@ export default async function PracticePage({ params }: PracticePageProps) {
   const requested = await localeRootParam()
   const locale: Locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const [projects, t, tWork] = await Promise.all([
+  const [projects, t, tWork, tNav] = await Promise.all([
     fetchPractice(locale, value),
     getTranslations('practice'),
     // The practice's name and its one-sentence description are already
@@ -143,6 +146,7 @@ export default async function PracticePage({ params }: PracticePageProps) {
     // each filtered catalogue. Reading them rather than adding a second set
     // keeps this page saying what the rest of the site says.
     getTranslations('workIndex'),
+    getTranslations('nav'),
   ])
 
   const next = nextPractice(value)
@@ -157,6 +161,36 @@ export default async function PracticePage({ params }: PracticePageProps) {
           the defect Tahap 17 found on the home hero.
         */}
         <div className={s.wash} data-accent-region="" aria-hidden="true" />
+
+        {/*
+          Where this page sits — Tahap 38.
+
+          A practice page is a landing page: it is the one that should rank
+          for "commissioned mural" rather than the generic index, so most of
+          its readers arrive without having seen `/work` at all. The trail is
+          the only thing on the page that says the catalogue exists before the
+          reader reaches the bottom of it.
+        */}
+        <Breadcrumbs
+          className={s.breadcrumbs}
+          label={tNav('breadcrumb')}
+          trail={[
+            {
+              href: '/',
+              label: tNav('crumbHome'),
+              url: `${SITE.url}${localizedPath(locale, '/')}`,
+            },
+            {
+              href: '/work',
+              label: tNav('work'),
+              url: `${SITE.url}${localizedPath(locale, '/work')}`,
+            },
+            {
+              label: tWork(value),
+              url: `${SITE.url}${localizedPath(locale, practiceTemplate(value))}`,
+            },
+          ]}
+        />
 
         <PracticeHero
           value={value}
@@ -236,9 +270,29 @@ export default async function PracticePage({ params }: PracticePageProps) {
             <ProjectGrid projects={projects} layout="catalogue" />
           </section>
         ) : (
+          /*
+           * The designed absence, with a door in it — Tahap 38.
+           *
+           * All three practice pages are prerendered whether or not the
+           * studio has published work under them, so this branch is
+           * reachable, and until now it was a sentence and a dead end: the
+           * only way onward from it was the next-practice circuit at the very
+           * bottom. A reader who came looking for consulting work and found
+           * none is exactly the reader who should be shown the rest.
+           */
           <Reveal className={s.section}>
             <p data-reveal-item className="p-big">
               {t('empty')}
+            </p>
+            <p data-reveal-item>
+              <Link
+                href="/work"
+                className={cn('caption', s.emptyAction)}
+                data-press="cta"
+                data-intent=""
+              >
+                {t('emptyAction')}
+              </Link>
             </p>
           </Reveal>
         )}

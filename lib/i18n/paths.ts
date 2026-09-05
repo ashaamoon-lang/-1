@@ -26,7 +26,7 @@ export function localizedPath(locale: Locale, template: string): string {
  * Inverse of {@link localizedPath}: `/en/ai` -> `/ai`, `/en` -> `/`.
  *
  * Returns `null` when the path carries no known locale prefix, which is how
- * callers tell a localized page apart from an unlocalized one (`/studio`,
+ * callers tell a localized page apart from an unlocalized one (`/cms`,
  * `/llms.txt`) rather than guessing from its shape.
  */
 export function templateFromLocalizedPath(path: string): string | null {
@@ -50,7 +50,7 @@ export function localeFromPath(path: string): Locale | null {
  *
  *  - `proxy.ts` runs after several upstream guards have already excluded
  *    `/api/*`, `/agent-content` and dotted paths, so its own list only has to
- *    name what nothing else catches — `/studio`. Its doc comment says so.
+ *    name what nothing else catches — `/cms`. Its doc comment says so.
  *  - a link has no upstream guard. `<Link href="/api/draft-mode/enable">`
  *    renders in one pass, and if it comes out as `/en/api/...` the request
  *    404s.
@@ -59,7 +59,13 @@ export function localeFromPath(path: string): Locale | null {
  * two can never contradict each other even though they differ in width.
  */
 export const UNLOCALIZED_ROUTE_PREFIXES = [
-  '/studio',
+  /*
+   * Sanity Studio. `/cms` since Tahap 38, and the rename is the whole point:
+   * while this list said `/studio`, `components/ui/link` correctly refused to
+   * localize `/studio` — and `/[locale]/studio` is a real public page, so
+   * every link to it rendered unprefixed and landed on the CMS.
+   */
+  '/cms',
   '/api',
   '/agent-content',
 ] as const

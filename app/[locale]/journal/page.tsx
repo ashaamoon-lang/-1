@@ -8,10 +8,14 @@ import {
   type JournalEntry,
   resolveJournalEntries,
 } from '@/lib/content/journal-fallback'
+import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { journalEntriesQuery } from '@/lib/integrations/sanity/queries'
+import { JsonLd } from '@/lib/seo/json-ld'
+import { collectionPageSchema } from '@/lib/seo/schemas'
+import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
@@ -127,6 +131,28 @@ export default async function JournalPage() {
 
   return (
     <Wrapper theme="dark" gsap>
+      {/*
+        The index states its membership — Tahap 38.
+
+        `collectionPageSchema()` had been written, typed, exported and never
+        called. Without it a listing is a page of links: an answer engine
+        asking what the studio has written has to follow every one to find
+        out, and the six entry URLs were not in the sitemap either. The
+        builder omits the `ItemList` entirely when the list is empty rather
+        than asserting an empty collection, so the designed-absence branch
+        below needs no special case here.
+      */}
+      <JsonLd
+        data={collectionPageSchema({
+          name: t('title'),
+          description: t('intro'),
+          url: `${SITE.url}${localizedPath(locale, '/journal')}`,
+          items: entries.map((entry) => ({
+            name: entry.title,
+            url: `${SITE.url}${localizedPath(locale, `/journal/${entry.slug}`)}`,
+          })),
+        })}
+      />
       <div className={s.page}>
         <header className={s.header}>
           <p className={cn('caption', s.eyebrow)}>{t('eyebrow')}</p>

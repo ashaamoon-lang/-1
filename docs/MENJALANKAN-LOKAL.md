@@ -109,7 +109,7 @@ periksa yang ini.
 | `/en/work/practice/ai-data` | Rute praktik dari Tahap 13 — filternya berjalan di server, bukan di browser                                        |
 | `/en/work/arus-balik`       | Halaman detail. Klik sebuah kartu dari katalog: sampulnya **berpindah** ke halaman ini, tidak sekadar dimuat ulang |
 | `/llms.txt` dan `/en/ai`    | Yang dibaca mesin jawaban tentang Arth                                                                             |
-| `/studio`                   | Sanity Studio. Butuh login akun Sanity Anda; dari sini kontennya bisa disunting                                    |
+| `/cms`                      | Sanity Studio. Butuh login akun Sanity Anda; dari sini kontennya bisa disunting                                    |
 
 ---
 
@@ -183,7 +183,7 @@ bun --env-file .env.local lib/scripts/seed-fixtures.ts --clean
 
 Ini **menghapus dokumen dan gambarnya** dari Sanity, dan butuh
 `SANITY_API_WRITE_TOKEN` di `.env.local`. Sesudahnya situs akan tampil dengan
-teks cadangan sampai Anda mengisi kontennya sendiri lewat `/studio`.
+teks cadangan sampai Anda mengisi kontennya sendiri lewat `/cms`.
 
 Untuk sekadar melihat pelatnya tanpa menyentuh Sanity sama sekali:
 

@@ -65,7 +65,7 @@ function resolveHref(documentType?: string, slug?: string): string | undefined {
  */
 export default projectId && dataset
   ? defineConfig({
-      basePath: '/studio',
+      basePath: '/cms',
       projectId,
       dataset,
       schema,

@@ -123,7 +123,7 @@ export function isExternalHref(href: string) {
  *    `#work` to next-intl's `Link` rewrites it to `/en#work`, which forces a
  *    full navigation away from the page the reader is on.
  *  - a static endpoint (`/llms.txt`, `/sitemap.xml`) — `/en/llms.txt` 404s.
- *  - `/studio`, `/api`, `/agent-content` — deliberately locale-free.
+ *  - `/cms`, `/api`, `/agent-content` — deliberately locale-free.
  *
  * The last two rules live in `lib/i18n/paths.ts` as `isLocalizableRoute`,
  * rather than being restated here where they would drift out of step with

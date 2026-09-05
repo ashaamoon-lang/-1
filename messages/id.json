@@ -3,12 +3,16 @@
     "primary": "Utama",
     "work": "Karya",
     "studio": "Studio",
+    "journal": "Jurnal",
     "contact": "Kontak",
     "storybook": "Storybook",
     "openMenu": "Menu",
     "closeMenu": "Tutup",
     "skipToContent": "Lewati ke konten utama",
-    "practice": "Praktik"
+    "practice": "Praktik",
+    "breadcrumb": "Remah roti",
+    "crumbHome": "Beranda",
+    "relatedPractice": "Praktik terkait"
   },
   "home": {
     "workTitle": "Penugasan terakhir",
@@ -50,7 +54,9 @@
     "ai-dataTitle": "AI & Data",
     "ai-dataIntro": "Pekerjaan AI dan data: evaluasi, pipeline, dan sistem yang harus bertahan di produksi.",
     "commissionTitle": "Pesanan",
-    "commissionIntro": "Karya pesanan: penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief."
+    "commissionIntro": "Karya pesanan: penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief.",
+    "allWork": "Semua karya",
+    "relatedPractice": "Praktik terkait"
   },
   "meta": {
     "client": "Klien",
@@ -82,9 +88,10 @@
     "description": "Halaman yang Anda cari tidak ada atau sudah dipindahkan.",
     "tryPrefix": "Coba",
     "home": "Ke beranda",
-    "agentIndex": "Indeks agen",
-    "sitemap": "Peta situs",
-    "title": "Halaman tidak ditemukan"
+    "title": "Halaman tidak ditemukan",
+    "work": "Karya",
+    "studio": "Studio",
+    "journal": "Jurnal"
   },
   "error": {
     "title": "Ada yang tidak beres",
@@ -116,7 +123,8 @@
     "placeholderNote": "Teks penampung. Studio belum menulis pernyataan ini.",
     "consultingStatement": "Penugasan konsultasi dimulai sebelum ada yang dibangun. Kami membaca sistem yang sudah ada, menyebut keputusan mana yang sebenarnya masih terbuka, dan menuliskan konsekuensi yang dibawa masing-masing, supaya pilihan yang diambil adalah pilihan yang masih bisa dipertahankan tim enam bulan kemudian.",
     "ai-dataStatement": "Pekerjaan AI dan data dinilai di produksi, bukan di notebook. Kami membangun evaluasinya dulu, supaya ada angka yang bisa didebat; lalu pipeline, pengamannya, dan serah-terima yang membuat tim bisa menjalankannya tanpa kami.",
-    "commissionStatement": "Pesanan dilingkupi, dihargai, dan dikirim sesuai brief. Brief itu sendiri pekerjaannya: sebagian besar yang salah di penugasan berbayar sudah diputuskan (atau dibiarkan tak diputuskan) sebelum baris pertama ditulis."
+    "commissionStatement": "Pesanan dilingkupi, dihargai, dan dikirim sesuai brief. Brief itu sendiri pekerjaannya: sebagian besar yang salah di penugasan berbayar sudah diputuskan (atau dibiarkan tak diputuskan) sebelum baris pertama ditulis.",
+    "emptyAction": "Lihat semua karya"
   },
   "studio": {
     "eyebrow": "Studio",

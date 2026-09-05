@@ -1,0 +1,71 @@
+.breadcrumbs {
+  margin: 0;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: mobile-vw(8px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+  }
+}
+
+.crumb {
+  display: flex;
+  align-items: baseline;
+  gap: mobile-vw(8px);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+  }
+}
+
+/*
+ * `circuit-reveal` — the INTENT treatment, `docs/MOTION-SPEC.md` §9.
+ *
+ * In slower than out: 200ms to rise, 150ms to settle back. A control that
+ * leaves faster than it arrives reads as having mass; the same duration both
+ * ways reads as a flicker. Only `transform` and colour, so it can never
+ * trigger layout.
+ */
+.link {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition:
+    color var(--duration-micro) var(--ease-out-quart),
+    transform var(--duration-micro) var(--ease-out-quart);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-secondary);
+    transform: translate3d(0, -1px, 0);
+    transition:
+      color var(--duration-fast) var(--ease-out-quart),
+      transform var(--duration-fast) var(--ease-out-quart);
+  }
+}
+
+.separator {
+  color: var(--line-strong);
+}
+
+@media (--reduced-motion) {
+  .link {
+    transition: none;
+
+    &:hover,
+    &:focus-visible {
+      transform: none;
+      transition: none;
+    }
+  }
+}

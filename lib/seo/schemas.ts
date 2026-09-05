@@ -160,7 +160,7 @@ export function websiteSchema(): WebSiteSchema {
 }
 
 export function breadcrumbSchema(
-  items: { name: string; url: string }[]
+  items: readonly { name: string; url: string }[]
 ): BreadcrumbListSchema {
   return {
     '@context': 'https://schema.org',
@@ -191,7 +191,7 @@ export function collectionPageSchema(input: {
   name: string
   url: string
   description?: string
-  items: { name: string; url: string }[]
+  items: readonly { name: string; url: string }[]
 }): CollectionPageSchema {
   const schema: CollectionPageSchema = {
     '@context': 'https://schema.org',

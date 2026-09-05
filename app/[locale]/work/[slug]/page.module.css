@@ -52,3 +52,70 @@
     margin: 0;
   }
 }
+
+/*
+ * Breadcrumb and practice chips — Tahap 38.
+ *
+ * This page offered one link out of its own content. The trail sits above the
+ * hero so it reads before the work rather than after it; the chips sit below
+ * the gallery, where a reader who has finished looking is deciding what to
+ * look at next.
+ */
+.breadcrumbs {
+  grid-column: 1 / -1;
+  margin-block-end: mobile-vw(16px);
+
+  @media (--desktop) {
+    margin-block-end: desktop-vw(16px);
+  }
+}
+
+.practices {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: mobile-vw(8px);
+  margin-block-start: var(--section-lead);
+
+  @media (--desktop) {
+    gap: desktop-vw(8px);
+  }
+}
+
+.practiceChip {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-full);
+  padding: mobile-vw(8px) mobile-vw(16px);
+  color: var(--text-muted);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  /* `circuit-reveal`, MOTION-SPEC §9: out faster than in, so it has mass. */
+  transition:
+    color var(--duration-micro) var(--ease-out-quart),
+    border-color var(--duration-micro) var(--ease-out-quart),
+    transform var(--duration-micro) var(--ease-out-quart);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-secondary);
+    border-color: var(--color-secondary);
+    transform: translate3d(0, -1px, 0);
+    transition:
+      color var(--duration-fast) var(--ease-out-quart),
+      border-color var(--duration-fast) var(--ease-out-quart),
+      transform var(--duration-fast) var(--ease-out-quart);
+  }
+}
+
+@media (--reduced-motion) {
+  .practiceChip {
+    transition: none;
+
+    &:hover,
+    &:focus-visible {
+      transform: none;
+      transition: none;
+    }
+  }
+}

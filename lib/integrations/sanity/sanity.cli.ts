@@ -9,7 +9,7 @@ import { dataset, projectId } from './env'
 export default defineCliConfig({
   api: { projectId, dataset },
   project: {
-    basePath: '/studio',
+    basePath: '/cms',
   },
   vite: {
     resolve: {

@@ -13,7 +13,7 @@ Pengunjung dari Indonesia melihat versi ID, pengunjung lain melihat EN.
 Studio adalah ruang admin situs. Alamatnya:
 
 ```
-https://<domain-situs>/studio
+https://<domain-situs>/cms
 ```
 
 Login memakai akun Google atau email yang sudah diundang. Kalau belum diundang,

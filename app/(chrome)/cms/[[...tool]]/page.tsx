@@ -6,7 +6,7 @@ import { dataset, projectId } from '@/integrations/sanity/env'
 import { Studio } from './studio'
 
 export default async function StudioPage() {
-  // Defer Studio to request time: /studio sits outside the (site) group, so its
+  // Defer Studio to request time: /cms sits outside the (site) group, so its
   // tree no longer reads any dynamic API — without this, Cache Components would
   // try to fully prerender NextStudio at build time, which crashes. The classic
   // `export const dynamic = ...` segment config is forbidden under Cache

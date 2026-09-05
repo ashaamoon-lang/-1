@@ -70,27 +70,42 @@ test.describe('branded 404', () => {
       page.getByText('Page not found', { exact: true })
     ).toBeVisible()
     /*
-     * `/ai` is a page and carries the locale prefix; `/llms.txt` and
-     * `/sitemap.xml` are static endpoints and must not.
+     * The three destinations, each carrying the reader's locale.
      *
-     * These are the links a reader reaches for when everything else has
-     * already failed, so getting either half wrong is expensive: an
-     * unprefixed `/ai` throws away the language they were reading in, and a
-     * prefixed `/en/llms.txt` 404s from the 404 page. The rule lives in
-     * `lib/i18n/paths.ts` (`isLocalizableRoute`) and is unit-tested in
-     * `components/ui/link/link.test.ts`; this asserts it end to end.
+     * These were `Agent index` (`/en/ai`), `llms.txt` and `Sitemap` until
+     * Tahap 38 — three machine-readable surfaces offered to the one visitor
+     * on the site who is certainly a person and has certainly just got lost.
+     * `docs/stages/TAHAP-38.md` §3 carries the count that forced it.
+     *
+     * **What that cost this file, said rather than quietly dropped.** The old
+     * trio asserted *both* halves of the prefix rule end to end: a page link
+     * carries the locale, a static endpoint does not. No rendered page links
+     * to a static endpoint any more, so the second half has no end-to-end
+     * home left. It keeps its unit coverage in `components/ui/link/
+     * link.test.ts` and `proxy.test.ts`. The first half is now asserted more
+     * widely than it was here — `e2e/site-reach.e2e.ts` requires *every*
+     * chrome link on three routes to be locale-prefixed, which is the rule
+     * that, unasserted, let the footer's Studio link serve the CMS for
+     * fourteen stages.
      */
-    await expect(
-      page.getByRole('link', { name: 'Agent index' })
-    ).toHaveAttribute('href', '/en/ai')
-    await expect(page.getByRole('link', { name: 'llms.txt' })).toHaveAttribute(
-      'href',
-      '/llms.txt'
-    )
-    await expect(page.getByRole('link', { name: 'Sitemap' })).toHaveAttribute(
-      'href',
-      '/sitemap.xml'
-    )
+    /*
+     * Scoped to `<main>`, and the reason is the change itself: these three
+     * names now also appear in the header (Tahap 38 put route navigation on
+     * every page) and in the footer's Index column, so an unscoped
+     * `getByRole('link', { name: 'Work' })` resolves to three elements and
+     * trips Playwright's strict mode. What this asserts is the **404's own**
+     * offer, not the chrome's.
+     */
+    const recovery = page.locator('#main-content')
+    for (const [name, href] of [
+      ['Work', '/en/work'],
+      ['Studio', '/en/studio'],
+      ['Journal', '/en/journal'],
+    ] as const) {
+      await expect(
+        recovery.getByRole('link', { name, exact: true })
+      ).toHaveAttribute('href', href)
+    }
 
     // Verified empirically: this 404 navigation logs zero console errors and
     // zero pageerrors (Chromium's "Failed to load resource" console message

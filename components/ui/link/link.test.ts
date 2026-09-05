@@ -97,12 +97,14 @@ describe('which hrefs take a locale prefix', () => {
   })
 
   it('never prefixes a deliberately locale-free route', () => {
-    // `/en/studio` does not exist — Studio lives under `app/(chrome)/`,
-    // outside the localized tree. Prefixing it takes the CMS offline while
-    // every page still looks fine.
+    // `/en/cms` does not exist — Studio lives under `app/(chrome)/`, outside
+    // the localized tree. Prefixing it takes the CMS offline while every page
+    // still looks fine. It sat at `/studio` until Tahap 38, where this same
+    // rule made the footer's link to the *studio page* render unprefixed and
+    // serve the CMS instead.
     for (const href of [
-      '/studio',
-      '/studio/structure',
+      '/cms',
+      '/cms/structure',
       '/api/draft-mode/enable',
       '/agent-content',
     ]) {
@@ -113,7 +115,7 @@ describe('which hrefs take a locale prefix', () => {
   })
 
   it('does not confuse a prefix with a route that merely starts like one', () => {
-    for (const href of ['/studios', '/studio-notes', '/api-design']) {
+    for (const href of ['/cmss', '/cms-notes', '/api-design']) {
       expect(isLocalizableRoute(href), `${href} is a real page`).toBe(true)
     }
   })

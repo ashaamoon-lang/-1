@@ -1,9 +1,12 @@
+import cn from 'clsx'
 import { getTranslations } from 'next-intl/server'
 import type { PortableTextBlock } from 'next-sanity'
 import { notFound } from 'next/navigation'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { Wrapper } from '@/components/layout/wrapper'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
+import { Link } from '@/components/ui/link'
 import { nextProject } from '@/lib/content/next-project'
 import { PRACTICE_SEGMENT } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
@@ -17,6 +20,7 @@ import {
   projectsQuery,
 } from '@/lib/integrations/sanity/queries'
 import { transitionName } from '@/lib/motion/transition-name'
+import { SITE } from '@/lib/seo/site'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
@@ -236,9 +240,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const [{ project, siblings }, t] = await Promise.all([
+  const [{ project, siblings }, t, tNav, tWork] = await Promise.all([
     fetchProject(slug, locale),
     getTranslations('project'),
+    getTranslations('nav'),
+    getTranslations('workIndex'),
   ])
 
   if (!project) notFound()
@@ -253,6 +259,36 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return (
     <Wrapper theme="dark" lenis={{ anchors: true }}>
       <article className={s.article}>
+        {/*
+          Where this page sits, and one click back — Tahap 38.
+
+          Measured before it existed: this page offered **one** link out of
+          its own content, the next project, and a reader who arrived from
+          search had no visible sign that a catalogue existed at all. It also
+          calls `breadcrumbSchema()`, which had been written, typed, exported
+          and never invoked.
+        */}
+        <Breadcrumbs
+          className={s.breadcrumbs}
+          label={tNav('breadcrumb')}
+          trail={[
+            {
+              href: '/',
+              label: tNav('crumbHome'),
+              url: `${SITE.url}${localizedPath(locale, '/')}`,
+            },
+            {
+              href: '/work',
+              label: tNav('work'),
+              url: `${SITE.url}${localizedPath(locale, '/work')}`,
+            },
+            {
+              label: project.title || humanizeSlug(slug),
+              url: `${SITE.url}${localizedPath(locale, `/work/${slug}`)}`,
+            },
+          ]}
+        />
+
         <ProjectHero
           title={project.title || humanizeSlug(slug)}
           cover={project.cover}
@@ -284,6 +320,35 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               alt: image.alt,
             }))}
           />
+        )}
+
+        {/*
+          The practice this work belongs to, linked — Tahap 38.
+
+          `app/[locale]/work/practice/[value]/page.tsx` has existed and been
+          prerendered for all three values since Tahap 15, and **no page ever
+          linked to it**. This page knew the project's practice and did not
+          say it.
+        */}
+        {project.practice && (
+          <nav aria-label={tNav('relatedPractice')} className={s.practices}>
+            <Link
+              className={cn('caption', s.practiceChip)}
+              href={`/${PRACTICE_SEGMENT}/${project.practice}`}
+              data-press="chip"
+              data-intent=""
+            >
+              {tWork(project.practice)}
+            </Link>
+            <Link
+              className={cn('caption', s.practiceChip)}
+              href="/work"
+              data-press="chip"
+              data-intent=""
+            >
+              {tWork('allWork')}
+            </Link>
+          </nav>
         )}
 
         {next?.slug?.current && (

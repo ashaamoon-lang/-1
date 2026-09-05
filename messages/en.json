@@ -3,12 +3,16 @@
     "primary": "Primary",
     "work": "Work",
     "studio": "Studio",
+    "journal": "Journal",
     "contact": "Contact",
     "storybook": "Storybook",
     "openMenu": "Menu",
     "closeMenu": "Close",
     "skipToContent": "Skip to main content",
-    "practice": "Practice"
+    "practice": "Practice",
+    "breadcrumb": "Breadcrumb",
+    "crumbHome": "Home",
+    "relatedPractice": "Related practice"
   },
   "home": {
     "workTitle": "Recent engagements",
@@ -50,7 +54,9 @@
     "ai-dataTitle": "AI & Data",
     "ai-dataIntro": "AI and data work: evaluation, pipelines and systems that have to hold up in production.",
     "commissionTitle": "Commission",
-    "commissionIntro": "Commissioned work: scoped, paid engagements delivered to a brief."
+    "commissionIntro": "Commissioned work: scoped, paid engagements delivered to a brief.",
+    "allWork": "All work",
+    "relatedPractice": "Related practice"
   },
   "meta": {
     "client": "Client",
@@ -82,9 +88,10 @@
     "description": "The page you’re looking for doesn’t exist or has been moved.",
     "tryPrefix": "Try",
     "home": "Go home",
-    "agentIndex": "Agent index",
-    "sitemap": "Sitemap",
-    "title": "Page not found"
+    "title": "Page not found",
+    "work": "Work",
+    "studio": "Studio",
+    "journal": "Journal"
   },
   "error": {
     "title": "Something went wrong",
@@ -116,7 +123,8 @@
     "placeholderNote": "Placeholder text. The studio has not written this statement yet.",
     "consultingStatement": "A consulting engagement starts before anything is built. We read the system that exists, name the decisions that are actually open, and write down the trade-offs each one carries, so the choice that gets made is the one the team can defend six months later.",
     "ai-dataStatement": "AI and data work is judged in production, not in a notebook. We build the evaluation first, so there is a number to argue with; then the pipelines, the guardrails, and the handover that lets a team run it without us.",
-    "commissionStatement": "A commission is scoped, priced and delivered against a brief. The brief is the work: most of what goes wrong in a commissioned engagement was decided, or left undecided, before the first line was written."
+    "commissionStatement": "A commission is scoped, priced and delivered against a brief. The brief is the work: most of what goes wrong in a commissioned engagement was decided, or left undecided, before the first line was written.",
+    "emptyAction": "See all work"
   },
   "studio": {
     "eyebrow": "Studio",

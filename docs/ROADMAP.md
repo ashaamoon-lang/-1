@@ -50,7 +50,9 @@ Bilingual dengan **kedua locale diberi prefix**, dan root melakukan redirect:
 /id                  → home (single page)
 /en/work/[slug]      → detail proyek
 /id/work/[slug]      → detail proyek
-/studio              → Sanity Studio (tidak dilokalkan)
+/en/studio           → halaman studio
+/id/studio           → halaman studio
+/cms                 → Sanity Studio (tidak dilokalkan; `/studio` sampai Tahap 38)
 /ai, /llms.txt, /sitemap.xml, /robots.txt   (sudah ada, perlu sadar-locale)
 ```
 
@@ -90,8 +92,9 @@ itu konsekuensi yang diterima saat memilih opsi single-page.
 > situs ini masih studio karya pesanan dengan nol karya terbit; sejak Tahap 13
 > praktik adalah kosakata struktural, dan sebuah kosakata yang jadi segmen URL,
 > nilai skema, dan entri JSON-LD pantas punya halaman. Anchor `#studio` dan
-> `#contact` **tetap** anchor — `/studio` sudah dipakai Sanity Studio, dan
-> memecah beranda bukan yang diminta.
+> `#contact` **tetap** anchor — `/studio` waktu itu masih dipakai Sanity
+> Studio, dan memecah beranda bukan yang diminta. Tahap 38 memindahkan CMS ke
+> `/cms` karena tabrakan itu ternyata sudah mengirim pembaca ke halaman login.
 
 ## 1.3 Halaman detail proyek
 
@@ -235,9 +238,12 @@ locale dikembalikan apa adanya tanpa header Vary negosiasi.
 
 Dua hal yang harus dijaga selamanya, keduanya sudah dites:
 
-- `/studio` **tidak boleh** dilokalkan. Tanpa pengecualian eksplisit,
-  next-intl me-redirect-nya ke `/en/studio` yang tidak ada — CMS mati
-  sementara seluruh halaman lain tampak normal.
+- `/cms` **tidak boleh** dilokalkan. Tanpa pengecualian eksplisit, next-intl
+  me-redirect-nya ke `/en/cms` yang tidak ada — CMS mati sementara seluruh
+  halaman lain tampak normal. Prefiks itu `/studio` sampai Tahap 38, dan
+  justru karena itu `components/ui/link` menolak melokalkan `/studio` —
+  sehingga tautan footer ke **halaman** studio dirender tanpa prefiks dan
+  menyajikan CMS. Aturannya benar; jalurnya yang salah pilih.
 - Canonical harus tetap identik dengan URL sitemap. `localePrefix: 'always'`
   dipilih justru karena itu: satu bentuk canonical per halaman.
 
@@ -2051,6 +2057,49 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 38 — Navigasi: header, breadcrumb, sirkuit ✅
+
+> Spec: [`docs/stages/TAHAP-38.md`](./stages/TAHAP-38.md)
+
+Situs ini kumpulan jalan buntu. Diukur: sembilan dari sebelas jenis halaman
+mengirim header berisi wordmark, pencarian dan pengalih bahasa — **nol tautan
+rute** — sementara halaman proyek, halaman studio dan entri jurnal
+masing-masing menawarkan **satu** jalan keluar dari isinya sendiri. Tiga
+builder JSON-LD (`breadcrumbSchema`, `collectionPageSchema`, `articleSchema`)
+sudah ditulis, di-type, diekspor, dan tidak pernah dipanggil. Enam URL entri
+jurnal absen dari `sitemap.xml`, `/llms.txt` dan `/ai` sekaligus.
+
+Sesudahnya: proyek 1 → 4, studio 1 → 4, entri 1 → 4; breadcrumb dan
+`ItemList` di lima rute; enam URL jurnal di ketiga permukaan mesin dengan
+judul yang benar per bahasa.
+
+**Cacat yang tidak dicari, dan yang paling mahal.** Menambahkan `/studio` ke
+header berarti menambahkannya ke setiap halaman — dan tautan itu menyajikan
+**Sanity Studio**, bukan halaman studio. `curl` pada build produksi: `/studio`
+→ 200, `<title>Sanity Studio</title>`. Penyebabnya bukan salah ketik:
+`lib/i18n/paths.ts` mendaftarkan `/studio` sebagai rute sengaja bebas-locale
+karena itu base path CMS, jadi `components/ui/link` **dengan benar** menolak
+memberinya prefiks. Dua hal berbeda memakai satu alamat. `TAHAP-15.md` §1.3
+sudah mencatat tabrakan itu; Tahap 24 membangun halamannya di sana, Tahap 22
+menautkannya, dan cacatnya tayang **empat belas Tahap** — termasuk lolos dari
+gerbang Tahap ini sendiri, yang mencocokkan `endsWith('/studio')` dan karena
+itu **lulus justru saat tautannya salah**. CMS pindah ke `/cms`; gerbang
+diganti dengan yang menuntut setiap tautan chrome membawa prefiks locale.
+
+**Yang gagal dan dibatalkan.** 404 merender **28 karakter** tanpa JavaScript
+("Skip to main content / Loading"), nol `<h1>`, nol tautan. Dua perbaikan
+dicoba dan diukur — menghapus `loading.tsx` dengan `instant = false` (28 → **0**,
+lebih buruk) dan melepas `draftMode()` (tetap 0) — dan **keduanya dibatalkan**
+karena penyebabnya belum ditemukan. Butir 404 dikirim setengah dan dicatat
+sebagai terbuka, bukan diam-diam dianggap selesai (`TAHAP-38.md` §7.4).
+`e2e/no-javascript.e2e.ts` memang tidak pernah mencakup 404.
+
+unit 457 · e2e **488 lulus, 0 gagal**, 16 dilewati · dua gerbang baru, keduanya
+merah lebih dulu terhadap situs sebelum tahap ini · Storybook dibangun ulang
+dengan story `Breadcrumbs`.
 
 ---
 

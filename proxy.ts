@@ -62,9 +62,17 @@ const handleI18nRouting = createMiddleware(routing)
  * Route prefixes that must never receive a locale prefix.
  *
  * Sanity Studio is the whole list today, and it is not optional: without this,
- * next-intl redirects `/studio` to `/en/studio`, which does not exist —
- * Studio lives under `app/(chrome)/`, deliberately outside the localized tree.
- * That would take the CMS offline while every page still looked fine.
+ * next-intl redirects `/cms` to `/en/cms`, which does not exist — Studio lives
+ * under `app/(chrome)/`, deliberately outside the localized tree. That would
+ * take the CMS offline while every page still looked fine.
+ *
+ * It was `/studio` until Tahap 38, and that was a collision, not a choice:
+ * `/[locale]/studio` is a public page, and because this list makes `/studio`
+ * unlocalizable, `components/ui/link` refused to prefix it — so the footer's
+ * one link to the studio page rendered `href="/studio"` and served the CMS
+ * login instead. Measured on the production build: 200, `<title>Sanity
+ * Studio</title>`. `docs/stages/TAHAP-15.md` §1.3 had already recorded that
+ * `/studio` was taken; Tahap 24 built the page there anyway.
  *
  * Everything else that must stay unlocalized is already excluded upstream:
  * `/api/*` and `/_next/*` by `isPageDocumentRequest`, `/agent-content` by
@@ -72,7 +80,7 @@ const handleI18nRouting = createMiddleware(routing)
  * `/icon.png`) by `FILE_EXTENSION`, and `/robots.txt` + `/sitemap.xml` by the
  * `matcher` at the bottom of this file.
  */
-export const NON_LOCALIZED_PREFIXES = ['/studio'] as const
+export const NON_LOCALIZED_PREFIXES = ['/cms'] as const
 
 /** Exported for `proxy.test.ts`; not used outside this module at runtime. */
 export function isLocalizable(pathname: string): boolean {

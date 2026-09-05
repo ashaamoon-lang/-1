@@ -63,7 +63,7 @@ Run `bun run setup:project` for interactive removal. It is also drivable non-int
 
 Turnstile is not part of this automated flow — it has no bundle for `setup:project` to remove, so it ships regardless of preset or `--keep` selection.
 
-`setup:project --keep <ids> --yes` is the only supported removal path for Sanity and Shopify: both own routes under `app/api`, `app/(site)`, and `app/studio`, plus config transforms, so deleting their directories by hand leaves the build broken. Run `bun run setup:project --keep <ids> --yes` (or the interactive form), then `bun run check`.
+`setup:project --keep <ids> --yes` is the only supported removal path for Sanity and Shopify: both own routes under `app/api`, `app/[locale]`, and `app/(chrome)/cms`, plus config transforms, so deleting their directories by hand leaves the build broken. Run `bun run setup:project --keep <ids> --yes` (or the interactive form), then `bun run check`.
 
 ## Adding a New Integration
 

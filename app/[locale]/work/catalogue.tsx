@@ -10,6 +10,9 @@ import {
   practicesQuery,
   workIndexQuery,
 } from '@/lib/integrations/sanity/queries'
+import { JsonLd } from '@/lib/seo/json-ld'
+import { collectionPageSchema } from '@/lib/seo/schemas'
+import { SITE } from '@/lib/seo/site'
 import { PracticeFilter } from '@/vault/blocks/practice-filter'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
 import { Reveal } from '@/vault/motion/reveal'
@@ -103,6 +106,28 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
 
   const basePath = localizedPath(locale, '/work')
 
+  /*
+   * The catalogue states what it contains — Tahap 38.
+   *
+   * `collectionPageSchema()` had been written, typed, exported and never
+   * called, so the one page whose entire job is to list the work carried no
+   * `ItemList` at all: an answer engine asking "what has this studio worked
+   * on?" had to fetch and follow every card. Projects without a slug or a
+   * title are dropped for the same reason `project-card` drops them — a row
+   * that names nothing and links nowhere is worse in structured data than in
+   * markup, because nothing renders to make its absence visible.
+   */
+  const listed = projects.flatMap((project) => {
+    const slug = project.slug?.current
+    if (!slug || !project.title) return []
+    return [
+      {
+        name: project.title,
+        url: `${SITE.url}${localizedPath(locale, `/work/${slug}`)}`,
+      },
+    ]
+  })
+
   // Only offer a chip for a practice that has listed work behind it. An
   // option that always returns nothing is a dead end wearing a control's
   // clothes.
@@ -148,6 +173,14 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
        */
       gsap
     >
+      <JsonLd
+        data={collectionPageSchema({
+          name: practice ? t(`${practice}Title`) : t('title'),
+          description: practice ? t(`${practice}Intro`) : t('intro'),
+          url: `${SITE.url}${basePath}`,
+          items: listed,
+        })}
+      />
       <div className={s.page}>
         {/*
           The catalogue's own masthead reveals like every other block that

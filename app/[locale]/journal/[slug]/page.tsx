@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { Wrapper } from '@/components/layout/wrapper'
+import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 import { Link } from '@/components/ui/link'
 import {
   fallbackEntry,
@@ -11,7 +12,12 @@ import {
   type JournalEntry,
   resolveJournalEntries,
 } from '@/lib/content/journal-fallback'
+import { practiceTemplate } from '@/lib/content/practices'
+import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
+import { JsonLd } from '@/lib/seo/json-ld'
+import { articleSchema } from '@/lib/seo/schemas'
+import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
@@ -80,9 +86,10 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
   const entry = entryFor(locale, slug)
   if (!entry) notFound()
 
-  const [t, tWork] = await Promise.all([
+  const [t, tWork, tNav] = await Promise.all([
     getTranslations('journal'),
     getTranslations('workIndex'),
+    getTranslations('nav'),
   ])
 
   const formatter = new Intl.DateTimeFormat(locale, {
@@ -102,16 +109,72 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
   const index = all.findIndex((candidate) => candidate.slug === entry.slug)
   const next = all[(index + 1) % all.length]
 
+  const url = `${SITE.url}${localizedPath(locale, `/journal/${slug}`)}`
+
   return (
     <Wrapper theme="dark" gsap>
+      {/*
+        `articleSchema()` was written, typed, exported and never called —
+        Tahap 38's audit found three builders in that state. An entry is the
+        one document type on this site that is an article, and until now the
+        only structured data it carried was the site-wide Organization graph
+        every route shares, which says nothing about the page it is on.
+
+        `dateModified` is deliberately absent rather than copied from
+        `datePublished`: the scaffolding records when an entry was written and
+        nothing tracks edits, so asserting the two are equal would be a claim
+        this site cannot support.
+      */}
+      <JsonLd
+        data={articleSchema({
+          headline: entry.title,
+          description: entry.summary,
+          url,
+          ...(entry.date && { datePublished: entry.date }),
+        })}
+      />
       <article className={s.page}>
+        <Breadcrumbs
+          className={s.breadcrumbs}
+          label={tNav('breadcrumb')}
+          trail={[
+            {
+              href: '/',
+              label: tNav('crumbHome'),
+              url: `${SITE.url}${localizedPath(locale, '/')}`,
+            },
+            {
+              href: '/journal',
+              label: tNav('journal'),
+              url: `${SITE.url}${localizedPath(locale, '/journal')}`,
+            },
+            { label: entry.title, url },
+          ]}
+        />
+
         <header className={s.header}>
           <p className={cn('caption', s.meta)}>
             <time dateTime={entry.date}>
               {formatter.format(new Date(entry.date))}
             </time>
+            {/*
+              The practice is a link now — Tahap 38.
+
+              It named a practice that has had its own page since Tahap 15a
+              and pointed nowhere, on a page that offered exactly one way
+              onward. An entry filed under "AI and data" is the strongest
+              possible cue that the reader wants the practice behind it.
+            */}
             {entry.practice ? (
-              <span className={s.practice}>{tWork(entry.practice)}</span>
+              <Link
+                href={practiceTemplate(entry.practice)}
+                className={s.practice}
+                aria-label={`${tNav('relatedPractice')}: ${tWork(entry.practice)}`}
+                data-press="practice"
+                data-intent=""
+              >
+                {tWork(entry.practice)}
+              </Link>
             ) : null}
           </p>
 

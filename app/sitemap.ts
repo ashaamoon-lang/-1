@@ -1,10 +1,6 @@
 import type { MetadataRoute } from 'next'
 
-import {
-  getCmsRoutes,
-  localizedContentRoutes,
-  STATIC_ROUTES,
-} from '@/lib/seo/routes'
+import { getAdvertisedRoutes, STATIC_ROUTES } from '@/lib/seo/routes'
 import { BASE_URL } from '@/lib/seo/site'
 
 /**
@@ -14,13 +10,12 @@ import { BASE_URL } from '@/lib/seo/site'
  * the machine view (`/ai`) has no link from the design, so crawlers only
  * discover it here.
  *
- * CMS-driven routes (`getCmsRoutes`) are appended when the Sanity
- * integration is configured; a fresh clone with no CMS env set gets the
- * static routes only.
+ * Everything past the static catalogue — the journal's entries, and the CMS's
+ * pages and projects when Sanity is configured — arrives already expanded
+ * from `getAdvertisedRoutes()`. A fresh clone with no CMS env set still gets
+ * the journal, because those pages exist without one.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const cmsRoutes = await getCmsRoutes()
-
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
     url: `${BASE_URL}${route.path}`,
     lastModified: new Date(),
@@ -28,21 +23,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }))
 
-  // CMS routes arrive as locale-free templates (`/about`) because a slug is
-  // shared across languages. Each one is emitted once per locale so the
-  // sitemap advertises exactly the URLs that exist — and exactly the URLs
-  // those pages canonicalize to, which is the invariant lib/seo/alternates.ts
-  // depends on. Emitting the bare template instead would submit a URL that
-  // only ever redirects. `/llms.txt` and `/ai` now share this expansion via
-  // `localizedContentRoutes`, because for a while they did not.
-  const cmsEntries: MetadataRoute.Sitemap = localizedContentRoutes(
-    cmsRoutes
-  ).map((route) => ({
-    url: `${BASE_URL}${route.path}`,
-    lastModified: route.lastModified,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }))
+  // Already one entry per locale. A CMS slug is locale-free (`/work/rimbun`),
+  // and the bare template is not a page — it 307s to whichever locale the
+  // fetcher's `Accept-Language` implies — so a sitemap that emitted it would
+  // submit a URL that only ever redirects, and one that disagrees with the
+  // page's own canonical. `/llms.txt` and `/ai` do the expansion through the
+  // same accessor, because for a while they each did their own and drifted.
+  const cmsEntries: MetadataRoute.Sitemap = (await getAdvertisedRoutes()).map(
+    (route) => ({
+      url: `${BASE_URL}${route.path}`,
+      lastModified: route.lastModified,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    })
+  )
 
   return [...staticEntries, ...cmsEntries]
 }

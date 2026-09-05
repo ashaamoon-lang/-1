@@ -5,7 +5,7 @@ import {
   buildStaticRoutesMarkdown,
 } from '@/lib/seo/agent-content'
 import { mergeVary } from '@/lib/seo/content-negotiation'
-import { getCmsRoutes, localizedContentRoutes } from '@/lib/seo/routes'
+import { getAdvertisedRoutes } from '@/lib/seo/routes'
 import { formatList, type ResolvedSiteFacts, siteFacts } from '@/lib/seo/site'
 
 /**
@@ -65,7 +65,7 @@ async function buildBody(): Promise<string> {
   // template (`https://…/work/rimbun`), which is a URL that only 307s — on
   // the one surface whose entire purpose is handing a crawler the address to
   // record.
-  const cmsRoutes = localizedContentRoutes(await getCmsRoutes())
+  const cmsRoutes = await getAdvertisedRoutes()
 
   return `# ${facts.name}
 

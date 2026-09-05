@@ -5,7 +5,7 @@ import { locale as localeRootParam } from 'next/root-params'
 import { ProgressText } from '@/components/effects/progress-text'
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
-import { PRACTICES } from '@/lib/content/practices'
+import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { generatePageMetadata } from '@/lib/utils/metadata'
@@ -236,8 +236,28 @@ export default async function StudioPage() {
           <dl className={s.capabilityList}>
             {PRACTICES.map((practice) => (
               <div className={s.capability} data-reveal-item key={practice}>
+                {/*
+                  The name is the link — Tahap 38.
+
+                  This section already says it is "grouped by the three
+                  practices", and each of those three has had a page since
+                  Tahap 15a that nothing on this page pointed at: measured,
+                  `/en/studio` offered **one** onward link in its own content,
+                  the closing "See the work". A reader who got this far is
+                  reading about a practice, and the page about it was one
+                  segment away and invisible.
+                */}
                 <dt className={cn('h3', s.capabilityName)}>
-                  {tPractice(practice)}
+                  <Link
+                    href={practiceTemplate(practice)}
+                    className={s.capabilityLink}
+                    // `MOTION-SPEC.md` §9 — INTENT and COMMIT on a noun the
+                    // reader can press.
+                    data-press="practice"
+                    data-intent=""
+                  >
+                    {tPractice(practice)}
+                  </Link>
                 </dt>
                 <dd className={cn('caption', s.capabilityItems)}>
                   {t(`capabilities.${practice}`)}

@@ -63,6 +63,24 @@ const STORYBOOK_ENABLED =
   process.env.NODE_ENV === 'development' ||
   Boolean(process.env.NEXT_PUBLIC_STORYBOOK_URL)
 
+/**
+ * The three destinations every page offers.
+ *
+ * Locale-free templates: `components/ui/link` adds the prefix itself, and
+ * handing it `/en/work` would produce `/en/en/work`.
+ *
+ * Three and not more. `taste-skill` SKILL.md §4.7 caps the navigation at one
+ * line and 80px, and `e2e/taste-preflight.e2e.ts` measures it — a fourth
+ * would push the row toward wrapping at the narrow end of desktop. These
+ * three are the site's top-level shapes: the work, the practice behind it,
+ * and the writing about it.
+ */
+const ROUTE_LINKS = [
+  { href: '/work', labelKey: 'work' },
+  { href: '/studio', labelKey: 'studio' },
+  { href: '/journal', labelKey: 'journal' },
+] as const
+
 /** Stable empty default — a fresh `[]` per render re-subscribes the observer. */
 const NO_SECTIONS: readonly SectionLink[] = []
 
@@ -126,6 +144,41 @@ export function Header({
               >
                 {t(section.labelKey)}
               </a>
+            </li>
+          ))}
+
+          {/*
+            The routes, on every page — Tahap 38.
+            
+            This nav rendered `sections` and nothing else, and only the home
+            page passes any. Measured: nine of eleven page types shipped a
+            header of wordmark, search and language switcher, with **zero**
+            route links, while a project page offered exactly one way out of
+            its own content.
+
+            `footer/index.tsx` already argued that the site needs persistent
+            route navigation and put it in the footer, where it is below every
+            page. This is the same three destinations at the top, where
+            someone who has just landed on a project from search will look.
+
+            The anchors above stay home-page-only: that argument was right,
+            and this adds route links rather than replacing them.
+          */}
+          {ROUTE_LINKS.map(({ href, labelKey }) => (
+            <li key={href} className={s.navItem}>
+              <Link
+                className={cn('caption', s.navLink)}
+                href={href}
+                onClick={() => setMenuOpen(false)}
+                // `MOTION-SPEC.md` §9.
+                data-press="nav"
+                data-intent=""
+                {...(getLinkIntent(href, pathname).isActive && {
+                  'aria-current': 'page' as const,
+                })}
+              >
+                {t(labelKey)}
+              </Link>
             </li>
           ))}
 

@@ -6,16 +6,16 @@ Next.js App Router pages and routes.
 
 ```
 app/
-├── layout.tsx            # Bare html/body shell shared with /studio
+├── layout.tsx            # Bare html/body shell shared with /cms
 ├── global-error.tsx      # Root-level error boundary (wraps html+body)
-├── not-found.tsx         # Bare-shell 404 for routes outside (site), e.g. /studio
+├── not-found.tsx         # Bare-shell 404 for routes outside (site), e.g. /cms
 ├── manifest.ts           # Web app manifest
 ├── robots.ts             # robots.txt
 ├── sitemap.ts            # sitemap.xml
 ├── llms.txt/             # /llms.txt route
 ├── agent-content/        # /agent-content route
 ├── icon.png, apple-icon.png, opengraph-image.png  (rendered by lib/scripts/generate-brand-assets.ts)
-├── (site)/               # Site routes with app providers; /studio, /api and the machine-readable routes live outside
+├── (site)/               # Site routes with app providers; /cms, /api and the machine-readable routes live outside
 │   ├── layout.tsx        # App providers, metadata, analytics
 │   ├── page.tsx          # Manual / in-app documentation landing page
 │   ├── loading.tsx       # App loading fallback
@@ -34,7 +34,7 @@ app/
 ```
 
 The root layout stays a bare shell on purpose: anything added to it is a
-deliberate decision to ship it to `/studio` too. App-flavored concerns
+deliberate decision to ship it to `/cms` too. App-flavored concerns
 (providers, metadata, analytics) belong in `app/[locale]/layout.tsx`.
 
 See [app/api/README.md](api/README.md) for the API surface (endpoints, webhook setup).

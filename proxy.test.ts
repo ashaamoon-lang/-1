@@ -165,12 +165,12 @@ describe('machine-path parity between proxy.ts and vercel.json', () => {
 
 describe('locale routing exclusions', () => {
   it('never localizes Sanity Studio', () => {
-    // Without this, next-intl redirects /studio to /en/studio — a route that
-    // does not exist, because Studio lives under app/(chrome)/ outside the
+    // Without this, next-intl redirects /cms to /en/cms — a route that does
+    // not exist, because Studio lives under app/(chrome)/ outside the
     // localized tree. The CMS would go offline while every page still looked
     // fine, which is exactly the kind of failure that reaches production.
-    expect(isLocalizable('/studio')).toBe(false)
-    expect(isLocalizable('/studio/structure')).toBe(false)
+    expect(isLocalizable('/cms')).toBe(false)
+    expect(isLocalizable('/cms/structure')).toBe(false)
   })
 
   it('localizes ordinary page paths', () => {
@@ -180,14 +180,14 @@ describe('locale routing exclusions', () => {
   })
 
   it('does not exclude a path that merely starts with the same characters', () => {
-    // A prefix check on '/studio' must not swallow '/studios' — that would
+    // A prefix check on '/cms' must not swallow '/cmss' — that would
     // silently drop a real route out of locale routing.
-    expect(isLocalizable('/studios')).toBe(true)
-    expect(isLocalizable('/studio-notes')).toBe(true)
+    expect(isLocalizable('/cmss')).toBe(true)
+    expect(isLocalizable('/cms-notes')).toBe(true)
   })
 
   it('every non-localized prefix is a rooted path', () => {
-    // A bare 'studio' would never match the leading-slash pathnames the proxy
+    // A bare 'cms' would never match the leading-slash pathnames the proxy
     // actually receives, so the exclusion would silently do nothing.
     for (const prefix of NON_LOCALIZED_PREFIXES) {
       expect(prefix.startsWith('/')).toBe(true)
@@ -198,7 +198,7 @@ describe('locale routing exclusions', () => {
     /*
      * Two lists, deliberately different widths, guarded against contradiction.
      *
-     * `proxy.ts` only names `/studio`, because `isPageDocumentRequest`,
+     * `proxy.ts` only names `/cms`, because `isPageDocumentRequest`,
      * `MACHINE_PATHS`, `FILE_EXTENSION` and the matcher already exclude the
      * rest before its list is consulted. `lib/i18n/paths.ts` names all of
      * them, because `components/ui/link` renders in one pass with no upstream

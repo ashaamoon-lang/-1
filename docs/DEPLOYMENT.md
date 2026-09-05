@@ -133,7 +133,7 @@ curl -sS $SITE/en | grep -o '<link rel="alternate" hrefLang[^>]*>'
 curl -sS $SITE/sitemap.xml | grep -o '<loc>[^<]*</loc>'
 
 # The CMS loads
-curl -sSo /dev/null -w "%{http_code}\n" $SITE/studio
+curl -sSo /dev/null -w "%{http_code}\n" $SITE/cms
 ```
 
 If `hreflang` or the sitemap show `localhost`, `NEXT_PUBLIC_BASE_URL` is
@@ -304,7 +304,7 @@ assumed — `docs/stages/TAHAP-10.md` §3b has the numbers.
 | -------------------------------------- | ------------------------------------------------------------------------------ |
 | Studio loads then all requests fail    | Domain missing from Sanity CORS (§2)                                           |
 | `hreflang`/sitemap say `localhost`     | `NEXT_PUBLIC_BASE_URL` unset at **build** time                                 |
-| `/studio` 404s                         | `NEXT_PUBLIC_SANITY_PROJECT_ID` missing — the config returns `null` without it |
+| `/cms` 404s                            | `NEXT_PUBLIC_SANITY_PROJECT_ID` missing — the config returns `null` without it |
 | Draft mode returns 503                 | No token set; needs `SANITY_API_WRITE_TOKEN` (§1)                              |
 | Webhook returns 401                    | Secret in Sanity differs from `SANITY_REVALIDATE_SECRET`                       |
 | Published edits do not appear          | Webhook not configured (§4)                                                    |

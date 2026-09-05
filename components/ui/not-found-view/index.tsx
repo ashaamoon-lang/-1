@@ -38,21 +38,36 @@ const DEFAULT_HOME_LINK = (
   </a>
 )
 
+/*
+ * Pages a person can use — Tahap 38.
+ *
+ * These were `/ai`, `/llms.txt` and `/sitemap.xml`: a crawler's toolkit,
+ * offered to the one visitor on the site who is certainly a person and has
+ * certainly just got lost. Nothing is lost on the machine side —
+ * `app/robots.ts` advertises the sitemap, which is where a crawler looks for
+ * it, and `/ai` is in the sitemap itself.
+ *
+ * Unprefixed on purpose: `localePrefix` is 'always', so each of these
+ * redirects to the reader's own language rather than pinning them to the
+ * English this variant is stuck with. `/studio` only became safe to write
+ * here in Tahap 38, when Sanity Studio moved to `/cms` — before that it
+ * served the CMS login.
+ */
 const DEFAULT_RECOVERY_LINKS = (
   <>
     {/* oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- the root not-found variant cannot use the client Link component */}
-    <a key="ai" href="/ai">
-      Agent index
+    <a key="work" href="/work">
+      Work
     </a>
     {' · '}
-    {/* oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- machine-readable static endpoint */}
-    <a key="llms" href="/llms.txt">
-      llms.txt
+    {/* oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- as above */}
+    <a key="studio" href="/studio">
+      Studio
     </a>
     {' · '}
-    {/* oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- machine-readable static endpoint */}
-    <a key="sitemap" href="/sitemap.xml">
-      Sitemap
+    {/* oxlint-disable-next-line react/forbid-elements, nextjs/no-html-link-for-pages -- as above */}
+    <a key="journal" href="/journal">
+      Journal
     </a>
   </>
 )
