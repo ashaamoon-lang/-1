@@ -56,7 +56,8 @@
     "commissionTitle": "Pesanan",
     "commissionIntro": "Karya pesanan: penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief.",
     "allWork": "Semua karya",
-    "relatedPractice": "Praktik terkait"
+    "relatedPractice": "Praktik terkait",
+    "aboutPractice": "Tentang {practice}"
   },
   "meta": {
     "client": "Klien",

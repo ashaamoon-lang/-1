@@ -78,3 +78,41 @@
     outline-offset: 2px;
   }
 }
+
+/*
+ * The link out of a narrowed catalogue to the page about that practice —
+ * Tahap 39. `circuit-reveal`, the site's INTENT treatment: in slower than
+ * out, so the control reads as having mass. The reasoning is written once, in
+ * `components/ui/breadcrumbs/breadcrumbs.module.css`.
+ */
+.aboutPractice {
+  display: inline-block;
+  color: var(--text-muted);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition:
+    color var(--duration-micro) var(--ease-out-quart),
+    transform var(--duration-micro) var(--ease-out-quart);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-secondary);
+    transform: translate3d(0, -1px, 0);
+    transition:
+      color var(--duration-fast) var(--ease-out-quart),
+      transform var(--duration-fast) var(--ease-out-quart);
+  }
+}
+
+@media (--reduced-motion) {
+  .aboutPractice {
+    transition: none;
+
+    &:hover,
+    &:focus-visible {
+      transform: none;
+      transition: none;
+    }
+  }
+}

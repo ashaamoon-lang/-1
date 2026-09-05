@@ -28,12 +28,22 @@ test.describe('response headers', () => {
       '/en',
       '/id',
       '/en/ai',
-      // The catalogue and its filter views. These were `no-store` until the
-      // route shape changed in Tahap 10 — the index because it read
-      // `searchParams`, so listing them here is the assertion that the query
-      // string does not come back.
-      '/en/work',
-      '/id/work',
+      /*
+       * The practice views. `/en/work` and `/id/work` are **not** here any
+       * more, and that is a deliberate move rather than an omission.
+       *
+       * They were listed from Tahap 10, with the comment "listing them here
+       * is the assertion that the query string does not come back". Tahap 39
+       * brought it back, having measured that the reason it went away — the
+       * page rendering no work at all without JavaScript, behind the Suspense
+       * boundary `cacheComponents` then required — does not reproduce under
+       * `export const instant = false`. `app/[locale]/work/page.tsx` carries
+       * the numbers and the price: the route is `ƒ` now, and `no-store`.
+       *
+       * The property that assertion was standing in for is asserted directly
+       * instead, below and in `e2e/catalogue-layout.e2e.ts`: the catalogue
+       * must render in full, server-side, filtered or not.
+       */
       ...PRACTICES.map((value) => `/en/work/practice/${value}`),
     ]
 
@@ -44,6 +54,36 @@ test.describe('response headers', () => {
       const value = cacheControl(response.headers())
       expect(value, `${path}: ${value}`).toMatch(/s-maxage=\d+/)
       expect(value, `${path} must not be no-store`).not.toContain('no-store')
+    }
+  })
+
+  test('the catalogue is dynamic, and complete anyway', async ({ request }) => {
+    /*
+     * The replacement for the cache assertion above, and a stronger one.
+     *
+     * A cacheable header never proved the catalogue rendered; it proved the
+     * route shape. This asserts the thing that shape was protecting — that a
+     * crawler fetching either form over plain HTTP gets the work itself, not
+     * a shell — which is exactly the failure Tahap 10 found and
+     * `docs/AUDIT-2026-08.md` §2.1 was about.
+     */
+    for (const path of [
+      '/en/work',
+      '/id/work',
+      '/en/work?practice=consulting',
+    ]) {
+      const response = await request.get(path)
+      expect(response.status(), path).toBe(200)
+
+      const html = await response.text()
+      expect(html, `${path} served no markup`).toContain('<h1')
+      // The catalogue's payload: links to individual works, in the HTML
+      // itself. A Suspense fallback has a heading and prose and none of these.
+      const links = [...html.matchAll(/href="[^"]*\/work\/[a-z0-9-]+"/g)]
+      expect(
+        links.length,
+        `${path} rendered no project links server-side`
+      ).toBeGreaterThan(0)
     }
   })
 

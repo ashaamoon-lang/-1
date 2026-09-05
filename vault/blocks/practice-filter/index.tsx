@@ -1,29 +1,41 @@
 /**
  * PracticeFilter — the work index's category chips.
  *
- * ## Links to pages, not to query strings
+ * ## Links, and since Tahap 39 they narrow the catalogue rather than leave it
  *
- * Every chip is an `<a>` to a real route and the narrowing happens in GROQ on
- * the server. Four things follow, and the first three came out of the
+ * Every chip is still an `<a>` to a real URL and the narrowing still happens
+ * in GROQ on the server. Three things follow, and they came out of the
  * `ui-ux-pro-max` ritual recorded in `docs/stages/TAHAP-8.md` §1:
  *
- *  - **Deep Linking** — `/id/work/practice/mural` is a URL worth sending
- *    someone. A client-side filter would leave every view at the same address.
+ *  - **Deep Linking** — `/id/work?practice=commission` is a URL worth sending
+ *    someone. A purely client-side filter would leave every view at the same
+ *    address.
  *  - **Fast loading essential** (the Portfolio Grid pattern's own conversion
  *    note) — this ships zero client JavaScript. No state, no handlers, no
  *    hydration.
  *  - It works with JavaScript off, which matters here more than usual:
  *    `docs/AUDIT-2026-08.md` §2.6 found `/en` renders one word without it, and
- *    this page should not become a second instance of that.
- *  - Each view is `○` static and separately indexable.
+ *    this page must not become a second instance of that.
  *
- * The fourth is why the chips point at paths and not at `?practice=`, which
- * is what Tahap 8 shipped. Under Cache Components a route that reads
- * `searchParams` must put its content behind a Suspense boundary, and that
- * content then reaches the reader only via an inline script — so the
- * query-string version rendered *no work at all* with JavaScript disabled,
- * recreating the very defect the bullet above cites. The measurement and the
- * two build errors behind it are in `app/[locale]/work/catalogue.tsx`.
+ * ## What it was, and why that was a defect
+ *
+ * Until Tahap 39 the chips pointed at `/practice/<value>` — a *different kind
+ * of page*, with its own hero and statement. Pressing one left the catalogue
+ * entirely, and because `app/[locale]/work/page.tsx` hardcoded
+ * `practice={null}`, the `active` prop below was **always null**: "All" was
+ * permanently current and **no chip could ever appear selected**. A control
+ * that looks like a filter, behaves like navigation, and never shows its
+ * state is a usability failure — it lies to the reader.
+ *
+ * Tahap 8 shipped `?practice=`; Tahap 10 removed it because under Cache
+ * Components the Suspense boundary it then required left the page rendering
+ * no work at all without JavaScript. Tahap 39 measured that again with
+ * `export const instant = false`, which did not exist then: the failure does
+ * not reproduce, and the numbers are in `app/[locale]/work/page.tsx`.
+ *
+ * `/practice/<value>` is untouched and still linked — from the project page,
+ * the studio page and the home page. It answers "what is this practice";
+ * this answers "what work is there". `docs/stages/TAHAP-15.md` §5.1.
  *
  * ## Chip Collection Reflow
  *
@@ -42,7 +54,7 @@ export interface DisciplineOption {
   value: string
   /** Translated label. */
   label: string
-  /** Localized path for this view. Built by `app/[locale]/work/hrefs.ts`. */
+  /** Localized URL for this view. Built by `app/[locale]/work/hrefs.ts`. */
   href: string
 }
 
@@ -74,7 +86,21 @@ export function PracticeFilter({
   const chips = [{ value: null, label: allLabel, href: allHref }, ...options]
 
   return (
-    <nav aria-label={label} className={cn(s.filter, className)}>
+    /*
+      `data-practice-filter` is a test hook, and it earns its place.
+
+      `e2e/catalogue-layout.e2e.ts` needs to ask "which chip is current", and
+      proving that assertion red caught the instrument first: a structural
+      selector matched the **header's** route navigation — added in Tahap 38,
+      and carrying its own `aria-current` on `/work` — and reported the
+      current chip as "Work". Naming the element is what stops an assertion
+      passing on the wrong one.
+    */
+    <nav
+      aria-label={label}
+      data-practice-filter=""
+      className={cn(s.filter, className)}
+    >
       <ul className={s.list}>
         {chips.map((chip) => {
           const isActive = chip.value === active

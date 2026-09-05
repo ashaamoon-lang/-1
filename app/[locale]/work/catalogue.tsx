@@ -1,3 +1,4 @@
+import cn from 'clsx'
 import { getTranslations } from 'next-intl/server'
 
 import { Wrapper } from '@/components/layout/wrapper'
@@ -18,7 +19,7 @@ import { ProjectGrid } from '@/vault/blocks/project-grid'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
 
-import { practiceHref } from './hrefs'
+import { filteredWorkHref, practiceHref } from './hrefs'
 
 import s from './page.module.css'
 
@@ -141,7 +142,10 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
     (value) => ({
       value,
       label: t(value),
-      href: practiceHref(locale, value),
+      // The filtered catalogue, not the topic page — Tahap 39. `practiceHref`
+      // still builds the latter and is still used, below, to send a reader
+      // from the narrowed list to the page *about* what they narrowed to.
+      href: filteredWorkHref(locale, value),
     })
   )
 
@@ -196,17 +200,13 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
             The heading enters the way the home hero's does, rather than as
             one more block in the container's stagger — `docs/stages/TAHAP-23.md`.
 
-            `key` guards a path that is not currently reachable, and that is
-            worth stating rather than implying. `TextReveal` hands its text to
+            `key` is load-bearing as of Tahap 39, having been a guard on an
+            unreachable path for eight stages. `TextReveal` hands its text to
             SplitText, which takes ownership of the rendered text nodes, so a
-            changing string has to remount rather than update in place. But
-            the only caller (`app/[locale]/work/page.tsx:37`) passes
-            `practice={null}`, and the practice chips navigate to
-            `/[locale]/practice/<value>` — measured — because
-            `work/practice/[value]/page.tsx` is a `permanentRedirect` left
-            from before Tahap 15a gave practices their own pages. So the
-            filtered branch below never renders today. The key costs nothing
-            and makes reviving it safe.
+            changing string has to remount rather than update in place — and
+            the string changes now, every time a chip narrows the list. The
+            comment that used to sit here explained why the filtered branch
+            never rendered; it renders.
           */}
           <TextReveal
             key={practice ?? 'all'}
@@ -219,6 +219,27 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
           <p data-reveal-item className={s.intro}>
             {practice ? t(`${practice}Intro`) : t('intro')}
           </p>
+          {/*
+            The narrowed catalogue points at the page *about* what it was
+            narrowed to — Tahap 39, closing the circuit the other way.
+
+            The chips send a reader from "what is this practice" to "what work
+            is there"; without this, that trip is one-way. It renders only
+            when a filter is applied, because on the unfiltered catalogue
+            there is no single practice to be about.
+          */}
+          {practice && (
+            <p data-reveal-item>
+              <Link
+                href={practiceHref(locale, practice)}
+                className={cn('caption', s.aboutPractice)}
+                data-press="practice"
+                data-intent=""
+              >
+                {t('aboutPractice', { practice: t(practice) })}
+              </Link>
+            </p>
+          )}
         </Reveal>
 
         {/*

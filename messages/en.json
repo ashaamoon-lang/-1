@@ -56,7 +56,8 @@
     "commissionTitle": "Commission",
     "commissionIntro": "Commissioned work: scoped, paid engagements delivered to a brief.",
     "allWork": "All work",
-    "relatedPractice": "Related practice"
+    "relatedPractice": "Related practice",
+    "aboutPractice": "About {practice}"
   },
   "meta": {
     "client": "Client",
