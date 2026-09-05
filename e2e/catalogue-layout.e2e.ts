@@ -222,3 +222,172 @@ test.describe('the filter filters', () => {
     }
   })
 })
+
+/**
+ * `catalogue-sift` — the choreography, measured rather than assumed.
+ *
+ * ## What was verified by hand before these were written
+ *
+ * On the production build, filtering `/en/work` to consulting (6 cards -> 2):
+ *
+ * ```
+ * survivor fixture-arus-balik   from translate3d(0, -33.22px, 0)  800ms  delay 0
+ * survivor fixture-pusat-beban  from translate3d(0, -33.22px, 0)  800ms  delay 70
+ * easing   cubic-bezier(0.77, 0, 0.175, 1)   = --ease-in-out-quart
+ * ghosts   4 detached cards in one aria-hidden overlay, 0 after it settles
+ * ```
+ *
+ * 800ms is `--duration-slow`; 70ms is `--stagger-cards`; the curve is
+ * `--ease-in-out-quart`. All three had **zero** consumers before this stage
+ * (`docs/stages/TAHAP-34.md` D3 counted them), which is the whole point of
+ * spending them here rather than adding new values.
+ *
+ * `in-out` is used deliberately and is the one case `CLAUDE.md` #2 allows: a
+ * card leaves one position and arrives at another. Everything else on this
+ * site is `out-*`.
+ */
+test.describe('catalogue-sift', () => {
+  test('surviving cards animate from where they were', async ({ page }) => {
+    await page.goto('/en/work')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(600)
+
+    await page
+      .locator('[data-practice-filter] a', { hasText: 'Consulting' })
+      .click()
+    await page.waitForTimeout(100)
+
+    /*
+     * `ul li[...]`, not `li[...]`. The departing cards are real `<li>`
+     * elements too, re-parented into the exit overlay and carrying their own
+     * `scale(1)` -> `scale(0.98)` animation — so an unscoped selector reads
+     * them as failed FLIPs. Caught by this assertion going red with
+     * "started from scale(1)", which is the exit animation working correctly.
+     */
+    const moving = await page.evaluate(() =>
+      [...document.querySelectorAll('ul li[data-flip-id]')].flatMap((node) =>
+        node.getAnimations().map((animation) => {
+          const timing = animation.effect?.getTiming() ?? {}
+          /*
+           * `getKeyframes` lives on `KeyframeEffect`, not on the
+           * `AnimationEffect` base type the DOM lib gives `animation.effect`.
+           * Every animation on this page is created by `element.animate()`,
+           * which returns exactly that subtype — narrowed with `instanceof`
+           * rather than asserted, so the check is earned instead of claimed.
+           */
+          const effect = animation.effect
+          const frames =
+            effect instanceof KeyframeEffect ? effect.getKeyframes() : []
+          return {
+            from: String(frames[0]?.transform ?? ''),
+            duration: Number(timing.duration ?? 0),
+            delay: Number(timing.delay ?? 0),
+            easing: String(timing.easing ?? ''),
+          }
+        })
+      )
+    )
+
+    expect(
+      moving.length,
+      'nothing animated on a filter change'
+    ).toBeGreaterThan(0)
+
+    for (const animation of moving) {
+      // A FLIP that starts at identity is a FLIP that measured nothing.
+      expect(animation.from, `started from ${animation.from}`).toMatch(
+        /translate3d\((?!0px, 0px, 0px)/
+      )
+      expect(animation.duration, 'not the choreographed band').toBe(800)
+      expect(animation.easing).toBe('cubic-bezier(0.77, 0, 0.175, 1)')
+    }
+
+    // Distance-ranked stagger: at least two different delays, all multiples
+    // of the token. One delay for everything is a simultaneous move, which is
+    // the thing this choreography exists not to be.
+    const delays = [...new Set(moving.map((animation) => animation.delay))]
+    for (const delay of delays) expect(delay % 70).toBe(0)
+  })
+
+  test('departing cards leave, and leave nothing behind', async ({ page }) => {
+    await page.goto('/en/work')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(600)
+
+    const before = await page.locator('li[data-flip-id]').count()
+
+    await page
+      .locator('[data-practice-filter] a', { hasText: 'Consulting' })
+      .click()
+    await page.waitForTimeout(90)
+
+    const mid = await page.evaluate(() => ({
+      ghosts: document.querySelectorAll('body > div[aria-hidden="true"] > li')
+        .length,
+      inGrid: document.querySelectorAll('ul li[data-flip-id]').length,
+    }))
+
+    expect(mid.ghosts, 'no cards were animated out').toBeGreaterThan(0)
+    expect(mid.ghosts + mid.inGrid).toBe(before)
+
+    await page.waitForTimeout(2600)
+
+    const settled = await page.evaluate(() => ({
+      layers: document.querySelectorAll(
+        'body > div[aria-hidden="true"][style*="fixed"]'
+      ).length,
+      opacities: [...document.querySelectorAll('ul li[data-flip-id]')].map(
+        (node) => getComputedStyle(node).opacity
+      ),
+      // A ghost layer left behind would sit over the page invisibly.
+      overflows: document.documentElement.scrollWidth > window.innerWidth,
+    }))
+
+    expect(settled.layers, 'the ghost layer was not cleaned up').toBe(0)
+    expect(settled.opacities.every((value) => value === '1')).toBe(true)
+    expect(settled.overflows).toBe(false)
+  })
+
+  test('reduced motion cuts it, and the filter still works', async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ reducedMotion: 'reduce' })
+    const page = await context.newPage()
+    try {
+      await page.goto('/en/work')
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(600)
+
+      await page
+        .locator('[data-practice-filter] a', { hasText: 'Consulting' })
+        .click()
+      await page.waitForTimeout(120)
+
+      const running = await page.evaluate(
+        () =>
+          [...document.querySelectorAll('ul li[data-flip-id]')].flatMap(
+            (node) => node.getAnimations()
+          ).length
+      )
+      expect(running, 'reduced motion still animated the grid').toBe(0)
+
+      await page.waitForTimeout(600)
+      const settled = await page.evaluate(() => ({
+        cards: document.querySelectorAll('ul li[data-flip-id]').length,
+        opacities: [...document.querySelectorAll('ul li[data-flip-id]')].map(
+          (node) => getComputedStyle(node).opacity
+        ),
+        ghosts: document.querySelectorAll('body > div[aria-hidden="true"] > li')
+          .length,
+      }))
+
+      // The filter is a feature, not an animation: it works identically.
+      expect(settled.cards).toBe(2)
+      // `CLAUDE.md` #5 — content ends fully visible, never stranded.
+      expect(settled.opacities.every((value) => value === '1')).toBe(true)
+      expect(settled.ghosts).toBe(0)
+    } finally {
+      await context.close()
+    }
+  })
+})

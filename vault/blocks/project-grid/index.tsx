@@ -56,9 +56,11 @@
  */
 
 import cn from 'clsx'
+import { useRef } from 'react'
 
 import { useReveal } from '@/lib/hooks/use-reveal'
 import { type Project, ProjectCard } from '@/vault/blocks/project-card'
+import { FLIP_ID, useFlipGrid } from '@/vault/motion/flip'
 
 import s from './project-grid.module.css'
 
@@ -76,6 +78,24 @@ interface ProjectGridProps {
    * desktop width; raising it to cover the whole grid defeats the point.
    */
   preloadCount?: number | undefined
+  /**
+   * Animate surviving cards from where they were to where they now are when
+   * the list changes under the grid — `catalogue-sift`, Tahap 39.
+   *
+   * Opt-in, and deliberately not derived from `layout`. The catalogue is the
+   * only place the contents change without the page changing; the home page's
+   * selection is fixed, and running a FLIP there would measure and store on
+   * every render to animate nothing.
+   */
+  sift?: string | undefined
+  /**
+   * Names this grid as a choreographed moment — `MOTION-SPEC.md` §9.5.
+   *
+   * Declared rather than spread: `ProjectGrid` takes no arbitrary props, and
+   * a marker the budget sampler reads is worth naming in the type so it
+   * cannot be typo'd into silence.
+   */
+  'data-epic'?: string | undefined
   /**
    * Give every cover in this grid a material surface —
    * `vault/webgl/material-image`.
@@ -96,6 +116,8 @@ export function ProjectGrid({
   layout = 'editorial',
   preloadCount = 2,
   material = false,
+  sift,
+  'data-epic': epic,
   className,
 }: ProjectGridProps) {
   // Flips [data-reveal] on the container; CSS animates [data-reveal-item]
@@ -103,8 +125,24 @@ export function ProjectGrid({
   // inside the hook — it reveals immediately and never observes.
   const ref = useReveal<HTMLUListElement>()
 
+  /*
+   * A second ref onto the same element, because `useReveal` owns the one it
+   * returns and `useFlipGrid` needs to read from it rather than attach to it.
+   * Assigning in the callback keeps both pointed at the same node without
+   * either hook knowing about the other.
+   */
+  const gridRef = useRef<HTMLUListElement | null>(null)
+  useFlipGrid(gridRef, sift ?? '')
+
   return (
-    <ul ref={ref} className={cn(s.grid, className)}>
+    <ul
+      ref={(node) => {
+        gridRef.current = node
+        ref.current = node
+      }}
+      className={cn(s.grid, className)}
+      {...(epic && { 'data-epic': epic })}
+    >
       {projects.map((project, index) => {
         const span = layout === 'catalogue' ? 6 : (project.span ?? 6)
 
@@ -112,6 +150,10 @@ export function ProjectGrid({
           <li
             key={project._id}
             data-reveal-item
+            // The identity `catalogue-sift` follows across a filter change.
+            // The document id, not the index: an index is the *position*,
+            // which is precisely what the FLIP is measuring the change in.
+            {...{ [FLIP_ID]: project._id }}
             className={s.item}
             data-span={span}
           >

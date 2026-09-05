@@ -342,17 +342,23 @@ The list, kept current as routes are added. A page missing from it has no
 choreographed movement, and that is a legitimate answer — the journal _entry_
 page is deliberately on this list at zero (`docs/stages/TAHAP-27.md` §5).
 
-| Page                | Moments                                                                                                                 | Added         |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full                       | Tahap 12e     |
-| `/practice/<value>` | 1. **practice morph** — the home page's practice name becoming the hero<br>2. **the scrubbed passage** — `ProgressText` | Tahap 15      |
-| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index                            | Tahap 24, 25  |
-| `/journal`          | 1. **`journal-index`** — the row being read leads                                                                       | Tahap 27      |
-| `/journal/<slug>`   | _none, deliberately_ — it is a long read                                                                                | Tahap 26      |
-| `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too                                        | Tahap 11d     |
-| `/work/<slug>`      | 1. **the project's arrival** — the receiving half of that transition, via `transitionName`                              | Tahap 11d, 19 |
+| Page                | Moments                                                                                                                                           | Added         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full                                                 | Tahap 12e     |
+| `/practice/<value>` | 1. **practice morph** — the home page's practice name becoming the hero<br>2. **the scrubbed passage** — `ProgressText`                           | Tahap 15      |
+| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index                                                      | Tahap 24, 25  |
+| `/journal`          | 1. **`journal-index`** — the row being read leads                                                                                                 | Tahap 27      |
+| `/journal/<slug>`   | _none, deliberately_ — it is a long read                                                                                                          | Tahap 26      |
+| `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too<br>2. **`catalogue-sift`** — the list rearranging under a filter | Tahap 11d, 39 |
+| `/work/<slug>`      | 1. **the project's arrival** — the receiving half of that transition, via `transitionName`                                                        | Tahap 11d, 19 |
 
-Everything else is micro or standard. A filter chip does not get 1200ms.
+Everything else is micro or standard. A filter chip does not get 1200ms —
+and `catalogue-sift` is not the chip. The chip's own acknowledgment is the
+200ms INTENT treatment every pressable noun gets under §9; the moment is what
+the **grid** does afterwards, which is a movement with a start, a resolution
+and an end, and therefore exactly what this budget counts.
+
+`/work` is now at two, which is the ceiling. Nothing else may be added to it.
 
 **The material layer is not counted here, and this is where that is decided.**
 `vault/webgl/material-image` renders on the home page beside the two moments

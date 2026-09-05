@@ -273,6 +273,20 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
               projects={projects}
               layout="catalogue"
               className={s.grid}
+              /*
+                `catalogue-sift` — the catalogue's second choreographed
+                moment, and `MOTION-SPEC.md` §9.5's budget for this page had
+                exactly one left. `work-transport` (the card-to-project morph)
+                is the first; this is the list changing under the reader.
+              */
+              data-epic="catalogue-sift"
+              /*
+                `catalogue-sift`, Tahap 39. The signature is the active
+                practice, so the FLIP measures on mount and animates on
+                exactly the renders where the list changed — not on every
+                render, which would store constantly and animate nothing.
+              */
+              sift={practice ?? 'all'}
               material
             />
           </>

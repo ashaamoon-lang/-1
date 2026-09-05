@@ -2060,6 +2060,49 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 39 — Filter yang benar-benar memfilter, lalu `catalogue-sift` ✅
+
+> Spec: [`docs/stages/TAHAP-39.md`](./stages/TAHAP-39.md)
+
+Chip praktik di `/work` tampak seperti filter, berperilaku seperti navigasi,
+dan **tidak pernah menunjukkan keadaan terpilih** — `page.tsx` menghardcode
+`practice={null}`, jadi "All" permanen aktif dan cabang katalog terfilter
+adalah kode mati sejak Tahap 15a. Dibuktikan merah: menyaring ke consulting
+mengubah jumlah kartu **6 → 6**.
+
+Premis rencananya sendiri ternyata salah, dan repo sudah menolaknya **dua
+kali**: Tahap 10 mencatat dua galat build, dan `response-headers.e2e.ts`
+memasang gerbang eksplisit bahwa "query string tidak boleh kembali". Diukur
+ulang dengan `export const instant = false` — yang belum ada saat Tahap 10 —
+dan keberatan pertama **tidak reproduce**: `?practice=consulting` merender 612
+karakter, `<h1>Consulting</h1>`, dua proyek, dengan JavaScript **mati**.
+Keberatan kedua reproduce penuh, jadi harganya ditulis di depan dan
+diputuskan: dua URL berhenti bisa di-cache CDN. Gerbangnya **dipindahkan
+dengan alasan**, bukan dibungkam.
+
+**`catalogue-sift`** membelanjakan tiga token yang punya nol konsumen:
+`--duration-slow` (800ms), `--stagger-cards` (70ms) dan `--ease-in-out-quart`
+— satu-satunya tempat `in-out` sah menurut `CLAUDE.md` #2, karena kartunya
+berangkat _dan_ mendarat. FLIP tangan dengan WAAPI, nol loop RAF kedua, nol
+dependensi. Stagger menurut **jarak**, terbalik, supaya kisinya mendarat
+bersamaan. Kartu yang keluar dipindah ke lapisan `aria-hidden` dan dipudarkan
+di sana — 4 ghost mid-flight, 0 sesudah mengendap.
+
+Dua pengukuran mengubah rancangannya: menekan chip menjalankan **nol**
+`document.startViewTransition` (jadi tidak ada morph native yang bersaing),
+dan navigasinya me-reset gulir **900 → 0** (jadi posisi diukur di koordinat
+dokumen, dan chip membawa `scroll={false}`).
+
+**Dua cacat instrumen ditangkap sebelum mereka menangkap situs:** selektor
+filter cocok dengan navigasi header yang baru dipasang Tahap 38 dan melaporkan
+chip terpilih sebagai "Work"; dan selektor FLIP membaca animasi kartu-keluar
+sebagai FLIP yang gagal. Keduanya ditulis di §7.3.
+
+unit 458 · e2e **499 lulus, 0 gagal**, 17 dilewati · tujuh asersi baru,
+semuanya merah lebih dulu · Storybook dibangun ulang.
+
+---
+
 ## Tahap 38 — Navigasi: header, breadcrumb, sirkuit ✅
 
 > Spec: [`docs/stages/TAHAP-38.md`](./stages/TAHAP-38.md)

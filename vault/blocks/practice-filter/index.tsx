@@ -114,6 +114,33 @@ export function PracticeFilter({
                 // its own acknowledgment.
                 data-press="chip"
                 data-intent=""
+                /*
+                 * `morph`, not the default `cover` — Tahap 39.
+                 *
+                 * `lib/motion/navigation-signal.ts` defines `cover` as an
+                 * overlay that exists "precisely to stop them seeing either"
+                 * state, and `morph` as the announcement that the destination
+                 * shares elements with this page so the overlay stands aside.
+                 * Filtering keeps most of the cards, so it is a morph by that
+                 * definition — and without this the `catalogue-sift`
+                 * choreography would run entirely behind a curtain.
+                 */
+                transition="morph"
+                /*
+                 * The reader stays where they are.
+                 *
+                 * `components/ui/link` defaults to `scroll` because Tahap 15b
+                 * measured what turning it off globally cost: every
+                 * navigation inherited the previous page's offset and readers
+                 * landed at the end of pages they had just opened. That
+                 * argument is about going somewhere else. This is the same
+                 * page with a shorter list, the chips sit at the top of it,
+                 * and jumping the reader to the top of a page they are
+                 * already near the top of is a jolt with nothing to show for
+                 * it — measured at scroll 900, the reset moved the first card
+                 * 933px, which the FLIP would then have had to animate.
+                 */
+                scroll={false}
                 // The accessible state, which the CSS then styles from — so
                 // the visual and the announced state cannot desynchronise.
                 {...(isActive && { 'aria-current': 'true' })}

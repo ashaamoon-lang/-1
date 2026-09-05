@@ -215,4 +215,122 @@ yang bertahan. Bukan "kelihatan keren".
 
 ## 7. Hasil
 
-_Diisi setelah kode ditulis dan gerbang dijalankan._
+### 7.1 Keputusan §3 dikonfirmasi
+
+Bentuknya ditanyakan dengan angkanya di depan, dan dipilih: **filter di
+tempat, biaya cache diterima.** Alternatif yang lebih murah ditolak secara
+sadar, bukan dilewatkan.
+
+### 7.2 Dibuktikan merah, dengan angkanya
+
+Terhadap build produksi sebelum kode ditulis, `/en/work`:
+
+| Asersi                          | Hasil merah                                        |
+| ------------------------------- | -------------------------------------------------- |
+| Chip mempersempit katalog       | **6 → 6** — query string diabaikan seluruhnya      |
+| Chip terpilih menandai dirinya  | Yang `aria-current` adalah **"Work"** — lihat §7.3 |
+| Filter bekerja tanpa JavaScript | `<h1>` = `Work`, bukan `Consulting`                |
+
+### 7.3 Cacat instrumen, ditangkap sebelum ia menangkap situs
+
+Asersi "chip mana yang terpilih" ditulis dengan selektor struktural
+`nav:has(a[href$="/work"])`. Itu cocok dengan **navigasi rute di header** —
+yang baru dipasang Tahap 38, dan yang membawa `aria-current`-nya sendiri di
+`/work` — lalu melaporkan chip terpilih sebagai `Work`. Pengalih bahasa juga
+membawa `aria-current="true"`.
+
+Gerbang yang lulus pada elemen yang salah lebih buruk daripada gerbang yang
+tidak ada. Filter sekarang menandai dirinya `data-practice-filter` dan gerbang
+menanyakan itu — alasan yang sama yang sudah dibawa `data-statement` dan
+`data-site-facts` di suite ini.
+
+Cacat instrumen **kedua**, ditangkap saat menghijaukan `catalogue-sift`: kartu
+yang keluar juga `<li[data-flip-id]>`, dipindah ke lapisan keluar, dan membawa
+animasinya sendiri — jadi selektor tanpa scope membaca `scale(1)` sebagai FLIP
+yang gagal. Asersinya di-scope ke `ul li[...]`. Merahnya berbunyi
+`started from scale(1)`, yang justru animasi keluar yang bekerja benar.
+
+### 7.4 Yang dikirim, diukur pada build produksi
+
+**39a — filternya jadi filter.**
+
+| URL                            | kartu | `<h1>`           | karakter (JS mati) |
+| ------------------------------ | ----: | ---------------- | -----------------: |
+| `/en/work`                     |     6 | `Work`           |                813 |
+| `/en/work?practice=consulting` | **2** | **`Consulting`** |            **612** |
+| `/en/work?practice=nonsense`   |     6 | `Work`           |                813 |
+
+Rute `○` → `ƒ`, `Cache-Control: private, no-store` — biaya yang §3 sebutkan di
+depan dan yang Anda terima. Ketiga `/practice/<value>` tidak tersentuh.
+
+**39b — `catalogue-sift`.** Diukur dengan membaca `getAnimations()` pada build
+produksi, menyaring dari 6 kartu ke 2:
+
+```
+survivor fixture-arus-balik   from translate3d(0px, -33.2188px, 0px)  800ms  delay 0
+survivor fixture-pusat-beban  from translate3d(0px, -33.2188px, 0px)  800ms  delay 70
+easing   cubic-bezier(0.77, 0, 0.175, 1)
+ghosts   4 kartu di satu lapisan aria-hidden mid-flight, 0 sesudah mengendap
+```
+
+- **800ms** = `--duration-slow`, **70ms** = `--stagger-cards`,
+  `cubic-bezier(0.77, 0, 0.175, 1)` = `--ease-in-out-quart`. Ketiganya punya
+  **nol konsumen** sebelum tahap ini (`TAHAP-34.md` D3 menghitungnya). Itu
+  seluruh maksudnya: membelanjakan kosakata yang sudah dibeli, bukan menambah
+  nilai baru.
+- `in-out` dipakai sengaja, dan ini satu-satunya kasus yang `CLAUDE.md` #2
+  izinkan: benda yang berangkat dari satu tempat dan mendarat di tempat lain.
+- Reduced motion: **0** animasi, 2 kartu, `opacity` 1/1, nol ghost. Filternya
+  berfungsi identik (`CLAUDE.md` #5).
+
+### 7.5 Dua hal yang diukur dan mengubah rancangan
+
+**Nol `document.startViewTransition`.** Diukur sebelum menulis apa pun: menekan
+chip menjalankan **nol** view transition. Jadi tidak ada morph native yang
+bersaing dengan FLIP tangan — dan membuatnya justru akan menamai enam kartu
+sekaligus, melawan aturan satu-morph-per-navigasi §9.4. Itu yang menyelesaikan
+pilihan WAAPI-versus-native, bukan selera.
+
+**Navigasi me-reset gulir 900 → 0.** Kartu pertama ada di viewport `top: -432`
+sebelum, `top: 501` sesudah. FLIP di ruang viewport akan membaca itu sebagai
+perpindahan 933px dan menganimasikan reset gulir seolah-olah layout. Dua
+perbaikan menyusul:
+
+1. Posisi diukur di **koordinat dokumen** (`rect.top + scrollY`), sehingga
+   delta menggambarkan yang benar-benar berubah.
+2. Chip membawa `scroll={false}`. Argumen Tahap 15b untuk `scroll` default
+   adalah tentang **pergi ke halaman lain**; ini halaman yang sama dengan
+   daftar lebih pendek, dan chip-nya ada di atas halaman itu.
+
+Ditambah satu lagi: chip membawa `transition="morph"`. Default `cover`
+memasang overlay yang, menurut `navigation-signal.ts` sendiri, ada "precisely
+to stop them seeing either" — koreografinya akan berjalan penuh di balik
+tirai.
+
+### 7.6 Yang ditolak lint, dan diperbaiki bukan dibungkam
+
+`anti-slop/no-chained-type-assertions` menolak `window as unknown as {…}`
+untuk menjangkau ScrollTrigger. Benar: `ScrollTrigger` **sudah** ada di graf
+modul ini — tiap `ProjectCard` memanggil `useParallax`, yang mengimpornya —
+jadi mengimpornya langsung tidak menambah satu byte pun dan menghasilkan tipe
+yang nyata. `no-floating-promises` menolak `.then()` tanpa `void`; alasannya
+ditulis di tempatnya, bukan di-disable.
+
+### 7.7 Gerbang
+
+```
+bun run build            ✅  /[locale]/work sekarang ƒ
+bun run check            ✅  oxlint · oxfmt · tsc · 458 unit · manifest · assets
+CI=true bun run test:e2e ✅  499 lulus · 17 dilewati · 0 gagal
+bun run build-storybook  ✅
+```
+
+Satu kegagalan pada jalan pertama, diperkirakan dan milik tahap ini:
+`storybook-a11y.e2e.ts` menolak Storybook yang lebih tua dari komponen yang
+diperiksanya — `vault/motion/flip/` baru. Dibangun ulang; 98 lulus.
+
+### 7.8 Catatan
+
+`vault/motion/flip/` belum punya story Storybook. Ia hook, bukan primitif yang
+dirender, dan gerbang tertulis proyek ini menuntut story untuk **primitif**;
+tetap dicatat di sini alih-alih didiamkan, dan masuk daftar Tahap 46.
