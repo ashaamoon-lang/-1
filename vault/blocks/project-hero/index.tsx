@@ -13,6 +13,7 @@ import {
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
 import { isFullWidth } from '@/vault/blocks/project-gallery'
 import { TextReveal } from '@/vault/motion/text-reveal'
+import { MaterialImage } from '@/vault/webgl/material-image'
 
 import s from './project-hero.module.css'
 
@@ -68,6 +69,15 @@ interface ProjectHeroProps {
    * optional rather than required.
    */
   transitionName?: string | undefined
+  /**
+   * Give the cover a material surface — `vault/webgl/material-image`.
+   *
+   * Off by default, and the default is the important half: opting in pulls
+   * three.js into the route that renders it, and `e2e/route-budget.e2e.ts`
+   * lists per route which engines are allowed. Passing this without adding
+   * `three` to that route's `allow` is a red gate, which is the point.
+   */
+  material?: boolean | undefined
   className?: string | undefined
 }
 
@@ -79,6 +89,7 @@ export function ProjectHero({
   transitionName,
   id,
   'data-region': region,
+  material = false,
   className,
 }: ProjectHeroProps) {
   const facts = meta.filter(
@@ -172,19 +183,51 @@ export function ProjectHero({
             data-span={coverIsFull ? 'full' : 'half'}
             style={ratioStyle(coverRatio)}
           >
-            <SanityImage
-              image={toImageSource(cover)}
-              alt={coverAlt}
-              maxWidth={coverIsFull ? 1440 : 704}
-              className={s.image}
-              /*
-               * The cover is this page's largest contentful paint. It shipped
-               * as `loading="lazy"` with no fetch priority, which is the one
-               * image on the page that must never wait its turn.
-               */
-              preload
-              sizes={trackImageSizes(coverIsFull ? 92 : 48)}
-            />
+            {/*
+              The material layer reaches its third route — Tahap 45.
+
+              `/en` shows a selection of the work with plates that answer the
+              pointer, and `/en/work` shows all of it through the same
+              surface. The page that shows **one** work at its largest had the
+              flattest version of it, which is the wrong way round: this is
+              where a reader looks longest.
+
+              ## Why the arrival morph is safe without new wiring
+
+              `vault/blocks/project-card` raises `released` at COMMIT so the
+              departing card hands its pixels back before `<ViewTransition>`
+              photographs them. The arriving end needs no equivalent, and that
+              is a property of `MaterialImage` rather than luck: it hides the
+              DOM image only once `drew` is true — the mesh's own report that
+              it has actually painted. At the instant the view transition
+              captures this page, the scene chunk has not been fetched, so
+              `drew` is false, the plain plate is visible, and the morph lands
+              on real pixels. The material takes over after.
+            */}
+            {material ? (
+              <MaterialImage
+                image={toImageSource(cover)}
+                alt={coverAlt}
+                maxWidth={coverIsFull ? 1440 : 704}
+                className={s.image}
+                preload
+                sizes={trackImageSizes(coverIsFull ? 92 : 48)}
+              />
+            ) : (
+              <SanityImage
+                image={toImageSource(cover)}
+                alt={coverAlt}
+                maxWidth={coverIsFull ? 1440 : 704}
+                className={s.image}
+                /*
+                 * The cover is this page's largest contentful paint. It
+                 * shipped as `loading="lazy"` with no fetch priority, which is
+                 * the one image on the page that must never wait its turn.
+                 */
+                preload
+                sizes={trackImageSizes(coverIsFull ? 92 : 48)}
+              />
+            )}
           </div>
         </ViewTransition>
       )}

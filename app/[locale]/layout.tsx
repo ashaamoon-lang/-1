@@ -10,7 +10,6 @@ import { type PropsWithChildren, Suspense } from 'react'
 import { ReactTempus } from 'tempus/react'
 
 import { RealViewport } from '@/components/ui/real-viewport'
-import { ToastProvider, ToastViewport } from '@/components/ui/toast'
 import { APP_BASE_URL, env } from '@/lib/env'
 import { OptionalFeatures } from '@/lib/features'
 import { localizedPath } from '@/lib/i18n/paths'
@@ -273,17 +272,14 @@ export default async function AppLayout({ children }: PropsWithChildren) {
           <Cursor viewLabel={t('work.viewProject')} />
           {/* Critical: CSS custom properties needed for layout */}
           <RealViewport>
-            <ToastProvider>
-              <TransformProvider>
-                {/*
-              DO NOT add Header or Footer here.
-              They are included in the <Wrapper> component used by each page.
-              See: components/layout/wrapper/index.tsx
-            */}
-                {children}
-              </TransformProvider>
-              <ToastViewport />
-            </ToastProvider>
+            <TransformProvider>
+              {/*
+            DO NOT add Header or Footer here.
+            They are included in the <Wrapper> component used by each page.
+            See: components/layout/wrapper/index.tsx
+          */}
+              {children}
+            </TransformProvider>
           </RealViewport>
           {/*
         Optional features — dev tools only.

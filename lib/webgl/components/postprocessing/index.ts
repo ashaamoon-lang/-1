@@ -7,35 +7,57 @@ import { HalfFloatType } from 'three'
  * Sanctioned starter scaffold: no default consumer wires this up in the repo
  * today, enable it per-canvas via the `postprocessing` prop on WebGLCanvas.
  *
- * ## Two stages tried to ship this. Both measured, both stood down.
+ * ## Three stages measured this. The verdict changed at the third.
  *
- * **Tahap 32** gave it a low-amplitude grain — this site's own vocabulary —
- * and photographed the same page with and without. The composite came back
- * **lifted**: mean absolute difference 55.8/255, 93.5% of channels moved, the
- * artwork's deep rust reading as milky apricot. The suspicion was the
- * composer's `HalfFloatType` buffer taking the render out of the renderer's
- * colour handling.
+ * **Tahap 32** gave it a low-amplitude grain and photographed the same page
+ * with and without. The composite came back **lifted**: mean absolute
+ * difference 55.8/255, the artwork's deep rust reading as milky apricot. The
+ * suspicion was the composer's `HalfFloatType` buffer.
  *
  * **Tahap 33** tested that suspicion and it was wrong. The buffer type was
- * removed and the effect replaced with something that is an identity
- * operation on a still page — a dispersion driven by scroll velocity, which
- * at rest offsets the channels by exactly zero. Measured at rest against the
- * same page without a composer: **58.7/255**. No better. The lift is not the
- * effect and not the buffer; it is the composer's own colour management
- * meeting a renderer this project configured on purpose.
+ * removed and the effect replaced with one that is an identity operation on a
+ * still page. Measured at rest: **58.7/255**. No better. The conclusion drawn
+ * was that the composer's colour management conflicts with the renderer this
+ * project configures on purpose, and that a third attempt would have to start
+ * from the renderer's colour setup.
  *
- * That configuration is not incidental. `lib/webgl/components/canvas/webgl.tsx`
- * sets `flat` and leaves `outputColorSpace` at sRGB, and both were arrived at
- * by measurement — `docs/stages/TAHAP-17.md` §4 records a bug where every
- * custom-shaded colour landed as `authored ^ 2.2` because the conversion was
- * disabled at one end only. Making the composer agree means reopening those
- * decisions, and an ambient effect is not worth putting the site's colour
- * pipeline back in play.
+ * **Tahap 45 measured that, and the conflict did not reproduce.** Same
+ * instrument, same page, same band, at rest, against the same page with no
+ * composer:
  *
- * So: still unused, and now for a reason that names the actual conflict
- * rather than the first plausible cause. `docs/stages/TAHAP-33.md` §8.3 has
- * both measurements. What a third attempt would have to start from is the
- * renderer's colour setup, not the effect.
+ * | attempt                                        | difference at rest |
+ * | ---------------------------------------------- | ------------------ |
+ * | Tahap 32 - grain, `HalfFloatType`              | 55.8/255           |
+ * | Tahap 33 - dispersion, default buffer          | 58.7/255           |
+ * | **Tahap 45 - this chain, as it stands**        | **0.6/255**        |
+ * | Tahap 45 - repeat                              | 0.7/255            |
+ * | Tahap 45 - `RenderPass` + identity `EffectPass` | 0.7/255           |
+ *
+ * **The chain was proved live before any of those numbers were trusted.** An
+ * inversion probe as the effect moved **74.1/255 across 92.7% of channels**,
+ * so the composer is genuinely drawing the region being measured. Measuring a
+ * composer that is not running is the easiest way to be wrong here, and 0.6
+ * is exactly what that mistake would look like.
+ *
+ * **What cannot be claimed.** Neither `postprocessing` nor `three` has been
+ * version-bumped since the fork, so the difference is not a dependency
+ * upgrade - and the code that produced 55.8 and 58.7 no longer exists to
+ * re-measure. So no explanation is offered for the old numbers. The claim is
+ * only this, and it is bounded on purpose: **on the configuration standing
+ * today, with the chain proved live, the composite is within 0.7/255 of the
+ * uncomposed page.**
+ *
+ * ## Why it is still unused, and what would change that
+ *
+ * The technical objection is gone; the editorial one is not. This chain is
+ * `RenderPass` + `CopyPass` - an identity, which is a full-screen pass every
+ * frame for no change. `taste-skill`'s rule that motion must be motivated is
+ * not satisfied by "the pipeline turned out to be clean", and after Tahap 43
+ * the site's continuous-response vocabulary already carries four mechanisms.
+ *
+ * No route enables it, so a reader downloads nothing for it. What is missing
+ * is an effect worth a full-screen pass, and that is a decision for the
+ * studio. `docs/stages/TAHAP-45.md` §2 carries the measurements.
  */
 export function PostProcessing() {
   const gl = useThree((state) => state.gl)

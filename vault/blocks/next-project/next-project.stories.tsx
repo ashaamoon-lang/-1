@@ -30,8 +30,8 @@ export const Default: Story = {
 export const Indonesian: Story = {
   args: {
     eyebrow: 'Karya berikutnya',
-    title: 'Senja Ungu',
-    slug: 'senja-ungu',
+    title: 'Pusat Beban',
+    slug: 'pusat-beban',
   },
 }
 

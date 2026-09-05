@@ -18,6 +18,20 @@ Conditionally loaded features for the app layout.
 
 ## WebGL
 
+**This project does not use the shared root canvas.** The passage below
+describes the starter's strategy, and it is kept because the alternative it
+warns against is still the rule: one strategy or the other, never both.
+
+Since Tahap 21, Arth mounts a canvas **per route** — `Wrapper` takes `webgl`,
+and three routes pass it: `/en`, `/en/work`, and `/en/work/<slug>` as of
+Tahap 45. `OptionalFeatures` is not given `webgl` in
+`app/[locale]/layout.tsx`, so no shared canvas exists to conflict with them.
+Mounting both would put two canvases in the tree, and they race to claim
+"primary" during render — `vault/webgl/scene-shell` records the failure that
+proved it, including which unrelated test it turned red.
+
+The starter's own description follows.
+
 `OptionalFeatures` mounts the shared root canvas (`<Canvas root />`) so the
 WebGL context persists across navigation. Pages portal 3D content into it with
 `<WebGLTunnel>` — no per-page setup needed:

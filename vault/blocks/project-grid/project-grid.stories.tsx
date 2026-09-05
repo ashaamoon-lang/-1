@@ -51,8 +51,8 @@ const projects: Project[] = [
   fixture('arus-balik', 'Arus Balik', 2025, 6, 'Architecture review'),
   fixture('takar', 'Takar', 2025, 6, 'Data pipeline'),
   fixture('pusat-beban', 'Pusat Beban', 2024, 12, 'Retainer, six months'),
-  fixture('senja-ungu', 'Senja Ungu', 2024, 6, 'Oil on board'),
-  fixture('lipat', 'Lipat', 2023, 6, 'Ink and collage'),
+  fixture('bacaan-mesin', 'Bacaan Mesin', 2025, 6, 'Evaluation harness'),
+  fixture('pelabuhan', 'Pelabuhan', 2024, 6, 'Data platform'),
 ]
 
 export const Default: Story = {

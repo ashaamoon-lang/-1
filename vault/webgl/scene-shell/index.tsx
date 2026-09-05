@@ -39,8 +39,13 @@
  * console-error assertions. Verified the hard way: it turned
  * `e2e/not-found.e2e.ts` red while the homepage itself looked fine.
  *
- * If a page ever genuinely needs its own canvas, remove the shared one from
- * the layout first. One strategy or the other, never both.
+ * **The strategy this project settled on, since Tahap 21:** there is no
+ * shared canvas in the layout. Each route that wants one passes `webgl` to
+ * `Wrapper`, and three routes now do — `/en`, `/en/work` and, since Tahap 45,
+ * `/en/work/<slug>`. The warning above still holds as the rule that made the
+ * choice: one strategy or the other, never both. It is recorded here in the
+ * past tense because the paragraph read as an instruction not to do what the
+ * pages already correctly do.
  *
  * @example
  * ```tsx

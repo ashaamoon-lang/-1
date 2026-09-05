@@ -1,6 +1,12 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** disetujui, belum dieksekusi. Tahap 0 adalah pekerjaan berikutnya.
+> **Status:** dieksekusi sampai **Tahap 45**. Entri per tahap ada di bawah,
+> paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
+>
+> Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
+> sampai Tahap 45 — empat puluh lima tahap setelah itu berhenti benar.
+> Dokumen yang berbohong tentang kodenya sendiri lebih buruk daripada tidak
+> ada dokumen, dan ini contohnya yang paling lama bertahan.
 >
 > Dokumen ini adalah kontrak kerja untuk membangun situsnya. Agen mana pun yang
 > membuka repo ini membacanya setelah `CLAUDE.md`. Ia menetapkan **apa** yang
@@ -2057,6 +2063,57 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 45 — Material rute kedua, pipeline warna, dan pembersihan ✅
+
+> Spec: [`docs/stages/TAHAP-45.md`](./stages/TAHAP-45.md)
+
+**Material mencapai rute ketiga.** `/en` menampilkan pilihan karya lewat
+permukaan ini dan `/en/work` menampilkan semuanya; halaman yang menampilkan
+**satu** karya pada ukuran terbesarnya, dan menahan pembaca paling lama, punya
+versi paling datar dari material milik situs ini sendiri. Morph kedatangannya
+aman tanpa kabel baru, dan itu properti `MaterialImage` bukan keberuntungan:
+ia menyembunyikan gambar DOM hanya setelah `drew` — laporan mesh bahwa ia
+sudah melukis — jadi saat view transition memotret, plat polos masih terlihat.
+Diverifikasi, bukan diasumsikan; pengukuran pertama saya membaca `<img>`
+alih-alih `.root` dan sempat terbaca seperti gambar ganda. Plafon dinaikkan
+**dengan sengaja** ke 2100KB — angka yang sama dengan dua rute yang sudah
+membawa permukaan ini, bukan angka yang dipaskan ke rute ini.
+
+**Pipeline warna diputuskan, dan jawabannya membalik dua tahap.** Rencana
+mengusulkan mematikan `flat`; itu tone mapping, bukan ruang warna, jadi
+hipotesisnya dikoreksi lebih dulu. Lalu pengukurannya membalik premisnya:
+konflik yang Tahap 32 (55,8/255) dan Tahap 33 (58,7/255) catat **tidak
+reproduce** — **0,6/255**, diulang 0,7, dan 0,7 lagi dengan `EffectPass`
+identitas. Sebelum angka itu dipercaya, rantainya dibuktikan hidup dengan
+probe inversi: **74,1/255, 92,7% kanal bergerak**. Yang **tidak** diklaim:
+mengapa angka lama berbeda — `postprocessing` dan `three` tidak pernah
+dinaikkan versinya sejak fork, dan kode yang menghasilkan angka itu sudah
+tidak ada untuk diukur ulang. Keberatan teknis hilang; keberatan editorial
+tidak, jadi nol efek dikirim dan pilihannya diserahkan ke studio.
+
+**Pembersihan, setelah daftarnya diukur ulang.** Daftar audit berumur sebelas
+tahap dan **sudah salah di beberapa tempat**. Dihapus: tujuh direktori UI nol
+konsumen, seluruh tumpukan form (nol `<form>` di situs), `ToastProvider` yang
+dipasang di setiap rute sementara `useToast()` dipanggil nol kali,
+`use-prefetch`, `blend.ts`, logo perusahaan lain, dan sheet Theatre.js sisa
+starter. **Dipertahankan dengan alasan tercatat:** `fluid/` punya konsumen,
+`columns()` dipakai `project-spine` sejak Tahap 40, dan `dr-grid`/`mobile-vh()`
+punya dokumentasi serta tes regresi untuk bug nyata. `Draggable` tidak butuh
+keputusan — ia sudah tertulis di `lightbox` sejak Tahap 31.
+
+**Dan baris 3 dokumen ini berhenti berbohong.** Ia berbunyi "belum
+dieksekusi, Tahap 0 adalah pekerjaan berikutnya" sampai tahap ini — empat
+puluh lima tahap setelah itu berhenti benar. Dua dokumen lain yang
+menginstruksikan pembaca **jangan** mengoper `webgl` ke `Wrapper` — persis apa
+yang tiga rute lakukan dengan benar — diselaraskan dengan strategi yang
+sebenarnya berlaku.
+
+unit **410** lulus (−48: tes untuk kode yang dihapus) · e2e **530 lulus, 0
+gagal, 0 flaky**, 14 dilewati (12,4 menit) · −19 tepat: enam berkas story
+hilang bersama direktorinya, 99 story → 80 · nol gerbang dilonggarkan.
 
 ---
 

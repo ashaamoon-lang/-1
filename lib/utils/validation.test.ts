@@ -6,15 +6,12 @@
 
 import { describe, expect, test } from 'bun:test'
 
-import { z } from 'zod'
-
 import {
   analyticsEnvSchema,
   coreEnvSchema,
   emailSchema,
   hubspotEnvSchema,
   mailchimpEnvSchema,
-  parseFormData,
   phoneSchema,
   sanityEnvSchema,
   shopifyEnvSchema,
@@ -332,127 +329,3 @@ describe('phoneSchema', () => {
 })
 
 // ============================================
-// parseFormData
-// ============================================
-
-describe('parseFormData', () => {
-  const testSchema = z.object({
-    email: z.email(),
-    name: z.string().min(1),
-  })
-
-  test('valid FormData returns success with typed data', () => {
-    const formData = new FormData()
-    formData.set('email', 'user@example.com')
-    formData.set('name', 'Alice')
-
-    const result = parseFormData(testSchema, formData)
-
-    expect('success' in result).toBe(true)
-    if ('success' in result) {
-      expect(result.success).toBe(true)
-      expect(result.data.email).toBe('user@example.com')
-      expect(result.data.name).toBe('Alice')
-    }
-  })
-
-  test('invalid FormData returns FormState with status 400', () => {
-    const formData = new FormData()
-    formData.set('email', 'not-an-email')
-    formData.set('name', '')
-
-    const result = parseFormData(testSchema, formData)
-
-    expect('success' in result).toBe(false)
-    if (!('success' in result)) {
-      expect(result.status).toBe(400)
-      expect(result.message).toBe('Validation failed')
-      expect(result.fieldErrors).toBeDefined()
-      expect(result.fieldErrors?.email).toBeDefined()
-      expect(result.fieldErrors?.name).toBeDefined()
-    }
-  })
-
-  test('missing fields returns fieldErrors for each missing field', () => {
-    const formData = new FormData()
-
-    const result = parseFormData(testSchema, formData)
-
-    expect('success' in result).toBe(false)
-    if (!('success' in result)) {
-      expect(result.status).toBe(400)
-      expect(result.fieldErrors).toBeDefined()
-    }
-  })
-
-  test('extra fields are ignored', () => {
-    const formData = new FormData()
-    formData.set('email', 'user@example.com')
-    formData.set('name', 'Alice')
-    formData.set('extra', 'should be ignored')
-
-    const result = parseFormData(testSchema, formData)
-
-    expect('success' in result).toBe(true)
-  })
-
-  test('single-value keys stay scalars', () => {
-    const formData = new FormData()
-    formData.set('email', 'user@example.com')
-    formData.set('name', 'Alice')
-
-    const result = parseFormData(testSchema, formData)
-
-    expect('success' in result).toBe(true)
-    if ('success' in result) {
-      expect(result.data.name).toBe('Alice')
-    }
-  })
-
-  test('a root-level .refine() issue surfaces under a _form key', () => {
-    const matchingPasswordsSchema = z
-      .object({
-        password: z.string().min(1),
-        confirmPassword: z.string().min(1),
-      })
-      .refine((data) => data.password === data.confirmPassword, {
-        error: 'Passwords must match',
-      })
-
-    const formData = new FormData()
-    formData.set('password', 'abc123')
-    formData.set('confirmPassword', 'xyz789')
-
-    const result = parseFormData(matchingPasswordsSchema, formData)
-
-    expect('success' in result).toBe(false)
-    if (!('success' in result)) {
-      expect(result.status).toBe(400)
-      expect(result.fieldErrors?._form).toBe('Passwords must match')
-    }
-  })
-
-  test('repeated keys collect into an array for a z.array field', () => {
-    const multiSchema = z.object({
-      email: z.email(),
-      interests: z.array(z.string()),
-    })
-
-    const formData = new FormData()
-    formData.set('email', 'user@example.com')
-    formData.append('interests', 'design')
-    formData.append('interests', 'engineering')
-    formData.append('interests', 'marketing')
-
-    const result = parseFormData(multiSchema, formData)
-
-    expect('success' in result).toBe(true)
-    if ('success' in result) {
-      expect(result.data.interests).toEqual([
-        'design',
-        'engineering',
-        'marketing',
-      ])
-    }
-  })
-})

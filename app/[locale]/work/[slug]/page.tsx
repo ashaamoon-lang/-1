@@ -277,7 +277,24 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   ]
 
   return (
-    <Wrapper theme="dark" lenis={{ anchors: true }}>
+    <Wrapper
+      theme="dark"
+      lenis={{ anchors: true }}
+      /*
+        The material layer's third route — Tahap 45.
+
+        `/en` shows a selection of the work through this surface and
+        `/en/work` shows all of it. The page that shows **one** work, at its
+        largest, and holds a reader longest, had the flattest version of it.
+
+        `simTypes` names what the scene actually reads, and nothing else: a
+        simulation with no consumer still costs a render pass every frame and
+        a window pointer listener (`lib/webgl/components/flowmap-provider`
+        defaults to none for that reason).
+      */
+      webgl
+      simTypes={['flowmap']}
+    >
       <article className={s.article}>
         {/*
           Where this page sits, and one click back — Tahap 38.
@@ -316,6 +333,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             title={project.title || humanizeSlug(slug)}
             cover={project.cover}
             coverAlt={project.coverAlt ?? ''}
+            // Opts this cover into the material surface. `e2e/route-budget`
+            // lists `three` for this route with the reason; passing this
+            // without that entry is a red gate.
+            material
             // Pairs this cover with the catalogue card the reader came from,
             // so the browser morphs one into the other. Both ends derive the
             // name from `lib/motion/transition-name.ts` — a mismatch produces

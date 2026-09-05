@@ -12,31 +12,21 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | Component | Import | Type |
 |-----------|--------|------|
 | Accordion | `@/components/ui/accordion` | Client |
-| AlertDialog | `@/components/ui/alert-dialog` | Client |
 | Breadcrumbs | `@/components/ui/breadcrumbs` | Server |
-| Checkbox | `@/components/ui/checkbox` | Client |
 | Command | `@/components/ui/command` | Client |
 | ErrorView | `@/components/ui/error-view` | Client |
-| Fold | `@/components/ui/fold` | Client |
-| Form | `@/components/ui/form` | Client |
 | Image | `@/components/ui/image` | Client |
 | LanguageSwitcher | `@/components/ui/language-switcher` | Client |
 | Lightbox | `@/components/ui/lightbox` | Client |
 | Link | `@/components/ui/link` | Client |
 | Marquee | `@/components/ui/marquee` | Client |
-| Menu | `@/components/ui/menu` | Client |
 | NotConfigured | `@/components/ui/not-configured` | Server |
 | NotFoundView | `@/components/ui/not-found-view` | Server |
 | RealViewport | `@/components/ui/real-viewport` | Client |
 | RouteLoading | `@/components/ui/route-loading` | Server |
 | SanityImage | `@/components/ui/sanity-image` | Server |
-| Scrollbar | `@/components/ui/scrollbar` | Client |
 | SectionHeader | `@/components/ui/section-header` | Client |
-| Select | `@/components/ui/select` | Client |
-| Switch | `@/components/ui/switch` | Client |
 | Tabs | `@/components/ui/tabs` | Client |
-| Toast | `@/components/ui/toast` | Client |
-| Tooltip | `@/components/ui/tooltip` | Client |
 
 ---
 
@@ -67,7 +57,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 |------|--------|-----------|
 | useActiveSection | `@/hooks/use-active-section` | `(ids: readonly string[]) => string | null` |
 | useDeviceDetection | `@/hooks/use-device-detection` | `()` |
-| usePrefetch | `@/hooks/use-prefetch` | `(href: Route | null | undefined, options?: IntersectionObserverInit)` |
 | useReveal | `@/hooks/use-reveal` | `({ threshold = 0, rootMargin = '0px 0px -25% 0px', once = true, }: UseRevealOptions = {})` |
 | useOnlineStatus | `@/hooks/use-sync-external` | `() => boolean` |
 | usePreferredColorScheme | `@/hooks/use-sync-external` | `() => 'light' | 'dark'` |
@@ -92,12 +81,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | fetchWithTimeout | `(url: string, options: FetchWithTimeoutOptions = {}) => Promise<Response>` |
 | fetchJSON | `(url: string, options?: FetchWithTimeoutOptions) => Promise<JsonValue>` |
 | FetchWithTimeoutOptions |  |
-
-### Form-action (`@/utils/form-action`)
-
-| Export | Signature |
-|--------|-----------|
-| runFormAction | `({ rateLimitPrefix, schema, formData, rateLimitMessage = 'rate_limit_exceeded_', rateLimiter = rateLimiters.standard, turnstile = false, run, }: RunFormActionOptions<T>) => Promise<FormState>` |
 
 ### Image-sizes (`@/utils/image-sizes`)
 
@@ -160,8 +143,6 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 
 | Export | Signature |
 |--------|-----------|
-| parseFormData | `(schema: z.ZodType<T>, formData: FormData) => FormState<T> | { success: true; data: T }` |
-| zodToValidator | `(schema: z.ZodType) => (value: string) => boolean` |
 | parseApiResponse | `(schema: z.ZodType<T>, data: unknown, context?: string) => T` |
 | JsonValue | `| string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }` |
 | emailSchema | `ZodEmail` |

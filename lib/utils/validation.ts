@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-import type { FormState } from '@/lib/types/form'
-
 // ---------------------------------------------------------------------------
 // Shared types
 // ---------------------------------------------------------------------------
@@ -188,85 +186,19 @@ export const coreEnvSchema = z.object({
 // Form data parsing helper
 // ---------------------------------------------------------------------------
 
-/**
- * Parse and validate `FormData` against a Zod schema.
+/*
+ * `parseFormData` and `zodToValidator` lived here until Tahap 45, and both
+ * went with the form stack.
  *
- * On **success** returns `{ success: true, data: T }`.
- * On **failure** returns a `FormState<T>` with `status: 400`, a generic
- * message, and per-field errors keyed by dot-joined path.
+ * Between them they had three callers, all inside `components/ui/form` — a
+ * stack that served **no form on this site**: measured, zero `<form>` on any
+ * route, and the only conversion action is a `mailto:` in two places. What
+ * stays is the half `lib/integrations/registry.ts` and `lib/scripts/doctor.ts`
+ * actually use, and the half that guards responses from external APIs.
  *
- * @example
- * ```ts
- * const result = parseFormData(mySchema, formData)
- * if ('success' in result) {
- *   // result.data is fully typed
- * } else {
- *   // result is FormState with fieldErrors
- * }
- * ```
+ * The file's name outlived its widest meaning, which is worth saying rather
+ * than leaving a reader to wonder where the form half went.
  */
-export function parseFormData<T>(
-  schema: z.ZodType<T>,
-  formData: FormData
-): FormState<T> | { success: true; data: T } {
-  const raw: Record<string, FormDataEntryValue | FormDataEntryValue[]> = {}
-  const seenKeys = new Set<string>()
-  for (const key of formData.keys()) {
-    if (seenKeys.has(key)) continue
-    seenKeys.add(key)
-
-    const values = formData.getAll(key)
-    // A key that appears once stays a scalar (existing schemas expect a
-    // single value); a repeated key (e.g. a checkbox group sharing one
-    // `name`) collects into an array so `z.array(...)` fields work. `key`
-    // came from `formData.keys()`, so `values` always has at least one
-    // entry — the `''` fallback is unreachable, only there to satisfy
-    // noUncheckedIndexedAccess honestly instead of asserting past it.
-    raw[key] = values.length > 1 ? values : (values[0] ?? '')
-  }
-
-  const result = schema.safeParse(raw)
-
-  if (!result.success) {
-    const fieldErrors: Record<string, string> = {}
-    for (const issue of result.error.issues) {
-      // A schema-level `.refine()` produces an empty path — surface it under
-      // `_form` instead of dropping it, so cross-field validation errors
-      // (e.g. password confirmation) reach the caller.
-      const key = issue.path.join('.') || '_form'
-      if (!fieldErrors[key]) {
-        fieldErrors[key] = issue.message
-      }
-    }
-    return {
-      status: 400,
-      message: 'Validation failed',
-      fieldErrors,
-    }
-  }
-
-  return { success: true, data: result.data }
-}
-
-// ---------------------------------------------------------------------------
-// Client/server validation bridge
-// ---------------------------------------------------------------------------
-
-/**
- * Convert a Zod schema into a simple `(value: string) => boolean` validator.
- * Use this to bridge Zod schemas with the form hook's client-side validation.
- *
- * @example
- * ```ts
- * import { emailSchema, zodToValidator } from '@/utils/validation'
- * import { addValidator } from '@/components/ui/form/hook'
- *
- * addValidator('email', zodToValidator(emailSchema))
- * ```
- */
-export function zodToValidator(schema: z.ZodType): (value: string) => boolean {
-  return (value: string) => schema.safeParse(value).success
-}
 
 // ---------------------------------------------------------------------------
 // External-boundary response parsing

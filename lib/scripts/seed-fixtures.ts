@@ -369,8 +369,11 @@ async function clean() {
  * and passing the entire time; that is a different claim, and the gap between
  * the two is exactly where Tahap 11b's defect lived.
  *
- * So `ambang` is square on purpose. It is the boundary, and it is now on a
- * page a test can look at.
+ * So one cover is square on purpose. It is the boundary, and it is on a page
+ * a test can look at: `bacaan-mesin`, which `e2e/fixtures.ts` names as
+ * `SQUARE_WORK` for exactly this reason. The plate was called `ambang` when
+ * this note was written and the name moved in Tahap 13's rename; the note did
+ * not, and pointed at a plate that no longer existed until Tahap 45.
  */
 const PLATES = {
   'arus-balik': {

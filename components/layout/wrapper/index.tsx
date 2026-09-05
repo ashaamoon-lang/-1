@@ -47,10 +47,14 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Mount the WebGL canvas for this page.
    *
-   * This is the per-page alternative to the shared root canvas mounted in the
-   * layout (see `lib/features`). Pick ONE strategy: either keep the shared
-   * canvas in the layout, or remove it and opt pages in with `webgl`. Enabling
-   * both mounts two canvases.
+   * This is the strategy this project uses, and the shared root canvas in
+   * `lib/features` is the one it does not: the layout passes `gsap` and not
+   * `webgl`, so nothing mounts a canvas except the routes that ask. Three do
+   * — `/en`, `/en/work`, and `/en/work/<slug>` as of Tahap 45.
+   *
+   * The rule that decided it still stands: pick ONE strategy. Enabling both
+   * mounts two canvases, which race to claim "primary" during render;
+   * `vault/webgl/scene-shell` records the failure that proved it.
    */
   webgl?: boolean
   /**
