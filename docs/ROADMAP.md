@@ -2066,6 +2066,63 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 53 — Lapisan ambien, story yang benar-benar kurang, dan dokumen yang menyusul kodenya ✅
+
+> Spec: [`docs/stages/TAHAP-53.md`](./stages/TAHAP-53.md)
+
+Tahap terakhir rencana ini. **Satu butirnya sudah selesai sebelum tahap ini
+dimulai**, satu ditolak setelah dua kali ditunda, dan yang paling banyak isinya
+tidak ada di rencana sama sekali.
+
+| #   | Premis rencana                                   | Terukur                                                                                |
+| --- | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| 1   | Story untuk 10 `vault/magic` + curtain + passage | ✅ **sudah ada** — dan bukan sepuluh, **tiga** yang dipasang; Tahap 47 menolak sisanya |
+| 2   | `progressive-blur` site-wide                     | ❌ delapan lapis `backdrop-filter` untuk satu tepi, biaya tak terprofil                |
+| 3   | `noise-texture` site-wide                        | ⚠️ benar — tapi sudah ada **dua** salinannya, jadi ini memindahkan bukan menambah      |
+| 4   | Dokumen diselaraskan                             | ✅ dan lebih jauh: §0.1 terakhir diperbarui **Tahap 43**                               |
+
+**Satu grain, dan butuh tiga calon salinan untuk menyadarinya.** `NoiseTexture`
+pindah ke elemen ground milik `Theme`, sebagai anak pertama supaya wash hero
+tetap melukis di atasnya. Salinan `/studio` dicabut. Salinan hero **tetap**,
+dan itu bukan duplikat: ia duduk di atas wash WebGL, yang digambar di atas
+setiap `z-index` negatif dan karenanya satu-satunya permukaan yang lapisan
+site-wide ini tidak bisa jangkau.
+
+**Tepi header memudar, dengan satu lapisan bukan sembilan.** `border-bottom:
+1px solid var(--line)` adalah sebuah _potongan_, dan header ini menggantung di
+atas karya. Magic UI mendapat efek yang sama dengan menumpuk delapan
+`backdrop-filter`; header ini sudah punya satu, jadi yang kurang bukan blur-nya
+melainkan tepinya — satu `mask-image` pada lapisan yang sudah ada, dipindah ke
+`::before` karena mask ikut kena ke isi elemen. Tekniknya diambil, kodenya
+tidak; `PROVENANCE.md` mencatat bedanya, dan `progressive-blur` **ditolak**
+alih-alih ditunda ketiga kalinya.
+
+**Empat story yang memang kurang.** Audit `vault/`: 23 dari 31 komponen
+bercerita, dan **nol** yang tidak ada di `vault/primitives/` — aturan
+`CLAUDE.md` sudah dipenuhi. Empat dari delapan sisanya praktis:
+`practice-hero`, `practice-list`, `project-spine`, `reveal`. Empat lagi
+(`flip`, `parallax`, `material-image`, `scene-shell`) adalah hook dan shell
+WebGL yang story-nya akan menampilkan kotak kosong; alasannya ditulis.
+
+**Dokumen menyusul kodenya.** `MOTION-SPEC.md` §0.1 — daftar mekanisme
+kategori ketiga — terakhir diperbarui **Tahap 43**, sepuluh tahap di belakang;
+sekarang memuat kelimanya. `DESIGN-SYSTEM.md` mendapat tabel tinggi hero per
+rute **beserta aturan** yang Tahap 51 dan 52 temukan dengan mahal: tinggi
+adalah bagian _layar_, padding atas halaman ada di dalam bagian itu, dan di
+rute yang subjeknya daftar, tingginya dipilih supaya item pertama melewati
+garis reveal saat halaman dimuat.
+
+**Satu pengukuran gagal, dan ditulis apa adanya.** Butir 53e meminta anggaran
+rute dibaca ulang dengan angka baru. Gerbangnya lulus, jadi tiap rute di bawah
+plafonnya — tapi skrip yang meniru cara gerbang itu mengukur memberi angka yang
+bergerak sampai **delapan kali lipat antara dua jalannya** (`/id` 270 → 1091KB,
+`/en/journal` 141 → 17KB). Menerbitkan salah satunya sebagai "anggaran hari
+ini" adalah menerbitkan derau. Tabelnya tetap milik gerbang itu.
+
+E2E_RESULTS
+
+---
+
 ## Tahap 52 — Permukaan informasi: yang diukur dulu, baru dinaikkan ✅
 
 > Spec: [`docs/stages/TAHAP-52.md`](./stages/TAHAP-52.md)

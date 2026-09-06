@@ -4,6 +4,7 @@ import { createContext, use, useEffect, useState } from 'react'
 
 import type { Themes } from '@/styles/colors'
 import { type ThemeName, themes } from '@/styles/config'
+import { NoiseTexture } from '@/vault/magic/noise-texture'
 
 import s from './theme.module.css'
 
@@ -133,6 +134,25 @@ export function Theme({
 
   return (
     <div data-theme={currentTheme} className={s.ground}>
+      {/*
+        The paper — Tahap 53.
+
+        Third category (`MOTION-SPEC.md` §0): no duration, no easing, nothing
+        that moves, and so not counted by §9.5. It sits here rather than being
+        repeated per route because it is one surface, and three copies of one
+        surface is how a site ends up with grain over grain on the two pages
+        that matter most.
+
+        First child on purpose: it and the hero washes all sit at `z-index:
+        -1` inside this stacking context, so paint order is DOM order and the
+        washes stay above the paper.
+
+        `vault/blocks/hero` keeps a grain of its own, and that is not a
+        duplicate: it sits over the WebGL wash, which is drawn above every
+        negative `z-index` and is therefore the one surface this layer cannot
+        reach.
+      */}
+      <NoiseTexture className={s.grain} />
       {provided}
     </div>
   )

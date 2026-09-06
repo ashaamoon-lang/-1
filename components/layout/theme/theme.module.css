@@ -63,3 +63,19 @@
    */
   isolation: isolate;
 }
+
+/*
+ * The site's paper — Tahap 53.
+ *
+ * `fixed`, not `absolute`, for the reason `/studio` recorded when it shipped
+ * the first copy of this: over several screens a grain that scrolls with the
+ * content reads as a texture stuck onto it, while a grain that stays still
+ * reads as paper. The strength lives in `vault/magic/noise-texture`, which
+ * already carries a per-theme pair and the argument for it.
+ */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}

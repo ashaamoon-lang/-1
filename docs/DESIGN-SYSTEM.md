@@ -335,6 +335,52 @@ perceived quality than any component.
 
 ---
 
+### Hero height, per route — and the rule that decides it
+
+Measured on the production build at 1440×900, after Tahap 49–52:
+
+| Route             | Declared                                  | Measured | Of the screen |
+| ----------------- | ----------------------------------------- | -------: | ------------: |
+| `/`               | `100svh`                                  |    900px |          100% |
+| `/studio`         | `calc(100svh - var(--header-height))`     |    780px |           87% |
+| `/practice/<v>`   | `70svh`                                   |    630px |           70% |
+| `/work/<slug>`    | content                                   |    857px |           95% |
+| `/journal`        | `calc(56svh - --header-height - padding)` |    352px |           39% |
+| `/work`           | `calc(48svh - --header-height - padding)` |    280px |           31% |
+| `/journal/<slug>` | none                                      |        — |             — |
+
+**The last column is not the rule.** Two of these numbers look small and are
+not: on `/work` and `/journal` the height is written as a _subtraction_, and
+the thing being measured is where the page's subject lands, not how tall its
+masthead box is.
+
+#### The rule
+
+> A hero's height is a share of the **screen**, and the page's own top padding
+> is inside that share. Where the page's subject is a list, the height is
+> chosen so the first item crosses `useReveal`'s line — 75% of the viewport —
+> on load.
+
+It is written that way because the naive spelling was shipped twice and
+measured wrong twice. `min-height: 60svh` on `/work` (Tahap 51) put the first
+cover at **98%** of a 900px screen; the same value on `/journal` (Tahap 52) put
+the first entry at **84%**. Both sat below the page's top padding
+(`--header-height` + 80px, clearing the fixed header) and above whatever the
+page puts between the masthead and its subject — 194px of filter and count on
+`/work`, 48px of section lead on `/journal`. `60svh` was 60% of the screen only
+in isolation.
+
+So the two routes carry different numbers — 48 and 56 — and that is not an
+inconsistency: what they have in common is the outcome, the first cover at 66%
+and the first entry at 60–62%. `e2e/first-screen.e2e.ts` holds it, at both
+widths, and it asks whether the page opens on **what it is about**: only a
+route whose subject is its list belongs there. `/practice/<v>` has a grid and
+is not about it — its subject is the statement, which is why that route is
+absent from the gate and its 70% hero is correct.
+
+`svh` and never `vh`, everywhere: `vh` includes the collapsing mobile toolbar,
+so a `vh` block is taller than the visible viewport on first paint.
+
 ## 4. Motion
 
 Owned entirely by `MOTION-SPEC.md`. Summary: durations 200 / 400 / 1000 ms

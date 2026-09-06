@@ -61,6 +61,37 @@ the columns rather than either travel. The cursor's payload changes only
 `opacity` and `transform` on a `aria-hidden` element whose text is required to
 exist in the DOM as well, which `e2e/exploratory-layer.e2e.ts` holds.
 
+**Added in Tahap 47–53**, and this table is now the record of them rather than
+a reconstruction:
+
+| Mechanism          | Where                                                            | Since            |
+| ------------------ | ---------------------------------------------------------------- | ---------------- |
+| `grid-pattern`     | `vault/blocks/hero`, `vault/blocks/passage`, `/work` masthead    | Tahap 47, 49, 51 |
+| `dot-pattern`      | `/studio` ground, `/practice/<v>` ground                         | Tahap 47, 50, 52 |
+| `noise-texture`    | `vault/blocks/hero` over the WebGL wash; site-wide under `Theme` | Tahap 47, 49, 53 |
+| `reading-progress` | `vault/motion/reading-progress` on the three long pages          | Tahap 52         |
+| The header's edge  | `components/layout/header`, one masked `backdrop-filter` layer   | Tahap 53         |
+
+The first three declare **no duration and no easing at all** — they are
+surfaces, and the reason they belong in this category is that they never move,
+not that their movement was reclassified. `vendor-rules.test.ts` holds that
+line for the whole of `vault/magic/`.
+
+`reading-progress` is the one with a scroll linkage, and it is here for the
+same test that excludes `project-spine`: no beginning, no band, no end. Under
+reduced motion it is removed rather than frozen.
+
+The header's edge moves nothing whatsoever; it is listed because it replaced a
+`border-bottom`, and a reader looking for where the hairline went should find
+the answer in the same place as everything else.
+
+**One grain, and it took three copies to notice.** The grain shipped in the
+home hero (Tahap 49) and on `/studio` (Tahap 50) before Tahap 53 put it under
+`Theme` for the whole site. The hero keeps its own — not a duplicate, because
+it sits over the WebGL wash, which is drawn above every negative `z-index` and
+is therefore the one surface the site-wide layer cannot reach. `/studio`'s copy
+was removed.
+
 **What §0.2 refused in the same stage.** Tahap 43 planned `type-pressure` —
 Syne's variable `wght` axis driven by `--scroll-velocity`. Measured on the
 real header: across the proposed 640-760 range the wordmark grew from 42.61px

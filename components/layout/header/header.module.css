@@ -17,15 +17,61 @@
   height: var(--header-height);
   padding-inline: var(--safe);
   /*
-   * A translucent ground rather than a solid bar. The header sits over
-   * artwork, and a solid strip cuts the top off every image behind it;
-   * a blur keeps the work continuous while the type stays legible.
+   * The ground is a pseudo-element now — Tahap 53.
+   *
+   * It was `background-color` + `backdrop-filter` + `border-bottom` on this
+   * element. Two of those were right and one was the thing being fixed: a
+   * hairline is a *cut*, and the header sits over artwork, so the bar
+   * announced itself as a strip laid on top of the work.
+   *
+   * Masking has to happen on a layer of its own because a mask applies to the
+   * element's content as well — masking `.header` itself would fade the
+   * wordmark and the nav along with the ground.
+   *
+   * No `isolation` needed to keep that layer in: `position: fixed` with a
+   * `z-index` already makes this element a stacking context, so the ground's
+   * `z-index: -1` lands behind the header's own content and no further.
    */
+}
+
+/*
+ * The translucent ground, and its edge.
+ *
+ * A blur rather than a solid strip for the reason this bar has always
+ * carried: the header sits over artwork, and a solid band cuts the top off
+ * every image behind it, while a blur keeps the work continuous and the type
+ * legible.
+ *
+ * The mask is what Tahap 53 adds. Magic UI's `progressive-blur` gets this
+ * effect by stacking **eight** `backdrop-filter` layers with rising radii; on
+ * a fixed bar hanging over a scrolling page that is eight composite passes a
+ * frame, and its cost cannot be profiled in this environment — `CLAUDE.md`
+ * #19 forbids shipping "that is cheap" as a claim. The technique is taken and
+ * the code is not: one layer, one mask, one pass. `docs/PROVENANCE.md` records
+ * the distinction.
+ *
+ * It extends past the bar so the fade finishes *below* the header rather than
+ * inside it, which is the difference between a soft edge and a bar with a
+ * blurry bottom.
+ */
+.header::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block: 0 calc(-1 * mobile-vw(16px));
+  z-index: -1;
+  pointer-events: none;
   background-color: color-mix(in oklab, var(--color-primary) 82%, transparent);
   backdrop-filter: blur(mobile-vw(12px));
-  border-bottom: 1px solid var(--line);
+  /*
+   * `black`/`transparent` keywords, not a hex: a mask reads only the alpha
+   * channel, so the colour is structural rather than a design value, and
+   * `lib/styles/scripts/token-rules.test.ts` bans the hex spelling of it.
+   */
+  mask-image: linear-gradient(to bottom, black 62%, transparent);
 
   @media (--desktop) {
+    inset-block: 0 calc(-1 * desktop-vw(24px));
     backdrop-filter: blur(desktop-vw(12px));
   }
 }

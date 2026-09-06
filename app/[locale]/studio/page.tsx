@@ -14,7 +14,6 @@ import { generatePageMetadata } from '@/lib/utils/metadata'
 import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
 import { DotPattern } from '@/vault/magic/dot-pattern'
-import { NoiseTexture } from '@/vault/magic/noise-texture'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
 
@@ -163,7 +162,6 @@ export default async function StudioPage() {
 
           Both are `aria-hidden` and inert, and neither carries information.
         */}
-        <NoiseTexture className={s.grain} />
         <DotPattern width={28} height={28} className={s.ground} />
 
         {/*

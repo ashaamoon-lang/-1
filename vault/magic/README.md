@@ -105,21 +105,31 @@ installing `meteors` because it looks good.
 | `terminal`, `safari`, `iphone`, `android`, `file-tree`, `code-comparison`, `tweet-card`, `globe`, `dotted-map`, `icon-cloud`, `avatar-circles` | Wrong product. This is not a software site.                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Every component that imports `motion` (30 by metadata, at least 31 by source)                                                                  | `motion` runs a scheduler of its own — `CLAUDE.md` #6, one RAF loop. Nineteen of them duplicate something this repo already has: `vault/motion/text-reveal`, `reveal`, `counter`, `parallax`, `flip`, `page-transition`, `vault/primitives/cursor`, `components/ui/marquee` + `--scroll-velocity`. The few genuinely useful remainders — `scroll-progress`, `border-beam`, `light-rays`, `magic-card`'s spotlight — are written on the CSS and GSAP already loaded. |
 
-### Deferred, not rejected
+### `progressive-blur` — deferred in Tahap 47, **rejected** in Tahap 53
 
-`progressive-blur` stacks **eight `backdrop-filter: blur()` layers**, each
-with its own `mask-image`. Two reasons it is not here yet:
+It stacks **eight `backdrop-filter: blur()` layers**, each with its own
+`mask-image`. Tahap 47 deferred it for two reasons: its cost cannot be measured
+here (`CLAUDE.md` #19 forbids shipping "it's cheap" as a claim), and it had no
+consumer until the site-wide ambient layer.
 
-1. Its cost cannot be measured in this environment — there is no profiler,
-   and `CLAUDE.md` #19 forbids claiming a performance number that was not
-   measured. Installing it while saying "it's cheap" would be that claim.
-2. It has no consumer until the site-wide ambient layer. This repo has
-   already paid for an unconsumed component once:
-   `vault/motion/page-transition` sat for ten stages with two bugs in it,
-   because a component that renders nowhere is never wrong
-   (`docs/stages/TAHAP-11.md` §2.4).
+The consumer arrived in Tahap 53 — the header's edge, which was a
+`border-bottom: 1px solid var(--line)` cutting across the artwork behind a
+fixed bar. That is where the decision got made instead of deferred a third
+time:
 
-It arrives with its consumer.
+- The header **already** carries one `backdrop-filter: blur(12px)`. What the
+  edge needed was not more blur, it was a _fade_.
+- One `mask-image` on the layer that already exists gets that. Eight stacked
+  layers over a scrolling page is eight composite passes a frame, for the same
+  visual result, at a cost still nobody here can profile.
+
+So the technique was taken and the code was not. `docs/PROVENANCE.md` records
+the distinction, which is the same shape as `dot-pattern`'s: what MIT requires
+depends on whether bytes were copied, so that is the sentence the record has to
+answer.
+
+**Rejected, not deferred again.** Deferring something a third time is how an
+item moves between plans without ever being decided.
 
 ---
 
