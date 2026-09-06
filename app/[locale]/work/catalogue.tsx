@@ -16,6 +16,7 @@ import { collectionPageSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { PracticeFilter } from '@/vault/blocks/practice-filter'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
+import { GridPattern } from '@/vault/magic/grid-pattern'
 import { Counter } from '@/vault/motion/counter'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
@@ -209,6 +210,17 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
           list is — which is the order they are read in.
         */}
         <Reveal as="header" className={s.header}>
+          {/*
+            The catalogue's ground — Tahap 51, third category, not counted by
+            §9.5 because it never moves.
+
+            The grid and not the dots, and that is the one place on this site
+            where the choice is not a preference: this page **is** a grid, so
+            the ground and the subject say the same thing. `vault/magic/README.md`
+            sets the division — a grid asserts structure, dots only say
+            "surface" — and `/studio` took the other half of it.
+          */}
+          <GridPattern width={48} height={48} className={s.ground} />
           <p data-reveal-item className="caption">
             {t('eyebrow')}
           </p>

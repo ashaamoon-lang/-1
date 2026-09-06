@@ -9,15 +9,68 @@
 }
 
 .header {
+  position: relative;
   display: flex;
   flex-direction: column;
+  /*
+   * The masthead holds a real share of the first screen — Tahap 51.
+   *
+   * Measured before this stage: **192px, 0.21 of a screen.** The catalogue
+   * announced itself in a fifth of the viewport and then poured six covers
+   * out. That is a heading with a list under it, not a masthead.
+   *
+   * ## Why this is a subtraction and not `60svh`
+   *
+   * `min-height: 60svh` was written here first, and then measured on the
+   * built site. The first cover's top landed at:
+   *
+   *   1440x900   886px of 900   98%    data-reveal="hidden"   opacity 0
+   *   1280x720   752px of 720  104%    data-reveal="hidden"   opacity 0
+   *    390x844   833px of 844   99%    data-reveal="hidden"   opacity 0
+   *
+   * `60svh` is 60% of the screen only in isolation. In place this box sits
+   * *below* the page's own top padding (`--header-height` + 80px, which
+   * clears the fixed header) and *above* the filter and the count — together
+   * 194px at 1440. So a `60svh` masthead was the full-screen entrance this
+   * stage's own argument rejected, and worse: `useReveal` reveals a block
+   * when its top passes 75% of the viewport, so the grid never crossed the
+   * line. Every cover stayed at `opacity: 0` until the reader scrolled, and
+   * `catalogue-sift` — the animation that answers a chip press — played
+   * where nobody could see it.
+   *
+   * So the height is written as what it has to mean: **everything above the
+   * filter ends at 48% of the screen**, page padding included, which puts
+   * the first cover at 66-70% — inside the reveal line at every width, with
+   * room to spare. That is the ceiling this layout allows, not a preference:
+   * 194px of filter and count plus a line at 75% leaves the masthead the
+   * rest.
+   *
+   * `svh` for the reason `vault/blocks/hero` records: `vh` includes the
+   * collapsing mobile toolbar, so a `vh` block is taller than the visible
+   * viewport on first paint.
+   */
+  min-height: calc(48svh - var(--header-height) - mobile-vw(48px));
+  justify-content: end;
   gap: mobile-vw(16px);
   margin-block-end: mobile-vw(32px);
 
   @media (--desktop) {
+    min-height: calc(48svh - var(--header-height) - desktop-vw(80px));
     gap: desktop-vw(16px);
     margin-block-end: desktop-vw(48px);
   }
+}
+
+/*
+ * The ground, behind the masthead's own content.
+ *
+ * `-1` and not `0`: the eyebrow, heading and sentence sit in normal flow with
+ * no stacking context of their own, so the pattern needs to go behind the
+ * line box rather than merely earlier in paint order.
+ */
+.ground {
+  z-index: -1;
+  opacity: 0.6;
 }
 
 .intro {

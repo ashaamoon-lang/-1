@@ -2066,6 +2066,101 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 51 — `/work`: masthead yang menyebut dirinya, dan kisi yang tidak jadi turun ✅
+
+> Spec: [`docs/stages/TAHAP-51.md`](./stages/TAHAP-51.md)
+
+Tahap dengan hasil paling sedikit dalam rencana ini, dan spec-nya mengatakan
+itu dengan kalimatnya sendiri (§5.4): **empat butir direncanakan, satu
+dikirim** — dan butir yang satu itu dikirim salah lebih dulu.
+
+| #   | Premis rencana                  | Terukur                                                                |
+| --- | ------------------------------- | ---------------------------------------------------------------------- |
+| 1   | Hero `/work` nol → 72svh        | ✅ arahnya benar — bukan nol, **192px = 0,21 layar**                   |
+| 2   | Hero `/work/<slug>` nol → 80svh | ❌ **sudah 857px dari 900 = 0,95 layar**                               |
+| 3   | `pixel-image` untuk plate       | ❌ kedua rute yang disebut sudah dimiliki `MaterialImage`              |
+| 4   | `glyph-matrix` sebagai ground   | ❌ kanvas kedua di satu-satunya rute yang **sudah** menjalankan kanvas |
+
+**`60svh` dikirim, lalu diukur, lalu dibatalkan.** Angka itu 60% layar kalau
+kotaknya diukur sendirian. Di tempatnya ia duduk di bawah padding atas halaman
+dan di atas filter serta penghitung — 194px pada 1440 — sehingga sampul
+pertama mendarat di **98% layar** (104% pada 1280×720). Lebih buruk dari
+proporsi: `useReveal` membuka blok saat atasnya melewati 75% viewport, jadi
+kisinya **tidak pernah terbuka**. Setiap sampul tinggal di `opacity: 0` sampai
+pembaca menggulir, dan `catalogue-sift` — satu-satunya animasi yang menjawab
+tekanan chip — main di tempat yang tidak terlihat.
+
+Dua gerbang menangkapnya, keduanya **secara kebetulan**: `catalogue-sift ›
+departing cards leave` dan `motion › going back mid-transition strands
+nothing`, keduanya mengukur pada scroll 0 dan keduanya diam-diam bergantung
+pada kisi sudah terbuka saat dimuat — benar hanya selama masthead masih 192px.
+Tidak ada yang mengukurnya dengan sengaja; sekarang ada —
+`e2e/first-screen.e2e.ts`, tiga rute masuk × dua lebar, dan **enam dari enam
+dibuktikan merah dulu**. Berkasnya berdiri sendiri supaya proyek mobile bisa
+mengambilnya tanpa menyeret tiga belas tes FLIP; desktop dan mobile gagal
+dengan alasan berbeda, yang membuktikan kedua asersinya perlu.
+
+Tingginya lalu ditulis sebagai apa yang ia harus artikan — **semua yang di
+atas filter berakhir di 48% layar**, padding halaman ikut dihitung:
+
+```
+                       60svh                      calc(48svh − header − pad)
+1440×900   sampul di 886px = 98%  hidden  0   →   594px = 66%  visible  1
+1280×720              752px = 104% hidden  0   →   496px = 69%  visible  1
+ 390×844              833px = 99%  hidden  0   →   590px = 70%  visible  1
+```
+
+Masthead **192px → 280px** pada 1440 (0,21 → **0,31 layar**), dokumen 4395 →
+**4484px**. Lebih kecil dari yang sempat dikirim, dan itu angka yang benar:
+194px filter-dan-penghitung plus garis di 75% menyisakan sisanya untuk
+masthead. Ditambah ground `grid-pattern` — kategori ketiga, nol durasi, nol
+easing, tidak dihitung §9.5. Kisi dan bukan titik: halaman ini **adalah** kisi.
+
+**`pixel-image` ditolak, bukan ditunda ketiga kalinya.** `MaterialImage`
+menyembunyikan gambar DOM begitu mesh melaporkan sudah melukis (gerbang
+`drew`, Tahap 14). Sebuah pixel-reveal pada gambar itu adalah animasi yang
+berjalan **di bawah** permukaan yang menggantikannya. Kedua rute yang rencana
+sebut sudah material.
+
+**`catalogue-descent` dibangun penuh, lalu dibuang.** Tiga cacat nyata
+ditemukan dan diperbaiki di sepanjang jalan:
+
+```
+yPercent bukan piksel yang sama     diselesaikan terhadap tinggi elemennya sendiri,
+                                    dan Tahap 12 sengaja memberi kartu rasio berbeda.
+                                    exploratory-layer merah: "overlaps at scroll 0".
+
+custom property bukan panjang       getPropertyValue('--section-lead') mengembalikan
+                                    string yang dispesifikasikan — literal
+                                    clamp(32px, calc(…), 55.211px). parseFloat → NaN,
+                                    guard menyala, animasinya tidak pernah dibangun.
+
+fromTo menerapkan "from" seketika   navigasi balik meninggalkan kartu di opacity 0.
+                                    CLAUDE.md #5, persis. immediateRender: false.
+```
+
+Sesudah ketiganya descent bekerja tepat seperti dirancang — dan tetap merah
+pada asersi lain: `catalogue-sift` melaporkan **nol animasi WAAPI** pada
+perubahan filter. **Diisolasi, bukan ditebak:** descent dilepas, build
+dijalankan ulang, tes yang sama lulus dalam **3,3 detik**. Tiga hipotesis
+dicoba, tidak satu pun menyelesaikannya, dan mekanisme persisnya **tidak
+berhasil saya isolasi di dalam tahap ini** — ditulis begitu alih-alih dikarang.
+Yang menang adalah sift: ia umpan balik filter, descent hanya kedatangan. Slot
+§9.5 ketiga `/work` tetap kosong, dan §9.5 mencatat bahwa ia kosong **karena
+alasan yang terukur**.
+
+**Satu cacat lama ditemukan dan tidak diperbaiki di sini.** `/en/practice/<v>`
+punya penyakit yang sama dan lebih parah — sampul pertama di **132% layar**,
+`data-reveal="hidden"`, opacity 0 — dan itu sudah begitu sebelum tahap ini.
+Tahap 52 sudah menjadwalkan hero itu 70svh → 88svh, yang tanpa pengukuran ini
+akan memperburuknya. Angkanya ditulis di spec §5.3.
+
+unit 421 lulus · e2e **575 lulus, 0 gagal**, 14 dilewati (12,2m) · Storybook
+lulus. Jalan pertama menemukan cacat 4a: 567 lulus, **2 gagal** — dan itu
+satu-satunya alasan cacatnya ketahuan sebelum dikirim.
+
+---
+
 ## Tahap 50 — `/studio`: anggarannya dibuat jujur, dan lima premis yang salah ✅
 
 > Spec: [`docs/stages/TAHAP-50.md`](./stages/TAHAP-50.md)

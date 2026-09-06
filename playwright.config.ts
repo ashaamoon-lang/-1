@@ -70,6 +70,12 @@ export default defineConfig({
         // the screen and the `h1` sits lower against it. Checking one width
         // would be checking one of the two places this can go wrong.
         '**/entrance.e2e.ts',
+        // How much of a page fits above the fold is a viewport question, and
+        // this one is the whole subject of the file: Tahap 51 shipped a
+        // masthead that pushed every cover past the reveal line, and a phone
+        // is where that goes wrong first. The file is deliberately small so
+        // adding it here costs three tests, not thirteen.
+        '**/first-screen.e2e.ts',
       ],
       use: {
         browserName: 'chromium',

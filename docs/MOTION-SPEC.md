@@ -489,8 +489,13 @@ and `catalogue-sift` is not the chip. The chip's own acknowledgment is the
 the **grid** does afterwards, which is a movement with a start, a resolution
 and an end, and therefore exactly what this budget counts.
 
-`/work` is at two of its three. `/` and `/studio` are at three and are full —
-nothing else may be added to either.
+`/` and `/studio` are at three and are full. **`/work` is at two of its three,
+and the free slot is free for a measured reason** — Tahap 51 built
+`catalogue-descent` for it and could not ship it: the descent and
+`catalogue-sift` both want this grid's transforms, and isolating them (removing
+the descent made the sift's gate pass again) showed the conflict is real rather
+than a tuning problem. The sift is the filter's own feedback and outranks an
+entrance. `docs/stages/TAHAP-51.md` §5 carries the measurement.
 
 **`/studio`'s third was already there, and nobody had counted it.** Tahap 44
 put an evidence strip of `ProjectCard`s on that page, and the card carries
