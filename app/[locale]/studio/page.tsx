@@ -8,6 +8,7 @@ import { Link } from '@/components/ui/link'
 import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
+import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { featuredProjectsQuery } from '@/lib/integrations/sanity/queries'
 import { generatePageMetadata } from '@/lib/utils/metadata'
@@ -93,6 +94,24 @@ export async function generateMetadata(_props: StudioPageProps) {
  */
 async function evidence(locale: string) {
   'use cache'
+  /*
+   * Sanity may not be configured, and then this returns nothing rather than
+   * crashing the build — the same guard `app/[locale]/page.tsx` has carried
+   * since it first fetched, and the strip below already renders its own
+   * designed absence when the list is empty.
+   *
+   * It was missing here from Tahap 44 until Tahap 53, and nothing caught it
+   * because nothing ever built this page without credentials: `.env.local`
+   * exists on every machine that has run it, and **CI had never run at all**
+   * — its trigger named a branch this repository does not have. The first CI
+   * run in the project's history failed on this line:
+   *
+   *   TypeError: Cannot read properties of null (reading 'slice')
+   *     at app/[locale]/studio/page.tsx:111
+   *   Error occurred prerendering page "/en/studio"
+   */
+  if (!isConfigured('sanity')) return []
+
   const projects = await sanityFetch({
     query: featuredProjectsQuery,
     // `$locale` picks the reader's language out of each internationalized
@@ -108,7 +127,10 @@ async function evidence(locale: string) {
    * stays the same one the home page reads — two queries that differ only by
    * a limit are two things to keep in step.
    */
-  return projects.data.slice(0, 3)
+  // `?? []` as well as the guard above: `data` is nullable even when Sanity
+  // *is* configured — a query that fails returns null, and a failed query
+  // should cost this page its strip, not its render.
+  return (projects.data ?? []).slice(0, 3)
 }
 
 export default async function StudioPage() {
