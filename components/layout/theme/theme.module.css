@@ -78,4 +78,33 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  /*
+   * Much quieter than the component's own default, and the number is measured.
+   *
+   * `vault/magic/noise-texture` ships 0.75 on the dark theme, tuned for the
+   * two places that had it before this stage: the home hero, over a WebGL
+   * wash, and `/studio`, over a flat ground. Applied to *every* viewport it
+   * stops being texture and starts being light — enough that
+   * `e2e/visual-substance.e2e.ts` reported the accent regions as **subtracting**
+   * tone, the exact defect that gate was written for. The band with the accent
+   * against the band without it, at the shipped 0.75:
+   *
+   *   /en 390x844                  lit 35.4   bare 44.9   RED
+   *   /en/practice/... 1440x900    lit 24.0   bare 36.8   RED
+   *   /en/practice/... 390x844     lit 22.7   bare 36.1   RED
+   *
+   * Swept: 0.35 is still red at every width (margins 0.6–1.5), 0.25 passes
+   * thinly (1.4–2.5), 0.18 passes with room (3.5–4.7). `lit` does not move at
+   * all across the sweep — the accent washes are opaque, so only the bare
+   * ground changes, which is what confirms the mechanism rather than
+   * guessing it.
+   *
+   * The pair keeps the component's own principle: grain reads harder on ink
+   * than on paper, so the dark theme takes more of it.
+   */
+  opacity: 0.18;
+
+  :where([data-theme='light']) & {
+    opacity: 0.12;
+  }
 }
