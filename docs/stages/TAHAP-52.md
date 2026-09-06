@@ -240,4 +240,54 @@ mengukur ketiadaan dan bukan kebetulan.
 
 ## 6. Hasil
 
-_Diisi setelah jalan penuh._
+### 6.1 Verifikasi
+
+```
+bun run check        lulus — unit 421 lulus
+bun run build        lulus
+build-storybook      lulus
+CI=true test:e2e     598 lulus, 0 gagal, 14 dilewati (13,5m)
+```
+
+### 6.2 Yang dilewati, dan kenapa itu semuanya sah
+
+Seluruh yang dilewati ada di satu berkas, `e2e/visual-substance.e2e.ts`:
+
+- **dua belas** rute tanpa kanvas (`/journal`, `/journal/<slug>`, ketiga
+  `/practice/<v>`, `/studio`, dua proyek) — tes "footer di bawah kanvas" tidak
+  punya kanvas untuk dilukis di atasnya;
+- **dua** yang digerbangi ke desktop dengan alasan tertulis sejak Tahap 21
+  §6.3 — lapisan material sengaja tidak dipasang di telepon.
+
+### 6.3 Satu cacat instrumen ditemukan di sela dua jalan penuh
+
+`[mobile] /en/work keeps its footer out from under the canvas` **lulus di jalan
+Tahap 51 dan melewati dirinya sendiri di jalan pertama Tahap 52** — rute yang
+sama, tanpa satu pun perubahan yang menyentuhnya. Akarnya: gerbangnya membaca
+`canvas count() > 0` sekali, sesudah tunggu tetap 2600ms, dan mount-nya cukup
+sering lebih lambat dari itu.
+
+Tes yang melewati dirinya sendiri ketika yang diukurnya sekadar terlambat
+melaporkan sukses dalam kedua keadaan. Itu bentuk kegagalan yang suite ini
+terus temukan ulang — Tahap 49 menemukan bentuk yang sama di
+`material-layer`. Diperbaiki dengan menunggu (`waitFor({ state: 'attached' })`,
+6 detik), yang mengubah balapan jadi keputusan: ia hanya melewati kalau
+kanvasnya memang tidak pernah datang. Sesudahnya `[mobile] /en/work` **berjalan
+dan lulus**, dan dilewati turun dari 15 ke 14.
+
+### 6.4 Kejujuran tentang tahap ini
+
+Empat butir direncanakan. **Satu tidak punya subjek di kodenya**
+(`sticky-stack` untuk kapabilitas yang tidak ada), **satu ditolak dengan
+pengukuran** (hero `/practice/<v>`, yang sudah persis di plafon yang tata
+letaknya izinkan), dan dua dikirim.
+
+Yang terbesar dalam tahap ini tidak ada di rencana sama sekali: tiga rute yang
+mendeklarasikan momen §9.5 yang tidak pernah ada di DOM — cacat akuntansi yang
+sama yang Tahap 50 temukan di `/studio`, ditemukan lagi di dua rute lain, dan
+kali ini gerbangnya ikut diperbaiki supaya rute berikutnya tidak bisa diam-diam
+masuk keadaan itu.
+
+Nol gerak rusak dikirim. Dua gerbang baru, keduanya dibuktikan merah lebih
+dulu, dan satu di antaranya menguji jalur yang browser uji ini tidak akan
+pernah ambil.

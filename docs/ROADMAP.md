@@ -2131,7 +2131,18 @@ kehilangan kalimatnya sendiri yang menyebut `/journal/<slug>` "keeps its
 deliberate zero" — di dokumen yang tabelnya memberi rute itu satu dan yang
 halaman berikutnya menjelaskan kenapa Tahap 41 menaikkannya.
 
-RESULTS_PLACEHOLDER
+**Satu cacat instrumen ditemukan di sela dua jalan penuh.** `[mobile] /en/work
+keeps its footer out from under the canvas` lulus di jalan Tahap 51 dan
+melewati dirinya sendiri di jalan berikutnya — rute yang sama, tanpa perubahan
+yang menyentuhnya. Gerbangnya membaca `canvas count() > 0` sekali sesudah
+tunggu tetap 2600ms, dan mount-nya cukup sering lebih lambat. Diganti dengan
+`waitFor` berbatas, yang mengubah balapan jadi keputusan; sesudahnya tes itu
+berjalan dan lulus, dan dilewati turun 15 → **14**.
+
+unit 421 lulus · e2e **598 lulus, 0 gagal**, 14 dilewati (13,5m) · Storybook
+lulus. Keempat belas yang dilewati semuanya di satu berkas dan semuanya sah:
+dua belas rute yang memang tidak punya kanvas, dan dua yang digerbangi ke
+desktop dengan alasan tertulis sejak Tahap 21 §6.3.
 
 ---
 
