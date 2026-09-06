@@ -477,7 +477,7 @@ page is deliberately on this list at zero (`docs/stages/TAHAP-27.md` §5).
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full<br>3. **`arth-passage`** — the studio's own grid sharpening under the work's title, pinned and scrubbed; the way the work arrives | Tahap 12e, 49     |
 | `/practice/<value>` | 1. **practice morph** — the home page's practice name becoming the hero<br>2. **the scrubbed passage** — `ProgressText`                                                                                                             | Tahap 15          |
-| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index                                                                                                                                        | Tahap 24, 25      |
+| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index<br>3. **`work-transport`** — the evidence strip's cards carrying into their project pages                                              | Tahap 24, 25, 50  |
 | `/journal`          | 1. **`journal-index`** — the row being read leads<br>2. **`journal-transport`** — the headline chosen carries itself into the entry, spent on navigation rather than at load                                                        | Tahap 27, 41      |
 | `/journal/<slug>`   | 1. **`journal-transport`** — the receiving half: the headline lands, then the prose settles under it                                                                                                                                | Tahap 26, 41      |
 | `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too<br>2. **`catalogue-sift`** — the list rearranging under a filter                                                                                   | Tahap 11d, 39     |
@@ -489,8 +489,16 @@ and `catalogue-sift` is not the chip. The chip's own acknowledgment is the
 the **grid** does afterwards, which is a movement with a start, a resolution
 and an end, and therefore exactly what this budget counts.
 
-`/work` is at two of its three. `/` is at three and is full — nothing else may
-be added to it.
+`/work` is at two of its three. `/` and `/studio` are at three and are full —
+nothing else may be added to either.
+
+**`/studio`'s third was already there, and nobody had counted it.** Tahap 44
+put an evidence strip of `ProjectCard`s on that page, and the card carries
+`work-transport` wherever it renders. Measured in Tahap 50, the route declared
+that name three times and **neither** of the two this table had listed for it
+since Tahap 25 — the markers were never added at all. Both are named now, and
+the strip is listed above. A budget nobody can count is not a budget, and this
+one went uncounted for twenty-six stages.
 
 **A page's heading arriving is not one of the two, and Tahap 40 is where that
 was settled.** `vault/motion/text-reveal` ran at `duration.slow` — 800ms, the

@@ -82,6 +82,20 @@ interface StepSequenceProps {
   /** The section's own label — stays in the accessibility tree. */
   label: string
   steps: readonly Step[]
+  /**
+   * Names this sequence as a choreographed moment — `MOTION-SPEC.md` §9.5.
+   *
+   * Declared rather than spread, the same shape `vault/blocks/project-grid`
+   * uses: this block takes no arbitrary props, and a marker the budget
+   * sampler reads is worth naming in the type so it cannot be typo'd into
+   * silence.
+   *
+   * It matters here more than most. §9.5 has listed `studio-process` as one
+   * of `/studio`'s moments since Tahap 25, and nothing in the DOM said so —
+   * measured in Tahap 50, the route declared **zero** of the two moments the
+   * document claimed for it.
+   */
+  'data-epic'?: string | undefined
   className?: string | undefined
 }
 
@@ -90,7 +104,12 @@ function pad(value: number): string {
   return String(value).padStart(2, '0')
 }
 
-export function StepSequence({ label, steps, className }: StepSequenceProps) {
+export function StepSequence({
+  label,
+  steps,
+  'data-epic': epic,
+  className,
+}: StepSequenceProps) {
   const rootRef = useRef<HTMLElement>(null)
 
   /*
@@ -107,6 +126,7 @@ export function StepSequence({ label, steps, className }: StepSequenceProps) {
       ref={rootRef}
       // Read by `e2e/motion.e2e.ts`, which measures how long the pin holds.
       data-step-sequence=""
+      {...(epic && { 'data-epic': epic })}
       className={cn(s.sequence, className)}
     >
       <div className={s.column}>

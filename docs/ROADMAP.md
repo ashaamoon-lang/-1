@@ -2066,6 +2066,56 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 50 — `/studio`: anggarannya dibuat jujur, dan lima premis yang salah ✅
+
+> Spec: [`docs/stages/TAHAP-50.md`](./stages/TAHAP-50.md)
+
+Tahap yang sebagian besar isinya **penolakan**, dan itu hasilnya bukan
+kegagalannya. Kelima premis rencananya salah, masing-masing dengan angkanya:
+
+| #   | Premis                          | Terukur                                                                                                            |
+| --- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1   | Hero `/studio` nol tinggi       | **780px = 0,87 layar** (`100svh − header`) — dan itu syarat gerak: scrub pernyataan harus terbuka di bawah lipatan |
+| 2   | `sticky-stack` akhirnya dipakai | Ditolak Tahap 42 §2.2; `step-sequence` sudah punya kolom tersemat plus indeks tertahan                             |
+| 3   | `studio-manifesto` momen ketiga | Rute **sudah** di tiga — yang ketiga hanya belum tercatat                                                          |
+| 4   | `/studio` butuh animasi panjang | `studio-process` **sudah 2232px = 2,48 layar**                                                                     |
+| 5   | Pernyataan butuh ukur baca      | Sudah `max-width: 60ch` dengan alasan tertulis — 90 kata, 6 baris, 720px                                           |
+
+**Cacat akuntansi berumur 26 tahap.** §9.5 mencantumkan dua momen untuk
+`/studio` sejak Tahap 25. Dipindai: **nol penanda di DOM.** Dan satu-satunya
+nama yang benar-benar dideklarasikan bukan salah satunya —
+`work-transport` ×3, dari strip bukti yang Tahap 44 tambahkan, karena
+`ProjectCard` membawa penandanya ke mana pun ia dirender dan tabelnya tidak
+pernah diperbarui.
+
+```
+sebelum   ["work-transport" ×3]
+sesudah   ["studio-statement", "work-transport" ×3, "studio-process"]
+```
+
+Tiga nama berbeda, tepat di plafon yang Tahap 49 naikkan. §9.5 mencatat
+`work-transport` dan menulis bahwa rute ini **penuh** — jadi plafon yang
+Tahap 49 naikkan untuk `/studio` **sudah habis terpakai oleh momen yang sudah
+ada**. Ia tidak membeli ruang untuk sesuatu yang baru; ia hanya membuat yang
+sudah ada bisa dihitung.
+
+**Yang dibangun, satu hal:** ground halaman — `dot-pattern` + `noise-texture`,
+kategori ketiga, tidak dihitung §9.5. Titik dan bukan kisi, karena kisi
+menegaskan struktur (benar di beranda, tempat kolom studio **adalah**
+ceritanya) sedangkan halaman ini klaim dalam prosa. `position: fixed`, bukan
+`absolute`: pada 6,34 layar, grain yang ikut menggulir terbaca sebagai tekstur
+yang ditempelkan pada isi; grain yang diam terbaca sebagai kertas.
+
+unit **421 lulus** · e2e **569 lulus, 0 gagal**, 14 dilewati (12,6m) ·
+Storybook 103 story tidak berubah · `/en/studio` tetap di bawah 900KB.
+
+Satu tes berpindah dari dilewati ke lulus — `[mobile] /en/work` di bawah
+kanvas, rute yang tahap ini tidak sentuh. Tes itu melewati dirinya sendiri
+saat kanvas belum mount. Dicatat sebagai kelemahan instrumen yang terbuka,
+wilayah Tahap 51.
+
+---
+
 ## Tahap 49 — Beranda: hero mengisi layar, lalu `arth-passage` ✅
 
 > Spec: [`docs/stages/TAHAP-49.md`](./stages/TAHAP-49.md)

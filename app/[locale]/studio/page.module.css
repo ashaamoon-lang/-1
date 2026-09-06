@@ -171,6 +171,43 @@
   margin: 0;
 }
 
+/* ── Ground ───────────────────────────────────────────────────────────── */
+
+/*
+ * Surface, not content — Tahap 50.
+ *
+ * Both sit inside `.page`, which is already the containing block for `.wash`,
+ * and both are behind everything: the wash is the first screen's tone, these
+ * are the paper the whole page is printed on.
+ *
+ * `position: fixed` rather than `absolute`, and the difference is the point:
+ * the page is 6.34 screens tall, and grain that scrolls with the document
+ * reads as a texture *applied to* the content. Grain that stays put reads as
+ * the surface the content moves across, which is what paper does. It costs
+ * nothing extra — neither layer animates, so neither is a compositing
+ * expense that grows with the page.
+ */
+.ground,
+.grain {
+  position: fixed;
+  inset: 0;
+  /* Behind the wash, which is behind the content. */
+  z-index: -1;
+  pointer-events: none;
+}
+
+/*
+ * Quieter than the home page's, and deliberately.
+ *
+ * That one sits over a WebGL wash whose luminance is not a token; this one
+ * sits on the page ground, where `--line` already resolves against a measured
+ * pair. Half the strength is enough to stop 6.34 screens of one flat colour
+ * reading as an unpainted buffer.
+ */
+.ground {
+  opacity: 0.5;
+}
+
 /* ── Statement ────────────────────────────────────────────────────────── */
 
 .statementSection {

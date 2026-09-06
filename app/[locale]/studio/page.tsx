@@ -13,6 +13,8 @@ import { featuredProjectsQuery } from '@/lib/integrations/sanity/queries'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
+import { DotPattern } from '@/vault/magic/dot-pattern'
+import { NoiseTexture } from '@/vault/magic/noise-texture'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
 
@@ -150,6 +152,21 @@ export default async function StudioPage() {
         <div className={s.wash} data-accent-region="" aria-hidden="true" />
 
         {/*
+          The page's surface — Tahap 50, third category (`MOTION-SPEC.md` §0),
+          not counted by §9.5 because it never moves.
+
+          Dots and not the grid. `vault/magic/README.md` sets the distinction:
+          a grid asserts structure, which is right where the subject *is*
+          structure — the home page's passage, where the studio's columns are
+          the story. This page is a claim in prose, and dots say only "this is
+          a surface", which is what prose wants behind it.
+
+          Both are `aria-hidden` and inert, and neither carries information.
+        */}
+        <NoiseTexture className={s.grain} />
+        <DotPattern width={28} height={28} className={s.ground} />
+
+        {/*
           The hero borrows the project page's discipline from Tahap 19: the
           facts sit in a `<dl>` on the first screen, not below the fold. A
           reader deciding whether to make contact should not have to scroll to
@@ -220,7 +237,23 @@ export default async function StudioPage() {
           screen the whole scrub resolves in a single frame and the component
           ships as a plain fade while looking like it works.
         */}
-        <section className={s.statementSection} data-studio-statement="">
+        {/*
+          Named at last — Tahap 50.
+
+          `MOTION-SPEC.md` §9.5 has listed `studio-statement` as one of this
+          route's choreographed moments since Tahap 24, and nothing in the DOM
+          said so. Measured before this stage, `/studio` declared **zero** of
+          the two moments the document claimed for it, and the only name it
+          did declare — `work-transport`, three times, from the evidence
+          strip's cards — was not in the table at all.
+
+          A budget nobody can count is not a budget.
+        */}
+        <section
+          className={s.statementSection}
+          data-studio-statement=""
+          data-epic="studio-statement"
+        >
           <Reveal>
             <p data-reveal-item className={cn('caption', s.eyebrow)}>
               {t('statementEyebrow')}
@@ -313,6 +346,8 @@ export default async function StudioPage() {
           `vault/blocks/step-sequence`.
         */}
         <StepSequence
+          // The second half of the same correction — see the statement above.
+          data-epic="studio-process"
           label={t('processEyebrow')}
           steps={steps.map((step) => ({
             key: step,
