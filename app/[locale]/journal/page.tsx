@@ -310,7 +310,7 @@ export default async function JournalPage() {
             — CMS resolution, locale date formatting, translations — while the
             three rows can answer the scroll position. See `index-rows.tsx`.
           */
-          <Reveal as="section">
+          <Reveal as="section" data-epic="journal-index">
             <JournalIndexRows rows={rows} />
           </Reveal>
         )}

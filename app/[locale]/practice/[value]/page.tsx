@@ -24,6 +24,8 @@ import { generatePageMetadata } from '@/lib/utils/metadata'
 import { NextPractice } from '@/vault/blocks/next-practice'
 import { PracticeHero } from '@/vault/blocks/practice-hero'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
+import { DotPattern } from '@/vault/magic/dot-pattern'
+import { ReadingProgress } from '@/vault/motion/reading-progress'
 import { Reveal } from '@/vault/motion/reveal'
 
 import s from './page.module.css'
@@ -155,11 +157,34 @@ export default async function PracticePage({ params }: PracticePageProps) {
     <Wrapper theme="dark" gsap>
       <div className={s.page}>
         {/*
+          How far through this page the reader is — Tahap 52. 3.37 screens,
+          the shortest of the three that carry it.
+        */}
+        <ReadingProgress />
+
+        {/*
           The first screen's tone. Decoration only — `aria-hidden`, no content,
           no pointer events — and marked so `e2e/visual-substance.e2e.ts` can
           hide it and prove it adds light rather than subtracting it, which is
           the defect Tahap 17 found on the home hero.
         */}
+        {/*
+          The ground, and it goes *before* the wash so the wash paints over it
+          — Tahap 52. Third category (`MOTION-SPEC.md` §0): no duration, no
+          easing, nothing that moves, and so not counted by §9.5.
+
+          Dots and not the grid, which is the split `vault/magic/README.md`
+          sets: a grid asserts structure and is right where columns are the
+          story (`/`, `/work`); dots say only "this is a surface", which is
+          what prose wants behind it. This page is a claim in prose, so it
+          takes the same half as `/studio`.
+
+          No `NoiseTexture` here yet on purpose: Tahap 53 puts grain under
+          `Theme` site-wide, and adding a second copy on one route now would
+          be a layer to unpick then.
+        */}
+        <DotPattern width={28} height={28} className={s.ground} />
+
         <div className={s.wash} data-accent-region="" aria-hidden="true" />
 
         {/*
@@ -214,7 +239,18 @@ export default async function PracticePage({ params }: PracticePageProps) {
           only and spreads nothing else, so an attribute passed to it would be
           dropped silently and the gate would fail against correct markup.
         */}
-        <section data-practice-statement="" className={s.section}>
+        {/*
+          `practice-statement` — §9.5 has listed this page's scrubbed passage
+          since Tahap 15 and, like the morph above it, nothing in the DOM said
+          so until Tahap 52. `data-practice-statement` is the *test hook* the
+          scrub gate uses; `data-epic` is the *budget* name. They are two
+          different questions and the page answers both here.
+        */}
+        <section
+          data-practice-statement=""
+          data-epic="practice-statement"
+          className={s.section}
+        >
           <Reveal>
             <p data-reveal-item className={cn('caption', s.eyebrow)}>
               {t('statementEyebrow')}

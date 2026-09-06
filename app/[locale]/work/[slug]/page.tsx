@@ -26,6 +26,7 @@ import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
 import { ProjectHero } from '@/vault/blocks/project-hero'
 import { ProjectSpine, type SpineRegion } from '@/vault/blocks/project-spine'
+import { ReadingProgress } from '@/vault/motion/reading-progress'
 
 import s from './page.module.css'
 
@@ -295,6 +296,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       webgl
       simTypes={['flowmap']}
     >
+      {/*
+        How far through this page the reader is — Tahap 52. 4.66 screens here,
+        the longest page on the site. `vault/motion/reading-progress` carries
+        the argument for why it is CSS first and a ScrollTrigger only where
+        the timeline is missing.
+      */}
+      <ReadingProgress />
       <article className={s.article}>
         {/*
           Where this page sits, and one click back — Tahap 38.

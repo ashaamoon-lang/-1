@@ -441,10 +441,10 @@ and keep everything else quiet.
 
 **At most two choreographed-band movements per page, and every one is named.**
 
-### The ceiling is three on three routes — amended in Tahap 49
+### The ceiling is three on four routes — amended in Tahap 49, extended in 52
 
-`/`, `/studio` and `/work` are allowed a **third**. Every other route keeps
-two, and `/journal/<slug>` keeps its deliberate zero.
+`/`, `/studio`, `/work` and `/practice/<value>` are allowed a **third**. Every
+other route keeps two.
 
 **Why an amendment rather than a reclassification.** The movement that forced
 this — `arth-passage`, a pinned scrubbed sequence on the home page — has a
@@ -456,12 +456,27 @@ movement is. Calling a journey "continuous response" to slip it past the
 budget is precisely the accounting §9.5 exists to prevent, and the first time
 this document allows that, the budget stops meaning anything.
 
-**Why three routes and not seven.** These are the three surfaces that carry
-the studio's image rather than its information: the home page, the studio
-page, and the catalogue. A ceiling that rises everywhere is not a ceiling, and
-the four routes left at two are left there on purpose —
-`/journal/<slug>` in particular stays at zero, because a page of long-form
-reading is where restraint is worth the most.
+**Why four routes and not seven.** These are the surfaces that carry the
+studio's image rather than its information: the home page, the studio page,
+the catalogue, and a practice's own page. A ceiling that rises everywhere is
+not a ceiling, and the three routes left at two are left there on purpose.
+
+**And the fourth is an accounting correction, not a purchase.** Tahap 52
+marked the two moments this table had listed for `/practice/<value>` since
+Tahap 15 — neither had ever appeared in the DOM — and the gate then reported
+**three**: `practice-morph`, `practice-statement`, `work-transport`. The third
+is the card carrying itself into a project page, which `ProjectCard` brings
+wherever it renders; the same defect Tahap 50 found on `/studio`. Every one of
+the three ships today and shipped before the amendment. What changed is
+whether this budget describes the site or contradicts it — and a budget that
+contradicts the site is not a budget, it is a wish.
+
+**A correction to this section's own text.** It used to say
+`/journal/<slug>` "keeps its deliberate zero", in the same document whose
+table gives it one and whose next page explains, at length, why Tahap 41 took
+it from zero to one. Tahap 52 removed the sentence rather than the moment.
+The restraint it was defending is real and still holds — that page has **no
+scroll-linked motion of any kind** — but the claim as written was false.
 
 **What a third moment costs, stated.** Two named moments per page was not an
 arbitrary number: it is what the ten measured award sites do, and it is the
@@ -473,15 +488,15 @@ The list, kept current as routes are added. A page missing from it has no
 choreographed movement, and that is a legitimate answer — the journal _entry_
 page is deliberately on this list at zero (`docs/stages/TAHAP-27.md` §5).
 
-| Page                | Moments                                                                                                                                                                                                                             | Added             |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full<br>3. **`arth-passage`** — the studio's own grid sharpening under the work's title, pinned and scrubbed; the way the work arrives | Tahap 12e, 49     |
-| `/practice/<value>` | 1. **practice morph** — the home page's practice name becoming the hero<br>2. **the scrubbed passage** — `ProgressText`                                                                                                             | Tahap 15          |
-| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index<br>3. **`work-transport`** — the evidence strip's cards carrying into their project pages                                              | Tahap 24, 25, 50  |
-| `/journal`          | 1. **`journal-index`** — the row being read leads<br>2. **`journal-transport`** — the headline chosen carries itself into the entry, spent on navigation rather than at load                                                        | Tahap 27, 41      |
-| `/journal/<slug>`   | 1. **`journal-transport`** — the receiving half: the headline lands, then the prose settles under it                                                                                                                                | Tahap 26, 41      |
-| `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too<br>2. **`catalogue-sift`** — the list rearranging under a filter                                                                                   | Tahap 11d, 39     |
-| `/work/<slug>`      | 1. **`project-arrival`** — the receiving half of that transition, via `transitionName`. Marked in the DOM since Tahap 40; the name is older                                                                                         | Tahap 11d, 19, 40 |
+| Page                | Moments                                                                                                                                                                                                                              | Added             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- |
+| `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full<br>3. **`arth-passage`** — the studio's own grid sharpening under the work's title, pinned and scrubbed; the way the work arrives  | Tahap 12e, 49     |
+| `/practice/<value>` | 1. **`practice-morph`** — the home page's practice name becoming the hero<br>2. **`practice-statement`** — the scrubbed passage, `ProgressText`<br>3. **`work-transport`** — the practice's own work carrying into its project pages | Tahap 15, 52      |
+| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index<br>3. **`work-transport`** — the evidence strip's cards carrying into their project pages                                               | Tahap 24, 25, 50  |
+| `/journal`          | 1. **`journal-index`** — the row being read leads<br>2. **`journal-transport`** — the headline chosen carries itself into the entry, spent on navigation rather than at load. Both marked in the DOM since Tahap 52                  | Tahap 27, 41, 52  |
+| `/journal/<slug>`   | 1. **`journal-transport`** — the receiving half: the headline lands, then the prose settles under it. Marked in the DOM since Tahap 52                                                                                               | Tahap 26, 41, 52  |
+| `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too<br>2. **`catalogue-sift`** — the list rearranging under a filter                                                                                    | Tahap 11d, 39     |
+| `/work/<slug>`      | 1. **`project-arrival`** — the receiving half of that transition, via `transitionName`. Marked in the DOM since Tahap 40; the name is older                                                                                          | Tahap 11d, 19, 40 |
 
 Everything else is micro or standard. A filter chip does not get 1200ms —
 and `catalogue-sift` is not the chip. The chip's own acknowledgment is the

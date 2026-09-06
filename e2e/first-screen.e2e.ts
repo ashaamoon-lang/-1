@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 /**
- * A catalogue shows work on its first screen.
+ * A page shows its own subject on its first screen.
  *
  * ## Why this file exists, and why it runs at two widths
  *
@@ -41,45 +41,82 @@ import { expect, test } from '@playwright/test'
  * because it has one.
  */
 
-const CATALOGUE_ENTRANCES = [
-  '/en/work',
-  '/id/work',
+/**
+ * The routes whose subject is a list, and the selector for one item of it.
+ *
+ * `subject` is what the page is *about*, not merely what it contains — see the
+ * note above about `/practice/<v>`, whose grid is evidence for a statement
+ * rather than the point of the page.
+ */
+const SUBJECTS = [
+  {
+    path: '/en/work',
+    subject: 'li[data-flip-id]',
+    what: 'covers',
+    one: 'cover',
+  },
+  {
+    path: '/id/work',
+    subject: 'li[data-flip-id]',
+    what: 'covers',
+    one: 'cover',
+  },
   // The filtered catalogue is a real entry point, not only a click away: the
   // practice pages link straight to it (`app/[locale]/work/hrefs.ts`).
-  '/en/work?practice=consulting',
-]
+  {
+    path: '/en/work?practice=consulting',
+    subject: 'li[data-flip-id]',
+    what: 'covers',
+    one: 'cover',
+  },
+  // The journal index is its rows. Added in Tahap 52, together with that
+  // page's first hero — a reading surface is exactly where a hero can quietly
+  // push the reading below the fold.
+  {
+    path: '/en/journal',
+    subject: '[data-epic="journal-index"] article',
+    what: 'entries',
+    one: 'entry',
+  },
+  {
+    path: '/id/journal',
+    subject: '[data-epic="journal-index"] article',
+    what: 'entries',
+    one: 'entry',
+  },
+] as const
 
-test.describe('the catalogue opens on work', () => {
-  for (const path of CATALOGUE_ENTRANCES) {
-    test(`${path} shows work on its first screen`, async ({ page }) => {
+test.describe('a page opens on its subject', () => {
+  for (const { path, subject, what, one } of SUBJECTS) {
+    test(`${path} shows its ${what} on the first screen`, async ({ page }) => {
       await page.goto(path)
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(900)
 
-      const first = await page.evaluate(() => {
-        const card = document.querySelector('li[data-flip-id]')
-        if (!card) return null
-        const { top } = card.getBoundingClientRect()
+      const first = await page.evaluate((selector) => {
+        const node = document.querySelector(selector)
+        if (!node) return null
+        const { top } = node.getBoundingClientRect()
         return {
           top: Math.round(top),
           viewport: window.innerHeight,
-          opacity: Number(getComputedStyle(card).opacity),
+          opacity: Number(getComputedStyle(node).opacity),
         }
-      })
+      }, subject)
 
-      expect(first, 'no cards on the catalogue at all').not.toBeNull()
+      expect(first, `no ${what} on ${path} at all`).not.toBeNull()
       if (!first) return
 
       expect(
         first.top,
-        `the first cover starts at ${first.top}px of a ${first.viewport}px screen — the catalogue opens on nothing but its own title`
+        `the first ${one} starts at ${first.top}px of a ${first.viewport}px screen — the page opens on nothing but its own title`
       ).toBeLessThan(first.viewport * 0.85)
 
-      // And it is not merely present: it is visible. A cover parked at
+      // And it is not merely present: it is visible. An item parked at
       // `opacity: 0` behind an unfired reveal is the same blank screen.
       expect(
         first.opacity,
-        'the first cover is in the viewport but still waiting for a scroll to reveal it'
+        `the first ${one} is in the viewport but still waiting for a scroll to reveal it`
       ).toBeGreaterThan(0.99)
     })
   }

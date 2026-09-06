@@ -16,7 +16,44 @@
 .header {
   display: flex;
   flex-direction: column;
+  /*
+   * The journal's first hero — Tahap 52. Before it, this page began with an
+   * `h1` at 186px and nothing above it.
+   *
+   * ## The number is a share of the screen, not of this box
+   *
+   * `min-height: 60svh` was tried first here, the same naive form Tahap 51
+   * shipped and measured on `/work`, and it failed the same way: the box sits
+   * *below* the page's own top padding (`--header-height` + 80px), so the
+   * first entry landed at
+   *
+   *   1440x900   756px of 900   84%   opacity 0
+   *   1280x720   635px of 720   88%   opacity 0
+   *    390x844   663px of 844   79%   opacity 0
+   *
+   * past `useReveal`'s line at 75%, which means a reading index that opens on
+   * no reading. `e2e/first-screen.e2e.ts` caught it at both widths.
+   *
+   * ## Why 56 here and 48 on `/work`, and why that is not an inconsistency
+   *
+   * The two numbers are not comparable and the outcome is. Between `/work`'s
+   * masthead and its first cover sit the filter and the count — 194px at 1440.
+   * Between this header and the first entry sits 64px of section lead. Same
+   * rule, same target, different arithmetic:
+   *
+   *   /work      first cover at 66%
+   *   /journal   first entry at 60-62%, measured at all three widths
+   *
+   * Sooner here, deliberately. This is a reading surface, and a hero in front
+   * of a list of essays is a hero standing in the reader's way.
+   */
+  min-height: calc(56svh - var(--header-height) - mobile-vw(48px));
+  justify-content: end;
   gap: desktop-vw(20px);
+
+  @media (--desktop) {
+    min-height: calc(56svh - var(--header-height) - desktop-vw(80px));
+  }
 }
 
 .eyebrow {

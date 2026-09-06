@@ -76,6 +76,11 @@ export default defineConfig({
         // is where that goes wrong first. The file is deliberately small so
         // adding it here costs three tests, not thirteen.
         '**/first-screen.e2e.ts',
+        // The hairline is pinned to `--header-height`, which is a clamp that
+        // resolves to 58px on a phone and 72 on this desktop — so where it
+        // sits, and whether it lands on the header rather than under it, is a
+        // different question at each width.
+        '**/reading-progress.e2e.ts',
       ],
       use: {
         browserName: 'chromium',

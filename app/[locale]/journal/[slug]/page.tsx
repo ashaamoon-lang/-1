@@ -25,6 +25,7 @@ import { JsonLd } from '@/lib/seo/json-ld'
 import { articleSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { ReadingProgress } from '@/vault/motion/reading-progress'
 import { Reveal } from '@/vault/motion/reveal'
 
 import s from './page.module.css'
@@ -182,6 +183,16 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
       gsap
     >
       {/*
+        How far through this page the reader is — Tahap 52.
+
+        Only on the three pages long enough for the question to arise:
+        measured at 4.22 screens here, 4.66 on a project page and 3.37 on a
+        practice page. `vault/motion/reading-progress` carries the argument
+        for why it is CSS first and a ScrollTrigger only where the timeline
+        is missing.
+      */}
+      <ReadingProgress />
+      {/*
         `articleSchema()` was written, typed, exported and never called —
         Tahap 38's audit found three builders in that state. An entry is the
         one document type on this site that is an article, and until now the
@@ -220,7 +231,14 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
           ]}
         />
 
-        <header className={s.header}>
+        {/*
+          `journal-transport`, the receiving half — Tahap 41 named it, §9.5
+          lists it, and until Tahap 52 the DOM said nothing. The marker goes on
+          the header rather than on the `<h1>`: the moment's span is the morph
+          *and* the summary settling under it, which is the argument §9.5
+          already makes for why a 400ms morph reaches the choreographed band.
+        */}
+        <header data-epic="journal-transport" className={s.header}>
           <p className={cn('caption', s.meta)}>
             <time dateTime={entry.date}>
               {formatter.format(new Date(entry.date))}

@@ -1,0 +1,65 @@
+/*
+ * The track sits under the fixed header, spanning the viewport.
+ *
+ * `fixed` and `pointer-events: none`: it is never in the way of anything, and
+ * it never scrolls with the content it is reporting on.
+ */
+.track {
+  position: fixed;
+  inset-block-start: var(--header-height);
+  inset-inline: 0;
+  /* A hairline. Under one spacing step on purpose — `lib/styles/scripts/scale-rules.test.ts`
+     says what sits under a step is a different kind of number. */
+  block-size: 2px;
+  z-index: 1;
+  pointer-events: none;
+  background: color-mix(in oklab, var(--color-secondary) 8%, transparent);
+}
+
+.bar {
+  display: block;
+  block-size: 100%;
+  background: var(--color-secondary);
+  /* Grows from the reading edge, not from the middle. */
+  transform-origin: 0 50%;
+  /*
+   * The fallback's resting state, and the CSS path's too before its first
+   * frame: nothing read yet, so nothing drawn.
+   */
+  transform: scaleX(0);
+}
+
+/*
+ * The primary path. `linear` because a scrub has no curve of its own — the
+ * reader's scroll is the curve — and that is why this is not one of the
+ * `--ease-*` tokens `CLAUDE.md` #1 requires elsewhere.
+ */
+@supports (animation-timeline: scroll()) {
+  .bar {
+    animation: reading-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@keyframes reading-progress {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/*
+ * Removed, not frozen.
+ *
+ * A bar that tracks the scroll is scroll-linked movement, and this one carries
+ * no information the native scrollbar does not already give. Nothing is
+ * stranded by its absence, which is the test `CLAUDE.md` #5 sets.
+ */
+@media (--reduced-motion) {
+  .track {
+    display: none;
+  }
+}

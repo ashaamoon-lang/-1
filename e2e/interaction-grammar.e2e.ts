@@ -371,7 +371,19 @@ test.describe('interaction grammar', () => {
     { path: '/en', ceiling: 3 },
     { path: '/en/work', ceiling: 3 },
     { path: `/en/work/${FEATURED_WORK}`, ceiling: 2 },
-    { path: '/en/practice/consulting', ceiling: 2 },
+    /*
+     * Three, and the raise bought nothing.
+     *
+     * Tahap 52 marked the two moments §9.5 had listed for this route since
+     * Tahap 15 and found a third already shipping: `work-transport`, which
+     * `ProjectCard` carries wherever it renders — the same accounting defect
+     * Tahap 50 found on `/studio`. All three movements ship today; what
+     * changed is whether the budget describes the site or contradicts it.
+     *
+     * `/journal`, `/journal/<slug>` and `/work/<slug>` stay where they are.
+     * A ceiling that rises everywhere is not a ceiling.
+     */
+    { path: '/en/practice/consulting', ceiling: 3 },
     { path: '/en/studio', ceiling: 3 },
     { path: '/en/journal', ceiling: 2 },
     { path: '/en/journal/scope-is-the-deliverable', ceiling: 2 },

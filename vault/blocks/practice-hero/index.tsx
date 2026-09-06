@@ -53,7 +53,18 @@ export function PracticeHero({
   className,
 }: PracticeHeroProps) {
   return (
-    <Reveal as="header" className={cn(s.hero, className)}>
+    /*
+      `practice-morph` — the home page's practice name becoming this hero,
+      `MOTION-SPEC.md` §9.5 has listed it since Tahap 15 and nothing in the DOM
+      said so until Tahap 52. The marker sits on the header rather than on the
+      `<h1>` because the moment is the arrival of the block, and the `<h1>` is
+      already inside a `<ViewTransition>` whose own name is the morph pair.
+    */
+    <Reveal
+      as="header"
+      data-epic="practice-morph"
+      className={cn(s.hero, className)}
+    >
       <p data-reveal-item className={cn('caption', s.eyebrow)}>
         {eyebrow}
       </p>

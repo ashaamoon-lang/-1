@@ -2066,6 +2066,75 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 52 — Permukaan informasi: yang diukur dulu, baru dinaikkan ✅
+
+> Spec: [`docs/stages/TAHAP-52.md`](./stages/TAHAP-52.md)
+
+Empat butir direncanakan. **Satu premisnya tidak ada di kodenya**, satu ditolak
+dengan pengukuran, dua dikirim — dan yang terbesar dalam tahap ini tidak ada di
+rencana sama sekali.
+
+| #   | Premis rencana                                               | Terukur                                                                                            |
+| --- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| 1   | `/practice/<v>`: tiga bagian kapabilitas jadi `sticky-stack` | ❌ **halaman itu tidak punya daftar kapabilitas.** Isinya hero → pernyataan → kisi → next-practice |
+| 2   | `/practice/<v>`: hero 70svh → 88svh                          | ❌ pernyataannya **sudah** di 88% layar dan belum terbuka; 88svh mendorongnya ke ~106%             |
+| 3   | `/journal`: hero nol → 60svh                                 | ⚠️ premisnya benar, angkanya tidak — `60svh` polos menaruh entri pertama di 84–88%                 |
+| 4   | Progres baca, CSS `scroll()` dicoba dulu                     | ⚠️ didukung di sini, **bukan Baseline** (MDN) — jawabannya bukan ya/tidak                          |
+
+**`/practice/<v>` sudah persis di plafonnya, dan itu kebetulan.** Hero 630px =
+70% layar, pernyataan mendarat di 788px = 88%, garis reveal di 675. Batas yang
+tata letak ini izinkan adalah hero ≤ ~70%. 70svh dipilih di Tahap 15 tanpa
+alasan ini dan tepat. Yang ditambahkan: ground `dot-pattern` (kategori ketiga),
+di belakang wash satu-layarnya.
+
+**`/journal` dapat hero pertamanya, dan angkanya diukur bukan disalin.**
+`min-height: 60svh` polos dicoba lebih dulu dan gagal persis seperti di `/work`:
+
+```
+                    60svh polos              calc(56svh − header − padding)
+1440×900   entri di 756px = 84%  opacity 0   →   552px = 61%  visible  1
+1280×720            635px = 88%  opacity 0   →   449px = 62%  visible  1
+ 390×844            663px = 79%  opacity 0   →   505px = 60%  visible  1
+```
+
+Header 0 → **352px** pada 1440, dokumen 2937 → **3082px**. 56 di sini dan 48 di
+`/work` bukan inkonsistensi: di antara masthead `/work` dan sampulnya duduk
+filter dan penghitung (194px), di sini 48px. Aturannya satu, hasilnya yang
+dibandingkan.
+
+**Progres baca, dua implementasi satu garis.** CSS `animation-timeline:
+scroll()` menggerakkan `scaleX` di compositor tanpa JavaScript; ia bukan
+Baseline (MDN, dibaca bukan diasumsikan), jadi fallback ScrollTrigger dipasang
+**hanya** ketika `CSS.supports` bilang tidak — di loop bersama, nol RAF baru.
+Terukur nol di atas dan satu di dasar pada ketiga halaman panjang; `display:
+none` di reduced motion. Dan **jalur yang Chromium tidak akan pernah ambil ikut
+diuji**: gerbangnya memalsukan `CSS.supports` dan membungkam blok `@supports`,
+karena tanpa itu jalur CSS akan diam-diam memenuhi asersinya dan fallback
+Safari jadi kode mati di bawah uji.
+
+**Cacat akuntansi §9.5, ketiga kalinya.** Tahap 50 menemukannya di `/studio`;
+tahap ini menemukan dua rute lagi dalam keadaan yang sama:
+
+```
+                sebelum                sesudah
+/practice/<v>   work-transport ×2      practice-morph, practice-statement, work-transport
+/journal        journal-transport ×3   journal-index, journal-transport
+/journal/<slug> (kosong)               journal-transport
+```
+
+Menandainya membuat gerbangnya merah — `/en/practice/consulting` mendeklarasikan
+tiga sementara plafonnya dua — dan plafon rute itu dinaikkan ke tiga dengan
+argumen tertulis: **kenaikan itu tidak membeli satu gerak pun yang baru.**
+Ketiganya sudah dikirim hari ini. Yang berubah hanya apakah anggarannya
+menggambarkan situs ini atau membantahnya. `MOTION-SPEC.md` §9.5 juga
+kehilangan kalimatnya sendiri yang menyebut `/journal/<slug>` "keeps its
+deliberate zero" — di dokumen yang tabelnya memberi rute itu satu dan yang
+halaman berikutnya menjelaskan kenapa Tahap 41 menaikkannya.
+
+RESULTS_PLACEHOLDER
+
+---
+
 ## Tahap 51 — `/work`: masthead yang menyebut dirinya, dan kisi yang tidak jadi turun ✅
 
 > Spec: [`docs/stages/TAHAP-51.md`](./stages/TAHAP-51.md)

@@ -65,6 +65,17 @@ interface RevealProps {
   as?: 'div' | 'section' | 'header' | 'footer' | 'aside' | undefined
   id?: string | undefined
   className?: string | undefined
+  /**
+   * Names one of the choreographed moments this page is allowed
+   * (`docs/MOTION-SPEC.md` §9.5), when the block that reveals *is* the moment.
+   *
+   * Declared rather than spread, the same way `vault/blocks/project-grid` and
+   * `vault/blocks/step-sequence` declare it: this component spreads nothing,
+   * so an attribute passed in without a prop for it is dropped silently and
+   * the budget gate then measures correct markup as missing. Tahap 52 found
+   * three routes in exactly that state.
+   */
+  'data-epic'?: string | undefined
 }
 
 export function Reveal({
@@ -72,6 +83,7 @@ export function Reveal({
   as: Element = 'div',
   id,
   className,
+  'data-epic': epic,
 }: RevealProps) {
   /*
    * `HTMLDivElement` rather than `HTMLElement`, even though `as` widens the
@@ -84,7 +96,12 @@ export function Reveal({
   const ref = useReveal<HTMLDivElement>()
 
   return (
-    <Element ref={ref} {...(id && { id })} className={cn(className)}>
+    <Element
+      ref={ref}
+      {...(id && { id })}
+      {...(epic && { 'data-epic': epic })}
+      className={cn(className)}
+    >
       {children}
     </Element>
   )
