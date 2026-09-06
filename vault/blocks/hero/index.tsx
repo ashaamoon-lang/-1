@@ -68,6 +68,8 @@ import cn from 'clsx'
 import type { ReactNode } from 'react'
 
 import { useReveal } from '@/lib/hooks/use-reveal'
+import { GridPattern } from '@/vault/magic/grid-pattern'
+import { NoiseTexture } from '@/vault/magic/noise-texture'
 import { TextReveal } from '@/vault/motion/text-reveal'
 import { Magnetic } from '@/vault/primitives/magnetic'
 import { SceneShell } from '@/vault/webgl/scene-shell'
@@ -126,6 +128,16 @@ export function Hero({
     <section className={cn(s.hero, className)} data-epic="hero-arrival">
       <div className={s.background}>
         <SceneShell />
+        {/*
+          The ground the passage below resolves into — Tahap 49.
+
+          Both are `aria-hidden` and inert, and neither carries information:
+          `vault/magic/README.md` house rule 4. They are here because the hero
+          now fills the screen, and a full screen of one flat wash is the
+          cheapest-looking thing a display can show.
+        */}
+        <NoiseTexture className={s.heroGrain} />
+        <GridPattern width={48} height={48} className={s.heroGrid} />
       </div>
 
       <div ref={ref} className={s.frame}>

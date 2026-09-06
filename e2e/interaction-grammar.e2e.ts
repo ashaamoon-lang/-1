@@ -354,18 +354,31 @@ test.describe('interaction grammar', () => {
    * is generated from §9.5's own rows, so a page added to that table without
    * a corresponding route here is the kind of drift this file exists to stop.
    */
+  /*
+   * The ceiling per route — `MOTION-SPEC.md` §9.5, amended in Tahap 49.
+   *
+   * Two everywhere, and **three** on the three surfaces that carry the
+   * studio's image rather than its information: the home page, the studio
+   * page, and the catalogue. The amendment argues itself in the spec; what
+   * this table does is stop it being a general loosening. A ceiling that
+   * rises everywhere is not a ceiling, and the four routes still at two are
+   * the reason the number means anything on the three that are not.
+   *
+   * Written as a table rather than a single constant so that raising one
+   * route is a visible, reviewable edit rather than a bumped number.
+   */
   const EPIC_ROUTES = [
-    '/en',
-    '/en/work',
-    `/en/work/${FEATURED_WORK}`,
-    '/en/practice/consulting',
-    '/en/studio',
-    '/en/journal',
-    '/en/journal/scope-is-the-deliverable',
+    { path: '/en', ceiling: 3 },
+    { path: '/en/work', ceiling: 3 },
+    { path: `/en/work/${FEATURED_WORK}`, ceiling: 2 },
+    { path: '/en/practice/consulting', ceiling: 2 },
+    { path: '/en/studio', ceiling: 3 },
+    { path: '/en/journal', ceiling: 2 },
+    { path: '/en/journal/scope-is-the-deliverable', ceiling: 2 },
   ] as const
 
-  for (const route of EPIC_ROUTES)
-    test(`${route} spends no more than two choreographed moments`, async ({
+  for (const { path: route, ceiling } of EPIC_ROUTES)
+    test(`${route} spends no more than ${ceiling} choreographed moments`, async ({
       browser,
     }) => {
       /*
@@ -482,10 +495,30 @@ test.describe('interaction grammar', () => {
         ).toEqual([])
 
         expect(
-          names,
-          `${route} may spend two choreographed moments; it declares ${names.length}: ${names.join(', ')}`
-        ).not.toHaveLength(3)
-        expect(names.length).toBeLessThanOrEqual(2)
+          names.length,
+          `${route} may spend ${ceiling} choreographed moments; it declares ${names.length}: ${names.join(', ')}`
+        ).toBeLessThanOrEqual(ceiling)
+        /*
+         * There is deliberately **no** floor of "at least one named moment",
+         * and that is a correction to this file's own first attempt at the
+         * per-route ceiling.
+         *
+         * Adding one looked like the obvious anti-vacuum companion — a route
+         * allowed three should not pass by declaring none — and it went red
+         * on `/en/journal/scope-is-the-deliverable` within one run.
+         * Correctly: `MOTION-SPEC.md` §9.5 says in as many words that "a page
+         * missing from it has no choreographed movement, and that is a
+         * legitimate answer", and the entry page's one moment is
+         * `journal-transport`, spent on *arriving from the index*. Loaded
+         * directly, as this sampler does, it declares nothing and should.
+         *
+         * The vacuum is already closed twice over, in the right places: the
+         * sampler asserts it observed elements at all, the `unnamed` check
+         * above catches choreographed movement that belongs to no name, and
+         * `e2e/journey.e2e.ts` fails outright if the home page's pin never
+         * engages. A floor here would have been a fourth guard that
+         * contradicts the spec.
+         */
       } finally {
         await context.close()
       }

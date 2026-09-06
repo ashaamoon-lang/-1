@@ -39,10 +39,35 @@
     calc(var(--duration) + var(--duration-fast)) forwards;
 }
 
+/*
+ * The wordmark's mask.
+ *
+ * `clip` rather than `hidden`: `hidden` establishes a scroll container, which
+ * makes the element a scroll port assistive technology can focus even though
+ * nothing overflows it at rest.
+ */
+.mask {
+  display: block;
+  overflow: clip;
+}
+
 .wordmark {
+  display: block;
   margin: 0;
   letter-spacing: -0.02em;
-  /* Out before the panel moves. */
+  /*
+   * Out before the panel moves, and out by **moving** — Tahap 49.
+   *
+   * This faded `opacity` 1 → 0 when it shipped. Measured two stages later:
+   * axe's `color-contrast` rule reads rendered text, so a run landing inside
+   * the 200ms fade measures half-transparent type against the panel and
+   * reports a serious violation — 250ms was dirty, 150ms and 400ms clean.
+   * It showed up as one intermittent 404 failure, the worst shape a defect
+   * can take.
+   *
+   * A transform has no such window. It also reads better: the wordmark
+   * leaves, where a fade dissolves it.
+   */
   animation: curtain-word var(--duration-fast) var(--ease-out-quart)
     var(--duration) forwards;
 }
@@ -74,11 +99,12 @@
 
 @keyframes curtain-word {
   from {
-    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 
+  /* -120%, not -100%: descenders have to clear the mask too. */
   to {
-    opacity: 0;
+    transform: translate3d(0, -120%, 0);
   }
 }
 

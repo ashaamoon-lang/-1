@@ -96,14 +96,23 @@ compositor tanpa satu baris kode klien untuk menghapus elemennya.
 
 ## 3. Koreografi, konkret
 
-| Beat            | Gerak                    | Durasi                                           | Kurva              |
-| --------------- | ------------------------ | ------------------------------------------------ | ------------------ |
-| Tahan           | —                        | `--duration` (400ms)                             | —                  |
-| Wordmark keluar | `opacity` 1 → 0          | `--duration-fast` (200ms)                        | `--ease-out-quart` |
-| Panel naik      | `translate3d(0,-100%,0)` | `--duration` (400ms), tertunda `--duration-fast` | `--ease-out-expo`  |
+| Beat            | Gerak                        | Durasi                                           | Kurva              |
+| --------------- | ---------------------------- | ------------------------------------------------ | ------------------ |
+| Tahan           | —                            | `--duration` (400ms)                             | —                  |
+| Wordmark keluar | `transform` naik keluar mask | `--duration-fast` (200ms)                        | `--ease-out-quart` |
+| Panel naik      | `translate3d(0,-100%,0)`     | `--duration` (400ms), tertunda `--duration-fast` | `--ease-out-expo`  |
 
 **Tetap 1000ms, setiap kali.** Bukan plafon terburuk — angka pastinya, karena
 tidak ada jalur cepat (§2.3). Determinisme itu fiturnya, bukan kompromi.
+
+> **Dikoreksi di Tahap 49.** Baris ini semula `opacity` 1 → 0, dan itu cacat
+> nyata: `color-contrast` axe membaca teks yang **dirender**, jadi sapuan yang
+> mendarat di dalam jendela fade 200ms mengukur tipe setengah transparan di
+> atas panel dan melaporkan pelanggaran serius. Terukur pada 404: 150ms
+> bersih, **250ms kotor**, 400ms bersih. Ia muncul sebagai satu kegagalan
+> intermiten — bentuk cacat yang paling buruk, karena suite yang gagal
+> sesekali mengajari orang untuk menjalankannya ulang. Transform tidak punya
+> jendela itu sama sekali. `docs/stages/TAHAP-49.md` §6.
 
 **Wordmark pergi lebih dulu, dan itu seluruh isinya.** Panel mengangkat ruang
 kosong, bukan mengangkat logo. Sebuah `<div>` hitam yang naik membawa tulisan

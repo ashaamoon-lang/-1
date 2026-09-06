@@ -54,8 +54,31 @@ import s from './curtain.module.css'
  * | Beat | Property | Duration | Curve |
  * | --- | --- | --- | --- |
  * | Hold | — | `--duration` | — |
- * | Wordmark out | `opacity` | `--duration-fast` | `--ease-out-quart` |
+ * | Wordmark out | `transform` | `--duration-fast` | `--ease-out-quart` |
  * | Panel up | `transform` | `--duration` | `--ease-out-expo` |
+ *
+ * **The wordmark rises out of a mask; it does not fade — Tahap 49.**
+ *
+ * It shipped in Tahap 48 fading `opacity` 1 → 0, and that was a real defect
+ * found by measurement two stages later: axe's `color-contrast` rule reads
+ * *rendered* text, so an axe run landing inside that 200ms window measures a
+ * half-transparent wordmark against the panel and reports a serious
+ * violation. Measured on `/en/<404>`:
+ *
+ * ```
+ *  150 ms → clean
+ *  250 ms → <span class="… wordmark">Arth</span>   ← serious: color-contrast
+ *  400 ms → clean
+ * ```
+ *
+ * It surfaced as one intermittent 404 failure, which is the worst shape a
+ * defect can take: a suite that fails once in a while teaches people to
+ * re-run it. `aria-hidden` would not have helped — Tahap 43 already
+ * established that the contrast rule does not exempt hidden text.
+ *
+ * Moving instead of fading removes the window entirely rather than narrowing
+ * it, and it reads better: the wordmark **leaves**, where a fade dissolves
+ * it.
  *
  * A fixed 1000ms, against the 1200ms ceiling the gate holds.
  *
@@ -130,7 +153,13 @@ export function Curtain({ label }: CurtainProps) {
         the page title, is worse.
       */}
       <div data-curtain="" aria-hidden="true" className={s.curtain}>
-        <span className={cn('h2', s.wordmark)}>{label}</span>
+        {/*
+          The wordmark leaves by moving, not by fading — and that is a defect
+          fix, not a preference. See the header note above.
+        */}
+        <span className={s.mask}>
+          <span className={cn('h2', s.wordmark)}>{label}</span>
+        </span>
       </div>
     </>
   )

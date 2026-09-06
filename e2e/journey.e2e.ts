@@ -416,3 +416,141 @@ test.describe('a reader moving through the site', () => {
     ).toEqual(['idle'])
   })
 })
+
+/**
+ * The pinned passage — Tahap 49.
+ *
+ * `arth-passage` is the first thing on this site that holds the viewport
+ * still while the reader scrolls. That is the technique the plan's rejected
+ * list calls "scroll hijacking" when it is done badly, and the difference is
+ * not a matter of degree: pinning changes **what is visible**, hijacking
+ * changes **how fast the page scrolls**. One is a composition; the other
+ * takes the reader's input away.
+ *
+ * Nothing about the source proves which one shipped. These do.
+ */
+test.describe('the pinned passage never takes the page away', () => {
+  const PASSAGE = '[data-epic="arth-passage"]'
+
+  test('the pin releases and the footer is reachable', async ({ page }) => {
+    await page.goto('/en')
+    await page.waitForTimeout(SETTLED)
+
+    const spacers = await page.locator('.pin-spacer').count()
+    // Anti-vacuum: with no pin at all every assertion below passes while
+    // measuring nothing, so say which case we are in first.
+    expect(spacers, 'no pin to test — the passage never engaged').toBe(1)
+
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    )
+    await page.waitForTimeout(900)
+
+    const state = await page.evaluate((selector) => {
+      const passage = document.querySelector(selector)
+      const footer = document.querySelector('footer')
+      return {
+        passageOnScreen: passage
+          ? passage.getBoundingClientRect().bottom > 0 &&
+            passage.getBoundingClientRect().top < window.innerHeight
+          : null,
+        footerOnScreen: footer
+          ? footer.getBoundingClientRect().top < window.innerHeight
+          : null,
+      }
+    }, PASSAGE)
+
+    expect(state.passageOnScreen, 'the passage never let go').toBe(false)
+    expect(state.footerOnScreen, 'the footer is unreachable past the pin').toBe(
+      true
+    )
+  })
+
+  test('the keyboard alone walks past it', async ({ page }) => {
+    /*
+     * The proof that it is not hijacking, and the only one that counts. A
+     * reader who never touches a wheel or a trackpad has to be able to leave.
+     */
+    await page.goto('/en')
+    await page.waitForTimeout(SETTLED)
+
+    /*
+     * Walk until focus lands in the footer rather than pressing a fixed
+     * number of times.
+     *
+     * The first shape pressed Tab sixty times and asserted afterwards. That
+     * passed on desktop and failed on mobile — not because focus was trapped,
+     * but because the phone layout has more focusable elements before the
+     * footer, so sixty was simply short. A count that encodes one viewport's
+     * tab order is measuring the layout, not the trap.
+     *
+     * The bound is generous and the failure message reports where focus
+     * actually stopped, so a real trap still reads as a trap.
+     */
+    const LIMIT = 200
+    let presses = 0
+    let inFooter = false
+    while (presses < LIMIT && !inFooter) {
+      await page.keyboard.press('Tab')
+      presses++
+      inFooter = await page.evaluate(
+        () => !!document.activeElement?.closest('footer')
+      )
+    }
+
+    const stoppedAt = await page.evaluate(() => {
+      const el = document.activeElement
+      if (!el) return 'nothing focused'
+      return `${el.tagName}: ${(el.textContent ?? '').trim().slice(0, 32)}`
+    })
+
+    expect(
+      inFooter,
+      `${LIMIT} tab presses never reached the footer — focus stopped at ${stoppedAt}`
+    ).toBe(true)
+  })
+
+  test('reduced motion adds no empty scroll', async ({ browser }) => {
+    /*
+     * The failure this shape exists to avoid, and the one that would be
+     * invisible in review: a pin spacer is created by ScrollTrigger, not by
+     * CSS, so a component that skips its animation but still builds the
+     * trigger leaves the reader two and a half screens of blank page to
+     * scroll through — punishing exactly the person who asked for less
+     * motion.
+     *
+     * Measured rather than asserted in the abstract: the reduced-motion
+     * document must be shorter than the animated one by about the pin's own
+     * length, and carry no spacer at all.
+     */
+    const plain = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+    })
+    const plainPage = await plain.newPage()
+    await plainPage.goto('/en')
+    await plainPage.waitForTimeout(SETTLED)
+    const animatedHeight = await plainPage.evaluate(
+      () => document.documentElement.scrollHeight
+    )
+    await plain.close()
+
+    const quiet = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      reducedMotion: 'reduce',
+    })
+    const quietPage = await quiet.newPage()
+    await quietPage.goto('/en')
+    await quietPage.waitForTimeout(SETTLED)
+    const quietHeight = await quietPage.evaluate(
+      () => document.documentElement.scrollHeight
+    )
+    const spacers = await quietPage.locator('.pin-spacer').count()
+    await quiet.close()
+
+    expect(spacers, 'reduced motion still built a pin spacer').toBe(0)
+    expect(
+      quietHeight,
+      `reduced motion document is ${quietHeight}px against ${animatedHeight}px animated — the pin's length is still in the page`
+    ).toBeLessThan(animatedHeight - 1000)
+  })
+})

@@ -1,0 +1,80 @@
+/*
+ * The passage: one screen of content, delivered over two and a half screens
+ * of scroll.
+ *
+ * Every rule here describes the **resting** state — what a reader sees with
+ * JavaScript off, or with reduced motion on. GSAP's tweens are `fromTo`, so
+ * the "from" only exists once the timeline has set it, and nothing here can
+ * strand content invisible.
+ */
+.passage {
+  position: relative;
+  /*
+   * One screen, and `svh` rather than `vh` for the reason
+   * `vault/blocks/hero` records: on mobile browsers `vh` includes the
+   * collapsing address bar, so a `100vh` block is taller than the visible
+   * viewport on first paint.
+   *
+   * The scroll length is **not** here. It comes from the pin's own
+   * `end: '+=250%'`, which means no ScrollTrigger produces no spacer — a
+   * reader under reduced motion gets this element's natural height and not
+   * two and a half screens of empty page.
+   */
+  min-height: 100svh;
+  display: grid;
+  align-items: center;
+  padding-inline: var(--safe);
+  overflow: clip;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: 0;
+}
+
+/*
+ * The ground.
+ *
+ * `transform-origin: center` so the entry scale opens outward from the middle
+ * rather than sliding in from a corner, and `will-change` because this is one
+ * of exactly two scrubbed transforms on the page.
+ */
+.ground {
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+/*
+ * The title's mask.
+ *
+ * `overflow: clip` and not `hidden`: `hidden` establishes a scroll container,
+ * which makes the element a scroll port that can be focused and scrolled by
+ * assistive technology even though nothing overflows it in the resting state.
+ * `clip` cuts without that side effect.
+ */
+.mask {
+  position: relative;
+  z-index: 1;
+  overflow: clip;
+}
+
+.title {
+  will-change: transform, opacity;
+}
+
+@media (--reduced-motion) {
+  /*
+   * Nothing to switch off — the component never creates the ScrollTrigger
+   * under this preference, so there is no pin, no spacer, and no tween. This
+   * block exists to say so, and to hold the guarantee if a future change ever
+   * moves a transform into the stylesheet.
+   */
+  .ground,
+  .title,
+  .stage {
+    transform: none;
+    opacity: 1;
+  }
+}

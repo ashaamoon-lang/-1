@@ -439,21 +439,49 @@ is the wrong register for this site — rejected for the same reason in Tahap
 Award sites do not make everything epic. They make **one or two** things epic
 and keep everything else quiet.
 
-**At most two choreographed-band movements per page, and both are named.**
+**At most two choreographed-band movements per page, and every one is named.**
+
+### The ceiling is three on three routes — amended in Tahap 49
+
+`/`, `/studio` and `/work` are allowed a **third**. Every other route keeps
+two, and `/journal/<slug>` keeps its deliberate zero.
+
+**Why an amendment rather than a reclassification.** The movement that forced
+this — `arth-passage`, a pinned scrubbed sequence on the home page — has a
+beginning, a resolution and an end. That is the definition of the
+choreographed band. §0 gives a third category that this budget does not count,
+and moving the passage there would have been the cheaper answer: no amendment,
+no argument, nothing to defend. It would also have been a lie about what the
+movement is. Calling a journey "continuous response" to slip it past the
+budget is precisely the accounting §9.5 exists to prevent, and the first time
+this document allows that, the budget stops meaning anything.
+
+**Why three routes and not seven.** These are the three surfaces that carry
+the studio's image rather than its information: the home page, the studio
+page, and the catalogue. A ceiling that rises everywhere is not a ceiling, and
+the four routes left at two are left there on purpose —
+`/journal/<slug>` in particular stays at zero, because a page of long-form
+reading is where restraint is worth the most.
+
+**What a third moment costs, stated.** Two named moments per page was not an
+arbitrary number: it is what the ten measured award sites do, and it is the
+difference between a site with one thing to remember and a site that animates
+everything. A third is a real spend, not a free slot, and a route at three has
+nothing left. `/` is now at three.
 
 The list, kept current as routes are added. A page missing from it has no
 choreographed movement, and that is a legitimate answer — the journal _entry_
 page is deliberately on this list at zero (`docs/stages/TAHAP-27.md` §5).
 
-| Page                | Moments                                                                                                                                                                      | Added             |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full                                                                            | Tahap 12e         |
-| `/practice/<value>` | 1. **practice morph** — the home page's practice name becoming the hero<br>2. **the scrubbed passage** — `ProgressText`                                                      | Tahap 15          |
-| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index                                                                                 | Tahap 24, 25      |
-| `/journal`          | 1. **`journal-index`** — the row being read leads<br>2. **`journal-transport`** — the headline chosen carries itself into the entry, spent on navigation rather than at load | Tahap 27, 41      |
-| `/journal/<slug>`   | 1. **`journal-transport`** — the receiving half: the headline lands, then the prose settles under it                                                                         | Tahap 26, 41      |
-| `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too<br>2. **`catalogue-sift`** — the list rearranging under a filter                            | Tahap 11d, 39     |
-| `/work/<slug>`      | 1. **`project-arrival`** — the receiving half of that transition, via `transitionName`. Marked in the DOM since Tahap 40; the name is older                                  | Tahap 11d, 19, 40 |
+| Page                | Moments                                                                                                                                                                                                                             | Added             |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `/`                 | 1. **hero arrival** — once per load<br>2. **card → project page** — TRANSPORT plus SETTLE in full<br>3. **`arth-passage`** — the studio's own grid sharpening under the work's title, pinned and scrubbed; the way the work arrives | Tahap 12e, 49     |
+| `/practice/<value>` | 1. **practice morph** — the home page's practice name becoming the hero<br>2. **the scrubbed passage** — `ProgressText`                                                                                                             | Tahap 15          |
+| `/studio`           | 1. **`studio-statement`** — the scrubbed passage<br>2. **`studio-process`** — the held index                                                                                                                                        | Tahap 24, 25      |
+| `/journal`          | 1. **`journal-index`** — the row being read leads<br>2. **`journal-transport`** — the headline chosen carries itself into the entry, spent on navigation rather than at load                                                        | Tahap 27, 41      |
+| `/journal/<slug>`   | 1. **`journal-transport`** — the receiving half: the headline lands, then the prose settles under it                                                                                                                                | Tahap 26, 41      |
+| `/work`             | 1. **card → project page** — the same transition, `ProjectGrid` renders here too<br>2. **`catalogue-sift`** — the list rearranging under a filter                                                                                   | Tahap 11d, 39     |
+| `/work/<slug>`      | 1. **`project-arrival`** — the receiving half of that transition, via `transitionName`. Marked in the DOM since Tahap 40; the name is older                                                                                         | Tahap 11d, 19, 40 |
 
 Everything else is micro or standard. A filter chip does not get 1200ms —
 and `catalogue-sift` is not the chip. The chip's own acknowledgment is the
@@ -461,7 +489,8 @@ and `catalogue-sift` is not the chip. The chip's own acknowledgment is the
 the **grid** does afterwards, which is a movement with a start, a resolution
 and an end, and therefore exactly what this budget counts.
 
-`/work` is now at two, which is the ceiling. Nothing else may be added to it.
+`/work` is at two of its three. `/` is at three and is full — nothing else may
+be added to it.
 
 **A page's heading arriving is not one of the two, and Tahap 40 is where that
 was settled.** `vault/motion/text-reveal` ran at `duration.slow` — 800ms, the

@@ -2066,6 +2066,73 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 49 — Beranda: hero mengisi layar, lalu `arth-passage` ✅
+
+> Spec: [`docs/stages/TAHAP-49.md`](./stages/TAHAP-49.md)
+
+Tahap terbesar rencana ini, dan halamannya tumbuh **51%**:
+
+|         | 1440×900              | 390×844               |
+| ------- | --------------------- | --------------------- |
+| Dokumen | 6703px → **10134px**  | 5633px → **8756px**   |
+| Layar   | 7,45 → **11,26**      | 6,67 → **10,37**      |
+| Hero    | 0,88 → **1,00 layar** | 0,88 → **1,00 layar** |
+
+**`arth-passage` dibuat dari isi yang sudah ada, dan kendala itu yang
+membentuknya.** Beranda tidak punya kata cadangan — pernyataan studio ada di
+`StudioNote`, nama praktik ada di `PracticeList` — dan mengarang copy melanggar
+satu-satunya aturan konten yang pemilik tetapkan. Jadi passage bukan blok baru:
+ia **kedatangan seksi `#work` itu sendiri**, dikoreografikan. `SectionHeader`
+yang sama, judul yang sama, hitungan yang sama, kini tiba lewat rangkaian
+ter-pin di mana kisi 12 kolom milik situs ini menajam di bawahnya. Nol copy
+bertambah.
+
+Satu ScrollTrigger, `pin`, `scrub: 0.5`, `+=250%` — 2,5 layar gulir
+menggerakkan satu layar isi, di loop GSAP bersama. **Bukan scroll hijacking**,
+dan itu dibuktikan dengan keyboard saja: `Tab` mencapai footer, `End` sampai,
+pin lepas. Reduced motion tidak membuat ScrollTrigger sama sekali, jadi
+**nol spacer** — dokumen 7884px vs 10134px, selisih 2250px tepat panjang pin.
+
+**§9.5 diamandemen, bukan dilanggar diam-diam.** Ceiling naik dua ke tiga
+**hanya** di `/`, `/studio`, `/work`. Argumennya di `MOTION-SPEC.md`: journey
+bergulir punya awal, klimaks dan akhir — itu definisi momen berkoreografi, dan
+menyebutnya "respons berkelanjutan" supaya lolos anggaran adalah persis
+kecurangan yang §9.5 ada untuk mencegah. Gerbangnya jadi **tabel per rute**,
+bukan konstanta.
+
+**Tiga premis salah, dan satu di antaranya milik saya.**
+
+| Premis                                         | Kenyataan                                                                                                                                                                                                                                                                                                                              |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Plate hero tiba lewat `pixel-image`"          | Hero **tidak punya plate** — index, headline, subline, action, wash WebGL. Ditunda ke Tahap 51                                                                                                                                                                                                                                         |
+| Hero 100svh gratis                             | Ia **membatalkan** cue gulir yang Tahap 12 + 34 bangun: peek 108px. Dikirim tetap, harganya ditulis, penggantinya (pin merespons gulir pertama) tidak diklaim setara                                                                                                                                                                   |
+| "Seksi hanya dipisahkan 48px" — **milik saya** | `.sections` **sudah** `desktop-vw(160px)`. Angka 48 datang dari salah membaca `.section`, dan penggantian saya kena aturan yang salah — mengubah ritme header-ke-badan yang spec-nya berjanji tidak akan disentuh. `spatial-rhythm` menangkapnya dalam satu jalan: `practice=46px, studio=107px, contact=107px`. Dibatalkan sepenuhnya |
+
+**Satu cacat Tahap 48 ditemukan di sini, dalam bentuk paling berbahaya.** Satu
+kegagalan `not-found` yang intermiten — lulus saat dijalankan sendirian.
+Dikejar, bukan dianggap flake: axe dijalankan pada 404 di lima titik waktu, dan
+**250ms kotor sementara 150ms dan 400ms bersih**. Wordmark tirai memudar
+`opacity` selama 200ms, dan `color-contrast` membaca teks yang dirender.
+Diperbaiki dengan membuat wordmark pergi lewat `transform` keluar dari mask —
+menghapus jendelanya, bukan mempersempitnya.
+
+**Dua asersi berhenti berjalan sementara suite tetap hijau.** Dilewati naik
+15 → 17: helper `material-layer` menggulir `#work` ke pandangan, dan `#work`
+kini dimulai 2,5 layar di atas sampul pertama. Diperbaiki dengan menggulir ke
+**subjeknya**, bukan kontainernya. Membaca "passed" tanpa membaca "skipped"
+adalah membaca separuh hasil.
+
+**Satu gerbang dibuktikan bisa menangkap kegagalannya**, bukan hanya hijau:
+guard `if (reduced) return` dilepas sengaja, build dijalankan, asersi
+reduced-motion **merah**, guard dikembalikan.
+
+unit **421 lulus** · e2e **568 lulus, 0 gagal**, 15 dilewati (kembali ke angka
+sebelum tahap ini — nol asersi hilang), nol flake · Storybook 101 → **103
+story** · sapuan pertama **7 gagal**, enam gerbang yang belum tahu dan dua
+cacat nyata.
+
+---
+
 ## Tahap 48 — `arth-curtain`: entrance yang tidak menunda siapa pun ✅
 
 > Spec: [`docs/stages/TAHAP-48.md`](./stages/TAHAP-48.md)

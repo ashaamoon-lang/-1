@@ -17,19 +17,29 @@
    * visible.
    */
   /*
-   * 88, not 100 — the next section's top edge stays inside the first screen.
+   * 100, and this reverses a decision two stages built — Tahap 49.
    *
-   * This is the scroll cue, done structurally. Tahap 12 measured that a
-   * full-viewport hero on a 5749px document said nothing about the rest, and
-   * answered it with a `Scroll` label; Tahap 34 removed the label because
-   * `taste-skill` SKILL.md section 14 names it an AI tell, and moved the job
-   * here. Content peeking above the fold is the affordance a label was
-   * standing in for, and it survives being read aloud, being translated, and
-   * being looked at by someone who has seen a hundred of these pages.
+   * It read 88 for a reason worth restating rather than deleting: Tahap 12
+   * measured that a full-viewport hero on a 5749px document said nothing
+   * about the rest and answered it with a `Scroll` label; Tahap 34 removed
+   * the label (`taste-skill` SKILL.md section 14 names it an AI tell) and
+   * moved the job here, so the next section's top edge peeked into the first
+   * screen. Measured at 1440x900: 792px of hero left **108px** of the work
+   * section visible before any scroll.
    *
-   * `vault/blocks/hero/index.tsx` carries the full argument.
+   * The owner asked for a hero that fills the screen, the objection was put
+   * to them during planning, and the plan was approved with 100 in it. So the
+   * peek is gone, and what replaces it is written down rather than assumed:
+   * the first scroll gesture now meets `arth-passage`, a pinned sequence, so
+   * the reader's first input produces a large immediate response. A peek says
+   * something is below; a pin says what is below was worth the scroll.
+   *
+   * The ground layers below are a weaker secondary cue — the grid is cut
+   * mid-tile at the fold, so the surface reads as continuing rather than as a
+   * panel that ends. That is a real difference but a small one, and it is not
+   * claimed as an equal replacement for the peek.
    */
-  min-height: 88svh;
+  min-height: 100svh;
   /*
    * Top padding clears the fixed header, which is `position: fixed` and so
    * takes no space of its own. Without it the index row starts underneath the
@@ -50,6 +60,30 @@
   /* Behind the content, and never interactive. */
   z-index: 0;
   pointer-events: none;
+}
+
+/*
+ * The grid, faint, at the same 48px tile `vault/blocks/passage` resolves to —
+ * Tahap 49.
+ *
+ * Same element, two states: here it rests at the rhythm the site composes on,
+ * and the passage below sharpens into it from a coarser scale. A reader who
+ * never notices the hero's grid still reads the passage as *arriving* at
+ * something rather than as inventing it.
+ *
+ * `--line` already carries a contrast decision (`global.css` — 14% ink into
+ * transparent, measured by `contrast.test.ts`), so this needs no colour of
+ * its own. The extra fade below is because this sits over the WebGL wash
+ * rather than over the page ground, and the wash is the one surface on this
+ * site whose luminance is not a token.
+ */
+.heroGrid {
+  opacity: 0.4;
+}
+
+/* Grain, so the wash reads as a surface rather than as an empty buffer. */
+.heroGrain {
+  opacity: 0.5;
 }
 
 /*

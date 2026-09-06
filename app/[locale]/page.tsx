@@ -17,6 +17,7 @@ import {
 } from '@/lib/integrations/sanity/queries'
 import { ContactBlock } from '@/vault/blocks/contact-block'
 import { Hero } from '@/vault/blocks/hero'
+import { Passage } from '@/vault/blocks/passage'
 import { PracticeList } from '@/vault/blocks/practice-list'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
 import { StudioNote } from '@/vault/blocks/studio-note'
@@ -216,11 +217,31 @@ export default async function Home() {
               templated look, not a considered one. The count beside the
               title carries what the eyebrow was pretending to.
             */}
-            <SectionHeader
-              reveal
-              title={t('workTitle')}
-              aside={t('workCount', { count: projects.length })}
-            />
+            {/*
+              The work's arrival, choreographed — `arth-passage`, Tahap 49.
+
+              The header is the same one it always was: same title, same
+              count, same component. What changed is that it now arrives
+              through a pinned passage in which the studio's own twelve-column
+              grid sharpens under it.
+
+              **Zero copy was added, and that constraint shaped the block.**
+              This page has no spare words — the statement is in `StudioNote`,
+              the practice names are in `PracticeList` — and inventing some
+              would break the one rule the owner set on content. So the
+              passage is not a new section between the hero and the work; it
+              is how the work gets here.
+
+              `reveal` comes off the header: a container reveal and a scrubbed
+              passage are two entrances competing for the same element, and
+              `MOTION-SPEC.md` §9.4 rule 2 is that a thing arrives once.
+            */}
+            <Passage>
+              <SectionHeader
+                title={t('workTitle')}
+                aside={t('workCount', { count: projects.length })}
+              />
+            </Passage>
             <ProjectGrid projects={projects} material />
           </section>
         )}

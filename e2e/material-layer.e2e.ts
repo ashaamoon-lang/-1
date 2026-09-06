@@ -45,7 +45,23 @@ declare global {
 async function showWorkGrid(page: Page) {
   await page.goto('/en', { waitUntil: 'networkidle' })
   await page.evaluate(() => {
-    document.querySelector('#work')?.scrollIntoView({ block: 'start' })
+    /*
+     * Scroll to the first plate, not to `#work` — Tahap 49.
+     *
+     * This scrolled the section into view, which worked only because the
+     * section began with its grid. It no longer does: `arth-passage` now
+     * opens `#work` with a pinned sequence, so `#work`'s start is two and a
+     * half screens above the first cover. The material never mounted, the
+     * `test.skip` below fired, and **two assertions stopped running while the
+     * suite still reported green** — the quietest way a gate can fail.
+     *
+     * Scrolling to the thing under test rather than to its container is what
+     * this should always have done. The old anchor was an indirection that
+     * happened to hold.
+     */
+    const plate = document.querySelector('[data-material-shell]')
+    const target = plate ?? document.querySelector('#work')
+    target?.scrollIntoView({ block: 'center' })
   })
   // The mesh needs its texture decoded and at least one frame advanced. The
   // canvas runs on Tempus, not on Playwright's idea of idle.
