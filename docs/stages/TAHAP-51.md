@@ -281,11 +281,9 @@ diubah, dan enam yang baru (`first-screen`, tiga rute × dua lebar).
 - **`catalogue-descent`** — §3. Dibangun, tiga cacat diperbaiki, konflik
   dengan `catalogue-sift` tidak terselesaikan, dibatalkan.
 
-### 5.3 Yang ditemukan dan **tidak** diperbaiki di sini
+### 5.3 Yang diukur di `/practice/<v>`, dan koreksi atas bacaan pertamanya
 
-`/en/practice/<v>` — halaman topik praktik, hero `70svh` sejak Tahap 15 —
-punya cacat yang sama dan **lebih parah**, dan ia sudah ada di sana sebelum
-tahap ini:
+Rute itu diukur karena Tahap 52 akan menaikkan hero-nya, dan angkanya:
 
 ```
 1440×900   sampul pertama 1184px = 132% layar   data-reveal="hidden"   opacity 0
@@ -293,10 +291,18 @@ tahap ini:
  390×844                  1083px = 128%          hidden                0
 ```
 
-Tidak diperbaiki di sini karena itu halaman lain, dan karena **Tahap 52 sudah
-menjadwalkan hero itu 70svh → 88svh** — yang, tanpa pengukuran ini, akan
-memperburuknya. Angkanya ditulis supaya tahap itu mulai dari sini alih-alih
-menemukannya lagi.
+**Bacaan pertama saya atas angka ini salah, dan ini koreksinya.** Saya menulis
+bahwa rute itu punya "penyakit yang sama dan lebih parah". Ia tidak. Di `/work`
+kisi adalah subjek layar pertama, jadi katalog yang tidak menampilkan karya
+sama sekali adalah cacat. Di `/practice/<v>` **pernyataan** yang jadi
+subjeknya: urutan halamannya `PracticeHero` → `data-practice-statement`
+(`ProgressText`, di-scrub) → baru kisinya. Sampul yang ada di bawah lipatan dan
+belum terbuka di sana adalah sistem reveal yang **bekerja**, bukan yang gagal.
+
+Yang angka ini benar-benar berikan ke Tahap 52 adalah titik awal yang berbeda:
+rencana menaikkan hero itu 70svh → 88svh, dan yang harus diukur di sana bukan
+posisi kisi melainkan posisi **pernyataan** — satu-satunya hal yang halaman itu
+buka. Hero-nya sudah memakai 630px dari 900, dan `h1`-nya duduk di 542–644.
 
 ### 5.4 Kejujuran tentang tahap ini
 

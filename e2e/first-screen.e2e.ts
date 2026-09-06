@@ -27,19 +27,18 @@ import { expect, test } from '@playwright/test'
  * mobile project takes whole files: this way it runs at 390x844 as well,
  * without dragging thirteen FLIP-timing tests into a project that has none.
  *
- * ## What this deliberately does not cover, and the numbers for it
+ * ## What this deliberately does not cover, and why
  *
- * `/en/practice/<v>` fails this same check today, and did before Tahap 51 —
- * its hero has been `70svh` since Tahap 15:
+ * `/practice/<v>` puts its first cover at 132% of a 900px screen, unrevealed,
+ * and that is **not** this defect. The catalogue's subject is its grid; a
+ * practice page's subject is its statement — `PracticeHero`, then the scrubbed
+ * `data-practice-statement`, and only then the work. A cover below the fold
+ * and waiting for a scroll is the reveal system working there.
  *
- *   1440x900   first cover 1184px = 132%   data-reveal="hidden"   opacity 0
- *   1280x720               1008px = 140%   hidden                 0
- *    390x844               1083px = 128%   hidden                 0
- *
- * It is left out because it is a different page and `docs/ROADMAP.md` Tahap 52
- * already owns that hero — which it plans to raise to 88svh, making this
- * worse. The measurement is here so that stage starts from it. Add the route
- * to `CATALOGUE_ENTRANCES` when it is fixed.
+ * The distinction is the whole content of this gate: it asks whether a page
+ * shows *what it is about* on its first screen, and only the catalogue routes
+ * are about their grid. Add a route here when its own subject is a grid, not
+ * because it has one.
  */
 
 const CATALOGUE_ENTRANCES = [

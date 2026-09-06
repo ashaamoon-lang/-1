@@ -2149,11 +2149,15 @@ Yang menang adalah sift: ia umpan balik filter, descent hanya kedatangan. Slot
 §9.5 ketiga `/work` tetap kosong, dan §9.5 mencatat bahwa ia kosong **karena
 alasan yang terukur**.
 
-**Satu cacat lama ditemukan dan tidak diperbaiki di sini.** `/en/practice/<v>`
-punya penyakit yang sama dan lebih parah — sampul pertama di **132% layar**,
-`data-reveal="hidden"`, opacity 0 — dan itu sudah begitu sebelum tahap ini.
-Tahap 52 sudah menjadwalkan hero itu 70svh → 88svh, yang tanpa pengukuran ini
-akan memperburuknya. Angkanya ditulis di spec §5.3.
+**Dan satu koreksi atas bacaan saya sendiri.** `/en/practice/<v>` diukur di
+sini — sampul pertama di **132% layar**, `data-reveal="hidden"`, opacity 0 —
+dan saya sempat menyebutnya penyakit yang sama. Ia bukan: di `/work` kisi
+adalah subjek layar pertama, di `/practice/<v>` **pernyataan** yang jadi
+subjeknya (`PracticeHero` → `ProgressText` yang di-scrub → baru kisinya), jadi
+sampul di bawah lipatan yang belum terbuka di sana adalah sistem reveal yang
+bekerja. Angkanya tetap berguna untuk Tahap 52, yang akan menaikkan hero itu
+70svh → 88svh: yang harus diukur di sana posisi pernyataannya, bukan kisinya.
+Spec §5.3.
 
 unit 421 lulus · e2e **575 lulus, 0 gagal**, 14 dilewati (12,2m) · Storybook
 lulus. Jalan pertama menemukan cacat 4a: 567 lulus, **2 gagal** — dan itu
