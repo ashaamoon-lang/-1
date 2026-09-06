@@ -198,14 +198,22 @@ export function Wrapper({
            *
            * `syncScrollTrigger` imports GSAP so Lenis can drive ScrollTrigger,
            * and it was passed unconditionally — so 26.8KB gzipped of GSAP core
-           * reached `/en/work/*`, a route that opts into neither `gsap` nor
-           * `webgl`. `lib/features/index.tsx` states the principle in its own
-           * doc comment ("a site that never animates should not pay for it")
-           * and this line was quietly contradicting it
-           * (`docs/AUDIT-2026-08.md` §Tier 4).
+           * reached routes that animate nothing. `lib/features/index.tsx`
+           * states the principle in its own doc comment ("a site that never
+           * animates should not pay for it") and this line was quietly
+           * contradicting it (`docs/AUDIT-2026-08.md` §Tier 4).
            *
            * Nothing is lost when it is off: without ScrollTrigger there is no
            * ScrollTrigger to keep in sync.
+           *
+           * **The corollary is a rule, and Tahap 54 found it broken.** A page
+           * that renders *any* ScrollTrigger consumer must pass `gsap`, or it
+           * gets the worst of both: GSAP in the bundle anyway (its components
+           * import it), a second RAF loop because `GSAPRuntime` never mounts
+           * to hand the ticker to Tempus, and triggers reading native scroll
+           * while Lenis animates. `/en/work/<slug>` shipped in exactly that
+           * state from Tahap 40 until Tahap 54 — the example this comment
+           * used to cite as the route that needed nothing.
            */
           syncScrollTrigger={gsap}
         />

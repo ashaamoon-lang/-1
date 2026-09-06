@@ -295,6 +295,25 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       */
       webgl
       simTypes={['flowmap']}
+      /*
+        `gsap`, and it was missing — Tahap 54.
+
+        This page renders two ScrollTrigger consumers: `ProjectSpine`
+        (`vault/motion/use-active-in-sequence` calls `ScrollTrigger.create`)
+        and `ReadingProgress`, whose non-Chromium path is a scrubbed
+        ScrollTrigger. Without this prop `Wrapper` mounts no `GSAPRuntime`, so
+        GSAP never hands its clock to Tempus and **starts a second
+        `requestAnimationFrame` loop of its own** — `CLAUDE.md` #6, the rule
+        whose stated symptom is jitter that "reads as cheap even at 60fps".
+
+        It also left `syncScrollTrigger` false, so those two read the native
+        scroll position while Lenis animates the document underneath them.
+
+        The saving the wrapper's own comment claims for leaving it off is void
+        here: GSAP is in this route's graph either way, because the components
+        above import it. What was saved was the synchronisation.
+      */
+      gsap
     >
       {/*
         How far through this page the reader is — Tahap 52. 4.66 screens here,

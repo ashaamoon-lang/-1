@@ -88,22 +88,64 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
       return
     }
 
-    element.dataset.reveal = 'hidden'
+    /*
+     * The observer is built **before** the hidden state is committed.
+     *
+     * `[data-reveal] [data-reveal-item] { opacity: 0 }` (global.css) is live
+     * the instant this attribute lands, and only the callback below ever
+     * clears it. So a constructor that throws — an old engine, a hardened
+     * runtime — used to leave the whole block invisible with nothing left to
+     * reveal it. `CLAUDE.md` #5: content must end fully visible, never
+     * stranded because an animation was skipped.
+     */
+    let observer: IntersectionObserver
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            element.dataset.reveal = 'visible'
-            if (once) observer.disconnect()
-          } else if (!once) {
-            element.dataset.reveal = 'hidden'
+    /*
+     * The safety net, and it is geometry rather than a timer.
+     *
+     * `rootMargin`'s -25% bottom inset means the root is the viewport shrunk
+     * from below, so a block can sit **on screen and still not intersect**.
+     * On a page too short to scroll it never will, and the reader is left
+     * looking at the space where the content is.
+     *
+     * `entry.rootBounds` is the observer's own root, margins already applied,
+     * so this asks the exact question rather than re-deriving 75% from the
+     * option string: at maximum scroll, is the element's top still past the
+     * root's bottom edge? If it is, no amount of scrolling reveals it, and
+     * the block is shown now.
+     */
+    const unreachable = (entry: IntersectionObserverEntry) => {
+      const root = entry.rootBounds
+      if (!root) return false
+      const maxScroll = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight
+      )
+      return entry.boundingClientRect.top - maxScroll >= root.bottom
+    }
+
+    try {
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting || unreachable(entry)) {
+              element.dataset.reveal = 'visible'
+              if (once) observer.disconnect()
+            } else if (!once) {
+              element.dataset.reveal = 'hidden'
+            }
           }
-        }
-      },
-      { threshold, rootMargin }
-    )
+        },
+        { threshold, rootMargin }
+      )
+    } catch {
+      // No observer, so no reveal — and a block nobody can reveal is a block
+      // that must never have been hidden.
+      element.dataset.reveal = 'visible'
+      return
+    }
 
+    element.dataset.reveal = 'hidden'
     observer.observe(element)
     return () => observer.disconnect()
   }, [threshold, rootMargin, once])
