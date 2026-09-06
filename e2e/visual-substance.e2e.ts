@@ -615,7 +615,27 @@ test.describe('a footer under a canvas is still readable', () => {
        * hardcoded route would silently stop covering the thing it was written
        * for on the exact stage that made it matter more.
        */
-      const hasCanvas = (await page.locator('canvas').count()) > 0
+      /*
+       * Waited for, not counted once — Tahap 52.
+       *
+       * This read `count() > 0` after a fixed 2600ms wait, and the mount is
+       * slower than that often enough to matter: the same route, the same
+       * commit, **passed on the mobile project in one full run and skipped
+       * itself in the next**. A test that skips itself when the thing it
+       * measures is merely late reports success either way, which is the
+       * failure mode this suite keeps re-learning (Tahap 49 found the same
+       * shape in `material-layer`).
+       *
+       * Waiting turns a race back into a decision: it skips only when the
+       * canvas genuinely never arrives, which is the case the skip was
+       * written for.
+       */
+      const hasCanvas = await page
+        .locator('canvas')
+        .first()
+        .waitFor({ state: 'attached', timeout: 6000 })
+        .then(() => true)
+        .catch(() => false)
       test.skip(!hasCanvas, 'no canvas on this route, nothing to paint over')
 
       await page.evaluate(() => window.scrollTo(0, 999999))
