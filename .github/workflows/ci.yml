@@ -2,20 +2,29 @@ name: CI
 permissions:
   contents: read
 
-# Every branch, and every pull request.
+# Pull requests, and the default branch.
 #
-# This used to read `branches: [main]` on both. **This repository has no `main`
-# branch** — its default branch is the working branch itself — so neither
-# trigger could ever match and CI had never run once, on any commit, since the
-# fork. The absence was invisible in exactly the way a filter is: nothing fails,
-# nothing is reported, and the checks tab stays empty.
+# ## Two corrections, both measured
 #
-# Unfiltered on purpose rather than renamed to the current default: a branch
-# filter that names one branch is the thing that broke, and `concurrency` below
-# already cancels superseded runs, so the cost of running everywhere is one
-# run per push.
+# This read `branches: [main]` on *both* triggers, and **this repository had no
+# `main` branch** — its default was the working branch itself. Neither trigger
+# could ever match, so CI had never run once since the fork. Tahap 53 opened
+# both filters to fix that, and created `main` so the PR flow had a base.
+#
+# Opening both was too much. `push` and `pull_request` both match a PR branch,
+# and their `concurrency` groups differ — `refs/heads/<branch>` against
+# `refs/pull/<n>/merge` — so neither cancels the other and **both run in full**.
+# Observed on PR #9: every push started two complete suites, and each new push
+# cancelled the previous pair before the slower `e2e` job could finish, so the
+# e2e job never completed at all.
+#
+# So: pull requests are covered by `pull_request` (one run per push, whatever
+# the branch is called), and `main` is covered for the post-merge case. A
+# branch with no open PR gets no CI — which is the standard trade and the
+# reason to open the PR early.
 on:
   push:
+    branches: [main]
   pull_request:
 
 concurrency:
