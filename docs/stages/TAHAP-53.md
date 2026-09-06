@@ -133,7 +133,7 @@ garis reveal saat dimuat. `PROVENANCE.md` dan `vault/magic/README.md` mencatat
 bun run check        lulus — unit 421 lulus
 bun run build        lulus
 build-storybook      lulus
-CI=true test:e2e     E2E_RESULTS
+CI=true test:e2e     603 lulus, 1 flaky, 14 dilewati (18,6m)
 ```
 
 ### 4.2 Anggaran rute — pengukuran yang **gagal**, ditulis apa adanya

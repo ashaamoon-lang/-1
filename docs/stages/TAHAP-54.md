@@ -73,4 +73,57 @@ puluh tahap.
 
 ## 4. Hasil
 
-_Diisi saat tahap ini dijalankan._
+### 4.1 Kerapatan kejadian, sebelum dan sesudah
+
+Sepuluh langkah gulir per halaman, menghitung item reveal yang **baru**
+terlihat di tiap langkah:
+
+```
+                sebelum                              sesudah
+/en/work        8 terlihat saat dimuat, 0 kejadian   4 saat dimuat, +2, +2
+/en/journal     4 terlihat saat dimuat, 0 kejadian   2 saat dimuat, +1, +1
+/en/work/<slug> 2 saat dimuat, +2, +1                tidak berubah
+/en             3 saat dimuat, 5 langkah berbuah     tidak berubah
+```
+
+Dua halaman terpanjang situs ini menghabiskan seluruh anggaran animasinya
+**sebelum pembaca bergerak**. Itu bukan interpretasi — nol dari sepuluh
+langkah menghasilkan satu kedatangan pun.
+
+### 4.2 Verifikasi
+
+```
+bun run check     lulus — unit 421 lulus
+bun run build     lulus
+gerbang terkait   reveal-coverage, catalogue-layout, first-screen, motion
+                  85 lulus
+```
+
+### 4.3 Dua lubang yang ikut ditutup
+
+**`MutationObserver`.** Daftar yang dirender ulang — `/work` di bawah filter
+praktik — mengganti `<li>`-nya, dan yang baru tidak pernah diserahkan ke
+observer. Mereka akan duduk di `opacity: 0` selamanya: kegagalan `CLAUDE.md`
+#5 yang persis baru saja diajarkan untuk dihindari hook ini. Mode kontainer
+tidak punya lubang itu karena kontainernya sudah `visible`.
+
+**Gerbang yang premisnya usang.** `motion › going back mid-transition strands
+nothing` mengukur pada scroll 0, yang sah hanya selama semua reveal `/en/work`
+menyala sebagai satu kejadian. Ia menggulir dulu sekarang — sama seperti tiga
+tes saudaranya — dan itu tidak melemahkannya: item yang benar-benar terdampar
+tetap terdampar melewati guliran, karena `once: true` sudah melepas
+pengamatannya.
+
+### 4.4 Yang **tidak** dikerjakan di sini, dan kenapa
+
+Butir 54c meminta gerbang yang mengukur **kerapatan**, bukan keberadaan —
+"halaman lima layar tidak boleh punya kurang dari N kejadian". Tidak dibangun,
+dan alasannya harus ditulis daripada didiamkan: angka N itu tidak punya dasar
+terukur. Suite ini punya sejarah gerbang bernilai-ambang yang dikarang
+(`TAHAP-51.md` §3 dan plafon §9.5 yang tiga kali salah hitung), dan menambah
+satu lagi berdasarkan selera adalah menambah gerbang yang akan dilanggar
+diam-diam.
+
+Yang benar-benar melindungi ini sekarang adalah §4.1: sensusnya ada, angkanya
+tertulis, dan tahap berikutnya yang membuat sebuah halaman diam lagi akan
+terlihat saat sensus itu dijalankan ulang.

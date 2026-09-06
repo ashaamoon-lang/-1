@@ -2066,6 +2066,58 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 54 — Halaman terpanjang situs ini tidak menganimasikan apa pun setelah dimuat ✅
+
+> Spec: [`docs/stages/TAHAP-54.md`](./stages/TAHAP-54.md)
+
+Pemilik repo menjalankan situsnya, melihatnya, dan menyebut tiga hal. Dua
+diperbaiki lebih dulu — navbar yang mengirim tujuh tautan dengan dua pasang
+nama kembar, dan hero beranda yang merender wash **luminansi 194** di bawah
+teks berwarna kertas. Yang ketiga, "animasinya tidak sebanyak dan seluas yang
+saya harapkan", ternyata yang paling terukur.
+
+**Sensus: sepuluh langkah gulir per halaman, hitung item reveal yang baru
+terlihat di tiap langkah.**
+
+```
+/en/work      8 item — DELAPAN-DELAPANNYA terlihat SAAT DIMUAT
+              sepuluh langkah menuruni lima layar:  NOL kejadian
+/en/journal   4 item — keempatnya terlihat saat dimuat
+              sepuluh langkah menuruni 3,4 layar:   NOL kejadian
+/en           18 item, 3 saat dimuat, 5 langkah menghasilkan kedatangan
+```
+
+Bukan "kurang efek" — **kurang kejadian**. `vault/blocks/project-grid`
+memasang satu `useReveal` pada `<ul>`-nya, jadi enam sampul katalog adalah
+satu kedatangan, yang menyala di layar pertama dari lima.
+
+`useReveal` mendapat mode `perItem`: tiap item diamati sendiri, kontainernya
+tetap `hidden` supaya aturan dasar terus menyembunyikan yang belum tiba, dan
+`--reveal-index` menjadi indeks **di dalam barisnya** — sebaris tiga tetap
+berundak, baris berikutnya berundak lagi. **Nol mekanisme baru**: CSS, token
+stagger dan jaminan reduced-motion-nya sudah ada dan sudah digerbangi; yang
+berubah kapan mereka menyala.
+
+```
+sesudah   /en/work      4 saat dimuat, lalu +2, +2
+          /en/journal   2 saat dimuat, lalu +1, +1
+```
+
+Beranda sengaja tetap mode kontainer: seleksinya satu komposisi di dalam
+halaman sebelas layar yang sudah punya tujuh blok lain.
+
+Dua lubang ikut ditutup — `MutationObserver` untuk kartu yang muncul setelah
+filter praktik (tanpanya mereka duduk di `opacity: 0` selamanya, `CLAUDE.md`
+#5), dan satu gerbang yang premisnya usang.
+
+Dan satu gerbang **tidak** dibangun, dengan alasan tertulis: "halaman lima
+layar tidak boleh punya kurang dari N kejadian" tidak punya dasar terukur, dan
+suite ini sudah punya sejarah ambang yang dikarang.
+
+unit 421 lulus · gerbang terkait 85 lulus · `bun run check` dan build hijau.
+
+---
+
 ## Tahap 53 — Lapisan ambien, story yang benar-benar kurang, dan dokumen yang menyusul kodenya ✅
 
 > Spec: [`docs/stages/TAHAP-53.md`](./stages/TAHAP-53.md)
@@ -2119,7 +2171,16 @@ bergerak sampai **delapan kali lipat antara dua jalannya** (`/id` 270 → 1091KB
 `/en/journal` 141 → 17KB). Menerbitkan salah satunya sebagai "anggaran hari
 ini" adalah menerbitkan derau. Tabelnya tetap milik gerbang itu.
 
-E2E_RESULTS
+unit 421 lulus · e2e **603 lulus, 0 gagal**, 1 flaky, 14 dilewati (18,6m) ·
+Storybook lulus.
+
+**Dan tahap ini mengirim satu cacat, yang gerbangnya sendiri tangkap.** Grain
+site-wide pada `opacity: 0.75` — bawaan komponennya, ditala untuk dua permukaan
+lokal — mengangkat ground polos **di atas** wash hero-nya, sehingga
+`visual-substance › a declared accent carries tone, and never subtracts it`
+melaporkan aksen sebagai _mengurangi_ cahaya di tiga viewport. Itu persis cacat
+yang gerbang itu ditulis untuk menangkap di Tahap 17. Disapu empat nilai,
+dikirim 0.18 dengan margin 3,5–4,7.
 
 ---
 
