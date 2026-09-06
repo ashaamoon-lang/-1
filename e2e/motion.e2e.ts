@@ -796,6 +796,23 @@ test.describe('motion', () => {
     expect(parked, 'overlay did not park after going back').toBe(true)
 
     await expect(page.locator('h1').first()).toBeVisible()
+
+    /*
+     * Scrolled before the stranding check — Tahap 54.
+     *
+     * This asserted at scroll 0, which was valid only while every reveal on
+     * `/en/work` fired as one container event. It now arrives per item
+     * (`lib/hooks/use-reveal.ts`, `perItem`), so a card below the reveal line
+     * is legitimately still at `opacity: 0` — that is the animation working,
+     * not content stranded by the back navigation this test is about.
+     *
+     * It does not weaken the assertion: an item that really was stranded —
+     * revealed once and then stuck at zero — stays stuck through the scroll,
+     * because `once: true` unobserves it. The three sibling tests above take
+     * the same walk for the same reason.
+     */
+    await scrollThrough(page)
+
     expect(
       await strandedItems(page),
       'going back left content at opacity 0'

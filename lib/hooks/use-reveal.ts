@@ -63,12 +63,33 @@ interface UseRevealOptions {
   rootMargin?: string
   /** Reveal only once, then disconnect. Default true. */
   once?: boolean
+  /**
+   * Observe each `[data-reveal-item]` on its own instead of the container.
+   *
+   * The default is one event for the whole block: the container crosses the
+   * line, and every item inside it arrives on the staggered clock. That is
+   * right for a masthead — three lines that are one thought — and wrong for a
+   * long list, where it spends the page's entire animation budget in the
+   * first screen.
+   *
+   * Measured in Tahap 54: `/en/work` is **five screens** and had **two**
+   * reveal blocks, both crossing the line inside the first one. Four screens
+   * of catalogue then scrolled past with nothing happening at all.
+   *
+   * In this mode the container stays `hidden` (so the base rule still hides
+   * what has not arrived) and each item flips its own
+   * `data-reveal-item="visible"`. `--reveal-index` becomes the item's index
+   * **within its row**, so a row of three still staggers and the next row
+   * staggers again when the reader reaches it.
+   */
+  perItem?: boolean
 }
 
 export function useReveal<T extends HTMLElement = HTMLElement>({
   threshold = 0,
   rootMargin = '0px 0px -25% 0px',
   once = true,
+  perItem = false,
 }: UseRevealOptions = {}) {
   const ref = useRef<T>(null)
 
@@ -76,11 +97,33 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
     const element = ref.current
     if (!element) return
 
-    // Index staggered children so CSS can offset each via transition-delay.
     const items = element.querySelectorAll<HTMLElement>('[data-reveal-item]')
-    items.forEach((item, index) => {
-      item.style.setProperty('--reveal-index', String(index))
-    })
+
+    if (perItem) {
+      /*
+       * Index within the row, not within the block.
+       *
+       * Each item arrives on its own here, so a block-wide index would make
+       * the sixth card wait five steps after crossing the line — a delay with
+       * nothing behind it. Bucketing by `offsetTop` keeps the stagger where it
+       * still means something: the cards that arrive together.
+       */
+      let row = -1
+      let index = 0
+      for (const item of items) {
+        if (item.offsetTop !== row) {
+          row = item.offsetTop
+          index = 0
+        }
+        item.style.setProperty('--reveal-index', String(index))
+        index += 1
+      }
+    } else {
+      // Index staggered children so CSS can offset each via transition-delay.
+      items.forEach((item, index) => {
+        item.style.setProperty('--reveal-index', String(index))
+      })
+    }
 
     // Respect reduced motion: reveal immediately, never observe.
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -128,11 +171,27 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
       observer = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
+            /*
+             * In per-item mode the *item* carries the state and the container
+             * stays hidden, so the base rule keeps hiding whatever has not
+             * arrived. `once` then unobserves that one item rather than
+             * tearing down the whole observer — the others have not arrived.
+             */
+            // SAFETY: in per-item mode the observer is only ever handed
+            // elements from `element.querySelectorAll<HTMLElement>` above and
+            // from the mutation observer below, which filters on
+            // `instanceof HTMLElement`. Nothing else can reach this callback.
+            const target = perItem ? (entry.target as HTMLElement) : element
+            const key = perItem ? 'revealItem' : 'reveal'
+
             if (entry.isIntersecting || unreachable(entry)) {
-              element.dataset.reveal = 'visible'
-              if (once) observer.disconnect()
+              target.dataset[key] = 'visible'
+              if (once) {
+                if (perItem) observer.unobserve(entry.target)
+                else observer.disconnect()
+              }
             } else if (!once) {
-              element.dataset.reveal = 'hidden'
+              target.dataset[key] = perItem ? '' : 'hidden'
             }
           }
         },
@@ -146,9 +205,44 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
     }
 
     element.dataset.reveal = 'hidden'
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [threshold, rootMargin, once])
+
+    if (!perItem) {
+      observer.observe(element)
+      return () => observer.disconnect()
+    }
+
+    for (const item of items) observer.observe(item)
+
+    /*
+     * Items that arrive after mount get observed too.
+     *
+     * Without this, per-item mode has a trapdoor: a list that re-renders —
+     * `/work` under its practice filter is the one that does — replaces its
+     * `<li>`s, and the new ones were never handed to the observer. They would
+     * sit at `opacity: 0` for good, which is the `CLAUDE.md` #5 failure this
+     * hook was just taught to avoid.
+     *
+     * Container mode has no such hole: the container is already `visible`, so
+     * children inherit it whenever they appear.
+     */
+    const added = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (!(node instanceof HTMLElement)) continue
+          const fresh = node.matches('[data-reveal-item]')
+            ? [node]
+            : [...node.querySelectorAll<HTMLElement>('[data-reveal-item]')]
+          for (const item of fresh) observer.observe(item)
+        }
+      }
+    })
+    added.observe(element, { childList: true, subtree: true })
+
+    return () => {
+      added.disconnect()
+      observer.disconnect()
+    }
+  }, [threshold, rootMargin, once, perItem])
 
   return ref
 }

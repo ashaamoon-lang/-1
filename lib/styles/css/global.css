@@ -399,6 +399,21 @@ html.screenshot {
 }
 
 /*
+ * Per-item arrival — Tahap 54, `useReveal({ perItem: true })`.
+ *
+ * The container stays `hidden` in that mode, so the rule above never fires and
+ * the base rule keeps hiding whatever has not arrived yet. Each item flips its
+ * own attribute as it crosses the line.
+ *
+ * Same declarations and the same specificity as the container rule: a list is
+ * not a different animation, it is the same one asked at a different moment.
+ */
+[data-reveal] [data-reveal-item='visible'] {
+  opacity: 1;
+  transform: none;
+}
+
+/*
  * Respect reduced-motion: neutralize CSS animations/transitions globally.
  * GSAP and WebGL animations gate themselves via usePreferredReducedMotion();
  * the reveal primitive's hook short-circuits to the visible state.

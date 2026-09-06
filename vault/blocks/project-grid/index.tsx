@@ -170,7 +170,18 @@ export function ProjectGrid({
   // Flips [data-reveal] on the container; CSS animates [data-reveal-item]
   // children with a staggered transition-delay. Reduced motion is handled
   // inside the hook — it reveals immediately and never observes.
-  const ref = useReveal<HTMLUListElement>()
+  /*
+   * A catalogue arrives card by card; an editorial selection arrives as one
+   * composition — Tahap 54.
+   *
+   * Both layouts used the container mode, and it was measured: on `/en/work`
+   * **all eight reveal items were already visible at load, and ten scroll
+   * steps down five screens produced zero further events.** The page's whole
+   * animation budget was spent before the reader moved. On `/en` the same
+   * mode is right — the selection is one composed row inside an eleven-screen
+   * page that has seven other blocks. `docs/stages/TAHAP-54.md` §1.
+   */
+  const ref = useReveal<HTMLUListElement>({ perItem: layout === 'catalogue' })
 
   /*
    * A second ref onto the same element, because `useReveal` owns the one it

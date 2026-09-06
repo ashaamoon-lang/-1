@@ -322,11 +322,15 @@ export default async function JournalPage() {
           </Reveal>
         ) : (
           /*
+            `perItem` — row by row, Tahap 54. Measured before it: all four
+            reveal items on this 3.4-screen page were visible **at load**, and
+            ten scroll steps produced **zero** further events.
+
             The rows move to a client island so the page keeps its server work
             — CMS resolution, locale date formatting, translations — while the
             three rows can answer the scroll position. See `index-rows.tsx`.
           */
-          <Reveal as="section" data-epic="journal-index">
+          <Reveal as="section" data-epic="journal-index" perItem>
             <JournalIndexRows rows={rows} />
           </Reveal>
         )}

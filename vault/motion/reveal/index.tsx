@@ -76,6 +76,15 @@ interface RevealProps {
    * three routes in exactly that state.
    */
   'data-epic'?: string | undefined
+  /**
+   * Each `[data-reveal-item]` arrives on its own instead of the block
+   * arriving as one — `lib/hooks/use-reveal.ts` carries the argument and the
+   * measurement.
+   *
+   * For lists on long pages. A masthead is one thought and should stay one
+   * event.
+   */
+  perItem?: boolean | undefined
 }
 
 export function Reveal({
@@ -84,6 +93,7 @@ export function Reveal({
   id,
   className,
   'data-epic': epic,
+  perItem = false,
 }: RevealProps) {
   /*
    * `HTMLDivElement` rather than `HTMLElement`, even though `as` widens the
@@ -93,7 +103,7 @@ export function Reveal({
    * while `HTMLElement` is rejected as too wide. The hook only ever reads
    * `dataset` and `querySelectorAll`, which every element has.
    */
-  const ref = useReveal<HTMLDivElement>()
+  const ref = useReveal<HTMLDivElement>({ perItem })
 
   return (
     <Element
