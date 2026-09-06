@@ -22,6 +22,7 @@ import { organizationSchema, websiteSchema } from '@/lib/seo/schemas'
 import { SITE, siteFacts } from '@/lib/seo/site'
 import { themes } from '@/lib/styles/colors'
 import { fontsVariable } from '@/lib/styles/fonts'
+import { Curtain } from '@/vault/motion/curtain'
 import { PageTransition } from '@/vault/motion/page-transition'
 import { Cursor } from '@/vault/primitives/cursor'
 
@@ -204,6 +205,21 @@ export default async function AppLayout({ children }: PropsWithChildren) {
       */
     >
       <body>
+        {/*
+          The entrance, and it is deliberately the first thing in the body —
+          Tahap 48.
+
+          Position is the feature: the inline session guard inside it has to
+          run during document parse, before the panel below it paints, or a
+          reload replays an entrance the reader has already seen. Anything
+          rendered above it would paint first.
+
+          It sits outside `NextIntlClientProvider` because it carries no
+          translated copy: a wordmark is the same word in both languages, and
+          reaching for the provider to fetch a string that never changes would
+          make this component depend on a context it does not need.
+        */}
+        <Curtain label={SITE.name} />
         <NextIntlClientProvider locale={locale} messages={messages}>
           {/* Entity identity for search and answer engines, on every page — deep
           pages are landed on directly far more often than the homepage. */}

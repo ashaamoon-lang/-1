@@ -281,6 +281,17 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
   return (
     <div
       className={s.overlay}
+      /*
+       * Names the overlay for a gate, so it can be counted rather than
+       * guessed at from a class name — Tahap 48.
+       *
+       * The same lesson `components/ui/marquee` records: CSS modules put the
+       * source filename into every generated class, so a `[class*="…"]`
+       * selector measures the stylesheet rather than the page.
+       * `e2e/entrance.e2e.ts` asserts this panel and the entrance curtain are
+       * never both on screen, and that assertion needs a name it can trust.
+       */
+      data-page-transition=""
       data-state={state}
       data-source={source}
       aria-hidden="true"

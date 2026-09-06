@@ -1,0 +1,108 @@
+/*
+ * The entrance panel.
+ *
+ * Everything here runs on CSS alone. `index.tsx` records why there is no
+ * JavaScript accelerator: cancelling a running animation to lift early can
+ * snap the panel back and lift it twice, and an entrance whose length varies
+ * with the network is a progress bar wearing a costume.
+ */
+.curtain {
+  position: fixed;
+  inset: 0;
+  /*
+   * Above `page-transition`, which sits at 9998.
+   *
+   * The two are mutually exclusive by construction — this one is first-load
+   * only, that one is navigation only, and `e2e/entrance.e2e.ts` holds it.
+   * The order is declared anyway, because if a future change ever did put
+   * both on screen, one panel fully in front is recoverable and two panels
+   * half-covering each other is not.
+   */
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  /*
+   * Never intercepts a press. A reader who knows where they are going must be
+   * able to reach it during the entrance rather than wait it out.
+   */
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+  /*
+   * Hold, then lift. The delay is the hold plus the wordmark's exit, so the
+   * panel starts moving only once it is empty — the 200ms that separates a
+   * curtain from a sliding rectangle.
+   */
+  animation: curtain-lift var(--duration) var(--ease-out-expo)
+    calc(var(--duration) + var(--duration-fast)) forwards;
+}
+
+.wordmark {
+  margin: 0;
+  letter-spacing: -0.02em;
+  /* Out before the panel moves. */
+  animation: curtain-word var(--duration-fast) var(--ease-out-quart)
+    var(--duration) forwards;
+}
+
+@keyframes curtain-lift {
+  from {
+    transform: translate3d(0, 0, 0);
+    visibility: visible;
+  }
+
+  /*
+   * 99%, not 100%, and the one percent is doing real work.
+   *
+   * `visibility` animates discretely — it flips at the midpoint of whatever
+   * interval it changes across. Declared only at `to`, that midpoint is 50%
+   * and the panel would vanish in mid-flight. Held to the last hundredth, it
+   * flips as the panel leaves, which is what drops the compositor layer
+   * without a line of JavaScript to remove the node.
+   */
+  99% {
+    visibility: visible;
+  }
+
+  to {
+    transform: translate3d(0, -100%, 0);
+    visibility: hidden;
+  }
+}
+
+@keyframes curtain-word {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/*
+ * Seen already this session.
+ *
+ * Set by the inline script in `index.tsx` during document parse, so the panel
+ * is never painted on a reload rather than being painted and then removed.
+ */
+:where([data-entered]) .curtain {
+  display: none;
+}
+
+@media (--reduced-motion) {
+  /*
+   * Not "lifted instantly" — absent.
+   *
+   * An entrance is pure motion: there is no content under it to reveal more
+   * gently, so the correct amount of it under this preference is none. The
+   * node still ships, because the preference is not in the request and
+   * deciding after hydration would flash the panel at the one reader who
+   * asked for no motion (`docs/stages/TAHAP-48.md` §2.2).
+   */
+  .curtain {
+    display: none;
+  }
+}

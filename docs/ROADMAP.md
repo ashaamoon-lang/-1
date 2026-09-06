@@ -2066,6 +2066,74 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 48 — `arth-curtain`: entrance yang tidak menunda siapa pun ✅
+
+> Spec: [`docs/stages/TAHAP-48.md`](./stages/TAHAP-48.md)
+
+Permintaan preloading, dalam bentuk yang tidak melanggar keberatan yang sudah
+tercatat. Rencana lama menolak preloader dengan satu kalimat — _"Menunda isi
+demi animasi memuat"_ — dan keberatan itu benar. Yang salah adalah
+menyimpulkan dari sana bahwa entrance tidak boleh ada.
+
+|                       | Preloader                    | Tirai ini                      |
+| --------------------- | ---------------------------- | ------------------------------ |
+| Isi dirender kapan    | setelah loader selesai       | **sebelum tirai muncul**       |
+| Tanpa JavaScript      | menyandera halaman selamanya | **tidak dirender sama sekali** |
+| Kalau font gagal muat | menggantung                  | **waktunya tidak terpengaruh** |
+| Angka progres         | ada, biasanya palsu          | **tidak ada**                  |
+
+**Nol JavaScript di jalur visual, dan itu koreksi terhadap koreksi saya
+sendiri.** Rencana menyerahkan pengangkatan ke `document.fonts.ready`; draf
+pertama tahap ini membaliknya jadi "CSS mengangkat, JS mempercepat"; yang
+dikirim membuang akseleratornya. Alasan tengahnya cacat nyata, bukan
+preferensi: kalau `fonts.ready` selesai setelah animasi CSS sudah mengangkat
+panel, mengganti `animation` dengan `transition` **menjatuhkan panel kembali
+ke posisi awal lalu mengangkatnya untuk kedua kali**. Alasan ketiganya
+desain: entrance yang panjangnya berubah-ubah memberi tahu pembaca bahwa situs
+ini lambat hari ini, dan itu kebalikan dari gunanya.
+
+Hasilnya tetap **1000ms, setiap kali** — tahan 400ms, wordmark keluar 200ms,
+panel naik 400ms. Wordmark pergi lebih dulu supaya panel mengangkat ruang
+kosong: itu satu-satunya hal yang memisahkan tirai dari persegi panjang yang
+menggeser. Node-nya pun dilepas tanpa JavaScript — keyframe terakhir menyetel
+`visibility: hidden`, ditahan `visible` sampai 99% supaya flip diskritnya
+jatuh di ujung dan bukan di tengah penerbangan.
+
+**400ms untuk naik, bukan 800.** `vault/motion/page-transition` menganimasikan
+gerakan yang persis sama — satu panel setinggi viewport keluar lewat tepi atas
+— pada `var(--duration)`. Mengirim 800ms berarti satu gerakan fisik punya dua
+durasi di satu situs, dan satu-satunya standar yang `CLAUDE.md` sebut penting
+adalah restraint applied consistently.
+
+**LCP diukur dua kali, dan dibaca hati-hati.** Median 5 jalan per rute, build
+produksi, entri `largest-contentful-paint` dari Chromium sendiri:
+
+| Rute          | Sebelum | Sesudah | Selisih |
+| ------------- | ------: | ------: | ------: |
+| `/en`         |     168 |     164 |      −4 |
+| `/id`         |     156 |     184 | **+28** |
+| `/en/work`    |     272 |     288 |     +16 |
+| `/en/studio`  |     172 |     168 |      −4 |
+| `/en/journal` |     208 |     200 |      −8 |
+
+Empat dari lima bergerak jauh di dalam derau run-to-run mereka sendiri —
+`/en/work` berayun 192–392ms sebelum tahap ini menyentuh apa pun. `/id`
+satu-satunya yang selisihnya sedikit melampaui rentangnya sendiri, dan dengan
+n=5 itu **tidak bisa dipisahkan dari derau**; ditulis apa adanya alih-alih
+dibulatkan jadi "tidak ada perubahan".
+
+**Gerbang dibuktikan merah, dan dugaan saya salah.** Dugaannya "empat dari
+enam tidak punya subjek"; terukur **2 gagal, 3 lulus** dari lima. Ketiga yang
+lulus itu penjaga regresi, bukan pendeteksi fitur — dan itu pekerjaan yang
+lebih berharga.
+
+unit **421 lulus** · e2e **560 lulus, 0 gagal**, 15 dilewati, nol flake ·
+Storybook 99 → **101 story** · `entrance.e2e.ts` ditambahkan ke proyek mobile
+dengan alasan tertulis: asersi "nol elemen menutupi `<h1>`" membaca tumpukan
+elemen di titik pusat judul, dan titik itu ada di tempat lain pada telepon.
+
+---
+
 ## Tahap 47 — `vault/magic/`: pintu masuk Magic UI, dan gerbang yang menjaganya jujur ✅
 
 > Spec: [`docs/stages/TAHAP-47.md`](./stages/TAHAP-47.md)

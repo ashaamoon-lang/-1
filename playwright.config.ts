@@ -63,6 +63,13 @@ export default defineConfig({
         // (32px mobile, 48px desktop), so "one rhythm per page" is a claim
         // that has to hold at both widths, not just the one it was written at.
         '**/spatial-rhythm.e2e.ts',
+        // The entrance covers the whole viewport, and its first assertion —
+        // that nothing is painted over the headline with JavaScript off —
+        // reads the element stack at the headline's own centre. That point is
+        // somewhere else on a phone: the header takes proportionally more of
+        // the screen and the `h1` sits lower against it. Checking one width
+        // would be checking one of the two places this can go wrong.
+        '**/entrance.e2e.ts',
       ],
       use: {
         browserName: 'chromium',
