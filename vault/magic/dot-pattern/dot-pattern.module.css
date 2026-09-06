@@ -1,0 +1,16 @@
+/*
+ * Ground, not content — same contract as the grid.
+ *
+ * `--line` and not a grey literal: the derived hairline token is theme-aware
+ * and already carries a contrast decision. Dots read lighter than lines at
+ * the same colour because they cover less area, which is the whole reason
+ * this exists beside `grid-pattern` rather than instead of it.
+ */
+.pattern {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--line);
+  pointer-events: none;
+}

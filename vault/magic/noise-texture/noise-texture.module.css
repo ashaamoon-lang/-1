@@ -1,0 +1,32 @@
+/*
+ * Ground, not content.
+ *
+ * The grain is painted by the SVG filter in `index.tsx`; this file decides
+ * only where it sits and how strongly it reads.
+ */
+.noise {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Never selectable — it is a surface, not a thing on the page. */
+  user-select: none;
+  /*
+   * Grain reads harder on ink than on paper: the same luminance step is a
+   * larger proportional change against a dark ground, so the dark theme takes
+   * more of it before the surface stops looking flat. Upstream reached the
+   * same conclusion with `opacity-50 dark:opacity-[0.75]`; the two weights
+   * here are those, moved onto this project's real theme selector.
+   *
+   * These are opacities, not colour, spacing, duration or type — the five
+   * things `CLAUDE.md` #8 requires to come from tokens. A token for each
+   * would be a token with one consumer, which is how a design system fills
+   * with names nobody can keep in their head.
+   */
+  opacity: 0.75;
+
+  :where([data-theme='light']) & {
+    opacity: 0.5;
+  }
+}

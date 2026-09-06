@@ -2066,6 +2066,59 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 47 — `vault/magic/`: pintu masuk Magic UI, dan gerbang yang menjaganya jujur ✅
+
+> Spec: [`docs/stages/TAHAP-47.md`](./stages/TAHAP-47.md)
+
+Tahap pertama rencana kedua (47–53), dan ia sengaja **tidak mengubah satu
+piksel pun**. Ia membangun jalur masuk kode pihak ketiga plus gerbangnya,
+supaya enam Tahap sesudahnya tidak masing-masing menemukan ulang caranya.
+Presedennya ada di repo ini: 51% nilai spasi dan 54 ukuran tipe bocor selama
+36 tahap karena tidak ada gerbang yang melihatnya.
+
+**Lisensi diverifikasi dengan membaca berkasnya sendiri.** Magic UI **MIT**,
+Copyright (c) Magic UI, dari `LICENSE.md` — HTTP 200. `LICENSE` tanpa
+ekstensi **404**, dan itu ditulis supaya orang berikutnya yang memeriksa jalur
+konvensional tidak menyimpulkan repo itu tanpa lisensi. Sekaligus mengoreksi
+catatan `PROVENANCE.md` §4 sendiri, yang menulis "verified from `LICENSE`" —
+vonisnya benar, nama berkasnya salah, dan catatan yang menyebut berkas yang
+tak bisa dibuka adalah catatan yang tak bisa diperiksa ulang.
+
+**Premisnya salah tiga kali, dan pengukuran yang mengoreksinya:**
+
+| Rencana                        | Kenyataan terukur                                                                                                                                                                                                                                                 |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "40 komponen tanpa dependensi" | Field `dependencies` registry **tidak sama** dengan `import` di sumbernya. `dot-pattern` terdaftar bersih, sumbernya `import { motion } from "motion/react"`. Dari 27 yang dibaca dari kode: 26 bersih, 1 tidak. 51 sisanya belum diperiksa.                      |
+| `dot-pattern` disalin          | Sumbernya merender **satu `<circle>` per titik** dari JS di belakang listener resize — 5.130 node SVG di 1440×900. `grid-pattern`, di repo yang sama, melakukannya dengan satu `<pattern>`. Ditulis ulang; **kode disalin: tidak**.                               |
+| Tranche pertama 4 komponen     | **3.** `progressive-blur` menumpuk delapan lapis `backdrop-filter`, biayanya tidak bisa diprofil di sini (#19), dan ia belum punya konsumen sampai Tahap 53 — kegagalan `page-transition` yang duduk sepuluh tahap dengan dua bug. Ia datang bersama konsumennya. |
+
+**Temuan yang menentukan bentuk seluruh rencana Magic UI.**
+`lib/styles/css/tailwind.css` me-reset `--color-*`, `--spacing-*`, `--font-*`
+dan `--breakpoint-*` ke `initial`. `bg-white`, `p-4`, `md:` **tidak eksis di
+repo ini**, jadi komponen Magic UI yang ditempel apa adanya **merender tanpa
+gaya**. Magic UI tidak mempersingkat waktu dengan komponen siap tempel; ia
+mempersingkatnya dengan **teknik** — rantai filter `feTurbulence` yang sudah
+ditala, geometri `<pattern>`, matematika mask. Penghematannya nyata, bentuknya
+berbeda, dan mengestimasinya seolah "siap pakai" menghasilkan jadwal yang
+salah.
+
+**Gerbang `vendor-rules.test.ts` dibuktikan merah dengan berkas nyata**, bukan
+dengan tabel: `shimmer-button` dipasang tanpa satu karakter diubah, gerbang
+jalan, hasilnya dicatat, berkasnya dihapus. **6 gagal, 5 lulus** — hex ×4,
+`rgba()` ×1, `"3s"` ×1, `ease-in-out` ×2, nilai arbitrer Tailwind ×10, header
+provenance tidak ada. Kelima yang lulus lulus dengan jujur: berkas itu memang
+tidak menjalankan RAF, tidak mengarang kurva, tidak mengimpor `motion`.
+
+unit **421 lulus** (dari 410; +11) · e2e **548 lulus, 0 gagal**, 15 dilewati,
+nol flake · Storybook 89 → **99 story** · nol rute berubah beratnya, nol
+halaman disentuh, nol anggaran dinaikkan.
+
+**Kenaikan e2e 538 → 548 dijelaskan, bukan diterima.** Tahap ini menulis nol
+tes e2e; yang bertambah adalah sapuan axe `storybook-a11y`, satu asersi per
+story — kesepuluh story baru masuk dan kesepuluhnya lulus.
+
+---
+
 ## Tahap 46 — Story yang hilang, keputusan Theatre.js, dan pandangan akhir ✅
 
 > Spec: [`docs/stages/TAHAP-46.md`](./stages/TAHAP-46.md)

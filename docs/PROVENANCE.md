@@ -168,7 +168,6 @@ extraction must be recorded in §6 with the file it landed in.
 | Source                          | Licence                                                 | Verified from               |
 | ------------------------------- | ------------------------------------------------------- | --------------------------- |
 | `basementstudio/scrollytelling` | **MIT** — Copyright (c) 2023 basement.studio            | `LICENSE`                   |
-| `magicuidesign/magicui`         | **MIT**                                                 | `LICENSE`                   |
 | `DavidHDev/react-bits`          | **MIT + Commons Clause** — Copyright (c) 2026 David Haz | `LICENSE.md`                |
 | Codrops / tympanus.net demos    | **MIT**                                                 | published policy, see below |
 
@@ -196,6 +195,48 @@ permitted.)
 Because the grant is a site policy rather than a file in the repository,
 **every Codrops extraction must record the demo URL, the article, and a link
 to the licensing page in its file header and in §6.**
+
+### Magic UI — moved out of this list in Tahap 47
+
+|              |                                                                                   |
+| ------------ | --------------------------------------------------------------------------------- |
+| Source       | https://github.com/magicuidesign/magicui                                          |
+| Registry     | https://magicui.design/r/registry.json — 250 items, 78 UI components              |
+| Licence      | **MIT**, Copyright (c) Magic UI                                                   |
+| Verified     | by reading that repository's own **`LICENSE.md`** — HTTP 200, 2026-09-05          |
+| Drawn into   | `vault/magic/` — see §6                                                           |
+| Working note | `vault/magic/README.md` — the five mandatory transformations, and the reject list |
+
+**A correction to this document's own earlier record.** The row above used to
+sit in the table at the top of this section and read _"Verified from
+`LICENSE`"_. That file does not exist:
+
+```
+LICENSE.md  → HTTP 200
+LICENSE     → HTTP 404
+```
+
+The licence is real and the verdict was right, but the filename was wrong,
+and a provenance record that names a file nobody can open is a record nobody
+can re-check. Anyone following §7 rule 1 to the conventional path would
+conclude the repository ships no licence and stop. Corrected here rather than
+left, for the reason §6 gives about the sentence it had to retract in Tahap
+43: a document that lies about its own sources is worse than no document.
+
+**What "MIT" buys and what it does not.** Copying is permitted provided the
+notice travels with the copy, which is what the per-file headers in
+`vault/magic/` are for. It does not make the code fit: this project resets
+Tailwind's `--color-*`, `--spacing-*`, `--font-*` and `--breakpoint-*`
+namespaces to `initial`, so a Magic UI component pasted unmodified renders
+**unstyled**. Every file goes through the five transformations in
+`vault/magic/README.md` first, and
+`lib/styles/scripts/vendor-rules.test.ts` is what makes that a gate rather
+than a habit.
+
+**Read the source, not the registry metadata.** Measured in Tahap 47 across
+27 components: `dot-pattern` is listed with no dependencies and its source
+imports `motion`. One disagreement in 27 is enough to make the metadata
+unusable as evidence for the other 51.
 
 ---
 
@@ -242,24 +283,34 @@ of it is here.
 Every file in `vault/` must appear here, and must carry a header comment with
 the same information.
 
-| Vault file                                                                | Origin                                                                           | Licence                                    | Notes                                                                                   |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `vault/primitives/icon/index.tsx`                                         | [Phosphor Icons](https://github.com/phosphor-icons/core), `assets/regular/*.svg` | **MIT**, Copyright (c) 2023 Phosphor Icons | **Code copied**: the `d` attribute of seven glyphs. Everything else original. Tahap 43. |
-| _(everything else — see `vault/PROVENANCE-NOTE.md` and per-file headers)_ |                                                                                  |                                            |                                                                                         |
+| Vault file                                                                | Origin                                                                                     | Licence                                    | Notes                                                                                                                          |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `vault/primitives/icon/index.tsx`                                         | [Phosphor Icons](https://github.com/phosphor-icons/core), `assets/regular/*.svg`           | **MIT**, Copyright (c) 2023 Phosphor Icons | **Code copied**: the `d` attribute of seven glyphs. Everything else original. Tahap 43.                                        |
+| `vault/magic/grid-pattern/index.tsx`                                      | [Magic UI](https://github.com/magicuidesign/magicui), `registry/magicui/grid-pattern.tsx`  | **MIT**, Copyright (c) Magic UI            | **Code copied**: the `<pattern>` structure, the `d` path, the `squares` overlay. Presentation rewritten onto tokens. Tahap 47. |
+| `vault/magic/noise-texture/index.tsx`                                     | [Magic UI](https://github.com/magicuidesign/magicui), `registry/magicui/noise-texture.tsx` | **MIT**, Copyright (c) Magic UI            | **Code copied**: the `feTurbulence`/`feColorMatrix`/`feComponentTransfer` chain and its tuning. Tahap 47.                      |
+| `vault/magic/dot-pattern/index.tsx`                                       | Technique from Magic UI `grid-pattern`; parameters from Magic UI `dot-pattern`             | **MIT**, Copyright (c) Magic UI            | **No code copied** — original. Upstream renders one `<circle>` per dot from JS and imports `motion`. Tahap 47.                 |
+| _(everything else — see `vault/PROVENANCE-NOTE.md` and per-file headers)_ |                                                                                            |                                            |                                                                                                                                |
 
-Current status, corrected in Tahap 43: `vault/` is **almost entirely original
-work written for this project**, built against the public APIs of MIT/Apache
-dependencies (Lenis, GSAP, Tempus, R3F) and following patterns documented in
-those projects' own docs. Where a file implements a technique observed
-elsewhere, the header names the source of the _idea_ and states explicitly
-that no code was copied.
+Current status, corrected in Tahap 43 and extended in Tahap 47: `vault/` is
+**almost entirely original work written for this project**, built against the
+public APIs of MIT/Apache dependencies (Lenis, GSAP, Tempus, R3F) and
+following patterns documented in those projects' own docs. Where a file
+implements a technique observed elsewhere, the header names the source of the
+_idea_ and states explicitly that no code was copied.
 
-**The one exception is the row above, and it is stated rather than glossed.**
-This section read "No third-party source has been copied" until Tahap 43,
-when `vault/primitives/icon` copied seven Phosphor path definitions. That
-sentence would then have been a document lying about its own code — the
-failure mode this project has already caught eleven times in
+**The exceptions are the rows above, and they are stated rather than
+glossed.** This section read "No third-party source has been copied" until
+Tahap 43, when `vault/primitives/icon` copied seven Phosphor path
+definitions. That sentence would then have been a document lying about its
+own code — the failure mode this project has already caught eleven times in
 `DESIGN-SYSTEM.md` — so it was corrected in the same commit as the copy.
+
+Tahap 47 opened `vault/magic/` as a deliberate, gated channel for a second
+source. The distinction the log turns on is the same one MIT turns on:
+**whether bytes were copied.** Two of the three rows say yes, one says no,
+and the third says no because rewriting it was cheaper _and_ better —
+upstream's implementation is 5,130 SVG nodes where one `<pattern>` does. A
+file logged as "adapted from" would have told a reader neither thing.
 
 The licence was verified by reading `LICENSE` in `phosphor-icons/core`
 itself (MIT, Copyright (c) 2023 Phosphor Icons), and separately in
