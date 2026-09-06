@@ -2,11 +2,21 @@ name: CI
 permissions:
   contents: read
 
+# Every branch, and every pull request.
+#
+# This used to read `branches: [main]` on both. **This repository has no `main`
+# branch** — its default branch is the working branch itself — so neither
+# trigger could ever match and CI had never run once, on any commit, since the
+# fork. The absence was invisible in exactly the way a filter is: nothing fails,
+# nothing is reported, and the checks tab stays empty.
+#
+# Unfiltered on purpose rather than renamed to the current default: a branch
+# filter that names one branch is the thing that broke, and `concurrency` below
+# already cancels superseded runs, so the cost of running everywhere is one
+# run per push.
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -165,6 +175,15 @@ jobs:
 
       # playwright.config.ts boots the prod server itself in CI (webServer),
       # so no separate server step is needed here.
+      # `e2e/storybook-a11y.e2e.ts` reads `storybook-static/` and **skips with a
+      # message** when it is absent — about a hundred story-level axe checks
+      # that report success by not running. Its own doc comment says "CI runs
+      # `bun run build-storybook` first"; this job did not, so that sentence
+      # was false for as long as it existed. It is true now.
+      - name: Build Storybook
+        if: steps.gate.outputs.run == 'true'
+        run: bun run build-storybook
+
       - name: Run e2e tests
         if: steps.gate.outputs.run == 'true'
         run: bun run test:e2e
