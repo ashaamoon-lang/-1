@@ -170,19 +170,37 @@ pengukuran yang nyata dan diperbaiki:
 mengukur bentuk gambar yang belum punya bentuk. Sekarang ia menunggu
 `img.complete && img.naturalWidth > 0` lebih dulu.
 
-## 7. Yang diukur untuk tahap berikutnya, dan belum dikerjakan
+## 7. Yang diukur untuk tahap berikutnya — **dengan koreksi**
 
-`/en/work` tetap 2/12. Lapisan kontinu yang seharusnya menghidupkan lima
-layarnya **ada dan bekerja** — dan terlalu kecil untuk terlihat. Diukur, 25
-sampel menuruni halaman, `translateY` lapisan parallax pada sampul pertama:
+> Versi pertama bagian ini menulis satu angka, **30,31px**, dan
+> menggeneralisasikannya sebagai sifat katalog. Itu salah, dan salahnya jenis
+> yang paling mudah dibuat: angka itu diukur pada **satu** plate, dan plate
+> itu kebetulan yang paling diam di halaman. Diukur ulang pada keenamnya, 41
+> sampel menuruni halaman:
 
-```
-12,0  9,1  6,0  3,0  0,0  -2,9  -6,0  -9,0  -12,0  -15,0
-```
+| plate | kolom | tinggi lapisan | perjalanan | % tinggi lapisan |
+| ----: | ----- | -------------: | ---------: | ---------------: |
+|     0 | A     |            916 |     30,3px |         **3,3%** |
+|     1 | B     |            959 |     74,1px |         **7,7%** |
+|     2 | A     |            916 |     36,6px |         **4,0%** |
+|     3 | B     |            959 |     86,3px |         **9,0%** |
+|     4 | A     |            916 |     36,3px |         **4,0%** |
+|     5 | B     |            959 |     81,1px |         **8,5%** |
 
-**Total perjalanan 30,31px** — sekitar 3px per 90px gulir, pada plate setinggi
-~700px. Itu 1,7% dari perjalanan plate itu sendiri, jauh di bawah ambang
-seseorang menyadarinya. Menaikkannya bukan mengubah satu angka:
-`vault/motion/parallax` bawaannya ±3% dan `.parallax` diberi ukuran 106%
-justru untuk menutupi perjalanan itu, jadi keduanya harus naik bersama atau
-tepi frame akan menunjukkan latar di ujung-ujungnya.
+Kolom B bergerak **2,4× lebih jauh** dari kolom A, dan itu **disengaja**:
+`vault/blocks/project-grid` memberi keduanya `COLUMN_DRIFT = [4, 9]` sebagai
+`work-constellation` (Tahap 43), justru supaya dua kolom tidak bergerak
+serempak — "dua kolom yang bergerak dalam kunci yang sama adalah satu kolom
+yang digambar dua kali". Selisihnya 5, di bawah plafon 6 yang dipegang
+`e2e/exploratory-layer.e2e.ts`.
+
+Jadi kesimpulan yang benar bukan "lapisan kontinunya terlalu kecil" melainkan
+sesuatu yang lebih sempit: **kolom A duduk di 4, sementara preset yang
+dikutip komponennya sendiri (`ui-ux-pro-max`, "Parallax Scroll (Subtle)")
+menyebut rentang 5–15.** Satu kolom katalog ini berada di bawah lantai
+rentangnya sendiri. Itu satu angka yang bisa dinaikkan di dalam kontrak yang
+sudah ada dan sudah digerbangi — bukan cacat, dan bukan mekanisme baru.
+
+Dan `/en/work` terbaca sepi bukan karena itu. Ia terbaca sepi karena
+**delapan benda di lima layar**, yang §2 sudah katakan dan yang tidak bisa
+diperbaiki dengan menaikkan angka mana pun.
