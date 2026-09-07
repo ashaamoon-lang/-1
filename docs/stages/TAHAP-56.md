@@ -141,3 +141,48 @@ melewati garis reveal:
 `vendor-rules`, `motion-rules`, `token-rules`, `taste-rules`, `scale-rules`:
 **60 lulus, 0 gagal**. `typecheck`, `oxlint --max-warnings=0`, dan
 `manifest:check` bersih.
+
+## 6. CI, dan dua gerbang yang menuntut jaringan sunyi
+
+Run 18 di GitHub: **613 lulus, 1 gagal, 3 flaky, 15 dilewati** (19,0 menit).
+
+Satu kegagalan kerasnya bukan dari kode tahap ini:
+`material-layer › repeated mounts do not grow GPU memory`, **timeout 90 detik**
+pada `page.goto('/en', { waitUntil: 'networkidle' })`, dua kali. Tes yang sama,
+dengan anggaran yang sama, **lulus di run 17** pada commit sebelumnya — dan
+tahap ini tidak menyentuh `/en`. Jadi ia bukan cacat melainkan runner yang
+lebih lambat, dan menaikkan anggarannya lagi hanya memindahkan angka yang harus
+dikalahkan runner berikutnya.
+
+Sebabnya nyata: tes itu mengunjungi `/en` — sebelas layar, satu kanvas WebGL,
+seluruh sampul katalog — **empat kali dalam satu tes**, dan menunggu jaringan
+sunyi tiap kali. `networkidle` dibayar sekali per tes sekarang (kunjungan
+pertama, yang memanaskan cache tekstur); tiga kunjungan berikutnya memakai
+`load`, dan langkah `/en/ai` di antaranya — halaman teks yang tugasnya hanya
+menurunkan kanvas dari layar — memakai `domcontentloaded`. Diukur setelah
+perubahan: tes itu selesai dalam **13,0 detik**.
+
+Tiga yang flaky lulus di percobaan ulang, tapi satu di antaranya membawa cacat
+pengukuran yang nyata dan diperbaiki:
+`lightbox › the picture fits the stage` melaporkan
+`Expected: < 0.02  Received: NaN`. `naturalWidth / naturalHeight` adalah
+`0 / 0` pada gambar yang belum ter-decode, jadi assertion letterbox-nya
+mengukur bentuk gambar yang belum punya bentuk. Sekarang ia menunggu
+`img.complete && img.naturalWidth > 0` lebih dulu.
+
+## 7. Yang diukur untuk tahap berikutnya, dan belum dikerjakan
+
+`/en/work` tetap 2/12. Lapisan kontinu yang seharusnya menghidupkan lima
+layarnya **ada dan bekerja** — dan terlalu kecil untuk terlihat. Diukur, 25
+sampel menuruni halaman, `translateY` lapisan parallax pada sampul pertama:
+
+```
+12,0  9,1  6,0  3,0  0,0  -2,9  -6,0  -9,0  -12,0  -15,0
+```
+
+**Total perjalanan 30,31px** — sekitar 3px per 90px gulir, pada plate setinggi
+~700px. Itu 1,7% dari perjalanan plate itu sendiri, jauh di bawah ambang
+seseorang menyadarinya. Menaikkannya bukan mengubah satu angka:
+`vault/motion/parallax` bawaannya ±3% dan `.parallax` diberi ukuran 106%
+justru untuk menutupi perjalanan itu, jadi keduanya harus naik bersama atau
+tepi frame akan menunjukkan latar di ujung-ujungnya.
