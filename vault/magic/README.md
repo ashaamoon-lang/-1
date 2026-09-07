@@ -55,11 +55,40 @@ and estimating it as though it were produces a schedule that is wrong.
 
 ## Installed
 
-| Directory        | From                                                         | Code copied | Notes                                                                         |
-| ---------------- | ------------------------------------------------------------ | :---------: | ----------------------------------------------------------------------------- |
-| `grid-pattern/`  | Magic UI `grid-pattern`                                      |   **yes**   | `<pattern>` structure and the `d` path                                        |
-| `noise-texture/` | Magic UI `noise-texture`                                     |   **yes**   | The `feTurbulence`/`feColorMatrix`/`feComponentTransfer` chain and its tuning |
-| `dot-pattern/`   | technique from `grid-pattern`, parameters from `dot-pattern` |   **no**    | Rewritten — see below                                                         |
+| Directory        | From                                                         | Code copied | Notes                                                                                                              |
+| ---------------- | ------------------------------------------------------------ | :---------: | ------------------------------------------------------------------------------------------------------------------ |
+| `grid-pattern/`  | Magic UI `grid-pattern`                                      |   **yes**   | `<pattern>` structure and the `d` path                                                                             |
+| `noise-texture/` | Magic UI `noise-texture`                                     | **partly**  | The `feTurbulence`/`feColorMatrix`/`feComponentTransfer` chain and its tuning; the compositing is ours — see below |
+| `dot-pattern/`   | technique from `grid-pattern`, parameters from `dot-pattern` |   **no**    | Rewritten — see below                                                                                              |
+
+### Where `noise-texture` stops being upstream's
+
+Upstream's chain ends at `feComponentTransfer` and paints the result as a
+translucent layer. That is a **veil**, not grain, and Tahap 55 measured what
+it cost: `feTurbulence` is centred on 0.5, the linear slope takes the colour
+to a mean of 0.075, the alpha is left as noise, and with
+`color-interpolation-filters` at its `linearRGB` default that linear 0.075
+reaches the screen as sRGB ~0.30 — a solid **#4d4d4d** wash at roughly 6-9%
+effective alpha.
+
+On this site, whose whole palette is two neutrals, that dragged both grounds
+toward the same grey: paper #f4f3ef painted as 232.7, ink #110f0d as 21.6.
+The repo owner described the result exactly — _"one of the colour modes merges
+with the background"_.
+
+So the filter still ends where upstream's ends, and then this project adds
+what upstream does not have: `color-interpolation-filters="sRGB"`, an
+`feFuncA` that makes the field opaque, a `<rect>` filled with the ground
+colour, and an `feComposite operator="arithmetic"` that adds the grain and
+subtracts its own mean back out. The layer's mean is then the ground's, at any
+opacity. `docs/stages/TAHAP-55.md` has the derivation, the before-and-after
+measurements, and the gate.
+
+The lesson generalises to every component that arrives through this door:
+**an upstream default is a design decision made for somebody else's palette.**
+`color-interpolation-filters` was never written down anywhere in the original,
+because on a page of arbitrary colours nobody notices a 10-level shift. Here
+it was the difference between two colour modes and one.
 
 ### Why `dot-pattern` is original work
 

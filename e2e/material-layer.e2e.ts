@@ -240,6 +240,15 @@ test.describe('material layer', () => {
 
   test('repeated mounts do not grow GPU memory', async ({ page }) => {
     /*
+     * Eight full navigations of the site's heaviest page, each waiting for
+     * the network to go quiet and then 2.5s for the canvas to draw. The
+     * default 30s covered that only while the runner had no CMS content to
+     * fetch; the first CI run with real images timed out here, inside
+     * `showWorkGrid`, on both the first attempt and the retry.
+     */
+    test.slow()
+
+    /*
      * A growth test, not an absolute one, and stated that way on purpose.
      * Three never frees GPU resources on its own (`CLAUDE.md` #15), and the
      * number of live objects after one visit is not knowable from outside —

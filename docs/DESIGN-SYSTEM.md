@@ -187,6 +187,38 @@ It goes in `themes.*.contrast`, in one place. Before it ships, it must clear
 previous accent failed that test at every lightness of its hue (peak 4.19:1
 on these grounds, 4.41:1 even on pure white), which is why it is gone.
 
+### 1.4 The one material: grain
+
+The system has exactly one texture, and it exists because a large flat field
+of a single colour is the cheapest-looking thing a screen can show — and this
+site has several by design. It is `vault/magic/noise-texture`, rendered once
+per page by `components/layout/theme` and again inside the hero, over the
+WebGL wash.
+
+**The rule that makes it a material rather than a tint: it must not move the
+ground.** Grain is variance around the declared colour; a layer whose mean
+differs from the ground is a wash wearing a texture's name. Tahap 55 found
+exactly that defect shipped — the layer was a #4d4d4d veil, and it pulled
+paper down 11 levels and lifted ink 4.5, which on a two-neutral palette means
+the two colour modes were sliding toward each other.
+
+| what           | measured                                       |
+| -------------- | ---------------------------------------------- |
+| mean shift     | **0 by construction**, ±2 enforced by the gate |
+| texture, light | sd **2.4** of 255 (`opacity: 0.7`)             |
+| texture, dark  | sd **1.6** of 255 (`opacity: 0.45`)            |
+| gate           | `e2e/palette-integrity.e2e.ts`                 |
+
+The two opacities differ because the amplitude is in absolute levels and the
+same absolute step reads harder on ink than on paper. They are texture
+strengths and nothing else: `opacity` cannot move the ground here, which is
+what "one material" is supposed to mean.
+
+Adding a second texture is a design-system change, not a page decision.
+Restraint is what `docs/TEARDOWN.md` measured as the difference between a
+competent site and an award one, and a second grain would make this one
+decoration.
+
 ---
 
 ## 2. Typography

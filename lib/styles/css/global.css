@@ -87,6 +87,24 @@ html {
     var(--color-secondary) 12%,
     var(--color-primary)
   );
+  /*
+   * The wash's own middle — Tahap 55.
+   *
+   * `vault/magic/noise-texture` adds grain around a base colour, and over the
+   * hero that base cannot be the ground: `SceneShell` paints the wash on top
+   * of it. Handing the grain the wash's midpoint keeps the layer's mean
+   * inside the range it actually sits on, so the worst error is half the
+   * wash's amplitude instead of all of it.
+   *
+   * 6% is the halfway point of `--hero-wash-to`'s 12%, written as its own
+   * mix rather than as a `color-mix` of two `color-mix`es, which resolves to
+   * the same colour and reads.
+   */
+  --hero-wash-mid: color-mix(
+    in oklab,
+    var(--color-secondary) 6%,
+    var(--color-primary)
+  );
   --line: color-mix(in oklab, var(--color-secondary) 14%, transparent);
   --line-strong: color-mix(in oklab, var(--color-secondary) 28%, transparent);
   /*

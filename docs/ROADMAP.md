@@ -2066,6 +2066,74 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 55 — Grain yang ternyata sebuah kerudung ✅
+
+> Spec: [`docs/stages/TAHAP-55.md`](./stages/TAHAP-55.md)
+
+Cacat kedua yang disebut pemilik repo: _"Kamu punya 2 mode warna, dan salah
+satu mode warna malah menyatu dengan latar belakang."_ Tahap 54 membuka dengan
+kalimat "dua yang pertama sudah diperbaiki dan diukur". Kalimat itu terlalu
+cepat: Tahap 53 memperbaiki **besarnya**, bukan **mekanismenya**.
+
+**Diukur lebih dulu**, build produksi, satu petak 180×150 latar kosong,
+difoto dua kali — apa adanya, lalu dengan lapisan grain dimatikan. Selisihnya
+adalah sumbangan grain, bukan taksirannya:
+
+```
+light  /en/journal   paper #f4f3ef (244) dicat 232,7    −11,1   sd grain 3,63
+dark   /en/studio    ink   #110f0d  (17) dicat  21,6    + 4,5   sd grain 1,81
+dark   /en/work/<s>  ink   #110f0d  (17) dicat  21,5    + 4,5   sd grain 1,58
+```
+
+**Lapisan itu memberi 2,5–3× lebih banyak kerudung daripada tekstur.**
+Sebabnya bisa diturunkan, bukan ditebak: `feTurbulence` berpusat di 0,5,
+slope 0,15 menurunkan warnanya ke rata-rata 0,075, alpha dibiarkan sebagai
+noise, dan karena `color-interpolation-filters` **default-nya `linearRGB`**,
+0,075 linear itu sampai ke layar sebagai sRGB ≈ 0,30 — yaitu **#4d4d4d**.
+Satu kerudung abu-abu yang menarik _kedua_ mode warna ke satu titik yang sama.
+
+**Perbaikannya pada mekanisme**: `color-interpolation-filters="sRGB"`
+dinyatakan, `<rect>` diisi `var(--color-primary)`, `feFuncA` memaksa alpha ke
+1, dan `feComposite operator="arithmetic"` menambahkan grain lalu mengurangi
+rata-ratanya kembali (`k4 = -slope/2`). Rata-rata lapisan = warna latar
+**secara konstruksi, pada opacity berapa pun** — jadi `opacity` akhirnya hanya
+menyetel kekuatan tekstur, dan ditala ulang (0,45 gelap / 0,70 terang) sampai
+sd grain menyamai yang situs ini kirim sebelumnya.
+
+```
+                    geseran mean          sd grain
+              sebelum → sesudah     sebelum → sesudah
+light            −11,1 → −0,2          3,63 → 3,57
+dark  studio      +4,5 → −1,0          1,81 → 1,86
+dark  work/<s>    +4,5 → −1,0          1,58 → 1,62
+```
+
+**Gerbang baru** `e2e/palette-integrity.e2e.ts`, dibuktikan merah lebih dulu
+pada build pra-perbaikan — **lima dari lima**: 11,57 · 11,61 · 4,38 · 4,81 ·
+4,34, semuanya terhadap ambang < 2. Separuh keduanya ("grainnya masih ada",
+sd > 1) hijau di kedua build, yang memang seharusnya: kerudung itu memang
+membawa grain di dalamnya, dan gerbang yang hanya mengukur satu sifat akan
+lolos dengan menghapus lapisannya.
+
+**Dua hal lain yang ikut selesai di tahap ini**, keduanya konsekuensi CI yang
+akhirnya punya konten:
+
+- **CI diberi konten.** Job `e2e` pertama yang benar-benar selesai melaporkan
+  424 lulus / ~60 gagal, dan **seluruh** kegagalan bergantung pada konten —
+  runner tidak punya konfigurasi Sanity, jadi `/en/work` memanggil
+  `notFound()`. Tiga nilai `NEXT_PUBLIC_*` ditambahkan (sudah publik: ada di
+  bundle klien setiap halaman; dataset-nya terbaca tanpa token, HTTP 200 dan
+  `count(*[_type=="project"])` = 6). Token tulis **tidak** diberikan dan tidak
+  boleh. Hasil run berikutnya: **595 lulus, 3 gagal**.
+- **`networkidle` yang berhenti masuk akal.** Ketiga sisa kegagalan itu adalah
+  timeout `page.goto` — `responsive.e2e.ts` menavigasi tujuh lebar dan
+  `material-layer.e2e.ts` delapan kali, dan keduanya menunggu jaringan sunyi
+  di halaman yang kini benar-benar memuat gambar. `responsive` menunggu
+  `document.fonts.ready` (yang memang satu-satunya syarat pengukurannya) alih-
+  alih jaringan; keduanya diberi `test.slow()` dengan alasan tertulis.
+
+---
+
 ## Tahap 54 — Halaman terpanjang situs ini tidak menganimasikan apa pun setelah dimuat ✅
 
 > Spec: [`docs/stages/TAHAP-54.md`](./stages/TAHAP-54.md)
