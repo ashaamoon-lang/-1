@@ -110,3 +110,19 @@ Dua di antaranya adalah alasan perubahan ini aman untuk dilakukan sama sekali:
 - `exploratory-layer › the two columns drift by a readable difference` hijau,
   yang berarti menaikkan kedua kolom dengan jumlah yang sama memang tidak
   menyentuh selisihnya.
+
+### 4.4 Suite lengkap
+
+Build produksi lokal: **617 lulus, 1 gagal, 14 dilewati** (18,8 menit).
+
+Satu kegagalannya, untuk kedua kalinya dalam sesi ini, adalah
+`storybook-a11y › the built Storybook is not older than the components it
+checks` — dan untuk kedua kalinya ia benar: berkas komponen disunting sesudah
+`build-storybook` terakhir. Dibangun ulang, berkas itu dijalankan ulang:
+**116 lulus, 0 gagal**.
+
+Dicatat di sini supaya tidak ditemukan ulang sebagai bug: penjaga itu tidak
+punya padanan merah di CI, karena job `e2e` menjalankan `build-storybook`
+sebagai langkah tepat sebelum `test:e2e`. Ia hanya merah pada alur kerja lokal
+di mana kode disunting di antara dua build — yang justru keadaan yang ia ada
+untuk dilaporkan.
