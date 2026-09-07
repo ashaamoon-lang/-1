@@ -2066,6 +2066,60 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 56 — Lima layar yang tidak melakukan apa-apa di antara dua kedatangan ✅
+
+> Spec: [`docs/stages/TAHAP-56.md`](./stages/TAHAP-56.md)
+
+Cacat ketiga: _"animasinya tidak sebanyak dan seluas yang saya harapkan…
+buat ANIMASI scroll yang nyaman menggunakan **Magic UI**"_ pada folder
+routing yang berat dan besar.
+
+**Sensus sesudah Tahap 54**, dua belas langkah gulir per rute:
+
+```
+/en                    4/12 langkah punya kedatangan
+/en/studio             5/12
+/en/practice/<v>       4/12
+/en/work               2/12   <- lima layar
+/en/work/<slug>        2/12   <- 4,7 layar
+/en/journal            2/12
+```
+
+Dua rute yang disebut "berat dan besar" punya kedatangan di **dua dari dua
+belas** langkah. Tapi menambah pemicu bukan jawabannya: `/en/work` hanya
+punya delapan benda — masthead, filter, enam sampul. Yang kurang adalah
+**perilaku selama benda itu melintas**, bukan satu kejadian saat ia masuk.
+
+**Magic UI `pixel-image` dibaca dari sumbernya** (`magicui.design/r/…json`,
+HTTP 200). Gagasannya berharga: kisi ubin yang `clip-path`-nya **statis**,
+jadi hanya `opacity` yang bergerak — mosaik tanpa melanggar #4. Bentuknya
+tidak ikut: upstream menumpuk satu salinan `<img>` per ubin, masing-masing
+ber-`alt="Pixel image piece N"` — 24 gambar bernama untuk satu foto.
+
+`vault/magic/pixel-image` **membalik lapisannya**: gambar aslinya dirender
+sekali dengan `alt`-nya sendiri, dan yang dirender komponen ini adalah
+kerudung ubin berwarna latar di atasnya. Kedatangannya adalah ubin-ubin itu
+pergi. Satu gambar, satu alt, nol duplikasi. Tujuh hal lain diubah, dan
+`Math.random()` yang paling menentukan: komponen ini dirender di server, jadi
+delay acak berarti hidrasi pecah. Diganti hash indeks yang deterministik.
+
+**Dipasang di galeri, bukan di hero**, dan alasannya ditulis: plate hero
+adalah ujung pendaratan morph `work-transport`; tertutup ubin saat
+`<ViewTransition>` memotret, morph-nya mendarat di sepetak warna latar.
+Galeri tidak punya view transition, dan justru di sana gulir matinya.
+Galerinya juga mendapat `perItem` — satu `useReveal` pada `<ul>` berarti
+seluruh galeri sudah tiba sebelum pembaca sampai ke gambar kedua.
+
+**Hasilnya jujur sedikit**: `/en/work/<slug>` naik dari 2/12 ke **3/12**.
+Penyebabnya isinya, bukan mekanismenya — proyek fixture `arus-balik` hanya
+punya **dua** plate galeri (diukur: 48 ubin = 2 × 24). Yang berubah banyak
+adalah kualitas kedatangannya, dan itu diverifikasi dengan mata: mid-dissolve
+kisi 6×4 terbaca jelas dengan gambar menembus di antaranya, dan sesudahnya
+nol jahitan sisa. Halaman proyek dengan enam plate akan memberi enam
+kedatangan dari mekanisme yang sama, tanpa satu baris kode tambahan.
+
+---
+
 ## Tahap 55 — Grain yang ternyata sebuah kerudung ✅
 
 > Spec: [`docs/stages/TAHAP-55.md`](./stages/TAHAP-55.md)

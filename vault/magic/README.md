@@ -60,6 +60,7 @@ and estimating it as though it were produces a schedule that is wrong.
 | `grid-pattern/`  | Magic UI `grid-pattern`                                      |   **yes**   | `<pattern>` structure and the `d` path                                                                             |
 | `noise-texture/` | Magic UI `noise-texture`                                     | **partly**  | The `feTurbulence`/`feColorMatrix`/`feComponentTransfer` chain and its tuning; the compositing is ours — see below |
 | `dot-pattern/`   | technique from `grid-pattern`, parameters from `dot-pattern` |   **no**    | Rewritten — see below                                                                                              |
+| `pixel-image/`   | technique from Magic UI `pixel-image`                        |   **no**    | Layer inverted — see below                                                                                         |
 
 ### Where `noise-texture` stops being upstream's
 
@@ -89,6 +90,44 @@ The lesson generalises to every component that arrives through this door:
 `color-interpolation-filters` was never written down anywhere in the original,
 because on a page of arbitrary colours nobody notices a 10-level shift. Here
 it was the difference between two colour modes and one.
+
+### Why `pixel-image` is original work
+
+The idea is Magic UI's and it is the valuable half: a grid of tiles whose
+`clip-path` is **static**, so a mosaic reveal animates nothing but `opacity`
+and stays inside `CLAUDE.md` #4. Read from
+`https://magicui.design/r/pixel-image.json` (HTTP 200), not from memory.
+
+The shape could not come with it. Upstream stacks `rows x cols` divs, **each
+holding its own full copy of the `<img>`**, each captioned
+`alt="Pixel image piece N"`. One photograph therefore arrives in the
+accessibility tree as twenty-four named images, and under `next/image` as
+twenty-four separate `srcset`s.
+
+So the layer is inverted here. The real image renders once, normally, with its
+own `alt`, and this component renders a **veil of ground-coloured tiles above
+it**; the reveal is the tiles going away. Same static clip-path, same
+opacity-only stagger, same look — one image, one alt, no duplication, and the
+component never needs to know what it is covering.
+
+Six more things had to change, and each is a hard rule rather than a
+preference:
+
+| upstream                            | here                                                                                           |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `transition-all`                    | `opacity` alone (#4)                                                                           |
+| bare `ease-out`                     | `--ease-out-quart` (#2)                                                                        |
+| `1000` / `1200` / `1300` ms         | `--duration-choreographed`, `--stagger-items` (#3, #8)                                         |
+| `Math.random()` delays              | a deterministic index hash — otherwise the server and the client disagree and hydration breaks |
+| `rounded-[2.5rem]`, `h-72 md:h-96`  | none; the caller owns the box (#8, and section 0.5)                                            |
+| `filter: grayscale` transition      | dropped (#4)                                                                                   |
+| `useEffect` + `setTimeout` on mount | the site's own reveal contract, absent under reduced motion (#5)                               |
+
+`Math.random()` deserves its own line. It is not a taste problem: this
+component renders on the server, and a delay drawn at random differs between
+the server's HTML and the browser's first render. That is a hydration
+mismatch, and it is the kind of defect that shows up as a warning in
+development and as a flash in production.
 
 ### Why `dot-pattern` is original work
 

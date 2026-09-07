@@ -186,3 +186,15 @@
     margin-block-start: desktop-vw(8px);
   }
 }
+
+/*
+ * The mosaic veil's ground — Tahap 56.
+ *
+ * `--surface-2` rather than `--color-primary`, because that is what `.media`
+ * above paints while the picture is still arriving. A tile the colour of the
+ * page would read as a tile laid on the box; one the colour of the box reads
+ * as the box, right up until it is gone.
+ */
+.pixels {
+  --pixel-ground: var(--surface-2);
+}

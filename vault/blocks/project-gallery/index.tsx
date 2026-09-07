@@ -14,6 +14,7 @@ import {
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
+import { PixelImage } from '@/vault/magic/pixel-image'
 import { useParallax } from '@/vault/motion/parallax'
 
 import s from './project-gallery.module.css'
@@ -157,6 +158,22 @@ function GalleryMedia({
           sizes={trackImageSizes(full ? 92 : 48)}
         />
       </div>
+      {/*
+        The plate assembles out of blocks — Tahap 56.
+
+        `vault/magic/pixel-image` renders a veil of ground-coloured tiles over
+        this box; they dissolve on a staggered delay when the figure's own
+        `[data-reveal-item]` turns `visible`. It sits *outside* `.parallax` on
+        purpose: the veil is a property of the frame, not of the picture
+        travelling inside it, so it must not drift with the parallax or the
+        seams would slide across the plate.
+
+        `--pixel-ground` is `--surface-2` rather than the page ground because
+        that is what `.media` paints while the image is still arriving. A tile
+        the colour of the page would announce itself as a tile against the
+        box; one the colour of the box is invisible until it goes.
+      */}
+      <PixelImage className={s.pixels} />
     </div>
   )
 }
@@ -167,7 +184,21 @@ export function ProjectGallery({
   'data-region': region,
   className,
 }: ProjectGalleryProps) {
-  const ref = useReveal<HTMLUListElement>()
+  /*
+   * Per item — Tahap 56.
+   *
+   * The gallery is the middle of the longest inner route, and the census that
+   * opened `docs/stages/TAHAP-56.md` measured that middle as dead: two of
+   * twelve scroll steps on `/en/work/<slug>` produced any arrival at all. One
+   * `useReveal` on the `<ul>` is one event for every plate below it, which
+   * means the whole gallery had already arrived before the reader reached the
+   * second picture.
+   *
+   * `perItem` is the mode Tahap 54 added for exactly this shape, and it is
+   * what turns the mosaic below into one arrival per plate rather than one
+   * for the set.
+   */
+  const ref = useReveal<HTMLUListElement>({ perItem: true })
   const t = useTranslations('lightbox')
   const [Lightbox, setLightbox] = useState<LightboxComponent | null>(null)
   const [open, setOpen] = useState(false)
