@@ -31,6 +31,37 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# ## Why Sanity configuration is here, in plain sight
+#
+# The first `e2e` job that ever ran to completion (PR #9, head `8f2493f`)
+# reported **424 passed / ~60 failed**, and every single failure was
+# content-dependent: `/en/work` renders nothing, `/en/work/<slug>` 404s,
+# `/en/practice/<v>` has no plates, `journey`, `first-screen`,
+# `navigation-landing`, `reading-progress`. The runner had no Sanity
+# configuration, so `app/[locale]/work/page.tsx` called `notFound()` and the
+# rest rendered empty. The gates were not wrong; the runner had no site to
+# measure.
+#
+# These three values are **already public**. They carry the `NEXT_PUBLIC_`
+# prefix, which means Next.js inlines them into the client bundle — the
+# shipped HTML of every page already contains
+# `cdn.sanity.io/images/az53j4l1/production/…`. Putting them in a workflow
+# file publishes nothing that visiting the site does not.
+#
+# And the dataset is world-readable: `count(*[_type=="project"])` against
+# `https://az53j4l1.api.sanity.io/…/data/query/production` with **no
+# Authorization header** returns HTTP 200 and `6`. So CI needs no token to
+# read published content, and gets none.
+#
+# `SANITY_API_WRITE_TOKEN` is deliberately absent, and must stay absent. It
+# carries developer+editor roles; it lives only in a gitignored `.env.local`,
+# it must never be given a `NEXT_PUBLIC_` prefix, and it must never be added
+# here — CI reads published content and has no business writing any.
+env:
+  NEXT_PUBLIC_SANITY_PROJECT_ID: az53j4l1
+  NEXT_PUBLIC_SANITY_DATASET: production
+  NEXT_PUBLIC_SANITY_API_VERSION: '2025-03-01'
+
 jobs:
   ci:
     runs-on: ubuntu-latest
