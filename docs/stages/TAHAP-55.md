@@ -178,7 +178,25 @@ menjadi separuh amplitudo wash alih-alih seluruhnya. `heroGrain` juga turun
 dari 0,5 ke 0,45 supaya permukaan hero dan permukaan halaman adalah material
 yang sama.
 
-### 4.5 Yang **tidak** dikerjakan, dan kenapa
+### 4.5 Suite lengkap
+
+`bun run check`: **421 lulus, 0 gagal**, 46 berkas. `bun run build-storybook`
+sukses. `bun run build` sukses.
+
+`CI=true`-setara, build produksi lokal: **614 lulus, 1 gagal, 14 dilewati**
+(14,7 menit). Satu kegagalan itu adalah
+`storybook-a11y › the built Storybook is not older than the components it
+checks` — penjaga kebasian, dan ia benar: story `noise-texture` disunting
+sesudah Storybook dibangun. `bun run build-storybook` diulang, berkas itu
+dijalankan ulang: **113 lulus, 0 gagal**. Tidak ada kegagalan lain di seluruh
+suite.
+
+Gerbang yang paling relevan dengan tahap ini dan tetap hijau:
+`visual-substance › a declared accent carries tone, and never subtracts it`
+(hero mendapat `--noise-base` baru), `contrast.test.ts` (satu token turunan
+baru, diakui bukan dibungkam), `vendor-rules` dan `token-rules`.
+
+### 4.6 Yang **tidak** dikerjakan, dan kenapa
 
 - **`--surface` pada tema gelap.** Sapuan token mengukur `--surface` di
   **+7** tingkat dari latar gelap melawan **−10** pada latar terang — asimetri
