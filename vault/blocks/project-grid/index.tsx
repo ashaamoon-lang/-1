@@ -75,13 +75,34 @@ export type { Project }
  * thirteen decimal places. Two columns moving in perfect lockstep are one
  * column drawn twice.
  *
- * The difference is 5, inside the ceiling of 6 that
- * `e2e/exploratory-layer.e2e.ts` holds. Above that the columns stop reading
- * as one grid with depth and start reading as two grids that disagree, which
- * is the "distracting desync" `vault/motion/parallax` records the preset
- * warning about.
+ * The difference is 5, and `e2e/exploratory-layer.e2e.ts` holds it under
+ * 60px of instantaneous offset. Above that the columns stop reading as one
+ * grid with depth and start reading as two grids that disagree, which is the
+ * "distracting desync" `vault/motion/parallax` records the preset warning
+ * about.
+ *
+ * ## Both values moved up by three — Tahap 57
+ *
+ * They were `[4, 9]`, and the left column at 4 sat **below the floor of the
+ * range this project's own parallax hook cites**: `ui-ux-pro-max`'s "Parallax
+ * Scroll (Subtle)" names 5–15, and `vault/motion/parallax` quotes it in its
+ * header. Measured on the production build, 41 samples down `/en/work`, the
+ * left column travelled 30.3 / 36.6 / 36.3px — 3.3% to 4.0% of its own layer
+ * — while the right column travelled 74 to 86px. One column was doing the
+ * work and the other was nearly still.
+ *
+ * The **difference stays 5**, which is the part that must not move:
+ * `work-constellation` exists because both columns once reported an identical
+ * offset to thirteen decimal places, and the fix was never "move more", it
+ * was "move differently". Adding three to each leaves that untouched and
+ * lifts the quiet column into the range it was always supposed to be in.
+ *
+ * The layer's own size needs no edit, and that is Tahap 43's doing:
+ * `--card-drift` is set by `ProjectCard` from this same number, and
+ * `project-card.module.css` derives the overshoot from it. Two numbers that
+ * have to agree now have only one place to disagree from.
  */
-const COLUMN_DRIFT = [4, 9] as const
+const COLUMN_DRIFT = [7, 12] as const
 
 /**
  * The three editorial offsets, in grid steps, cycled by card index.

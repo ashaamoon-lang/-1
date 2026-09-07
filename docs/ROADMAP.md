@@ -2066,6 +2066,54 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 57 — Satu kolom katalog di bawah lantai rentangnya sendiri ✅
+
+> Spec: [`docs/stages/TAHAP-57.md`](./stages/TAHAP-57.md)
+
+Tahap 56 §7 mengoreksi dirinya sendiri lebih dulu: angka "30,31px" yang ia
+tulis diukur pada **satu** plate, dan plate itu yang paling diam di halaman.
+Diukur pada keenamnya, katalog punya dua kolom yang **sengaja** berbeda
+(`COLUMN_DRIFT = [4, 9]`, `work-constellation` Tahap 43) — kolom B menempuh
+74–86px, kolom A hanya 30–37px.
+
+Yang tersisa sesudah koreksi itu satu temuan sempit: `vault/motion/parallax`
+mengutip preset `ui-ux-pro-max` "Parallax Scroll (Subtle)" dengan rentang
+**5–15** di header-nya sendiri, dan **kolom A duduk di 4** — di bawah lantai
+rentangnya sendiri.
+
+**Keduanya naik tiga**, jadi `[7, 12]`. Selisihnya tetap 5, yang memang bagian
+yang tidak boleh bergerak: `work-constellation` ada karena kedua kolom pernah
+melaporkan offset identik sampai tiga belas angka di belakang koma.
+
+```
+plate  kolom   sebelum          sesudah
+0      A       30,3px  3,3%  →  54,7px   5,8%
+2      A       36,6px  4,0%  →  65,9px   7,0%
+4      A       36,3px  4,0%  →  65,2px   6,9%
+1      B       74,1px  7,7%  →  101,9px 10,4%
+3      B       86,3px  9,0%  →  118,2px 12,0%
+5      B       81,1px  8,5%  →  111,0px 11,3%
+```
+
+Ukuran lapisannya tidak perlu disunting sama sekali di kartu — Tahap 43 sudah
+menurunkannya dari `--card-drift`, satu angka yang di-set dari nilai yang sama
+yang diberikan ke hook.
+
+**Galeri berhenti mengulang cacat yang sudah pernah diperbaiki.**
+`project-gallery` memanggil `useParallax(ref)` tanpa argumen (jadi 6) sementara
+stylesheet-nya menulis `-4%` / `108%` sebagai angka mati — dua angka yang harus
+sepakat tanpa cara untuk sepakat, bentuk kegagalan yang sama persis yang
+`e2e/continuous-motion.e2e.ts` tangkap di kartu sebagai **2 plate terekspos di
+tiga dari empat posisi gulir**. Sekarang ia punya `PLATE_DRIFT = 10` yang
+dibaca hook dan stylesheet. Diukur: kedua plate menempuh persis **10,0%**.
+
+**Gerbang**: `bun run check` 421 lulus / 0 gagal. Delapan berkas yang paling
+mungkin terganggu — `continuous-motion`, `exploratory-layer`, `motion`,
+`journey`, `project-detail`, `lightbox`, `material-layer`,
+`palette-integrity`, dua viewport — **104 lulus, 0 gagal**.
+
+---
+
 ## Tahap 56 — Lima layar yang tidak melakukan apa-apa di antara dua kedatangan ✅
 
 > Spec: [`docs/stages/TAHAP-56.md`](./stages/TAHAP-56.md)

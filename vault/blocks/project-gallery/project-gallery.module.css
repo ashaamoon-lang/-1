@@ -157,8 +157,28 @@
 .parallax {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: -4%;
-  block-size: 108%;
+  /*
+   * The overshoot follows the travel — Tahap 57.
+   *
+   * `useParallax` moves this layer by `distance / 2` percent of its own
+   * height in each direction, so the layer has to be taller than its frame by
+   * exactly that much on each side or the frame shows its own background at
+   * the ends of every pass.
+   *
+   * It was written as a fixed `-4%` / `108%` against the hook's default of 6,
+   * with nothing tying the two together. That is precisely the shape of
+   * failure `vault/blocks/project-card` carried until Tahap 43, where
+   * `e2e/continuous-motion.e2e.ts` caught 2 exposed plates at three of four
+   * scroll positions the moment one number changed and the other did not.
+   *
+   * `--plate-drift` is set by `GalleryMedia` from the same constant it hands
+   * the hook, so there is now one number rather than two that have to agree.
+   * The `+ 2` is headroom for sub-pixel rounding — a layer sized to exactly
+   * its own travel lands flush with the frame edge and shows a hairline on
+   * fractional device pixel ratios.
+   */
+  inset-block-start: calc((var(--plate-drift, 6) + 2) * -0.5%);
+  block-size: calc(100% + (var(--plate-drift, 6) + 2) * 1%);
 }
 
 .parallax .image {

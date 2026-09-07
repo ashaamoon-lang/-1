@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { useTranslations } from 'next-intl'
-import type { ComponentType } from 'react'
+import type { ComponentType, CSSProperties } from 'react'
 import { useCallback, useRef, useState } from 'react'
 
 import type { LightboxProps } from '@/components/ui/lightbox'
@@ -119,6 +119,20 @@ interface ProjectGalleryProps {
 type LightboxComponent = ComponentType<LightboxProps>
 
 /**
+ * How far a gallery plate's picture travels across its own pass, as a
+ * percentage of its height — Tahap 57.
+ *
+ * Inside the 5-15 the parallax preset names, and above the hook's quiet
+ * default of 6 because these plates are the whole middle of the longest inner
+ * route: `docs/stages/TAHAP-56.md` measured that middle as two of twelve
+ * scroll steps carrying any event at all.
+ *
+ * One constant, read by both the hook and the stylesheet, so the travel and
+ * the overshoot that has to cover it cannot come apart.
+ */
+const PLATE_DRIFT = 10
+
+/**
  * One figure's picture, in its own component so it can hold its own ref.
  *
  * A hook cannot be called inside a `map`, and the alternative — one ref array
@@ -135,10 +149,43 @@ function GalleryMedia({
   full: boolean
 }) {
   const parallaxRef = useRef<HTMLDivElement>(null)
-  useParallax(parallaxRef)
+  /*
+   * Explicit, and matched to the stylesheet — Tahap 57.
+   *
+   * This called the hook with no arguments, so the travel was the hook's own
+   * default of 6, while `project-gallery.module.css` wrote the overshoot as a
+   * hardcoded `-4%` / `108%`. Those two numbers have to agree — the layer has
+   * to be taller than its frame by exactly the travel it is given, or the
+   * frame shows its own background at the ends of the pass — and nothing
+   * connected them.
+   *
+   * That is the same failure `vault/blocks/project-card` had before Tahap 43,
+   * where `e2e/continuous-motion.e2e.ts` caught 2 exposed plates at three of
+   * four scroll positions once `work-constellation` changed one number and
+   * not the other. The card's fix was to derive the CSS from a custom
+   * property set here; the gallery now does the same, and the distance is
+   * stated once rather than inherited from a default nobody was reading.
+   */
+  useParallax(parallaxRef, { distance: PLATE_DRIFT })
 
   return (
-    <div className={s.media} style={ratioStyle(ratio)}>
+    <div
+      className={s.media}
+      /*
+       * SAFETY: `CSSProperties` has no index signature for custom properties,
+       * so an object carrying `--plate-drift` cannot be typed without this
+       * cast. The value is `PLATE_DRIFT`, a module constant declared in this
+       * file — not anything from the CMS or from a caller — and React
+       * forwards unknown keys straight to `style.setProperty`, which is what
+       * a custom property needs.
+       */
+      style={
+        {
+          ...ratioStyle(ratio),
+          '--plate-drift': PLATE_DRIFT,
+        } as CSSProperties
+      }
+    >
       {/*
         The travelling layer sits inside the ratio box, which clips it, so the
         picture moves against a frame that holds the grid still.
