@@ -282,19 +282,19 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       theme="dark"
       lenis={{ anchors: true }}
       /*
-        The material layer's third route — Tahap 45.
+        No `webgl`, and no `simTypes` — Tahap 58, undoing Tahap 45 here.
 
-        `/en` shows a selection of the work through this surface and
-        `/en/work` shows all of it. The page that shows **one** work, at its
-        largest, and holds a reader longest, had the flattest version of it.
+        Tahap 45 called this "the material layer's third route", on the
+        reasoning that the page showing **one** work at its largest had the
+        flattest version of the surface. The reasoning still holds; the
+        result did not. That opt-in is what made the cover invisible — see
+        the note on `<ProjectHero>` below and `docs/stages/TAHAP-58.md`.
 
-        `simTypes` names what the scene actually reads, and nothing else: a
-        simulation with no consumer still costs a render pass every frame and
-        a window pointer listener (`lib/webgl/components/flowmap-provider`
-        defaults to none for that reason).
+        With the hero's material off, the root canvas has no consumer left on
+        this route. Mounting it anyway would keep three.js, a render pass per
+        frame and a window pointer listener for a mesh nothing asks for —
+        exactly the waste the old `simTypes` comment here warned about.
       */
-      webgl
-      simTypes={['flowmap']}
       /*
         `gsap`, and it was missing — Tahap 54.
 
@@ -360,10 +360,31 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             title={project.title || humanizeSlug(slug)}
             cover={project.cover}
             coverAlt={project.coverAlt ?? ''}
-            // Opts this cover into the material surface. `e2e/route-budget`
-            // lists `three` for this route with the reason; passing this
-            // without that entry is a red gate.
-            material
+            /*
+             * The material layer is **off here** — Tahap 58, and this is a
+             * retreat rather than a decision I am pleased with.
+             *
+             * Tahap 45 opted this cover in. Measured on the production build,
+             * that opt-in made the largest image on the page invisible: the
+             * mesh announced its first frame, `vault/webgl/material-image`
+             * hid the DOM `<img>` behind it as designed, and then nothing was
+             * painted where the plate is. Sampled at every point inside the
+             * box, scrolled or still, 3.5s after load: **#201d1b** — the
+             * empty-box colour. The identical artwork on `/en/work` sampled
+             * #8d4725. With `prefers-reduced-motion` on, which takes the
+             * material out of the path entirely, the same plate sampled
+             * #bb9973: the artwork, correct.
+             *
+             * Four hypotheses were built and eliminated by experiment, and
+             * the mesh's own numbers came back correct — right position,
+             * right scale, texture loaded, `visible: true`. The root cause is
+             * downstream of this component and is **not yet found**;
+             * `docs/stages/TAHAP-58.md` records the whole investigation so it
+             * is not started from zero.
+             *
+             * Until it is found, a reader seeing the work beats a hover
+             * effect on a plate that is not even a link. One word restores it.
+             */
             // Pairs this cover with the catalogue card the reader came from,
             // so the browser morphs one into the other. Both ends derive the
             // name from `lib/motion/transition-name.ts` — a mismatch produces

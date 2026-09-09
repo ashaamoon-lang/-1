@@ -142,26 +142,26 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    */
   { path: '/en/work', allow: ['three', 'gsap'], maxKb: 2100 },
   /*
-   * The project page opts into `three` as of Tahap 45 — the material layer's
-   * third route — and its ceiling is raised **deliberately**, with the
-   * measurement, rather than being allowed to leak.
+   * The project page carried `three` from Tahap 45 to Tahap 58, and no
+   * longer does.
    *
-   * `/en` and `/en/work` already carry this surface at a 2100KB ceiling, and
-   * the reason this page joins them is that it is the one that shows a single
-   * work at its largest and holds a reader longest: it had the flattest
-   * version of the site's own material. The engine is the same engine, loaded
-   * the same way — `vault/webgl/material-image` fetches its scene only once
-   * it has decided to show it, so a phone and a reduced-motion reader
-   * download no engine at all. `e2e/webgl-budget.e2e.ts` proves that
-   * separately and did not move.
+   * Tahap 45 made it the material layer's third route on sound reasoning —
+   * the page showing a single work at its largest had the flattest version
+   * of the site's own surface. What shipped instead was a hero that did not
+   * show the work at all: the mesh announced a first frame,
+   * `vault/webgl/material-image` hid the DOM image behind it as designed,
+   * and nothing was painted in its place. Measured at every point inside the
+   * plate, scrolled or still: **#201d1b**, the empty-box colour, against
+   * **#8d4725** for the same artwork on `/en/work`.
    *
-   * 2100 matches the two routes that already carry it rather than being
-   * fitted to this one's measurement: three routes drawing the same surface
-   * with the same engine should answer to the same number, or the number
-   * stops meaning "what this surface costs" and starts meaning "what this
-   * page happened to weigh on the day it was measured".
+   * The material is off here until the cause is found
+   * (`docs/stages/TAHAP-58.md`), so the engine has no consumer on this route
+   * and the allowance goes with it. The ceiling stays 2100 rather than being
+   * refitted: this entry is about *what the route is allowed to load*, and
+   * lowering the number now would only have to be raised again when the
+   * material comes back.
    */
-  { path: '/en/work/arus-balik', allow: ['three', 'gsap'], maxKb: 2100 },
+  { path: '/en/work/arus-balik', allow: ['gsap'], maxKb: 2100 },
   /*
    * A practice page opts into `gsap` and nothing else.
    *
