@@ -2066,6 +2066,67 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 59 — Mesh-nya melukis dengan benar; kotaknya sendiri yang menutupinya ✅
+
+> Spec: [`docs/stages/TAHAP-59.md`](./stages/TAHAP-59.md)
+
+Tahap 58 memasang **mundur**: material di hero halaman proyek dimatikan karena
+sebab kotak kosongnya tidak ketemu setelah lima build terinstrumentasi dan
+empat hipotesis yang semuanya gugur. Sebabnya ketemu, dan ia tidak pernah ada
+di mesh — probe Tahap 58 sudah melaporkan mesh yang benar seluruhnya.
+
+Kanvas duduk sebagai **satu lapisan `fixed` di belakang `<main>`**, jadi plate
+hanya terlihat kalau tidak ada yang opak di atas kotaknya. `.media` milik
+`project-hero` mengecat `var(--surface-2)`, yang di tema gelap menghitung ke
+`oklab(0.23352 …)` — **yaitu `#201d1b` yang Tahap 58 ukur dan sebut "warna
+kotak penampung" tanpa mengenalinya sebagai keluaran aturannya sendiri**.
+`project-card` sudah mencopot placeholder itu selama material menggambar sejak
+Tahap 14; Tahap 45 menyalin opt-in-nya dan tidak menyalin penjaganya. Audit
+konsumen `MaterialImage`: dua, satu berpenjaga.
+
+Mundurnya dibatalkan seluruhnya dan utang gerbang Tahap 58 §5 dibayar.
+`e2e/material-occlusion.e2e.ts` **tidak memotret apa pun** — berkas
+`material-layer` sudah mencatat bahwa gerbang piksel ditolak karena rewel di
+perender headless — melainkan berjalan dari `[data-material-shell]` naik
+sampai `<main>` menuntut tiap `background-color` tembus pandang, dan
+menaikkan `data-material` sendiri supaya hasilnya identik dengan atau tanpa
+GPU. Dibuktikan merah lebih dulu, menyebut elemen dan warnanya.
+
+Plate hero, sembilan sampel: `#201d1b` di setiap titik → `#987f5e #915836
+#7b4528 #6f4229 …`, karya yang sama yang `/en/work` render di `#965d39
+#7f492a`. Satu assertion yang Tahap 58 catat berhenti berjalan, menyala lagi
+di kedua viewport.
+
+check 421 lulus / 0 gagal · sepuluh berkas e2e, dua viewport: **143 lulus, 0
+gagal**, 14 dilewati · build-storybook sukses.
+
+---
+
+## Tahap 58 — Halaman yang paling menjual satu karya tidak menampilkan karyanya ✅
+
+> Spec: [`docs/stages/TAHAP-58.md`](./stages/TAHAP-58.md)
+
+Ditemukan dengan **melihat**, bukan oleh gerbang: build produksi, `/en/work/
+<slug>`, kotak besar tempat sampul karya seharusnya — kosong. Lima puluh
+delapan tahap dan CI hijau.
+
+Diukur: hero `#201d1b`, karya yang sama di `/en/work` `#8d4725`, hero yang
+sama di bawah `prefers-reduced-motion` `#bb9973` (benar). Empat hipotesis
+dibangun dan digugurkan dengan build sungguhan; probe di dalam `useFrame`
+melaporkan mesh yang benar seluruhnya. Sebabnya **tidak ketemu**, dan ditulis
+begitu alih-alih dikarang.
+
+Yang dikirim adalah mundur — material dimatikan di rute itu — beserta catatan
+bahwa `visual-substance › renders its work` hijau selama cacat ini hidup
+karena ia bertanya "apakah halaman merender karya" dan halaman itu merender
+plate **galerinya**. Gerbangnya sengaja **tidak** dibuat: menulisnya hari itu
+berarti gerbang yang lulus karena materialnya dimatikan. Utang itu dibayar di
+Tahap 59, yang juga menemukan sebabnya.
+
+CI run 23 (`f41e07b`): kedua job **success**.
+
+---
+
 ## Tahap 57 — Satu kolom katalog di bawah lantai rentangnya sendiri ✅
 
 > Spec: [`docs/stages/TAHAP-57.md`](./stages/TAHAP-57.md)

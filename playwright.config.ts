@@ -47,6 +47,14 @@ export default defineConfig({
         '**/promises.e2e.ts',
         '**/no-javascript.e2e.ts',
         '**/route-budget.e2e.ts',
+        // A plate's placeholder is a `background-color`, and a
+        // `background-color` can be declared inside a breakpoint — both
+        // `project-hero` and `project-card` already carry `@media (--desktop)`
+        // blocks. So "nothing opaque is painted over a handed-over plate" is a
+        // claim that has to hold at both widths: a desktop-only run would miss
+        // an occluder that only exists on a phone, which is precisely the
+        // shape of the defect this gate was written for (Tahap 59).
+        '**/material-occlusion.e2e.ts',
         // Where a navigation lands is a viewport question: a destination
         // shorter than the offset the reader carried over clamps to its own
         // maximum, so the same link strands the heading by a different

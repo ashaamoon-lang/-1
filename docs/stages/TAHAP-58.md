@@ -6,6 +6,20 @@
 > kosong. Lima puluh delapan tahap, CI hijau, dan gambar terbesar di halaman
 > terpenting tidak ada.
 
+> **Sebabnya ketemu di Tahap 59, dan mundur di tahap ini sudah dibatalkan.**
+> Bukan di mesh — mesh-nya memang melukis dengan benar, persis seperti yang
+> dilaporkan probe di §3. Ia **tertutup**: `.media` milik `project-hero`
+> mengecat `var(--surface-2)` di atas kanvas, dan `--surface-2` di tema gelap
+> menghitung ke `oklab(0.23352 …)` — yaitu **#201d1b yang saya ukur di §1 dan
+> saya sebut "warna kotak penampung" tanpa mengenali bahwa itu keluaran
+> aturan CSS-nya sendiri**. `project-card` sudah mencopot placeholder itu
+> selama material menggambar sejak Tahap 14; Tahap 45 menyalin opt-in-nya ke
+> sini dan tidak menyalin penjaganya. Baca `docs/stages/TAHAP-59.md`.
+>
+> Empat hipotesis di §2 semuanya gugur karena keempatnya bertanya **kenapa
+> mesh tidak melukis**. Pertanyaannya salah. Yang benar: **apa yang dicat di
+> atasnya.**
+
 ## 1. Yang diukur
 
 Build produksi, Chromium 1440×900, `bun run start`.
