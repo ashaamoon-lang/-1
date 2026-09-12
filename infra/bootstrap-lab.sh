@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Box A — `arth-lab`. Build, CI runner, Playwright, and lab.<domain>.
+# The Arth machine. Builds, serves lab.<domain>, and runs the deploy timer.
 #
 # Run ONCE on a fresh Ubuntu 24.04 LTS instance, as a sudo-capable user:
 #
@@ -31,7 +31,8 @@ say "System packages"
 # `unzip` and `rsync` are not incidental:
 #   unzip — Bun's installer requires it and Ubuntu 24.04 minimal does not ship
 #           it. Its absence is what stopped this script on its first real run.
-#   rsync — how `deploy.sh` ships a build to Box B.
+#   rsync — kept for moving build output around; also what a second machine
+#           would need if one is ever added back (infra/optional/).
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq \
@@ -43,11 +44,14 @@ apt-get install -y -qq \
 # build box nobody trusts.
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
-say "Swap — 4 GB"
-# `next build` spikes. 16 GB without swap risks an OOM kill mid-build, which
-# reads as a mysterious CI failure rather than as memory pressure.
+say "Swap — 2 GB"
+# Measured: `bun run build` peaks at 3.3 GB. On a 6 GB machine that leaves
+# room, so this swap is a cushion against a spike nobody has seen yet — not
+# the load-bearing part it would be on a smaller box. A build killed with no
+# message is almost always the OOM killer, and that reads as a mysterious hang
+# rather than as memory pressure, which is why the cushion is here at all.
 if ! swapon --show | grep -q '/swapfile'; then
-  fallocate -l 4G /swapfile
+  fallocate -l 2G /swapfile
   chmod 600 /swapfile
   mkswap /swapfile
   swapon /swapfile
@@ -128,9 +132,10 @@ sudo -u "$APP_USER" -H bash -lc "
 "
 
 say "systemd unit"
-# Box A serves too — Caddy below proxies to :3000, and without this unit there
-# is nothing listening there and `lab.<domain>` answers 502. The first draft of
-# this script wrote a unit for Box B and forgot that Box A is also a host.
+# Caddy below proxies to :3000, and without this unit there is nothing
+# listening there and `lab.<domain>` answers 502. An earlier draft of this
+# script wrote a unit for a second, production-only machine and forgot that
+# this one is also a host.
 #
 # Environment lives HERE, in a root-owned unit, never in a dotfile inside the
 # web root. These three are public by construction: the NEXT_PUBLIC_ prefix
@@ -245,7 +250,7 @@ systemctl reload caddy || systemctl restart caddy
 say "Done"
 cat <<NEXT
 
-Box A is provisioned and serving. One thing remains, and it needs you:
+The machine is provisioned and serving. One thing remains, and it needs you:
 
   Install Claude Code and log in:
       sudo -u ${APP_USER} -H bash -lc 'curl -fsSL https://claude.ai/install.sh | bash'

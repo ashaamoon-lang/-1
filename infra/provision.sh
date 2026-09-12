@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Provision Box A (arth-lab) on Google Cloud. Run this in **Cloud Shell**,
+# Provision the Arth machine on Google Cloud. Run this in **Cloud Shell**,
 # not on the VM:
 #
 #   bash infra/provision.sh lab.example.com
@@ -35,8 +35,24 @@ REGION="${REGION:-asia-southeast1}"
 ZONE="${ZONE:-asia-southeast1-b}"
 VM="${VM:-arth-lab}"
 IP_NAME="${IP_NAME:-arth-lab-ip}"
-MACHINE="${MACHINE:-e2-custom-4-16384}"
-DISK_GB="${DISK_GB:-150}"
+# Sized from measurement, not from what happened to fit in a dev container.
+# Measured 2026-09-12 on 4 vCPU / 15 GB (`bun run build`, cold `.next`):
+#
+#                     4 vCPU     2 vCPU
+#   wall time          74.9s      83.2s     <- half the cores costs 11%
+#   peak RSS           3.35 GB    3.30 GB
+#   active cores       3.00       1.95
+#   on disk            .next 548 MB + node_modules 1.8 GB = 1.97 GB
+#
+# So: 2 vCPU, because the third and fourth core buy eleven seconds. 6 GB,
+# because the peak is 3.3 GB and the OS wants under one — 8 GB was the next
+# size up and nothing asked for it. 30 GB, because the app is 2 GB, Playwright
+# adds ~0.5, and Ubuntu ~3.
+#
+# 30 GB is also the right *direction* to be wrong in: a GCP persistent disk can
+# be grown live with no downtime, and can never be shrunk.
+MACHINE="${MACHINE:-e2-custom-2-6144}"
+DISK_GB="${DISK_GB:-30}"
 
 bold() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }

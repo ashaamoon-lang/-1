@@ -7,11 +7,6 @@ Wants=network-online.target
 Type=oneshot
 User=deploy
 WorkingDirectory=/srv/arth
-# Box B's internal address and the production hostname. Both are empty until
-# Box B exists; deploy.sh skips the ship step and says so rather than failing.
-# Fill them in with:  systemctl edit arth-deploy.service
-Environment=PROD_HOST=
-Environment=PROD_DOMAIN=
 ExecStart=/srv/arth/infra/deploy.sh
 # A build is allowed to be slow; it is not allowed to be infinite. Without this
 # a hung `bun install` would block every later run behind it.

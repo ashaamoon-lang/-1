@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 #
-# Box B — `arth-prod`. Serves arth.<domain>, and nothing else.
+# OPTIONAL — a second, production-only machine. NOT part of the current setup.
+#
+# This was in the plan and was removed rather than deferred: it existed to keep
+# a lab experiment from taking down production, and there is no production yet.
+# For someone paying out of pocket it doubled the bill to protect nothing.
+#
+# Bring it back when either is true:
+#   - real clients are looking at the site, so an outage costs something
+#   - the lab is busy enough that a failed experiment is felt by someone else
+#
+# When that happens, `infra/deploy.sh` also needs its shipping half back: build
+# here, rsync `.next` and `node_modules` across, restart there, and prove the
+# site answers 200 before reporting success.
+#
+# --- original header ---
+#
+# `arth-prod`. Serves arth.<domain>, and nothing else.
 #
 #   sudo bash infra/bootstrap-prod.sh arth.example.com ["ssh-ed25519 AAAA... deploy@arth-lab"]
 #

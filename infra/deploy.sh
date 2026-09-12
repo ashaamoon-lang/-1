@@ -2,9 +2,8 @@
 #
 # Pull, never push.
 #
-# Runs on Box A every five minutes via `arth-deploy.timer`. Fetches the branch,
-# and when there is something new: builds, restarts the lab, ships to Box B,
-# restarts production, and proves production answers before reporting success.
+# Runs every five minutes via `arth-deploy.timer`. Fetches the branch, and when
+# there is something new: builds, then restarts the server.
 #
 # ## Why this exists instead of a GitHub Actions runner
 #
@@ -42,10 +41,6 @@ main() {
 
 APP_DIR="${APP_DIR:-/srv/arth}"
 BRANCH="${BRANCH:-claude/satus-award-website-foundation-r6o5cf}"
-# Empty until Box B exists. The ship-and-restart half is skipped while it is,
-# and says so — the lab is useful on its own.
-PROD_HOST="${PROD_HOST:-}"
-PROD_DOMAIN="${PROD_DOMAIN:-}"
 STAMP="${APP_DIR}/.last-deploy"
 
 export PATH="/home/deploy/.bun/bin:${PATH}"
@@ -75,61 +70,27 @@ git reset --hard "origin/${BRANCH}"
 
 bun install --frozen-lockfile
 
-# If the build fails the script stops here, under `set -e`, and **Box B is
-# never touched**. Production keeps serving the last version that worked. This
-# is the most important property in the file: a broken commit cannot take the
-# site down, it can only fail to replace it.
+# If the build fails the script stops here, under `set -e`, and **the running
+# server is never restarted**. It keeps serving the last version that built.
+# This is the most important property in the file: a broken commit cannot take
+# the site down, it can only fail to replace it.
 bun run build
 
-echo "restarting lab"
+echo "restarting"
 sudo systemctl restart arth
 
-if [ -z "$PROD_HOST" ]; then
-  echo "PROD_HOST is empty — Box B does not exist yet, skipping the ship step"
-  echo "$remote_sha" > "$STAMP"
-  echo "lab now serving ${remote_sha:0:7}"
-  exit 0
-fi
-
-echo "shipping to ${PROD_HOST}"
-# `--delete` on the build output: a stale chunk left from a previous build gets
-# served to a browser whose HTML no longer references it, which is the kind of
-# intermittent 404 nobody can reproduce.
+# One box, so there is nothing to ship anywhere. A second machine — a
+# production box that the lab could never take down — was in an earlier draft
+# of this infrastructure and has been removed rather than deferred: it existed
+# to protect a production surface that does not exist yet, and it doubled the
+# bill of someone paying out of pocket.
 #
-# `node_modules` ships because this project does not use `output: 'standalone'`
-# — `next start` needs the real dependency tree. Turning standalone on would
-# shrink this a great deal and is a measured decision, not a free one.
-for dir in .next node_modules; do
-  rsync -a --delete -e "ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes" \
-    "${dir}/" "deploy@${PROD_HOST}:${APP_DIR}/${dir}/"
-done
-rsync -a -e "ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes" \
-  package.json bun.lock next.config.ts "deploy@${PROD_HOST}:${APP_DIR}/"
-
-echo "restarting production"
-ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes "deploy@${PROD_HOST}" \
-  'sudo systemctl restart arth'
-
-if [ -n "$PROD_DOMAIN" ]; then
-  echo "proving production answers"
-  # A deploy that reports success while the site is down is worse than one that
-  # fails: it moves the discovery of an outage from this journal to a visitor.
-  for attempt in $(seq 1 10); do
-    code=$(curl -sS -o /dev/null -w '%{http_code}' "https://${PROD_DOMAIN}/en" || true)
-    echo "  attempt ${attempt}: ${code}"
-    if [ "$code" = "200" ]; then
-      echo "$remote_sha" > "$STAMP"
-      echo "deployed ${remote_sha:0:7}"
-      exit 0
-    fi
-    sleep 5
-  done
-  echo "production did not return 200 within 50s — journalctl -u arth -n 80 on ${PROD_HOST}"
-  exit 1
-fi
+# When it comes back (real clients on the site, or a lab busy enough that a
+# failed experiment is felt by someone else), the shipping half of this script
+# comes back with it — see infra/optional/bootstrap-prod.sh.
 
 echo "$remote_sha" > "$STAMP"
-echo "deployed ${remote_sha:0:7} (no PROD_DOMAIN set, answer not verified)"
+echo "deployed ${remote_sha:0:7}"
 
 }
 

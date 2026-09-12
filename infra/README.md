@@ -23,7 +23,7 @@ baru berguna kalau sudah ada sebelum mesinnya menyala.
 
 ---
 
-## 2. Membuat Box A
+## 2. Membuat mesinnya
 
 Dua jalur, hasilnya sama. **Pilih satu.**
 
@@ -45,20 +45,20 @@ dokumentasi resminya pun tidak memuat label UI-nya. Kalau sebuah bagian tidak
 ada di tempat yang tertulis di sini, itu bukan Anda melewatkan sesuatu:
 kirimkan tangkapan layarnya.
 
-| pengaturan           | nilai                                                      | kalau salah                                                                                                                 |
-| -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Name                 | `arth-lab`                                                 | hanya nama; aman diganti asal konsisten                                                                                     |
-| Region               | `asia-southeast1` (Singapore)                              | latensi, dan harga                                                                                                          |
-| Zone                 | `asia-southeast1-b`                                        | kapasitas penuh → coba `-a` atau `-c`                                                                                       |
-| Machine family       | General purpose · **E2**                                   |                                                                                                                             |
-| Machine type         | **Custom** → **4 vCPU**, **16 GB**                         | kalau Custom bermasalah: `e2-standard-4`, bentuknya identik                                                                 |
-| Boot disk — OS       | **Ubuntu**                                                 |                                                                                                                             |
-| Boot disk — version  | **Ubuntu 24.04 LTS** (x86/64)                              | Playwright resmi mendukung 22.04/24.04                                                                                      |
-| Boot disk — type     | **Balanced persistent disk**                               |                                                                                                                             |
-| Boot disk — size     | **150 GB**                                                 | **bukan sekadar ruang: IOPS boot disk GCP naik mengikuti ukuran.** Disk 20 GB membuat `bun install` menyiksa                |
-| Firewall             | centang **Allow HTTP traffic** dan **Allow HTTPS traffic** | tanpa ini Caddy tidak bisa mengambil sertifikat                                                                             |
-| External IPv4        | **buat IP statis baru**, namai `arth-lab-ip`               | **paling mudah terlewat.** Bawaannya _Ephemeral_, dan itu berubah tiap VM restart — DNS Anda lalu menunjuk mesin orang lain |
-| Network Service Tier | **Standard**                                               | Premium tidak perlu, dan lebih mahal                                                                                        |
+| pengaturan           | nilai                                                      | kalau salah                                                                                                                                            |
+| -------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Name                 | `arth-lab`                                                 | hanya nama; aman diganti asal konsisten                                                                                                                |
+| Region               | `asia-southeast1` (Singapore)                              | latensi, dan harga                                                                                                                                     |
+| Zone                 | `asia-southeast1-b`                                        | kapasitas penuh → coba `-a` atau `-c`                                                                                                                  |
+| Machine family       | General purpose · **E2**                                   |                                                                                                                                                        |
+| Machine type         | **Custom** → **2 vCPU**, **6 GB**                          | diukur, §7. Kalau Custom bermasalah, `e2-medium` (2 vCPU / 4 GB) masih cukup dengan swap — `e2-small` (2 GB) tidak                                     |
+| Boot disk — OS       | **Ubuntu**                                                 |                                                                                                                                                        |
+| Boot disk — version  | **Ubuntu 24.04 LTS** (x86/64)                              | Playwright resmi mendukung 22.04/24.04                                                                                                                 |
+| Boot disk — type     | **Balanced persistent disk**                               |                                                                                                                                                        |
+| Boot disk — size     | **30 GB**                                                  | diukur, §7: aplikasinya **1,97 GB**. Disk GCP bisa **dibesarkan hidup-hidup, tidak pernah dikecilkan** — jadi kecil adalah arah yang benar untuk salah |
+| Firewall             | centang **Allow HTTP traffic** dan **Allow HTTPS traffic** | tanpa ini Caddy tidak bisa mengambil sertifikat                                                                                                        |
+| External IPv4        | **buat IP statis baru**, namai `arth-lab-ip`               | **paling mudah terlewat.** Bawaannya _Ephemeral_, dan itu berubah tiap VM restart — DNS Anda lalu menunjuk mesin orang lain                            |
+| Network Service Tier | **Standard**                                               | Premium tidak perlu, dan lebih mahal                                                                                                                   |
 
 **Dua baris terakhir ada di sub-layar.** Buka **Networking → Network
 interfaces → `default`**; External IPv4 dan Network Service Tier ada di
@@ -69,17 +69,24 @@ Dua hal lagi:
 
 - **Machine type Custom** adalah pilihan **di dalam dropdown** machine type,
   bukan tab tersendiri. Memilihnya memunculkan slider vCPU dan memory.
-- **Data protection** → matikan snapshot otomatis untuk Box A. Isinya bisa
+- **Data protection** → matikan snapshot otomatis untuk mesin ini. Isinya bisa
   dibangun ulang dari repo, dan snapshot menagih penyimpanan. Box B nanti
   berbeda — di sana snapshot masuk akal.
 
-Panel biaya di kanan bergerak sambil Anda mengisi. **Cocokkan dengan estimasi
-$115–150/bulan (Box A termasuk disk) sebelum menekan Create.** Kalau jauh
-berbeda, ada yang tidak sesuai — dan jauh lebih murah mengetahuinya sekarang
-daripada di tagihan.
+Panel biaya di kanan bergerak sambil Anda mengisi. **Perhatikan angkanya
+sebelum menekan Create.** Versi pertama dokumen ini menuntut 4 vCPU / 16 GB /
+150 GB dan sampai di **Rp 2 juta/bulan** — spesifikasi yang ditebak, bukan
+diukur. §7 memuat pengukurannya dan kenapa mesin ini jauh lebih kecil.
+
+Kalau angka yang Anda lihat masih terasa terlalu tinggi, katakan. Masih ada
+satu langkah lagi yang belum dipakai — build pindah sepenuhnya ke GitHub
+Actions dan mesin ini hanya menyajikan — dan ia menambah pipa, jadi saya tidak
+memakainya sampai Anda memang membutuhkannya.
 
 Setelah Create: **catat External IP**-nya dari daftar VM instances. Itu yang
 masuk ke Porkbun di langkah 3.
+
+Jadwal mati otomatis dipasang setelah situsnya hidup — §7.2.
 
 ---
 
@@ -243,7 +250,7 @@ journalctl -u arth-deploy -n 40         # apa yang terjadi terakhir kali
 sudo systemctl start arth-deploy        # paksa satu kali sekarang
 ```
 
-Tiap lima menit Box A mengambil branch. **Tidak ada commit baru → keluar tanpa
+Tiap lima menit mesinnya mengambil branch. **Tidak ada commit baru → keluar tanpa
 melakukan apa pun**, jadi jurnalnya hanya berisi baris yang benar-benar
 berarti. Ada commit baru → build, restart lab, kirim ke Box B, restart
 produksi, lalu **buktikan produksi menjawab 200** sebelum melapor sukses.
@@ -273,140 +280,77 @@ Itu harga dari permukaan serang nol.
 
 ---
 
-## 7. Box B — produksi
+## 7. Biaya, dan apa yang bisa dimatikan
 
-Kerjakan setelah §7 berhasil. Tidak ada gunanya menyalakan produksi sebelum
-ada yang mengirim aplikasi ke sana.
+Mesin ini diukur, bukan ditebak. `bun run build` dengan `.next` kosong, di
+container 4 vCPU / 15 GB, 2026-09-12:
 
-```bash
-gcloud compute instances create arth-prod \
-  --machine-type=e2-custom-2-4096 \
-  --image-family=ubuntu-2404-lts-amd64 --image-project=ubuntu-os-cloud \
-  --boot-disk-size=50GB --boot-disk-type=pd-balanced \
-  --address=arth-prod-ip --network-tier=STANDARD \
-  --tags=http-server,https-server \
-  --metadata=enable-oslogin=TRUE \
-  --scopes=https://www.googleapis.com/auth/logging.write \
-  --maintenance-policy=MIGRATE
+|                      | 4 vCPU     | 2 vCPU         |
+| -------------------- | ---------- | -------------- |
+| waktu dinding        | 74,9 detik | **83,2 detik** |
+| puncak RSS           | 3,35 GB    | 3,30 GB        |
+| rata-rata core aktif | 3,00       | 1,95           |
 
-gcloud compute ssh arth-prod --tunnel-through-iap
-```
+Di disk sesudahnya: `.next` **548 MB**, `node_modules` **1,8 GB** — total
+**1,97 GB**.
 
-Di dalam VM:
+Tiga kesimpulan, dan ketiganya mengecilkan mesin:
 
-```bash
-sudo apt-get update -qq && sudo apt-get install -y -qq git
-git clone --branch claude/satus-award-website-foundation-r6o5cf \
-  https://github.com/ashaamoon-lang/-1.git /tmp/arth-infra
-sudo bash /tmp/arth-infra/infra/bootstrap-prod.sh arth.<domain>
-```
+- **2 vCPU, bukan 4.** Core ketiga dan keempat membeli sebelas detik.
+- **6 GB, bukan 16.** Puncaknya 3,3 GB. Versi pertama dokumen ini menyebut
+  16 GB karena container pengembangan kebetulan punya 15 dan build-nya muat —
+  itu pengamatan, bukan pengukuran.
+- **30 GB, bukan 150.** Aplikasinya 2 GB, Playwright menambah ~0,5, Ubuntu ~3.
 
-`systemctl status arth` akan **gagal** sampai deploy pertama. Itu yang
-diharapkan, bukan kerusakan: mesin ini tidak membangun apa pun sendiri.
+30 GB juga arah yang benar untuk salah: **disk GCP bisa dibesarkan hidup-hidup
+tanpa downtime, dan tidak pernah bisa dikecilkan.**
 
-### 7.1 Snapshot harian untuk produksi
+### 7.1 Yang berhenti ditagih, dan yang tidak
 
-```bash
-gcloud compute resource-policies create snapshot-schedule arth-prod-daily \
-  --region=asia-southeast1 --max-retention-days=7 \
-  --daily-schedule --start-time=18:00
+| komponen     | saat instance di-stop                                                           |
+| ------------ | ------------------------------------------------------------------------------- |
+| vCPU dan RAM | **berhenti ditagih** — ini bagian terbesarnya                                   |
+| Boot disk    | **tetap ditagih 24 jam**                                                        |
+| IP statis    | **tetap ditagih** — IP yang dicadangkan tapi tidak dipakai justru dikenai biaya |
 
-gcloud compute disks add-resource-policies arth-prod \
-  --resource-policies=arth-prod-daily --zone=asia-southeast1-b
-```
+Karena itu ukuran disk adalah angka yang paling harus jujur: ia satu-satunya
+yang tidak bisa Anda matikan.
 
-Box A tidak perlu snapshot — isinya bisa dibangun ulang dari repo.
+### 7.2 Jadwal mati otomatis
 
----
+Compute Engine → **Instance schedules** → Create. Klik, bukan skrip.
 
-## 8. Sambungkan Box A → Box B
+Buat satu jadwal start/stop yang cocok dengan jam kerja Anda, lalu pasangkan
+ke instance-nya. Jamnya milik Anda — saya tidak tahu kapan Anda bekerja, dan
+menebaknya akan jadi kesalahan yang sama seperti menebak RAM.
 
-Deploy job di Box A mengirim hasil build ke Box B lewat **jaringan internal
-VPC** — bukan lewat IAP, dan bukan lewat `gcloud`. Alasannya konkret: kedua
-instance dibuat dengan access scope minimal dengan sengaja, jadi
-`gcloud compute ssh` dari dalam Box A memang akan ditolak. VM-ke-VM di satu
-VPC tidak butuh keduanya.
+Mesin yang menyala 8 jam sehari membayar sepertiga biaya vCPU dan RAM-nya.
+Disk dan IP tidak berubah.
 
-**8.1 Izinkan SSH internal**
+### 7.3 Jalan keluar, dan ia sah
 
-```bash
-# Rentang subnet default asia-southeast1. Periksa punya Anda:
-gcloud compute networks subnets describe default \
-  --region=asia-southeast1 --format="value(ipCidrRange)"
+Kalau sebulan lagi lab tidak dikunjungi siapa pun dan pengukuran performa sudah
+selesai: **hapus instance-nya, simpan snapshot disk.** Snapshot menagih jauh
+lebih murah daripada disk hidup, dan memulihkannya butuh beberapa menit.
 
-gcloud compute firewall-rules create allow-ssh-internal \
-  --allow=tcp:22 --source-ranges=<CIDR_DARI_PERINTAH_DI_ATAS>
-```
+Tidak ada yang hilang selain biaya bulanan — dan itu justru intinya.
 
-**8.2 Buat kunci di Box A**
+### 7.4 Mesin kedua untuk produksi
 
-```bash
-gcloud compute ssh arth-lab --tunnel-through-iap
-sudo -u deploy ssh-keygen -t ed25519 -N "" -f /home/deploy/.ssh/id_ed25519
-sudo cat /home/deploy/.ssh/id_ed25519.pub      # salin barisnya
-```
+**Tidak ada dalam setup ini, dan itu disengaja.** Versi sebelumnya
+merancangnya: satu mesin lab dan satu mesin produksi, supaya eksperimen yang
+kebablasan tidak bisa menjatuhkan situs yang mencari klien. Prinsipnya benar;
+waktunya yang salah. Belum ada produksi, dan ia melipatduakan tagihan untuk
+melindungi sesuatu yang belum ada.
 
-**8.3 Pasang kunci itu di Box B**
+Konsekuensi yang harus dikatakan terus terang: **dengan satu mesin, eksperimen
+lab yang jatuh menjatuhkan `lab.<domain>` juga.** Dengan nol pengunjung, itu
+risiko yang benar untuk diambil.
 
-```bash
-gcloud compute ssh arth-prod --tunnel-through-iap
-sudo bash /tmp/arth-infra/infra/bootstrap-prod.sh arth.<domain> "ssh-ed25519 AAAA... deploy@arth-lab"
-```
-
-Skripnya idempoten — menjalankan ulang dengan kunci hanya menambahkan kunci.
-
-**8.4 Beri tahu deploy alamat Box B**
-
-Di **Box A**:
-
-```bash
-# IP internal Box B — bukan yang eksternal.
-gcloud compute instances describe arth-prod \
-  --format="value(networkInterfaces[0].networkIP)"
-
-sudo systemctl edit arth-deploy.service
-```
-
-Isi override-nya:
-
-```ini
-[Service]
-Environment=PROD_HOST=<IP_INTERNAL_BOX_B>
-Environment=PROD_DOMAIN=arth.<domain>
-```
-
-`systemctl edit` dipakai alih-alih menyunting unit aslinya, supaya nilai ini
-tidak hilang saat bootstrap dijalankan ulang.
-
-**8.5 Coba**
-
-```bash
-sudo systemctl restart arth-deploy.timer
-sudo systemctl start arth-deploy
-journalctl -u arth-deploy -n 60 -f
-```
-
-Sebelum langkah 8.4, deploy melaporkan **"PROD_HOST is empty — Box B does not
-exist yet, skipping the ship step"**. Itu benar, bukan rusak: lab berguna
-sendirian.
-
----
-
-## 9. Menghemat kredit
-
-Box A tidak harus hidup 24 jam. Instance yang di-stop hanya menagih disk-nya.
-
-```bash
-gcloud compute instances stop  arth-lab
-gcloud compute instances start arth-lab
-```
-
-Konsekuensinya jujur: selama mati, `lab.<domain>` tidak bisa diakses dan
-**tidak ada deploy yang berjalan** — commit yang Anda dorong menunggu sampai
-Box A menyala lagi. `Persistent=true` di timer-nya membuat jadwal yang
-terlewat dijalankan saat start berikutnya, jadi tidak ada yang hilang, hanya
-tertunda. Produksi tidak terpengaruh sama sekali — itu justru gunanya
-dipisah.
+Ia kembali saat salah satu benar: klien nyata melihat situsnya, atau lab cukup
+ramai sehingga eksperimen yang gagal terasa oleh orang lain. Skripnya menunggu
+di `infra/optional/bootstrap-prod.sh` dengan catatan lengkap tentang apa lagi
+yang harus ikut kembali.
 
 ---
 
@@ -437,9 +381,9 @@ gcloud compute firewall-rules create allow-ssh-iap \
 
 gcloud compute instances create arth-lab \
   --zone=asia-southeast1-b \
-  --machine-type=e2-custom-4-16384 \
+  --machine-type=e2-custom-2-6144 \
   --image-family=ubuntu-2404-lts-amd64 --image-project=ubuntu-os-cloud \
-  --boot-disk-size=150GB --boot-disk-type=pd-balanced \
+  --boot-disk-size=30GB --boot-disk-type=pd-balanced \
   --address=arth-lab-ip --network-tier=STANDARD \
   --tags=http-server,https-server \
   --metadata=enable-oslogin=TRUE \
@@ -450,13 +394,13 @@ gcloud compute instances create arth-lab \
 Variabel yang diterima `provision.sh`, untuk menyimpang dari bawaan tanpa
 menyunting skripnya:
 
-| variabel         | bawaan                     | untuk                                       |
-| ---------------- | -------------------------- | ------------------------------------------- |
-| `MACHINE`        | `e2-custom-4-16384`        | `e2-standard-4` kalau custom tidak tersedia |
-| `ZONE`           | `asia-southeast1-b`        | zona lain kalau kapasitasnya penuh          |
-| `REGION`         | `asia-southeast1`          | region lain                                 |
-| `DISK_GB`        | `150`                      | disk lebih kecil kalau kredit ketat         |
-| `VM` · `IP_NAME` | `arth-lab` · `arth-lab-ip` | nama lain                                   |
+| variabel         | bawaan                     | untuk                                                                                               |
+| ---------------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
+| `MACHINE`        | `e2-custom-2-6144`         | `e2-medium` kalau custom tidak tersedia (4 GB, cukup dengan swap)                                   |
+| `ZONE`           | `asia-southeast1-b`        | zona lain kalau kapasitasnya penuh                                                                  |
+| `REGION`         | `asia-southeast1`          | region lain                                                                                         |
+| `DISK_GB`        | `30`                       | lebih besar kalau Anda menyimpan banyak checkout. Bisa dibesarkan kapan saja; tidak bisa dikecilkan |
+| `VM` · `IP_NAME` | `arth-lab` · `arth-lab-ip` | nama lain                                                                                           |
 
 ---
 
