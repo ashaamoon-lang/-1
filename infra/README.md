@@ -165,31 +165,44 @@ situs hidup.
 
 ---
 
-## 8. Runner GitHub Actions — jalur kedua
+## 8. Deploy otomatis — sudah terpasang
 
-Ini yang membuat sesi saya **yang sekarang** bisa menjangkau VM Anda: saya
-commit workflow dari sini, runner di mesin Anda yang mengeksekusi.
-
-GitHub → repo → **Settings → Actions → Runners → New self-hosted runner →
-Linux**. Ikuti perintah yang **ditampilkan halaman itu** — jangan pakai versi
-yang saya tulis, karena nomor versinya berubah dan token registrasinya
-berumur pendek.
-
-Jalankan sebagai user `deploy`, lalu pasang sebagai service supaya hidup lagi
-setelah reboot:
+Bootstrap sudah memasang timer-nya. Tidak ada yang perlu Anda daftarkan, tidak
+ada token, tidak ada port masuk.
 
 ```bash
-sudo ./svc.sh install deploy
-sudo ./svc.sh start
+systemctl list-timers arth-deploy       # kapan cek berikutnya
+journalctl -u arth-deploy -n 40         # apa yang terjadi terakhir kali
+sudo systemctl start arth-deploy        # paksa satu kali sekarang
 ```
 
-Beri label `arth-lab` saat ditanya. Workflow deploy mencarinya lewat label
-itu.
+Tiap lima menit Box A mengambil branch. **Tidak ada commit baru → keluar tanpa
+melakukan apa pun**, jadi jurnalnya hanya berisi baris yang benar-benar
+berarti. Ada commit baru → build, restart lab, kirim ke Box B, restart
+produksi, lalu **buktikan produksi menjawab 200** sebelum melapor sukses.
 
-> **Keamanan, eksplisit:** self-hosted runner menjalankan kode dari repo di
-> mesin Anda. Untuk repo privat milik Anda sendiri ini wajar. Kalau repo
-> dipublikkan nanti, **matikan runner untuk PR dari fork** — itu jalur
-> eksekusi kode arbitrer di mesin Anda.
+Kalau build gagal, skripnya berhenti di situ dan **Box B tidak disentuh** —
+produksi tetap menyajikan versi terakhir yang bekerja. Sebuah commit rusak
+tidak bisa menjatuhkan situs, ia hanya gagal menggantikannya.
+
+Memicu deploy = mendorong commit. Tidak ada cara lain memulainya.
+
+### 8.1 Kenapa BUKAN self-hosted GitHub Actions runner
+
+Rancangan pertama infrastruktur ini memakai runner, dan itu **salah**.
+
+`ashaamoon-lang/-1` adalah repo **publik** — diperiksa lewat API:
+`visibility: public`, dan sudah ada satu fork. Self-hosted runner di repo
+publik adalah jalur bagi pull request dari fork untuk **menjalankan kode di
+mesin Anda**. GitHub sendiri menyarankan untuk tidak pernah melakukannya.
+
+Peringatan itu sempat tertulis di runbook ini sebagai kondisi hipotetis
+("kalau repo dipublikkan nanti") padahal reponya sudah publik sejak awal.
+Dicatat apa adanya supaya pembaca berikutnya tidak memasangnya kembali karena
+kelihatan lebih cepat.
+
+Yang dibayar sebagai gantinya: deploy mendarat dalam ≤5 menit, bukan seketika.
+Itu harga dari permukaan serang nol.
 
 ---
 
@@ -275,26 +288,40 @@ sudo bash /tmp/arth-infra/infra/bootstrap-prod.sh arth.<domain> "ssh-ed25519 AAA
 
 Skripnya idempoten — menjalankan ulang dengan kunci hanya menambahkan kunci.
 
-**10.4 Beri tahu workflow alamat Box B**
+**10.4 Beri tahu deploy alamat Box B**
 
-GitHub → repo → Settings → **Secrets and variables → Actions → Variables**:
+Di **Box A**:
 
-| Variable           | Isi                                                                                                                    |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `PROD_INTERNAL_IP` | IP **internal** Box B — `gcloud compute instances describe arth-prod --format="value(networkInterfaces[0].networkIP)"` |
-| `PROD_DOMAIN`      | `arth.<domain>`                                                                                                        |
+```bash
+# IP internal Box B — bukan yang eksternal.
+gcloud compute instances describe arth-prod \
+  --format="value(networkInterfaces[0].networkIP)"
+
+sudo systemctl edit arth-deploy.service
+```
+
+Isi override-nya:
+
+```ini
+[Service]
+Environment=PROD_HOST=<IP_INTERNAL_BOX_B>
+Environment=PROD_DOMAIN=arth.<domain>
+```
+
+`systemctl edit` dipakai alih-alih menyunting unit aslinya, supaya nilai ini
+tidak hilang saat bootstrap dijalankan ulang.
 
 **10.5 Coba**
 
-Actions → **Deploy** → Run workflow. Job-nya membangun di Box A, mengirim ke
-Box B, me-restart, lalu **membuktikan situsnya menjawab 200** sebelum
-melaporkan sukses — deploy yang melapor hijau sementara situsnya mati lebih
-buruk daripada deploy yang gagal.
+```bash
+sudo systemctl restart arth-deploy.timer
+sudo systemctl start arth-deploy
+journalctl -u arth-deploy -n 60 -f
+```
 
-Setelah deploy pertama berhasil, tambahkan trigger `push:` ke
-`.github/workflows/deploy.yml` supaya tiap push ikut terkirim. Sengaja belum
-ada sekarang: workflow yang merah di tiap push karena targetnya belum ada
-mengajarkan semua orang mengabaikan tanda merah.
+Sebelum langkah 10.4, deploy melaporkan **"PROD_HOST is empty — Box B does not
+exist yet, skipping the ship step"**. Itu benar, bukan rusak: lab berguna
+sendirian.
 
 ---
 
@@ -307,9 +334,12 @@ gcloud compute instances stop  arth-lab
 gcloud compute instances start arth-lab
 ```
 
-Konsekuensinya jujur: selama mati, runner CI tidak menerima job dan
-`lab.<domain>` tidak bisa diakses. Produksi tidak terpengaruh sama sekali —
-itu justru gunanya dipisah.
+Konsekuensinya jujur: selama mati, `lab.<domain>` tidak bisa diakses dan
+**tidak ada deploy yang berjalan** — commit yang Anda dorong menunggu sampai
+Box A menyala lagi. `Persistent=true` di timer-nya membuat jadwal yang
+terlewat dijalankan saat start berikutnya, jadi tidak ada yang hilang, hanya
+tertunda. Produksi tidak terpengaruh sama sekali — itu justru gunanya
+dipisah.
 
 ---
 

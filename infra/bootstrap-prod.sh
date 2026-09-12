@@ -20,12 +20,15 @@ APP_DIR="/srv/arth"
 say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 
 say "System packages"
+# `unzip` is required by Bun's installer and absent from Ubuntu 24.04 minimal;
+# `rsync` is the receiving end of the deploy from Box A.
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq \
   git curl ca-certificates build-essential \
   debian-keyring debian-archive-keyring apt-transport-https \
-  unattended-upgrades
+  unattended-upgrades \
+  unzip rsync
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
 say "Swap — 2 GB"
