@@ -72,7 +72,7 @@
     "react-dom": "19.2.8",
     "sanity-plugin-internationalized-array": "^5.2.3",
     "tempus": "^1.0.0",
-    "three": "^0.185.1",
+    "three": "^0.186.0",
     "zod": "^4.5.4",
     "zustand": "^5.0.15"
   },
