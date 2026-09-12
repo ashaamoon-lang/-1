@@ -81,9 +81,26 @@
   opacity: 0.4;
 }
 
-/* Grain, so the wash reads as a surface rather than as an empty buffer. */
+/*
+ * Grain, so the wash reads as a surface rather than as an empty buffer.
+ *
+ * Two values, both set by Tahap 55 and both consequences of the same repair.
+ *
+ * `--noise-base`: since that stage the grain is noise added *around a base
+ * colour*, and its default base is `--color-primary` — correct everywhere the
+ * layer sits on the page ground, wrong here, where `SceneShell` paints a wash
+ * over that ground. Pointing it at the wash's midpoint keeps the layer's mean
+ * inside the range it actually covers, so the largest error is half the
+ * wash's amplitude rather than all of it.
+ *
+ * `opacity`: the same 0.45 the ground carries (`components/layout/theme`), so
+ * the hero's surface and the rest of the page are the same material. It was
+ * 0.5, chosen when the number weighted a veil rather than an amplitude.
+ */
 .heroGrain {
-  opacity: 0.5;
+  --noise-base: var(--hero-wash-mid);
+
+  opacity: 0.45;
 }
 
 /*

@@ -187,6 +187,38 @@ It goes in `themes.*.contrast`, in one place. Before it ships, it must clear
 previous accent failed that test at every lightness of its hue (peak 4.19:1
 on these grounds, 4.41:1 even on pure white), which is why it is gone.
 
+### 1.4 The one material: grain
+
+The system has exactly one texture, and it exists because a large flat field
+of a single colour is the cheapest-looking thing a screen can show — and this
+site has several by design. It is `vault/magic/noise-texture`, rendered once
+per page by `components/layout/theme` and again inside the hero, over the
+WebGL wash.
+
+**The rule that makes it a material rather than a tint: it must not move the
+ground.** Grain is variance around the declared colour; a layer whose mean
+differs from the ground is a wash wearing a texture's name. Tahap 55 found
+exactly that defect shipped — the layer was a #4d4d4d veil, and it pulled
+paper down 11 levels and lifted ink 4.5, which on a two-neutral palette means
+the two colour modes were sliding toward each other.
+
+| what           | measured                                       |
+| -------------- | ---------------------------------------------- |
+| mean shift     | **0 by construction**, ±2 enforced by the gate |
+| texture, light | sd **2.4** of 255 (`opacity: 0.7`)             |
+| texture, dark  | sd **1.6** of 255 (`opacity: 0.45`)            |
+| gate           | `e2e/palette-integrity.e2e.ts`                 |
+
+The two opacities differ because the amplitude is in absolute levels and the
+same absolute step reads harder on ink than on paper. They are texture
+strengths and nothing else: `opacity` cannot move the ground here, which is
+what "one material" is supposed to mean.
+
+Adding a second texture is a design-system change, not a page decision.
+Restraint is what `docs/TEARDOWN.md` measured as the difference between a
+competent site and an award one, and a second grain would make this one
+decoration.
+
 ---
 
 ## 2. Typography
@@ -334,6 +366,73 @@ Generous vertical rhythm between sections costs nothing and does more for
 perceived quality than any component.
 
 ---
+
+### Hero height, per route — and the rule that decides it
+
+Measured on the production build at 1440×900, after Tahap 49–52:
+
+| Route             | Declared                                  | Measured | Of the screen |
+| ----------------- | ----------------------------------------- | -------: | ------------: |
+| `/`               | `100svh`                                  |    900px |          100% |
+| `/studio`         | `calc(100svh - var(--header-height))`     |    780px |           87% |
+| `/practice/<v>`   | `70svh`                                   |    630px |           70% |
+| `/work/<slug>`    | content                                   |    857px |           95% |
+| `/journal`        | `calc(56svh - --header-height - padding)` |    352px |           39% |
+| `/work`           | `calc(48svh - --header-height - padding)` |    280px |           31% |
+| `/journal/<slug>` | none                                      |        — |             — |
+
+**The last column is not the rule.** Two of these numbers look small and are
+not: on `/work` and `/journal` the height is written as a _subtraction_, and
+the thing being measured is where the page's subject lands, not how tall its
+masthead box is.
+
+#### The rule
+
+> A hero's height is a share of the **screen**, and the page's own top padding
+> is inside that share. Where the page's subject is a list, the height is
+> chosen so the first item crosses `useReveal`'s line — 75% of the viewport —
+> on load.
+
+It is written that way because the naive spelling was shipped twice and
+measured wrong twice. `min-height: 60svh` on `/work` (Tahap 51) put the first
+cover at **98%** of a 900px screen; the same value on `/journal` (Tahap 52) put
+the first entry at **84%**. Both sat below the page's top padding
+(`--header-height` + 80px, clearing the fixed header) and above whatever the
+page puts between the masthead and its subject — 194px of filter and count on
+`/work`, 48px of section lead on `/journal`. `60svh` was 60% of the screen only
+in isolation.
+
+So the two routes carry different numbers — 48 and 56 — and that is not an
+inconsistency: what they have in common is the outcome, the first cover at 66%
+and the first entry at 60–62%. `e2e/first-screen.e2e.ts` holds it, at both
+widths, and it asks whether the page opens on **what it is about**: only a
+route whose subject is its list belongs there. `/practice/<v>` has a grid and
+is not about it — its subject is the statement, which is why that route is
+absent from the gate and its 70% hero is correct.
+
+#### Two more holders, and they are easy to miss
+
+`first-screen.e2e.ts` is the loudest but not the only one. Tahap 60 swept the
+e2e suite for height limits, read only that file, and wrote down "no gate
+limits hero height" — which is false, and `docs/stages/TAHAP-61.md` §4.1
+records the correction. Two others bind:
+
+| gate                               | holds                           | what it demands                                          |
+| ---------------------------------- | ------------------------------- | -------------------------------------------------------- |
+| `e2e/project-detail.e2e.ts:100`    | `/work/<slug>`                  | the fact `<dl>` intersects an **800px** fold at 1280×800 |
+| `e2e/navigation-landing.e2e.ts:95` | `/practice/<v>`, `/work/<slug>` | the `h1` lands on the first screen after a navigation    |
+
+The first is why `/work/<slug>`'s 95% is a ceiling and not a starting point: a
+hero grown past it pushes the facts below an 800px fold, and the reader who
+never scrolls is no longer told who the work was for. The second is a rule
+about a tall hero's _contents_ rather than its height — grow the hero all you
+like, but the headline cannot ride down with it, or a morph arriving from
+another page has nothing on screen to morph into.
+
+Neither is taste. Both stay.
+
+`svh` and never `vh`, everywhere: `vh` includes the collapsing mobile toolbar,
+so a `vh` block is taller than the visible viewport on first paint.
 
 ## 4. Motion
 

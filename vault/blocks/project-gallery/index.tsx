@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { useTranslations } from 'next-intl'
-import type { ComponentType } from 'react'
+import type { ComponentType, CSSProperties } from 'react'
 import { useCallback, useRef, useState } from 'react'
 
 import type { LightboxProps } from '@/components/ui/lightbox'
@@ -14,6 +14,7 @@ import {
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
+import { PixelImage } from '@/vault/magic/pixel-image'
 import { useParallax } from '@/vault/motion/parallax'
 
 import s from './project-gallery.module.css'
@@ -118,6 +119,20 @@ interface ProjectGalleryProps {
 type LightboxComponent = ComponentType<LightboxProps>
 
 /**
+ * How far a gallery plate's picture travels across its own pass, as a
+ * percentage of its height — Tahap 57.
+ *
+ * Inside the 5-15 the parallax preset names, and above the hook's quiet
+ * default of 6 because these plates are the whole middle of the longest inner
+ * route: `docs/stages/TAHAP-56.md` measured that middle as two of twelve
+ * scroll steps carrying any event at all.
+ *
+ * One constant, read by both the hook and the stylesheet, so the travel and
+ * the overshoot that has to cover it cannot come apart.
+ */
+const PLATE_DRIFT = 10
+
+/**
  * One figure's picture, in its own component so it can hold its own ref.
  *
  * A hook cannot be called inside a `map`, and the alternative — one ref array
@@ -134,10 +149,43 @@ function GalleryMedia({
   full: boolean
 }) {
   const parallaxRef = useRef<HTMLDivElement>(null)
-  useParallax(parallaxRef)
+  /*
+   * Explicit, and matched to the stylesheet — Tahap 57.
+   *
+   * This called the hook with no arguments, so the travel was the hook's own
+   * default of 6, while `project-gallery.module.css` wrote the overshoot as a
+   * hardcoded `-4%` / `108%`. Those two numbers have to agree — the layer has
+   * to be taller than its frame by exactly the travel it is given, or the
+   * frame shows its own background at the ends of the pass — and nothing
+   * connected them.
+   *
+   * That is the same failure `vault/blocks/project-card` had before Tahap 43,
+   * where `e2e/continuous-motion.e2e.ts` caught 2 exposed plates at three of
+   * four scroll positions once `work-constellation` changed one number and
+   * not the other. The card's fix was to derive the CSS from a custom
+   * property set here; the gallery now does the same, and the distance is
+   * stated once rather than inherited from a default nobody was reading.
+   */
+  useParallax(parallaxRef, { distance: PLATE_DRIFT })
 
   return (
-    <div className={s.media} style={ratioStyle(ratio)}>
+    <div
+      className={s.media}
+      /*
+       * SAFETY: `CSSProperties` has no index signature for custom properties,
+       * so an object carrying `--plate-drift` cannot be typed without this
+       * cast. The value is `PLATE_DRIFT`, a module constant declared in this
+       * file — not anything from the CMS or from a caller — and React
+       * forwards unknown keys straight to `style.setProperty`, which is what
+       * a custom property needs.
+       */
+      style={
+        {
+          ...ratioStyle(ratio),
+          '--plate-drift': PLATE_DRIFT,
+        } as CSSProperties
+      }
+    >
       {/*
         The travelling layer sits inside the ratio box, which clips it, so the
         picture moves against a frame that holds the grid still.
@@ -157,6 +205,22 @@ function GalleryMedia({
           sizes={trackImageSizes(full ? 92 : 48)}
         />
       </div>
+      {/*
+        The plate assembles out of blocks — Tahap 56.
+
+        `vault/magic/pixel-image` renders a veil of ground-coloured tiles over
+        this box; they dissolve on a staggered delay when the figure's own
+        `[data-reveal-item]` turns `visible`. It sits *outside* `.parallax` on
+        purpose: the veil is a property of the frame, not of the picture
+        travelling inside it, so it must not drift with the parallax or the
+        seams would slide across the plate.
+
+        `--pixel-ground` is `--surface-2` rather than the page ground because
+        that is what `.media` paints while the image is still arriving. A tile
+        the colour of the page would announce itself as a tile against the
+        box; one the colour of the box is invisible until it goes.
+      */}
+      <PixelImage className={s.pixels} />
     </div>
   )
 }
@@ -167,7 +231,21 @@ export function ProjectGallery({
   'data-region': region,
   className,
 }: ProjectGalleryProps) {
-  const ref = useReveal<HTMLUListElement>()
+  /*
+   * Per item — Tahap 56.
+   *
+   * The gallery is the middle of the longest inner route, and the census that
+   * opened `docs/stages/TAHAP-56.md` measured that middle as dead: two of
+   * twelve scroll steps on `/en/work/<slug>` produced any arrival at all. One
+   * `useReveal` on the `<ul>` is one event for every plate below it, which
+   * means the whole gallery had already arrived before the reader reached the
+   * second picture.
+   *
+   * `perItem` is the mode Tahap 54 added for exactly this shape, and it is
+   * what turns the mosaic below into one arrival per plate rather than one
+   * for the set.
+   */
+  const ref = useReveal<HTMLUListElement>({ perItem: true })
   const t = useTranslations('lightbox')
   const [Lightbox, setLightbox] = useState<LightboxComponent | null>(null)
   const [open, setOpen] = useState(false)

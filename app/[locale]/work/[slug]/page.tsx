@@ -195,7 +195,39 @@ export const instant = false
 export async function generateStaticParams() {
   if (!isConfigured('sanity')) return [{ slug: EMPTY_DATASET_SENTINEL }]
 
-  const data = await fetchProjectSlugs()
+  /*
+   * An unreachable CMS prerenders nothing; it does not fail the build.
+   *
+   * This function's own note above states the principle: `dynamicParams`
+   * defaults to true, so "prerendering is an optimisation here, not a gate on
+   * content existing". A network error therefore has exactly one honest
+   * meaning — *this build could not learn the list* — and the answer to that
+   * is the same sentinel an empty dataset already gets. Every project page
+   * still renders on demand and still caches; the only cost is a cold first
+   * hit per slug.
+   *
+   * Measured, 2026-09-12: with the project id pointed at a dataset that does
+   * not exist, `bun run build` died here with "Failed to collect page data
+   * for /[locale]/work/[slug]" — before export ever began. So the
+   * `ECONNRESET` that killed CI on `/en/search.json` was not the only place a
+   * blip could take the build down, it was just the first one to get unlucky.
+   *
+   * Content pages deliberately do NOT get this treatment. A params list that
+   * cannot be fetched is missing an optimisation; a *page* whose content
+   * cannot be fetched would ship an empty page that looks finished. There the
+   * build failing is the honest outcome, and it stays that way.
+   */
+  let data: Awaited<ReturnType<typeof fetchProjectSlugs>>
+  try {
+    data = await fetchProjectSlugs()
+  } catch (error) {
+    console.warn(
+      '[work/[slug]] project slugs unreachable, prerendering none.',
+      error
+    )
+    return [{ slug: EMPTY_DATASET_SENTINEL }]
+  }
+
   const slugs = (data ?? []).filter(
     (slug): slug is string => Boolean(slug) && slug !== PRACTICE_SEGMENT
   )
@@ -295,6 +327,25 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       */
       webgl
       simTypes={['flowmap']}
+      /*
+        `gsap`, and it was missing — Tahap 54.
+
+        This page renders two ScrollTrigger consumers: `ProjectSpine`
+        (`vault/motion/use-active-in-sequence` calls `ScrollTrigger.create`)
+        and `ReadingProgress`, whose non-Chromium path is a scrubbed
+        ScrollTrigger. Without this prop `Wrapper` mounts no `GSAPRuntime`, so
+        GSAP never hands its clock to Tempus and **starts a second
+        `requestAnimationFrame` loop of its own** — `CLAUDE.md` #6, the rule
+        whose stated symptom is jitter that "reads as cheap even at 60fps".
+
+        It also left `syncScrollTrigger` false, so those two read the native
+        scroll position while Lenis animates the document underneath them.
+
+        The saving the wrapper's own comment claims for leaving it off is void
+        here: GSAP is in this route's graph either way, because the components
+        above import it. What was saved was the synchronisation.
+      */
+      gsap
     >
       {/*
         How far through this page the reader is — Tahap 52. 4.66 screens here,
@@ -341,9 +392,34 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             title={project.title || humanizeSlug(slug)}
             cover={project.cover}
             coverAlt={project.coverAlt ?? ''}
-            // Opts this cover into the material surface. `e2e/route-budget`
-            // lists `three` for this route with the reason; passing this
-            // without that entry is a red gate.
+            /*
+             * Opts this cover into the material surface. `e2e/route-budget`
+             * lists `three` for this route with the reason; passing this
+             * without that entry is a red gate.
+             *
+             * ## This was off for one stage, and why it is back
+             *
+             * Tahap 58 removed this word. On the production build the cover
+             * rendered as a flat `#201d1b` — the mesh reported correct
+             * position, scale, texture and visibility, and the plate was
+             * still empty. Four hypotheses were built and eliminated, the
+             * root cause was not found, and the honest move was to retreat
+             * rather than ship an invisible cover.
+             *
+             * The cause was found in Tahap 59 and it was never here: the
+             * mesh draws into one fixed layer *behind* `<main>`, and
+             * `project-hero`'s own `.media` placeholder —
+             * `background-color: var(--surface-2)`, computed `oklab(0.23352
+             * …)`, which *is* that `#201d1b` — was painted over it.
+             * `project-card` has dropped that placeholder while a material is
+             * drawing since Tahap 14; Tahap 45 copied the opt-in here and not
+             * the guard. One CSS rule, now held for every material route by
+             * `e2e/material-occlusion.e2e.ts`.
+             *
+             * Measured after the fix, nine samples across the plate:
+             * `#987f5e #8d6f50 #473020 #915836 #7b4528 #6f4229 …` — the same
+             * artwork `/en/work` renders at `#965d39 #7f492a #704329`.
+             */
             material
             // Pairs this cover with the catalogue card the reader came from,
             // so the browser morphs one into the other. Both ends derive the

@@ -7,13 +7,18 @@ React 19 / Next.js 16 / Tailwind v4 specifics, lint and type rules,
 integrations, commands. That file is the single source of truth for _how to
 write code here_ and this file does not restate it.
 
-This file adds the rules specific to **this project**: a commissioned-artwork
-studio site that must read as expensive from the first frame.
+This file adds the rules specific to **this project**: **an agency site** whose
+stunning animation is what brings a client in, built on a design system tuned
+for long context and compact layout. It began as a commissioned-artwork studio
+site under tight budgets — that was scaffolding for two capabilities, not the
+destination. `docs/DIREKSI.md` records what changed and which limits still
+apply.
 
 Supporting documents, in the order they usually matter:
 
 | Document                                           | Covers                                                                                     |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`docs/DIREKSI.md`](./docs/DIREKSI.md)             | **What we are building and why, and which limits apply.** Read before any motion work.     |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | **What we build, and in what order.** Each stage must be deepened into its own spec first. |
 | [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)       | Shipping it. Env vars, hosts, and the security checklist.                                  |
 | [`docs/MOTION-SPEC.md`](./docs/MOTION-SPEC.md)     | Every animation. Binding.                                                                  |
@@ -100,8 +105,13 @@ These are not preferences. Violating one is a defect.
 ### Honesty
 
 19. **Never claim a performance number you did not measure.** Say "budget" or
-    "estimate" unless a profiler produced it. No browser profiling has been
-    possible in this environment.
+    "estimate" unless a profiler produced it. Profiling **is** possible here —
+    real Chromium via Playwright, with CDP `Performance.getMetrics` and
+    `PerformanceObserver`; `docs/stages/TAHAP-61.md` §6 is the first run and
+    shows the shape. But the container renders through **SwiftShader**, with
+    no GPU, so a frame time on a WebGL route is a software **floor**, never a
+    user-facing number. Main-thread figures (long tasks, script time, FCP) and
+    like-for-like comparisons between routes are the ones you may quote.
 20. **Never claim accessibility you did not test.** `@axe-core/playwright` is
     installed; run it.
 21. **If something was skipped or failed, say so explicitly** rather than

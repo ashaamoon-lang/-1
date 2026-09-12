@@ -55,11 +55,79 @@ and estimating it as though it were produces a schedule that is wrong.
 
 ## Installed
 
-| Directory        | From                                                         | Code copied | Notes                                                                         |
-| ---------------- | ------------------------------------------------------------ | :---------: | ----------------------------------------------------------------------------- |
-| `grid-pattern/`  | Magic UI `grid-pattern`                                      |   **yes**   | `<pattern>` structure and the `d` path                                        |
-| `noise-texture/` | Magic UI `noise-texture`                                     |   **yes**   | The `feTurbulence`/`feColorMatrix`/`feComponentTransfer` chain and its tuning |
-| `dot-pattern/`   | technique from `grid-pattern`, parameters from `dot-pattern` |   **no**    | Rewritten — see below                                                         |
+| Directory        | From                                                         | Code copied | Notes                                                                                                              |
+| ---------------- | ------------------------------------------------------------ | :---------: | ------------------------------------------------------------------------------------------------------------------ |
+| `grid-pattern/`  | Magic UI `grid-pattern`                                      |   **yes**   | `<pattern>` structure and the `d` path                                                                             |
+| `noise-texture/` | Magic UI `noise-texture`                                     | **partly**  | The `feTurbulence`/`feColorMatrix`/`feComponentTransfer` chain and its tuning; the compositing is ours — see below |
+| `dot-pattern/`   | technique from `grid-pattern`, parameters from `dot-pattern` |   **no**    | Rewritten — see below                                                                                              |
+| `pixel-image/`   | technique from Magic UI `pixel-image`                        |   **no**    | Layer inverted — see below                                                                                         |
+
+### Where `noise-texture` stops being upstream's
+
+Upstream's chain ends at `feComponentTransfer` and paints the result as a
+translucent layer. That is a **veil**, not grain, and Tahap 55 measured what
+it cost: `feTurbulence` is centred on 0.5, the linear slope takes the colour
+to a mean of 0.075, the alpha is left as noise, and with
+`color-interpolation-filters` at its `linearRGB` default that linear 0.075
+reaches the screen as sRGB ~0.30 — a solid **#4d4d4d** wash at roughly 6-9%
+effective alpha.
+
+On this site, whose whole palette is two neutrals, that dragged both grounds
+toward the same grey: paper #f4f3ef painted as 232.7, ink #110f0d as 21.6.
+The repo owner described the result exactly — _"one of the colour modes merges
+with the background"_.
+
+So the filter still ends where upstream's ends, and then this project adds
+what upstream does not have: `color-interpolation-filters="sRGB"`, an
+`feFuncA` that makes the field opaque, a `<rect>` filled with the ground
+colour, and an `feComposite operator="arithmetic"` that adds the grain and
+subtracts its own mean back out. The layer's mean is then the ground's, at any
+opacity. `docs/stages/TAHAP-55.md` has the derivation, the before-and-after
+measurements, and the gate.
+
+The lesson generalises to every component that arrives through this door:
+**an upstream default is a design decision made for somebody else's palette.**
+`color-interpolation-filters` was never written down anywhere in the original,
+because on a page of arbitrary colours nobody notices a 10-level shift. Here
+it was the difference between two colour modes and one.
+
+### Why `pixel-image` is original work
+
+The idea is Magic UI's and it is the valuable half: a grid of tiles whose
+`clip-path` is **static**, so a mosaic reveal animates nothing but `opacity`
+and stays inside `CLAUDE.md` #4. Read from
+`https://magicui.design/r/pixel-image.json` (HTTP 200), not from memory.
+
+The shape could not come with it. Upstream stacks `rows x cols` divs, **each
+holding its own full copy of the `<img>`**, each captioned
+`alt="Pixel image piece N"`. One photograph therefore arrives in the
+accessibility tree as twenty-four named images, and under `next/image` as
+twenty-four separate `srcset`s.
+
+So the layer is inverted here. The real image renders once, normally, with its
+own `alt`, and this component renders a **veil of ground-coloured tiles above
+it**; the reveal is the tiles going away. Same static clip-path, same
+opacity-only stagger, same look — one image, one alt, no duplication, and the
+component never needs to know what it is covering.
+
+Six more things had to change, and each is a hard rule rather than a
+preference:
+
+| upstream                            | here                                                                                           |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `transition-all`                    | `opacity` alone (#4)                                                                           |
+| bare `ease-out`                     | `--ease-out-quart` (#2)                                                                        |
+| `1000` / `1200` / `1300` ms         | `--duration-choreographed`, `--stagger-items` (#3, #8)                                         |
+| `Math.random()` delays              | a deterministic index hash — otherwise the server and the client disagree and hydration breaks |
+| `rounded-[2.5rem]`, `h-72 md:h-96`  | none; the caller owns the box (#8, and section 0.5)                                            |
+| `filter: grayscale` transition      | dropped (#4)                                                                                   |
+| `useEffect` + `setTimeout` on mount | the site's own reveal contract, absent under reduced motion (#5)                               |
+
+`Math.random()` deserves its own line. It is not a taste problem: this
+component renders on the server, and a delay drawn at random differs between
+the server's HTML and the browser's first render. That is a hydration
+mismatch, and it is the kind of defect that shows up as a warning in
+development and as a flash in production.
 
 ### Why `dot-pattern` is original work
 
@@ -105,21 +173,31 @@ installing `meteors` because it looks good.
 | `terminal`, `safari`, `iphone`, `android`, `file-tree`, `code-comparison`, `tweet-card`, `globe`, `dotted-map`, `icon-cloud`, `avatar-circles` | Wrong product. This is not a software site.                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Every component that imports `motion` (30 by metadata, at least 31 by source)                                                                  | `motion` runs a scheduler of its own — `CLAUDE.md` #6, one RAF loop. Nineteen of them duplicate something this repo already has: `vault/motion/text-reveal`, `reveal`, `counter`, `parallax`, `flip`, `page-transition`, `vault/primitives/cursor`, `components/ui/marquee` + `--scroll-velocity`. The few genuinely useful remainders — `scroll-progress`, `border-beam`, `light-rays`, `magic-card`'s spotlight — are written on the CSS and GSAP already loaded. |
 
-### Deferred, not rejected
+### `progressive-blur` — deferred in Tahap 47, **rejected** in Tahap 53
 
-`progressive-blur` stacks **eight `backdrop-filter: blur()` layers**, each
-with its own `mask-image`. Two reasons it is not here yet:
+It stacks **eight `backdrop-filter: blur()` layers**, each with its own
+`mask-image`. Tahap 47 deferred it for two reasons: its cost cannot be measured
+here (`CLAUDE.md` #19 forbids shipping "it's cheap" as a claim), and it had no
+consumer until the site-wide ambient layer.
 
-1. Its cost cannot be measured in this environment — there is no profiler,
-   and `CLAUDE.md` #19 forbids claiming a performance number that was not
-   measured. Installing it while saying "it's cheap" would be that claim.
-2. It has no consumer until the site-wide ambient layer. This repo has
-   already paid for an unconsumed component once:
-   `vault/motion/page-transition` sat for ten stages with two bugs in it,
-   because a component that renders nowhere is never wrong
-   (`docs/stages/TAHAP-11.md` §2.4).
+The consumer arrived in Tahap 53 — the header's edge, which was a
+`border-bottom: 1px solid var(--line)` cutting across the artwork behind a
+fixed bar. That is where the decision got made instead of deferred a third
+time:
 
-It arrives with its consumer.
+- The header **already** carries one `backdrop-filter: blur(12px)`. What the
+  edge needed was not more blur, it was a _fade_.
+- One `mask-image` on the layer that already exists gets that. Eight stacked
+  layers over a scrolling page is eight composite passes a frame, for the same
+  visual result, at a cost still nobody here can profile.
+
+So the technique was taken and the code was not. `docs/PROVENANCE.md` records
+the distinction, which is the same shape as `dot-pattern`'s: what MIT requires
+depends on whether bytes were copied, so that is the sentence the record has to
+answer.
+
+**Rejected, not deferred again.** Deferring something a third time is how an
+item moves between plans without ever being decided.
 
 ---
 

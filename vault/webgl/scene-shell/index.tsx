@@ -147,12 +147,37 @@ function washSnapshot(
   colorA: string,
   colorB: string
 ): { a: string; b: string } | null {
-  const key = `${colorA}|${colorB}`
+  /*
+   * Resolved inside the themed ground, not on `document.body` — Tahap 54.
+   *
+   * This runs from `getSnapshot`, during render, and `components/layout/theme`
+   * puts `data-theme` on `<html>` from an effect. So a probe on `body` reads
+   * the *un-themed* cascade at exactly the moment this asks, which on a
+   * `theme="dark"` route is the light palette. The ground element carries
+   * `data-theme` in the server HTML and is therefore correct on the first
+   * read.
+   *
+   * Measured before the fix, on `/en`: the hero band rendered at luminance
+   * **194** against a ground of 50 — a near-white wash under paper-coloured
+   * text, which is the "one theme merges into its own background" the owner
+   * reported. `e2e/visual-substance.e2e.ts` could not see it: its accent gate
+   * asks whether the wash *adds* light, and this added far too much.
+   */
+  const ground = document.querySelector('[data-theme]:not(html)')
+
+  /*
+   * The theme is part of the key, not just the two CSS strings.
+   *
+   * The same `var(--hero-wash-from)` resolves to ink on one route and paper on
+   * the next, and this cache outlives the remount the comment above relies on.
+   */
+  const theme = ground?.getAttribute('data-theme') ?? 'unthemed'
+  const key = `${theme}|${colorA}|${colorB}`
   const cached = washCache.get(key)
   if (cached !== undefined) return cached
 
-  const a = resolveColorToHex(colorA)
-  const b = resolveColorToHex(colorB)
+  const a = resolveColorToHex(colorA, ground)
+  const b = resolveColorToHex(colorB, ground)
   const value = a && b ? { a, b } : null
   washCache.set(key, value)
   return value

@@ -77,6 +77,33 @@
 }
 
 /*
+ * While a material is drawing, this box is a hole through to the canvas.
+ *
+ * The same rule `vault/blocks/project-card` has carried since Tahap 14, for
+ * the same reason, and its absence here is the whole of the defect Tahap 58
+ * spent five instrumented builds failing to find.
+ *
+ * The WebGL surface is one fixed layer *behind* `<main>`
+ * (`lib/webgl/components/canvas/webgl.module.css`), so a mesh standing in for
+ * this cover is only visible if nothing opaque sits over its box. The
+ * placeholder above is exactly that: measured `oklab(0.23352 …)` on the
+ * production build — which is the `#201d1b` Tahap 58 sampled and wrote down as
+ * "the empty-box colour" without recognising it as *this rule's own output*.
+ *
+ * Tahap 45 brought the material here by copying the opt-in from the card and
+ * not the guard. The placeholder itself stays — reserving the box before the
+ * asset arrives is what keeps this page free of layout shift — and is removed
+ * only while `[data-material]` is present, which is only while a mesh is
+ * actually standing in for the image.
+ *
+ * `e2e/material-occlusion.e2e.ts` holds this for every material route now,
+ * rather than for whichever one someone remembered.
+ */
+.media:has([data-material]) {
+  background-color: transparent;
+}
+
+/*
  * Half the twelve-column grid, matching the gallery's half track exactly, so
  * a portrait cover and a portrait gallery image share a right edge.
  */

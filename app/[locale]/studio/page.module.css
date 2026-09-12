@@ -174,37 +174,35 @@
 /* ── Ground ───────────────────────────────────────────────────────────── */
 
 /*
- * Surface, not content — Tahap 50.
+ * Surface, not content — Tahap 50, halved in Tahap 53.
  *
- * Both sit inside `.page`, which is already the containing block for `.wash`,
- * and both are behind everything: the wash is the first screen's tone, these
- * are the paper the whole page is printed on.
+ * It sits inside `.page`, which is already the containing block for `.wash`,
+ * and behind everything: the wash is the first screen's tone, this is the
+ * paper the whole page is printed on.
  *
  * `position: fixed` rather than `absolute`, and the difference is the point:
- * the page is 6.34 screens tall, and grain that scrolls with the document
- * reads as a texture *applied to* the content. Grain that stays put reads as
- * the surface the content moves across, which is what paper does. It costs
- * nothing extra — neither layer animates, so neither is a compositing
- * expense that grows with the page.
+ * the page is 6.34 screens tall, and a ground that scrolls with the document
+ * reads as a texture *applied to* the content. One that stays put reads as the
+ * surface the content moves across, which is what paper does. It costs nothing
+ * extra — it never animates, so it is not a compositing expense that grows
+ * with the page.
+ *
+ * A `.grain` used to sit beside it. Tahap 53 moved the grain under `Theme`,
+ * where it is one surface for the whole site instead of a copy per route —
+ * this page shipped the first copy and the home hero the second, and a third
+ * would have been grain over grain on the two routes that matter most.
+ *
+ * Half strength, because `--line` already resolves against a measured pair
+ * here (unlike the home page's, which sits over a WebGL wash whose luminance
+ * is not a token). It only has to stop 6.34 screens of one flat colour
+ * reading as an unpainted buffer.
  */
-.ground,
-.grain {
+.ground {
   position: fixed;
   inset: 0;
   /* Behind the wash, which is behind the content. */
   z-index: -1;
   pointer-events: none;
-}
-
-/*
- * Quieter than the home page's, and deliberately.
- *
- * That one sits over a WebGL wash whose luminance is not a token; this one
- * sits on the page ground, where `--line` already resolves against a measured
- * pair. Half the strength is enough to stop 6.34 screens of one flat colour
- * reading as an unpainted buffer.
- */
-.ground {
   opacity: 0.5;
 }
 

@@ -2,7 +2,6 @@ import cn from 'clsx'
 import { getTranslations } from 'next-intl/server'
 import { locale as localeRootParam } from 'next/root-params'
 
-import type { SectionLink } from '@/components/layout/header'
 import { Wrapper } from '@/components/layout/wrapper'
 import { SectionHeader } from '@/components/ui/section-header'
 import { resolveHomeContent } from '@/lib/content/home-fallback'
@@ -130,15 +129,6 @@ export default async function Home() {
   const content = resolveHomeContent(locale, settings)
   const hasWork = projects.length > 0
 
-  // Document order, and only what rendered. `useActiveSection` relies on this
-  // order to decide which of several visible sections is the one being read.
-  const sections: SectionLink[] = [
-    ...(hasWork ? [{ id: 'work', labelKey: 'work' as const }] : []),
-    { id: 'practice', labelKey: 'practice' as const },
-    { id: 'studio', labelKey: 'studio' as const },
-    { id: 'contact', labelKey: 'contact' as const },
-  ]
-
   return (
     /*
      * `webgl` and `gsap` are mounted here, not in the layout.
@@ -164,7 +154,6 @@ export default async function Home() {
        * handling takes over. Same destination, no easing.
        */
       lenis={{ anchors: true }}
-      sections={sections}
       webgl
       /*
        * The velocity field the work grid's material reads

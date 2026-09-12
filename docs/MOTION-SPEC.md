@@ -61,6 +61,37 @@ the columns rather than either travel. The cursor's payload changes only
 `opacity` and `transform` on a `aria-hidden` element whose text is required to
 exist in the DOM as well, which `e2e/exploratory-layer.e2e.ts` holds.
 
+**Added in Tahap 47–53**, and this table is now the record of them rather than
+a reconstruction:
+
+| Mechanism          | Where                                                            | Since            |
+| ------------------ | ---------------------------------------------------------------- | ---------------- |
+| `grid-pattern`     | `vault/blocks/hero`, `vault/blocks/passage`, `/work` masthead    | Tahap 47, 49, 51 |
+| `dot-pattern`      | `/studio` ground, `/practice/<v>` ground                         | Tahap 47, 50, 52 |
+| `noise-texture`    | `vault/blocks/hero` over the WebGL wash; site-wide under `Theme` | Tahap 47, 49, 53 |
+| `reading-progress` | `vault/motion/reading-progress` on the three long pages          | Tahap 52         |
+| The header's edge  | `components/layout/header`, one masked `backdrop-filter` layer   | Tahap 53         |
+
+The first three declare **no duration and no easing at all** — they are
+surfaces, and the reason they belong in this category is that they never move,
+not that their movement was reclassified. `vendor-rules.test.ts` holds that
+line for the whole of `vault/magic/`.
+
+`reading-progress` is the one with a scroll linkage, and it is here for the
+same test that excludes `project-spine`: no beginning, no band, no end. Under
+reduced motion it is removed rather than frozen.
+
+The header's edge moves nothing whatsoever; it is listed because it replaced a
+`border-bottom`, and a reader looking for where the hairline went should find
+the answer in the same place as everything else.
+
+**One grain, and it took three copies to notice.** The grain shipped in the
+home hero (Tahap 49) and on `/studio` (Tahap 50) before Tahap 53 put it under
+`Theme` for the whole site. The hero keeps its own — not a duplicate, because
+it sits over the WebGL wash, which is drawn above every negative `z-index` and
+is therefore the one surface the site-wide layer cannot reach. `/studio`'s copy
+was removed.
+
 **What §0.2 refused in the same stage.** Tahap 43 planned `type-pressure` —
 Syne's variable `wght` axis driven by `--scroll-velocity`. Measured on the
 real header: across the proposed 640-760 range the wordmark grew from 42.61px
@@ -441,7 +472,48 @@ and keep everything else quiet.
 
 **At most two choreographed-band movements per page, and every one is named.**
 
-### The ceiling is three on four routes — amended in Tahap 49, extended in 52
+### The ceiling is twelve on four routes — widened in Tahap 60
+
+> **Read this first; the section below it is the history that led here.**
+>
+> ARTH is an **agency**. The restraint this document spent forty stages
+> building was scaffolding for two capabilities — a design system on long
+> context and compact layout, and UI/UX precise enough to be re-themed — and
+> both now exist. What the site is _for_ changed: stunning animation is the
+> hook that brings a client in, not an indulgence to be rationed.
+>
+> So the count went from three to **twelve** on `/`, `/studio`, `/work` and
+> `/practice/<value>`; to **six** on `/journal` and `/work/<slug>`; and to
+> **three** on `/journal/<slug>`, which stays the tightest surface on the
+> site. Holding back in one place is what makes the spending elsewhere read
+> as a choice rather than a default.
+>
+> **The count is no longer the instrument.** §9.5 exists because a page where
+> everything is epic has nothing epic — and on a short page, capping the
+> number was a crude way to get there. On a page with a 110svh hero and a
+> 300vh pinned passage it is the wrong instrument entirely: such a page can
+> hold many moments **in sequence** without any two competing, and a count
+> cannot tell the difference. The real invariant now lives in
+> `e2e/epic-sequence.e2e.ts`:
+>
+> > Two moments with **different names**, neither **nested** inside the
+> > other, may not occupy the same scroll range.
+>
+> Stricter about quality, far looser about quantity. Two exemptions in it are
+> measured rather than assumed — a moment marked once per card is one moment
+> rendered many times, and a per-item moment inside a list-level one is
+> composition — and a moment's range is its **pin spacer** when GSAP made one,
+> because a pinned passage owns 3150px of scroll while its box reports 900.
+>
+> **What did not move:** every movement past the standard band must still sit
+> inside a _named_ `[data-epic]`. That assertion in
+> `e2e/interaction-grammar.e2e.ts` is untouched. Naming is the discipline;
+> the number is only a tripwire now. Nor did the height of anything become a
+> matter for this budget — **no gate limits the height of a hero or a
+> section**, and Tahap 60 verified that across all 39 e2e files before
+> writing a line.
+
+### History — the ceiling was three on four routes, amended in Tahap 49, extended in 52
 
 `/`, `/studio`, `/work` and `/practice/<value>` are allowed a **third**. Every
 other route keeps two.

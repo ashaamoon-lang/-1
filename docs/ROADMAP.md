@@ -1,12 +1,14 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 45**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 61**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
-> sampai Tahap 45 — empat puluh lima tahap setelah itu berhenti benar.
-> Dokumen yang berbohong tentang kodenya sendiri lebih buruk daripada tidak
-> ada dokumen, dan ini contohnya yang paling lama bertahan.
+> sampai Tahap 45 — empat puluh lima tahap setelah itu berhenti benar. Lalu ia
+> berhenti di "45" sampai Tahap 61, enam belas tahap terlalu lama. **Dokumen
+> yang berbohong tentang kodenya sendiri lebih buruk daripada tidak ada
+> dokumen**, dan baris ini sudah dua kali membuktikannya: perbarui angkanya di
+> tahap yang menambah entrinya, bukan nanti.
 >
 > Dokumen ini adalah kontrak kerja untuk membangun situsnya. Agen mana pun yang
 > membuka repo ini membacanya setelah `CLAUDE.md`. Ia menetapkan **apa** yang
@@ -2063,6 +2065,445 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 61 — CI yang bisa mati karena satu kedipan, dan dua klaim yang salah ✅
+
+> Spec: [`docs/stages/TAHAP-61.md`](./stages/TAHAP-61.md)
+
+Nol perubahan visual. Tahap kebersihan, dikerjakan lebih dulu karena tahap
+62–67 diverifikasi oleh CI, dan CI yang bisa mati karena jaringan tidak
+memverifikasi apa pun.
+
+**`search.json` membunuh build produksi dengan satu `ECONNRESET`.**
+`buildIndex()` punya jalur mundur untuk "Sanity tidak dikonfigurasi" dan tidak
+punya apa pun untuk "dikonfigurasi tapi tidak terjangkau"; `attemptNumber: 5`
+di log membuktikan retry klien sudah habis, jadi rerun bukan perbaikan.
+`resolveSearchIndex(locale, load)` menerima loader dan merunduk ke set mundur
+yang sama. Membuktikannya menemukan yang kedua: `generateStaticParams`
+`/work/[slug]` melempar **lebih dulu**, sebelum export dimulai — jadi
+`search.json` hanya yang pertama kebetulan apes. Ia dapat penjagaan yang sama,
+dan komentarnya sendiri sudah menuliskan alasannya: _prerendering is an
+optimisation here, not a gate on content existing_. **Halaman konten sengaja
+tidak** — halaman kosong yang terlihat selesai lebih buruk daripada build yang
+gagal.
+
+**"Tidak ada gerbang yang membatasi tinggi hero" (Tahap 60) salah.** Tiga
+gerbang membatasinya: `first-screen` menahan `/work` dan `/journal`,
+`project-detail` menahan `/work/<slug>` pada fold 800px, `navigation-landing`
+menuntut `h1` mendarat di layar pertama. Dua yang pertama gerbang **kebenaran**,
+jadi menurut `DIREKSI.md` §3.1 keduanya tetap. Ruang tinggi yang benar-benar
+tersisa ada di **tiga rute, bukan tujuh** — dan konsekuensi jujurnya: hero
+lebih tinggi dengan isi yang sama bukan lebih memukau, melainkan lebih kosong.
+Tinggi naik sebagai akibat di tahap yang memasukkan lapisannya.
+
+**Pengukuran performa pertama proyek ini.** `CLAUDE.md` #19 ditutup kalimat
+_"No browser profiling has been possible in this environment"_ yang saya ulangi
+tanpa mengecek. Chromium asli ada di sini. Rute tanpa WebGL menggulir di
+**16,7ms, nol frame lewat 32ms**; rute ber-WebGL empat kali lebih lambat — tapi
+renderernya **SwiftShader tanpa GPU**, jadi angka itu lantai, bukan ramalan.
+Yang sah dikutip dan dicatat sebagai garis dasar: **90 long task di `/en`,
+terpanjang 173ms** — main thread, bukan rasteriser.
+
+**Sepuluh PR Dependabot npm gagal karena satu hal yang sama**, dan tidak satu
+pun tentang dependensinya: `lockfile had changes, but lockfile is frozen`.
+Ekosistem `npm` dilepas dari `dependabot.yml` dengan alasannya ditulis di
+berkasnya; update dikerjakan manual. Yang ikut ketahuan: `next-sanity` 13.3.4
+memecahkan build lewat `@sanity/browserslist-config` yang tidak pernah ada di
+lockfile, dan menaikkan `@playwright/test` sendirian melawan
+`overrides.playwright-core` mematikan **656 tes dalam <10ms** dengan
+ketidakcocokan protokol.
+
+---
+
+## Tahap 60 — Arah baru: batasan tetap alat, plafon animasi dilebarkan ✅
+
+> Spec: [`docs/stages/TAHAP-60.md`](./stages/TAHAP-60.md) ·
+> Arah: [`docs/DIREKSI.md`](./DIREKSI.md)
+
+**ARTH adalah agency.** Pendekatan studio karya dan pendekatan batasan adalah
+perancah untuk dua kemampuan — sistem desain di atas long context dan compact
+layout, dan UI/UX presisi yang bisa ditema-kan — dan keduanya sekarang ada.
+Animasi memukau adalah kail yang membawa klien masuk, bukan kemewahan yang
+dijatah. Nol perubahan visual di tahap ini: aturannya ditetapkan lebih dulu.
+
+Dua hal diukur sebelum satu baris diubah. **~~Tidak ada gerbang yang membatasi
+tinggi~~ — klaim ini salah, dikoreksi Tahap 61.** Penyisiran 39 berkas e2e
+melewatkan tiga gerbang yang membatasinya tanpa memakai kata "tinggi"; lihat
+entri Tahap 61 di atas. Yang benar dan bertahan: **mesin animasinya kurang
+dibelanjakan** — `magnetic`, `pixel-image`, `curtain` masing-masing 1 konsumen;
+`counter` dan `flip` masing-masing 2.
+
+Plafon momen 3 → **12** di empat rute merek, 6 di `/journal` dan
+`/work/<slug>`, **3** di `/journal/<slug>`. Tapi angkanya bukan lagi
+instrumennya: plafon lama tidak pernah menjaga _jumlah_, ia menjaga "satu hal
+memukau pada satu waktu" — dan pada halaman 110svh dengan passage 300vh itu
+instrumen yang salah. Invariannya pindah ke `e2e/epic-sequence.e2e.ts`: **dua
+momen bernama beda, tidak bersarang, tidak boleh berbagi rentang gulir.**
+
+Dua pengecualiannya diukur, bukan diasumsikan — aturan naif merah di lima dari
+tujuh rute dan semuanya sah: nama sama (`work-transport` ditandai sekali per
+kartu) dan bersarang (`work-transport` di dalam `catalogue-sift`). Dan rentang
+sebuah momen adalah **pin-spacer**-nya: `arth-passage` kotaknya 900px, tapi
+spacer-nya `1109..4259` — **3150px** yang benar-benar ia miliki.
+
+Dibuktikan merah dulu: satu kartu diberi nama beda sementara →
+`"work-transport-pelabuhan" (1008..1824) dan "work-transport-lantai-dua"
+(1051..1867) berbagi 773px`.
+
+**Plafon KB sengaja tidak dinaikkan** — menyimpang dari rencana, dengan alasan
+lebih kuat: tahap ini nol perubahan visual, jadi menaikkan plafon sebelum
+bobotnya datang membuat gerbangnya berhenti bekerja selama rentang itu.
+
+---
+
+## Tahap 59 — Mesh-nya melukis dengan benar; kotaknya sendiri yang menutupinya ✅
+
+> Spec: [`docs/stages/TAHAP-59.md`](./stages/TAHAP-59.md)
+
+Tahap 58 memasang **mundur**: material di hero halaman proyek dimatikan karena
+sebab kotak kosongnya tidak ketemu setelah lima build terinstrumentasi dan
+empat hipotesis yang semuanya gugur. Sebabnya ketemu, dan ia tidak pernah ada
+di mesh — probe Tahap 58 sudah melaporkan mesh yang benar seluruhnya.
+
+Kanvas duduk sebagai **satu lapisan `fixed` di belakang `<main>`**, jadi plate
+hanya terlihat kalau tidak ada yang opak di atas kotaknya. `.media` milik
+`project-hero` mengecat `var(--surface-2)`, yang di tema gelap menghitung ke
+`oklab(0.23352 …)` — **yaitu `#201d1b` yang Tahap 58 ukur dan sebut "warna
+kotak penampung" tanpa mengenalinya sebagai keluaran aturannya sendiri**.
+`project-card` sudah mencopot placeholder itu selama material menggambar sejak
+Tahap 14; Tahap 45 menyalin opt-in-nya dan tidak menyalin penjaganya. Audit
+konsumen `MaterialImage`: dua, satu berpenjaga.
+
+Mundurnya dibatalkan seluruhnya dan utang gerbang Tahap 58 §5 dibayar.
+`e2e/material-occlusion.e2e.ts` **tidak memotret apa pun** — berkas
+`material-layer` sudah mencatat bahwa gerbang piksel ditolak karena rewel di
+perender headless — melainkan berjalan dari `[data-material-shell]` naik
+sampai `<main>` menuntut tiap `background-color` tembus pandang, dan
+menaikkan `data-material` sendiri supaya hasilnya identik dengan atau tanpa
+GPU. Dibuktikan merah lebih dulu, menyebut elemen dan warnanya.
+
+Plate hero, sembilan sampel: `#201d1b` di setiap titik → `#987f5e #915836
+#7b4528 #6f4229 …`, karya yang sama yang `/en/work` render di `#965d39
+#7f492a`. Satu assertion yang Tahap 58 catat berhenti berjalan, menyala lagi
+di kedua viewport.
+
+check 421 lulus / 0 gagal · sepuluh berkas e2e, dua viewport: **143 lulus, 0
+gagal**, 14 dilewati · build-storybook sukses.
+
+---
+
+## Tahap 58 — Halaman yang paling menjual satu karya tidak menampilkan karyanya ✅
+
+> Spec: [`docs/stages/TAHAP-58.md`](./stages/TAHAP-58.md)
+
+Ditemukan dengan **melihat**, bukan oleh gerbang: build produksi, `/en/work/
+<slug>`, kotak besar tempat sampul karya seharusnya — kosong. Lima puluh
+delapan tahap dan CI hijau.
+
+Diukur: hero `#201d1b`, karya yang sama di `/en/work` `#8d4725`, hero yang
+sama di bawah `prefers-reduced-motion` `#bb9973` (benar). Empat hipotesis
+dibangun dan digugurkan dengan build sungguhan; probe di dalam `useFrame`
+melaporkan mesh yang benar seluruhnya. Sebabnya **tidak ketemu**, dan ditulis
+begitu alih-alih dikarang.
+
+Yang dikirim adalah mundur — material dimatikan di rute itu — beserta catatan
+bahwa `visual-substance › renders its work` hijau selama cacat ini hidup
+karena ia bertanya "apakah halaman merender karya" dan halaman itu merender
+plate **galerinya**. Gerbangnya sengaja **tidak** dibuat: menulisnya hari itu
+berarti gerbang yang lulus karena materialnya dimatikan. Utang itu dibayar di
+Tahap 59, yang juga menemukan sebabnya.
+
+CI run 23 (`f41e07b`): kedua job **success**.
+
+---
+
+## Tahap 57 — Satu kolom katalog di bawah lantai rentangnya sendiri ✅
+
+> Spec: [`docs/stages/TAHAP-57.md`](./stages/TAHAP-57.md)
+
+Tahap 56 §7 mengoreksi dirinya sendiri lebih dulu: angka "30,31px" yang ia
+tulis diukur pada **satu** plate, dan plate itu yang paling diam di halaman.
+Diukur pada keenamnya, katalog punya dua kolom yang **sengaja** berbeda
+(`COLUMN_DRIFT = [4, 9]`, `work-constellation` Tahap 43) — kolom B menempuh
+74–86px, kolom A hanya 30–37px.
+
+Yang tersisa sesudah koreksi itu satu temuan sempit: `vault/motion/parallax`
+mengutip preset `ui-ux-pro-max` "Parallax Scroll (Subtle)" dengan rentang
+**5–15** di header-nya sendiri, dan **kolom A duduk di 4** — di bawah lantai
+rentangnya sendiri.
+
+**Keduanya naik tiga**, jadi `[7, 12]`. Selisihnya tetap 5, yang memang bagian
+yang tidak boleh bergerak: `work-constellation` ada karena kedua kolom pernah
+melaporkan offset identik sampai tiga belas angka di belakang koma.
+
+```
+plate  kolom   sebelum          sesudah
+0      A       30,3px  3,3%  →  54,7px   5,8%
+2      A       36,6px  4,0%  →  65,9px   7,0%
+4      A       36,3px  4,0%  →  65,2px   6,9%
+1      B       74,1px  7,7%  →  101,9px 10,4%
+3      B       86,3px  9,0%  →  118,2px 12,0%
+5      B       81,1px  8,5%  →  111,0px 11,3%
+```
+
+Ukuran lapisannya tidak perlu disunting sama sekali di kartu — Tahap 43 sudah
+menurunkannya dari `--card-drift`, satu angka yang di-set dari nilai yang sama
+yang diberikan ke hook.
+
+**Galeri berhenti mengulang cacat yang sudah pernah diperbaiki.**
+`project-gallery` memanggil `useParallax(ref)` tanpa argumen (jadi 6) sementara
+stylesheet-nya menulis `-4%` / `108%` sebagai angka mati — dua angka yang harus
+sepakat tanpa cara untuk sepakat, bentuk kegagalan yang sama persis yang
+`e2e/continuous-motion.e2e.ts` tangkap di kartu sebagai **2 plate terekspos di
+tiga dari empat posisi gulir**. Sekarang ia punya `PLATE_DRIFT = 10` yang
+dibaca hook dan stylesheet. Diukur: kedua plate menempuh persis **10,0%**.
+
+**Gerbang**: `bun run check` 421 lulus / 0 gagal. Delapan berkas yang paling
+mungkin terganggu — `continuous-motion`, `exploratory-layer`, `motion`,
+`journey`, `project-detail`, `lightbox`, `material-layer`,
+`palette-integrity`, dua viewport — **104 lulus, 0 gagal**.
+
+---
+
+## Tahap 56 — Lima layar yang tidak melakukan apa-apa di antara dua kedatangan ✅
+
+> Spec: [`docs/stages/TAHAP-56.md`](./stages/TAHAP-56.md)
+
+Cacat ketiga: _"animasinya tidak sebanyak dan seluas yang saya harapkan…
+buat ANIMASI scroll yang nyaman menggunakan **Magic UI**"_ pada folder
+routing yang berat dan besar.
+
+**Sensus sesudah Tahap 54**, dua belas langkah gulir per rute:
+
+```
+/en                    4/12 langkah punya kedatangan
+/en/studio             5/12
+/en/practice/<v>       4/12
+/en/work               2/12   <- lima layar
+/en/work/<slug>        2/12   <- 4,7 layar
+/en/journal            2/12
+```
+
+Dua rute yang disebut "berat dan besar" punya kedatangan di **dua dari dua
+belas** langkah. Tapi menambah pemicu bukan jawabannya: `/en/work` hanya
+punya delapan benda — masthead, filter, enam sampul. Yang kurang adalah
+**perilaku selama benda itu melintas**, bukan satu kejadian saat ia masuk.
+
+**Magic UI `pixel-image` dibaca dari sumbernya** (`magicui.design/r/…json`,
+HTTP 200). Gagasannya berharga: kisi ubin yang `clip-path`-nya **statis**,
+jadi hanya `opacity` yang bergerak — mosaik tanpa melanggar #4. Bentuknya
+tidak ikut: upstream menumpuk satu salinan `<img>` per ubin, masing-masing
+ber-`alt="Pixel image piece N"` — 24 gambar bernama untuk satu foto.
+
+`vault/magic/pixel-image` **membalik lapisannya**: gambar aslinya dirender
+sekali dengan `alt`-nya sendiri, dan yang dirender komponen ini adalah
+kerudung ubin berwarna latar di atasnya. Kedatangannya adalah ubin-ubin itu
+pergi. Satu gambar, satu alt, nol duplikasi. Tujuh hal lain diubah, dan
+`Math.random()` yang paling menentukan: komponen ini dirender di server, jadi
+delay acak berarti hidrasi pecah. Diganti hash indeks yang deterministik.
+
+**Dipasang di galeri, bukan di hero**, dan alasannya ditulis: plate hero
+adalah ujung pendaratan morph `work-transport`; tertutup ubin saat
+`<ViewTransition>` memotret, morph-nya mendarat di sepetak warna latar.
+Galeri tidak punya view transition, dan justru di sana gulir matinya.
+Galerinya juga mendapat `perItem` — satu `useReveal` pada `<ul>` berarti
+seluruh galeri sudah tiba sebelum pembaca sampai ke gambar kedua.
+
+**Hasilnya jujur sedikit**: `/en/work/<slug>` naik dari 2/12 ke **3/12**.
+Penyebabnya isinya, bukan mekanismenya — proyek fixture `arus-balik` hanya
+punya **dua** plate galeri (diukur: 48 ubin = 2 × 24). Yang berubah banyak
+adalah kualitas kedatangannya, dan itu diverifikasi dengan mata: mid-dissolve
+kisi 6×4 terbaca jelas dengan gambar menembus di antaranya, dan sesudahnya
+nol jahitan sisa. Halaman proyek dengan enam plate akan memberi enam
+kedatangan dari mekanisme yang sama, tanpa satu baris kode tambahan.
+
+---
+
+## Tahap 55 — Grain yang ternyata sebuah kerudung ✅
+
+> Spec: [`docs/stages/TAHAP-55.md`](./stages/TAHAP-55.md)
+
+Cacat kedua yang disebut pemilik repo: _"Kamu punya 2 mode warna, dan salah
+satu mode warna malah menyatu dengan latar belakang."_ Tahap 54 membuka dengan
+kalimat "dua yang pertama sudah diperbaiki dan diukur". Kalimat itu terlalu
+cepat: Tahap 53 memperbaiki **besarnya**, bukan **mekanismenya**.
+
+**Diukur lebih dulu**, build produksi, satu petak 180×150 latar kosong,
+difoto dua kali — apa adanya, lalu dengan lapisan grain dimatikan. Selisihnya
+adalah sumbangan grain, bukan taksirannya:
+
+```
+light  /en/journal   paper #f4f3ef (244) dicat 232,7    −11,1   sd grain 3,63
+dark   /en/studio    ink   #110f0d  (17) dicat  21,6    + 4,5   sd grain 1,81
+dark   /en/work/<s>  ink   #110f0d  (17) dicat  21,5    + 4,5   sd grain 1,58
+```
+
+**Lapisan itu memberi 2,5–3× lebih banyak kerudung daripada tekstur.**
+Sebabnya bisa diturunkan, bukan ditebak: `feTurbulence` berpusat di 0,5,
+slope 0,15 menurunkan warnanya ke rata-rata 0,075, alpha dibiarkan sebagai
+noise, dan karena `color-interpolation-filters` **default-nya `linearRGB`**,
+0,075 linear itu sampai ke layar sebagai sRGB ≈ 0,30 — yaitu **#4d4d4d**.
+Satu kerudung abu-abu yang menarik _kedua_ mode warna ke satu titik yang sama.
+
+**Perbaikannya pada mekanisme**: `color-interpolation-filters="sRGB"`
+dinyatakan, `<rect>` diisi `var(--color-primary)`, `feFuncA` memaksa alpha ke
+1, dan `feComposite operator="arithmetic"` menambahkan grain lalu mengurangi
+rata-ratanya kembali (`k4 = -slope/2`). Rata-rata lapisan = warna latar
+**secara konstruksi, pada opacity berapa pun** — jadi `opacity` akhirnya hanya
+menyetel kekuatan tekstur, dan ditala ulang (0,45 gelap / 0,70 terang) sampai
+sd grain menyamai yang situs ini kirim sebelumnya.
+
+```
+                    geseran mean          sd grain
+              sebelum → sesudah     sebelum → sesudah
+light            −11,1 → −0,2          3,63 → 3,57
+dark  studio      +4,5 → −1,0          1,81 → 1,86
+dark  work/<s>    +4,5 → −1,0          1,58 → 1,62
+```
+
+**Gerbang baru** `e2e/palette-integrity.e2e.ts`, dibuktikan merah lebih dulu
+pada build pra-perbaikan — **lima dari lima**: 11,57 · 11,61 · 4,38 · 4,81 ·
+4,34, semuanya terhadap ambang < 2. Separuh keduanya ("grainnya masih ada",
+sd > 1) hijau di kedua build, yang memang seharusnya: kerudung itu memang
+membawa grain di dalamnya, dan gerbang yang hanya mengukur satu sifat akan
+lolos dengan menghapus lapisannya.
+
+**Dua hal lain yang ikut selesai di tahap ini**, keduanya konsekuensi CI yang
+akhirnya punya konten:
+
+- **CI diberi konten.** Job `e2e` pertama yang benar-benar selesai melaporkan
+  424 lulus / ~60 gagal, dan **seluruh** kegagalan bergantung pada konten —
+  runner tidak punya konfigurasi Sanity, jadi `/en/work` memanggil
+  `notFound()`. Tiga nilai `NEXT_PUBLIC_*` ditambahkan (sudah publik: ada di
+  bundle klien setiap halaman; dataset-nya terbaca tanpa token, HTTP 200 dan
+  `count(*[_type=="project"])` = 6). Token tulis **tidak** diberikan dan tidak
+  boleh. Hasil run berikutnya: **595 lulus, 3 gagal**.
+- **`networkidle` yang berhenti masuk akal.** Ketiga sisa kegagalan itu adalah
+  timeout `page.goto` — `responsive.e2e.ts` menavigasi tujuh lebar dan
+  `material-layer.e2e.ts` delapan kali, dan keduanya menunggu jaringan sunyi
+  di halaman yang kini benar-benar memuat gambar. `responsive` menunggu
+  `document.fonts.ready` (yang memang satu-satunya syarat pengukurannya) alih-
+  alih jaringan; keduanya diberi `test.slow()` dengan alasan tertulis.
+
+---
+
+## Tahap 54 — Halaman terpanjang situs ini tidak menganimasikan apa pun setelah dimuat ✅
+
+> Spec: [`docs/stages/TAHAP-54.md`](./stages/TAHAP-54.md)
+
+Pemilik repo menjalankan situsnya, melihatnya, dan menyebut tiga hal. Dua
+diperbaiki lebih dulu — navbar yang mengirim tujuh tautan dengan dua pasang
+nama kembar, dan hero beranda yang merender wash **luminansi 194** di bawah
+teks berwarna kertas. Yang ketiga, "animasinya tidak sebanyak dan seluas yang
+saya harapkan", ternyata yang paling terukur.
+
+**Sensus: sepuluh langkah gulir per halaman, hitung item reveal yang baru
+terlihat di tiap langkah.**
+
+```
+/en/work      8 item — DELAPAN-DELAPANNYA terlihat SAAT DIMUAT
+              sepuluh langkah menuruni lima layar:  NOL kejadian
+/en/journal   4 item — keempatnya terlihat saat dimuat
+              sepuluh langkah menuruni 3,4 layar:   NOL kejadian
+/en           18 item, 3 saat dimuat, 5 langkah menghasilkan kedatangan
+```
+
+Bukan "kurang efek" — **kurang kejadian**. `vault/blocks/project-grid`
+memasang satu `useReveal` pada `<ul>`-nya, jadi enam sampul katalog adalah
+satu kedatangan, yang menyala di layar pertama dari lima.
+
+`useReveal` mendapat mode `perItem`: tiap item diamati sendiri, kontainernya
+tetap `hidden` supaya aturan dasar terus menyembunyikan yang belum tiba, dan
+`--reveal-index` menjadi indeks **di dalam barisnya** — sebaris tiga tetap
+berundak, baris berikutnya berundak lagi. **Nol mekanisme baru**: CSS, token
+stagger dan jaminan reduced-motion-nya sudah ada dan sudah digerbangi; yang
+berubah kapan mereka menyala.
+
+```
+sesudah   /en/work      4 saat dimuat, lalu +2, +2
+          /en/journal   2 saat dimuat, lalu +1, +1
+```
+
+Beranda sengaja tetap mode kontainer: seleksinya satu komposisi di dalam
+halaman sebelas layar yang sudah punya tujuh blok lain.
+
+Dua lubang ikut ditutup — `MutationObserver` untuk kartu yang muncul setelah
+filter praktik (tanpanya mereka duduk di `opacity: 0` selamanya, `CLAUDE.md`
+#5), dan satu gerbang yang premisnya usang.
+
+Dan satu gerbang **tidak** dibangun, dengan alasan tertulis: "halaman lima
+layar tidak boleh punya kurang dari N kejadian" tidak punya dasar terukur, dan
+suite ini sudah punya sejarah ambang yang dikarang.
+
+unit 421 lulus · gerbang terkait 85 lulus · `bun run check` dan build hijau.
+
+---
+
+## Tahap 53 — Lapisan ambien, story yang benar-benar kurang, dan dokumen yang menyusul kodenya ✅
+
+> Spec: [`docs/stages/TAHAP-53.md`](./stages/TAHAP-53.md)
+
+Tahap terakhir rencana ini. **Satu butirnya sudah selesai sebelum tahap ini
+dimulai**, satu ditolak setelah dua kali ditunda, dan yang paling banyak isinya
+tidak ada di rencana sama sekali.
+
+| #   | Premis rencana                                   | Terukur                                                                                |
+| --- | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| 1   | Story untuk 10 `vault/magic` + curtain + passage | ✅ **sudah ada** — dan bukan sepuluh, **tiga** yang dipasang; Tahap 47 menolak sisanya |
+| 2   | `progressive-blur` site-wide                     | ❌ delapan lapis `backdrop-filter` untuk satu tepi, biaya tak terprofil                |
+| 3   | `noise-texture` site-wide                        | ⚠️ benar — tapi sudah ada **dua** salinannya, jadi ini memindahkan bukan menambah      |
+| 4   | Dokumen diselaraskan                             | ✅ dan lebih jauh: §0.1 terakhir diperbarui **Tahap 43**                               |
+
+**Satu grain, dan butuh tiga calon salinan untuk menyadarinya.** `NoiseTexture`
+pindah ke elemen ground milik `Theme`, sebagai anak pertama supaya wash hero
+tetap melukis di atasnya. Salinan `/studio` dicabut. Salinan hero **tetap**,
+dan itu bukan duplikat: ia duduk di atas wash WebGL, yang digambar di atas
+setiap `z-index` negatif dan karenanya satu-satunya permukaan yang lapisan
+site-wide ini tidak bisa jangkau.
+
+**Tepi header memudar, dengan satu lapisan bukan sembilan.** `border-bottom:
+1px solid var(--line)` adalah sebuah _potongan_, dan header ini menggantung di
+atas karya. Magic UI mendapat efek yang sama dengan menumpuk delapan
+`backdrop-filter`; header ini sudah punya satu, jadi yang kurang bukan blur-nya
+melainkan tepinya — satu `mask-image` pada lapisan yang sudah ada, dipindah ke
+`::before` karena mask ikut kena ke isi elemen. Tekniknya diambil, kodenya
+tidak; `PROVENANCE.md` mencatat bedanya, dan `progressive-blur` **ditolak**
+alih-alih ditunda ketiga kalinya.
+
+**Empat story yang memang kurang.** Audit `vault/`: 23 dari 31 komponen
+bercerita, dan **nol** yang tidak ada di `vault/primitives/` — aturan
+`CLAUDE.md` sudah dipenuhi. Empat dari delapan sisanya praktis:
+`practice-hero`, `practice-list`, `project-spine`, `reveal`. Empat lagi
+(`flip`, `parallax`, `material-image`, `scene-shell`) adalah hook dan shell
+WebGL yang story-nya akan menampilkan kotak kosong; alasannya ditulis.
+
+**Dokumen menyusul kodenya.** `MOTION-SPEC.md` §0.1 — daftar mekanisme
+kategori ketiga — terakhir diperbarui **Tahap 43**, sepuluh tahap di belakang;
+sekarang memuat kelimanya. `DESIGN-SYSTEM.md` mendapat tabel tinggi hero per
+rute **beserta aturan** yang Tahap 51 dan 52 temukan dengan mahal: tinggi
+adalah bagian _layar_, padding atas halaman ada di dalam bagian itu, dan di
+rute yang subjeknya daftar, tingginya dipilih supaya item pertama melewati
+garis reveal saat halaman dimuat.
+
+**Satu pengukuran gagal, dan ditulis apa adanya.** Butir 53e meminta anggaran
+rute dibaca ulang dengan angka baru. Gerbangnya lulus, jadi tiap rute di bawah
+plafonnya — tapi skrip yang meniru cara gerbang itu mengukur memberi angka yang
+bergerak sampai **delapan kali lipat antara dua jalannya** (`/id` 270 → 1091KB,
+`/en/journal` 141 → 17KB). Menerbitkan salah satunya sebagai "anggaran hari
+ini" adalah menerbitkan derau. Tabelnya tetap milik gerbang itu.
+
+unit 421 lulus · e2e **603 lulus, 0 gagal**, 1 flaky, 14 dilewati (18,6m) ·
+Storybook lulus.
+
+**Dan tahap ini mengirim satu cacat, yang gerbangnya sendiri tangkap.** Grain
+site-wide pada `opacity: 0.75` — bawaan komponennya, ditala untuk dua permukaan
+lokal — mengangkat ground polos **di atas** wash hero-nya, sehingga
+`visual-substance › a declared accent carries tone, and never subtracts it`
+melaporkan aksen sebagai _mengurangi_ cahaya di tiga viewport. Itu persis cacat
+yang gerbang itu ditulis untuk menangkap di Tahap 17. Disapu empat nilai,
+dikirim 0.18 dengan margin 3,5–4,7.
 
 ---
 

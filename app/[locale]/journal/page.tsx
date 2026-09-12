@@ -139,6 +139,20 @@ export async function generateMetadata() {
  */
 async function coversByPractice(locale: string) {
   'use cache'
+  /*
+   * The same guard `entriesForRequest` above already has, and for the same
+   * reason: this page renders completely without Sanity — the entries fall
+   * back and the covers are simply absent. Without it, `projects.data` is
+   * null and the loop below throws during prerender.
+   *
+   * Found in Tahap 53 by the first CI run this repository has ever had. It
+   * failed on `/en/studio`, which has the identical defect and comes first in
+   * build order; this one was never reached because the build exits on the
+   * first error. Fixing only the route in the log would have shipped this one
+   * to the next run.
+   */
+  if (!isConfigured('sanity')) return new Map<string, never[]>()
+
   const projects = await sanityFetch({
     query: projectsQuery,
     // `$locale` picks the reader's language out of each internationalized
@@ -150,7 +164,9 @@ async function coversByPractice(locale: string) {
   })
 
   const byPractice = new Map<string, typeof projects.data>()
-  for (const project of projects.data) {
+  // `?? []` as well as the guard: `data` is nullable even when Sanity *is*
+  // configured, because a query that fails returns null.
+  for (const project of projects.data ?? []) {
     if (!project.practice) continue
     byPractice.set(project.practice, [
       ...(byPractice.get(project.practice) ?? []),
@@ -306,11 +322,15 @@ export default async function JournalPage() {
           </Reveal>
         ) : (
           /*
+            `perItem` — row by row, Tahap 54. Measured before it: all four
+            reveal items on this 3.4-screen page were visible **at load**, and
+            ten scroll steps produced **zero** further events.
+
             The rows move to a client island so the page keeps its server work
             — CMS resolution, locale date formatting, translations — while the
             three rows can answer the scroll position. See `index-rows.tsx`.
           */
-          <Reveal as="section" data-epic="journal-index">
+          <Reveal as="section" data-epic="journal-index" perItem>
             <JournalIndexRows rows={rows} />
           </Reveal>
         )}
