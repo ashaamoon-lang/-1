@@ -208,13 +208,14 @@ Keputusan user: tidak mengurus PAT; dependensi di-update manual.
 `bun update` menaikkan 20 paket di dalam rentangnya, ditambah empat pin yang
 dinaikkan sengaja:
 
-| paket                                               | dari → ke           | catatan                                                                                  |
-| --------------------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------- |
-| `next`, `@next/bundle-analyzer`, `@next/playwright` | 16.3.3 → **16.3.4** | patch, ketiganya bergerak bersama (PR #8/#5/#4)                                          |
-| `oxlint` + `@oxlint/plugins`                        | 1.80 → **1.82**     | harus sepadan (PR #14)                                                                   |
-| `storybook` + `@storybook/*` + `addon-mcp`          | → **10.6.0**        | `addon-mcp` 0.7 → 10.6 adalah penyelarasan versi monorepo, bukan lompatan fitur (PR #10) |
-| `sanity`, `@sanity/vision`                          | 6.11 → **6.13.2**   | dalam rentang                                                                            |
-| `@sanity/client`                                    | 7.26.2 → **7.27.0** | dalam rentang; **bukan** v8 (PR #13 tetap ditolak)                                       |
+| paket                                               | dari → ke           | catatan                                                                                                          |
+| --------------------------------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `next`, `@next/bundle-analyzer`, `@next/playwright` | 16.3.3 → **16.3.4** | patch, ketiganya bergerak bersama (PR #8/#5/#4)                                                                  |
+| `oxlint` + `@oxlint/plugins`                        | 1.80 → **1.82**     | harus sepadan (PR #14)                                                                                           |
+| `storybook` + `@storybook/*` + `addon-mcp`          | → **10.6.0**        | `addon-mcp` 0.7 → 10.6 adalah penyelarasan versi monorepo, bukan lompatan fitur (PR #10)                         |
+| `sanity`, `@sanity/vision`                          | 6.11 → **6.13.2**   | dalam rentang                                                                                                    |
+| `oxfmt`                                             | 0.65 → **0.67**     | di luar rentang `^0.65.0`, jadi diuji sendiri: `oxfmt --check` pada 572 berkas **nol perubahan format** (PR #15) |
+| `@sanity/client`                                    | 7.26.2 → **7.27.0** | dalam rentang; **bukan** v8 (PR #13 tetap ditolak)                                                               |
 
 Dua hal yang ikut ketahuan dan harus diperbaiki di tahap ini juga:
 
