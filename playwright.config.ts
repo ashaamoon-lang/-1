@@ -55,6 +55,12 @@ export default defineConfig({
         // an occluder that only exists on a phone, which is precisely the
         // shape of the defect this gate was written for (Tahap 59).
         '**/material-occlusion.e2e.ts',
+        // Scroll-range overlap is a layout question before it is a motion
+        // one: cards that sit side by side at desktop stack at 390px, and a
+        // pinned sequence reserves a different amount of scroll at each
+        // width. So "two moments never share the same scroll" has to hold at
+        // both widths, not the one it was written at (Tahap 60).
+        '**/epic-sequence.e2e.ts',
         // Where a navigation lands is a viewport question: a destination
         // shorter than the offset the reader carried over clamps to its own
         // maximum, so the same link strands the heading by a different

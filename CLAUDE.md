@@ -7,13 +7,18 @@ React 19 / Next.js 16 / Tailwind v4 specifics, lint and type rules,
 integrations, commands. That file is the single source of truth for _how to
 write code here_ and this file does not restate it.
 
-This file adds the rules specific to **this project**: a commissioned-artwork
-studio site that must read as expensive from the first frame.
+This file adds the rules specific to **this project**: **an agency site** whose
+stunning animation is what brings a client in, built on a design system tuned
+for long context and compact layout. It began as a commissioned-artwork studio
+site under tight budgets — that was scaffolding for two capabilities, not the
+destination. `docs/DIREKSI.md` records what changed and which limits still
+apply.
 
 Supporting documents, in the order they usually matter:
 
 | Document                                           | Covers                                                                                     |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`docs/DIREKSI.md`](./docs/DIREKSI.md)             | **What we are building and why, and which limits apply.** Read before any motion work.     |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | **What we build, and in what order.** Each stage must be deepened into its own spec first. |
 | [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)       | Shipping it. Env vars, hosts, and the security checklist.                                  |
 | [`docs/MOTION-SPEC.md`](./docs/MOTION-SPEC.md)     | Every animation. Binding.                                                                  |

@@ -2066,6 +2066,46 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 60 — Arah baru: batasan tetap alat, plafon animasi dilebarkan ✅
+
+> Spec: [`docs/stages/TAHAP-60.md`](./stages/TAHAP-60.md) ·
+> Arah: [`docs/DIREKSI.md`](./DIREKSI.md)
+
+**ARTH adalah agency.** Pendekatan studio karya dan pendekatan batasan adalah
+perancah untuk dua kemampuan — sistem desain di atas long context dan compact
+layout, dan UI/UX presisi yang bisa ditema-kan — dan keduanya sekarang ada.
+Animasi memukau adalah kail yang membawa klien masuk, bukan kemewahan yang
+dijatah. Nol perubahan visual di tahap ini: aturannya ditetapkan lebih dulu.
+
+Dua hal diukur sebelum satu baris diubah. **Tidak ada gerbang yang membatasi
+tinggi** — 39 berkas e2e disisir, hanya `media-edge` yang muncul dan itu soal
+satu elemen media. Dan **mesin animasinya kurang dibelanjakan**: `magnetic`,
+`pixel-image`, `curtain` masing-masing 1 konsumen; `counter` dan `flip`
+masing-masing 2.
+
+Plafon momen 3 → **12** di empat rute merek, 6 di `/journal` dan
+`/work/<slug>`, **3** di `/journal/<slug>`. Tapi angkanya bukan lagi
+instrumennya: plafon lama tidak pernah menjaga _jumlah_, ia menjaga "satu hal
+memukau pada satu waktu" — dan pada halaman 110svh dengan passage 300vh itu
+instrumen yang salah. Invariannya pindah ke `e2e/epic-sequence.e2e.ts`: **dua
+momen bernama beda, tidak bersarang, tidak boleh berbagi rentang gulir.**
+
+Dua pengecualiannya diukur, bukan diasumsikan — aturan naif merah di lima dari
+tujuh rute dan semuanya sah: nama sama (`work-transport` ditandai sekali per
+kartu) dan bersarang (`work-transport` di dalam `catalogue-sift`). Dan rentang
+sebuah momen adalah **pin-spacer**-nya: `arth-passage` kotaknya 900px, tapi
+spacer-nya `1109..4259` — **3150px** yang benar-benar ia miliki.
+
+Dibuktikan merah dulu: satu kartu diberi nama beda sementara →
+`"work-transport-pelabuhan" (1008..1824) dan "work-transport-lantai-dua"
+(1051..1867) berbagi 773px`.
+
+**Plafon KB sengaja tidak dinaikkan** — menyimpang dari rencana, dengan alasan
+lebih kuat: tahap ini nol perubahan visual, jadi menaikkan plafon sebelum
+bobotnya datang membuat gerbangnya berhenti bekerja selama rentang itu.
+
+---
+
 ## Tahap 59 — Mesh-nya melukis dengan benar; kotaknya sendiri yang menutupinya ✅
 
 > Spec: [`docs/stages/TAHAP-59.md`](./stages/TAHAP-59.md)

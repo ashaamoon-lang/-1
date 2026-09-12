@@ -472,7 +472,48 @@ and keep everything else quiet.
 
 **At most two choreographed-band movements per page, and every one is named.**
 
-### The ceiling is three on four routes — amended in Tahap 49, extended in 52
+### The ceiling is twelve on four routes — widened in Tahap 60
+
+> **Read this first; the section below it is the history that led here.**
+>
+> ARTH is an **agency**. The restraint this document spent forty stages
+> building was scaffolding for two capabilities — a design system on long
+> context and compact layout, and UI/UX precise enough to be re-themed — and
+> both now exist. What the site is _for_ changed: stunning animation is the
+> hook that brings a client in, not an indulgence to be rationed.
+>
+> So the count went from three to **twelve** on `/`, `/studio`, `/work` and
+> `/practice/<value>`; to **six** on `/journal` and `/work/<slug>`; and to
+> **three** on `/journal/<slug>`, which stays the tightest surface on the
+> site. Holding back in one place is what makes the spending elsewhere read
+> as a choice rather than a default.
+>
+> **The count is no longer the instrument.** §9.5 exists because a page where
+> everything is epic has nothing epic — and on a short page, capping the
+> number was a crude way to get there. On a page with a 110svh hero and a
+> 300vh pinned passage it is the wrong instrument entirely: such a page can
+> hold many moments **in sequence** without any two competing, and a count
+> cannot tell the difference. The real invariant now lives in
+> `e2e/epic-sequence.e2e.ts`:
+>
+> > Two moments with **different names**, neither **nested** inside the
+> > other, may not occupy the same scroll range.
+>
+> Stricter about quality, far looser about quantity. Two exemptions in it are
+> measured rather than assumed — a moment marked once per card is one moment
+> rendered many times, and a per-item moment inside a list-level one is
+> composition — and a moment's range is its **pin spacer** when GSAP made one,
+> because a pinned passage owns 3150px of scroll while its box reports 900.
+>
+> **What did not move:** every movement past the standard band must still sit
+> inside a _named_ `[data-epic]`. That assertion in
+> `e2e/interaction-grammar.e2e.ts` is untouched. Naming is the discipline;
+> the number is only a tripwire now. Nor did the height of anything become a
+> matter for this budget — **no gate limits the height of a hero or a
+> section**, and Tahap 60 verified that across all 39 e2e files before
+> writing a line.
+
+### History — the ceiling was three on four routes, amended in Tahap 49, extended in 52
 
 `/`, `/studio`, `/work` and `/practice/<value>` are allowed a **third**. Every
 other route keeps two.
