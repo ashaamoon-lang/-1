@@ -195,7 +195,39 @@ export const instant = false
 export async function generateStaticParams() {
   if (!isConfigured('sanity')) return [{ slug: EMPTY_DATASET_SENTINEL }]
 
-  const data = await fetchProjectSlugs()
+  /*
+   * An unreachable CMS prerenders nothing; it does not fail the build.
+   *
+   * This function's own note above states the principle: `dynamicParams`
+   * defaults to true, so "prerendering is an optimisation here, not a gate on
+   * content existing". A network error therefore has exactly one honest
+   * meaning — *this build could not learn the list* — and the answer to that
+   * is the same sentinel an empty dataset already gets. Every project page
+   * still renders on demand and still caches; the only cost is a cold first
+   * hit per slug.
+   *
+   * Measured, 2026-09-12: with the project id pointed at a dataset that does
+   * not exist, `bun run build` died here with "Failed to collect page data
+   * for /[locale]/work/[slug]" — before export ever began. So the
+   * `ECONNRESET` that killed CI on `/en/search.json` was not the only place a
+   * blip could take the build down, it was just the first one to get unlucky.
+   *
+   * Content pages deliberately do NOT get this treatment. A params list that
+   * cannot be fetched is missing an optimisation; a *page* whose content
+   * cannot be fetched would ship an empty page that looks finished. There the
+   * build failing is the honest outcome, and it stays that way.
+   */
+  let data: Awaited<ReturnType<typeof fetchProjectSlugs>>
+  try {
+    data = await fetchProjectSlugs()
+  } catch (error) {
+    console.warn(
+      '[work/[slug]] project slugs unreachable, prerendering none.',
+      error
+    )
+    return [{ slug: EMPTY_DATASET_SENTINEL }]
+  }
+
   const slugs = (data ?? []).filter(
     (slug): slug is string => Boolean(slug) && slug !== PRACTICE_SEGMENT
   )

@@ -410,6 +410,27 @@ route whose subject is its list belongs there. `/practice/<v>` has a grid and
 is not about it — its subject is the statement, which is why that route is
 absent from the gate and its 70% hero is correct.
 
+#### Two more holders, and they are easy to miss
+
+`first-screen.e2e.ts` is the loudest but not the only one. Tahap 60 swept the
+e2e suite for height limits, read only that file, and wrote down "no gate
+limits hero height" — which is false, and `docs/stages/TAHAP-61.md` §4.1
+records the correction. Two others bind:
+
+| gate                               | holds                           | what it demands                                          |
+| ---------------------------------- | ------------------------------- | -------------------------------------------------------- |
+| `e2e/project-detail.e2e.ts:100`    | `/work/<slug>`                  | the fact `<dl>` intersects an **800px** fold at 1280×800 |
+| `e2e/navigation-landing.e2e.ts:95` | `/practice/<v>`, `/work/<slug>` | the `h1` lands on the first screen after a navigation    |
+
+The first is why `/work/<slug>`'s 95% is a ceiling and not a starting point: a
+hero grown past it pushes the facts below an 800px fold, and the reader who
+never scrolls is no longer told who the work was for. The second is a rule
+about a tall hero's _contents_ rather than its height — grow the hero all you
+like, but the headline cannot ride down with it, or a morph arriving from
+another page has nothing on screen to morph into.
+
+Neither is taste. Both stay.
+
 `svh` and never `vh`, everywhere: `vh` includes the collapsing mobile toolbar,
 so a `vh` block is taller than the visible viewport on first paint.
 

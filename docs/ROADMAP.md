@@ -1,12 +1,14 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 45**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 61**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
-> sampai Tahap 45 — empat puluh lima tahap setelah itu berhenti benar.
-> Dokumen yang berbohong tentang kodenya sendiri lebih buruk daripada tidak
-> ada dokumen, dan ini contohnya yang paling lama bertahan.
+> sampai Tahap 45 — empat puluh lima tahap setelah itu berhenti benar. Lalu ia
+> berhenti di "45" sampai Tahap 61, enam belas tahap terlalu lama. **Dokumen
+> yang berbohong tentang kodenya sendiri lebih buruk daripada tidak ada
+> dokumen**, dan baris ini sudah dua kali membuktikannya: perbarui angkanya di
+> tahap yang menambah entrinya, bukan nanti.
 >
 > Dokumen ini adalah kontrak kerja untuk membangun situsnya. Agen mana pun yang
 > membuka repo ini membacanya setelah `CLAUDE.md`. Ia menetapkan **apa** yang
@@ -2066,6 +2068,55 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 61 — CI yang bisa mati karena satu kedipan, dan dua klaim yang salah ✅
+
+> Spec: [`docs/stages/TAHAP-61.md`](./stages/TAHAP-61.md)
+
+Nol perubahan visual. Tahap kebersihan, dikerjakan lebih dulu karena tahap
+62–67 diverifikasi oleh CI, dan CI yang bisa mati karena jaringan tidak
+memverifikasi apa pun.
+
+**`search.json` membunuh build produksi dengan satu `ECONNRESET`.**
+`buildIndex()` punya jalur mundur untuk "Sanity tidak dikonfigurasi" dan tidak
+punya apa pun untuk "dikonfigurasi tapi tidak terjangkau"; `attemptNumber: 5`
+di log membuktikan retry klien sudah habis, jadi rerun bukan perbaikan.
+`resolveSearchIndex(locale, load)` menerima loader dan merunduk ke set mundur
+yang sama. Membuktikannya menemukan yang kedua: `generateStaticParams`
+`/work/[slug]` melempar **lebih dulu**, sebelum export dimulai — jadi
+`search.json` hanya yang pertama kebetulan apes. Ia dapat penjagaan yang sama,
+dan komentarnya sendiri sudah menuliskan alasannya: _prerendering is an
+optimisation here, not a gate on content existing_. **Halaman konten sengaja
+tidak** — halaman kosong yang terlihat selesai lebih buruk daripada build yang
+gagal.
+
+**"Tidak ada gerbang yang membatasi tinggi hero" (Tahap 60) salah.** Tiga
+gerbang membatasinya: `first-screen` menahan `/work` dan `/journal`,
+`project-detail` menahan `/work/<slug>` pada fold 800px, `navigation-landing`
+menuntut `h1` mendarat di layar pertama. Dua yang pertama gerbang **kebenaran**,
+jadi menurut `DIREKSI.md` §3.1 keduanya tetap. Ruang tinggi yang benar-benar
+tersisa ada di **tiga rute, bukan tujuh** — dan konsekuensi jujurnya: hero
+lebih tinggi dengan isi yang sama bukan lebih memukau, melainkan lebih kosong.
+Tinggi naik sebagai akibat di tahap yang memasukkan lapisannya.
+
+**Pengukuran performa pertama proyek ini.** `CLAUDE.md` #19 ditutup kalimat
+_"No browser profiling has been possible in this environment"_ yang saya ulangi
+tanpa mengecek. Chromium asli ada di sini. Rute tanpa WebGL menggulir di
+**16,7ms, nol frame lewat 32ms**; rute ber-WebGL empat kali lebih lambat — tapi
+renderernya **SwiftShader tanpa GPU**, jadi angka itu lantai, bukan ramalan.
+Yang sah dikutip dan dicatat sebagai garis dasar: **90 long task di `/en`,
+terpanjang 173ms** — main thread, bukan rasteriser.
+
+**Sepuluh PR Dependabot npm gagal karena satu hal yang sama**, dan tidak satu
+pun tentang dependensinya: `lockfile had changes, but lockfile is frozen`.
+Ekosistem `npm` dilepas dari `dependabot.yml` dengan alasannya ditulis di
+berkasnya; update dikerjakan manual. Yang ikut ketahuan: `next-sanity` 13.3.4
+memecahkan build lewat `@sanity/browserslist-config` yang tidak pernah ada di
+lockfile, dan menaikkan `@playwright/test` sendirian melawan
+`overrides.playwright-core` mematikan **656 tes dalam <10ms** dengan
+ketidakcocokan protokol.
+
+---
+
 ## Tahap 60 — Arah baru: batasan tetap alat, plafon animasi dilebarkan ✅
 
 > Spec: [`docs/stages/TAHAP-60.md`](./stages/TAHAP-60.md) ·
@@ -2077,11 +2128,12 @@ layout, dan UI/UX presisi yang bisa ditema-kan — dan keduanya sekarang ada.
 Animasi memukau adalah kail yang membawa klien masuk, bukan kemewahan yang
 dijatah. Nol perubahan visual di tahap ini: aturannya ditetapkan lebih dulu.
 
-Dua hal diukur sebelum satu baris diubah. **Tidak ada gerbang yang membatasi
-tinggi** — 39 berkas e2e disisir, hanya `media-edge` yang muncul dan itu soal
-satu elemen media. Dan **mesin animasinya kurang dibelanjakan**: `magnetic`,
-`pixel-image`, `curtain` masing-masing 1 konsumen; `counter` dan `flip`
-masing-masing 2.
+Dua hal diukur sebelum satu baris diubah. **~~Tidak ada gerbang yang membatasi
+tinggi~~ — klaim ini salah, dikoreksi Tahap 61.** Penyisiran 39 berkas e2e
+melewatkan tiga gerbang yang membatasinya tanpa memakai kata "tinggi"; lihat
+entri Tahap 61 di atas. Yang benar dan bertahan: **mesin animasinya kurang
+dibelanjakan** — `magnetic`, `pixel-image`, `curtain` masing-masing 1 konsumen;
+`counter` dan `flip` masing-masing 2.
 
 Plafon momen 3 → **12** di empat rute merek, 6 di `/journal` dan
 `/work/<slug>`, **3** di `/journal/<slug>`. Tapi angkanya bukan lagi

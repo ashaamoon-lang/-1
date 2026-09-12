@@ -31,14 +31,45 @@ yang situs ini _untuk_:
 
 ### 2.1 Hero lebih tinggi
 
-**Tidak ada plafon tinggi.** Diverifikasi Tahap 60 dengan menyisir seluruh 39
-berkas e2e: tidak ada satu pun gerbang yang membatasi tinggi hero atau
-section. Yang kurang selama ini bukan izin — melainkan nilainya dinaikkan.
+**Tidak ada plafon selera atas tinggi** — tapi klaim "tidak ada satu pun
+gerbang yang membatasinya", yang berdiri di sini sejak Tahap 60, **salah**.
+Penyisiran 39 berkas e2e itu menemukan lebih banyak dari yang dibacanya. Tiga
+gerbang membatasi tinggi, hanya tidak memakai kata "tinggi" (dikoreksi Tahap
+61, lihat `docs/stages/TAHAP-61.md` §4.1):
 
-Tinggi yang dituju per rute ada di `DESIGN-SYSTEM.md`. Prinsipnya: yang
-bertambah adalah **ruang, lapisan, dan gerak** — bukan baris teks. Aturan
-"hero maksimal empat elemen teks" **tetap berlaku**, dan justru itulah yang
-membuat hero tinggi terbaca mahal alih-alih penuh.
+| gerbang                            | menahan                         | yang dituntut                                             |
+| ---------------------------------- | ------------------------------- | --------------------------------------------------------- |
+| `e2e/first-screen.e2e.ts:113`      | `/work`, `/journal`             | item pertama mulai `< 85%` layar **dan** `opacity > 0.99` |
+| `e2e/project-detail.e2e.ts:100`    | `/work/<slug>`                  | `<dl>` fakta memotong fold **800px** di viewport 1280×800 |
+| `e2e/navigation-landing.e2e.ts:95` | `/practice/<v>`, `/work/<slug>` | `h1` mendarat di layar pertama sesudah navigasi           |
+
+Dua yang pertama **gerbang kebenaran, bukan selera**, jadi menurut §3.1 di
+bawah keduanya TETAP. `first-screen.e2e.ts` menuliskan alasannya dengan angka:
+`60svh` di `/work` menaruh sampul pertama di **886px dari 900 (98%)**, lewat
+garis 75% milik `useReveal`, sehingga setiap sampul tinggal di `opacity: 0` dan
+`catalogue-sift` bermain di tempat yang tidak bisa dilihat siapa pun.
+
+Ruang tinggi yang benar-benar tersisa, terukur 1440×900:
+
+| rute              | sekarang | tersisa                                                |
+| ----------------- | -------- | ------------------------------------------------------ |
+| `/`               | 100svh   | nol — sudah penuh layar                                |
+| `/studio`         | 87%      | kecil                                                  |
+| `/practice/<v>`   | 70%      | **nyata** — satu-satunya rute merek yang tidak ditahan |
+| `/work/<slug>`    | 95%      | **nol** — fold 800px                                   |
+| `/journal/<slug>` | —        | nyata                                                  |
+| `/work`           | 31%      | **nol** — `first-screen`                               |
+| `/journal`        | 39%      | **nol** — `first-screen`                               |
+
+Jadi menaikkan tinggi menyentuh **tiga rute, bukan tujuh** — dan itu pun bukan
+pekerjaan yang berarti sendirian. Prinsipnya tidak berubah, dan justru
+prinsipnya yang penting: yang bertambah adalah **ruang, lapisan, dan gerak** —
+bukan baris teks. Konsekuensi jujurnya, **hero lebih tinggi dengan isi yang
+sama bukan lebih memukau, melainkan lebih kosong**; jadi tinggi naik sebagai
+akibat di tahap yang memasukkan lapisannya, bukan sebagai tahap tersendiri.
+
+Aturan "hero maksimal empat elemen teks" **tetap berlaku**, dan justru itulah
+yang membuat hero tinggi terbaca mahal alih-alih penuh.
 
 ### 2.2 Journey scrolling animation lebih banyak
 

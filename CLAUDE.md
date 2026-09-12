@@ -105,8 +105,13 @@ These are not preferences. Violating one is a defect.
 ### Honesty
 
 19. **Never claim a performance number you did not measure.** Say "budget" or
-    "estimate" unless a profiler produced it. No browser profiling has been
-    possible in this environment.
+    "estimate" unless a profiler produced it. Profiling **is** possible here —
+    real Chromium via Playwright, with CDP `Performance.getMetrics` and
+    `PerformanceObserver`; `docs/stages/TAHAP-61.md` §6 is the first run and
+    shows the shape. But the container renders through **SwiftShader**, with
+    no GPU, so a frame time on a WebGL route is a software **floor**, never a
+    user-facing number. Main-thread figures (long tasks, script time, FCP) and
+    like-for-like comparisons between routes are the ones you may quote.
 20. **Never claim accessibility you did not test.** `@axe-core/playwright` is
     installed; run it.
 21. **If something was skipped or failed, say so explicitly** rather than
