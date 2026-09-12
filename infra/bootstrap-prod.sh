@@ -130,6 +130,46 @@ if [ -n "${2:-}" ]; then
   echo "Box A key installed"
 fi
 
+say "DNS check — before Caddy, deliberately"
+# Caddy asks Let's Encrypt for a certificate the moment it starts. Let's
+# Encrypt rate-limits failures, and a domain locked out for hours is a failure
+# that heals by *waiting* rather than by fixing anything — the most confusing
+# kind there is. So this refuses to continue rather than letting that happen.
+#
+# The metadata server, not `curl ifconfig.me`: it is authoritative about this
+# machine's own address and needs no outbound network.
+own_ip=$(curl -H "Metadata-Flavor: Google" -fsS --max-time 5 \
+  http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip 2>/dev/null || true)
+
+if [ -z "$own_ip" ]; then
+  echo "  not on a GCP instance (no metadata server) — skipping the DNS check"
+else
+  command -v dig >/dev/null || apt-get install -y -qq dnsutils
+  resolved=$(dig +short "$DOMAIN" A | grep -E '^[0-9]+\.' | tail -1 || true)
+
+  if [ "$resolved" != "$own_ip" ]; then
+    cat >&2 <<GUARD
+
+  STOP. DNS does not point here, and continuing would burn Let'\''s Encrypt
+  attempts against a domain that cannot be validated.
+
+      ${DOMAIN} resolves to : ${resolved:-nothing}
+      this machine is at    : ${own_ip}
+
+  Fix the A record at Porkbun (Host \`${DOMAIN%%.*}\`, Answer \`${own_ip}\`,
+  TTL 600), wait for:
+
+      dig +short ${DOMAIN}
+
+  to return ${own_ip}, then run this script again. Everything done so far is
+  kept — it is idempotent.
+
+GUARD
+    exit 1
+  fi
+  echo "  ${DOMAIN} -> ${own_ip}"
+fi
+
 say "Caddy site: ${DOMAIN}"
 cat > /etc/caddy/Caddyfile <<CADDY
 ${DOMAIN} {

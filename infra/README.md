@@ -1,153 +1,113 @@
 # Menyalakan infrastruktur ARTH
 
-Runbook. Ikuti berurutan — urutannya bukan gaya, ia mencegah dua kegagalan
-nyata yang mahal (§0.2).
+**Lima langkah.** Versi sebelumnya menuntut 43 perintah manual, 23 di antaranya
+`gcloud` — dan sebuah setup yang butuh 43 langkah benar berturut-turut tidak
+menguji kecermatan siapa pun, ia menyalahkan orang atas bentuknya sendiri.
+Yang tersisa di sini adalah yang benar-benar butuh keputusan manusia.
 
-Semua perintah `gcloud` di sini dirancang untuk dijalankan di **Cloud Shell**
-(ikon `>_` di kanan atas console GCP). Cloud Shell gratis, sudah
-terautentikasi, dan tidak perlu memasang apa pun di laptop Anda.
-
----
-
-## 0. Sebelum apa pun
-
-### 0.1 Pasang Budget Alert — lakukan ini pertama
-
-Billing → **Budgets & alerts** → Create budget. Ambang 50% dan 90% dari kredit
-Anda.
-
-Alasannya bukan formalitas: instance yang lupa dimatikan adalah cara paling
-umum kredit habis tanpa ada yang menyadarinya, dan alert-nya baru berguna
-kalau dipasang **sebelum** mesinnya menyala.
-
-### 0.2 Dua urutan yang tidak boleh dibalik
-
-1. **IP statis dicadangkan sebelum VM dibuat.** IP ephemeral berubah setiap
-   kali VM di-restart, dan saat itu terjadi DNS Anda menunjuk ke mesin orang
-   lain.
-2. **DNS diarahkan sebelum bootstrap dijalankan.** Caddy meminta sertifikat ke
-   Let's Encrypt begitu ia menyala. Let's Encrypt punya **rate limit**, dan
-   percobaan gagal berulang karena DNS belum siap bisa mengunci Anda beberapa
-   jam.
+Langkah manualnya tidak dibuang; ia turun ke [§Lampiran](#lampiran--langkah-manual),
+untuk saat sesuatu perlu dikerjakan dengan tangan atau saat Anda ingin tahu
+persis apa yang dilakukan skripnya. Skrip yang isinya tidak bisa dibaca adalah
+skrip yang tidak bisa dipercaya.
 
 ---
 
-## 1. Siapkan project
+## 1. Budget Alert
+
+Billing → **Budgets & alerts** → Create budget. Ambang 50% dan 90% dari kredit.
+
+Satu-satunya langkah yang sengaja **tidak** diskripkan: ia menyentuh billing,
+dan itu bukan tempat untuk otomatisasi. Pasang lebih dulu — instance yang lupa
+dimatikan adalah cara paling umum kredit habis tanpa ada yang sadar, dan alert
+baru berguna kalau sudah ada sebelum mesinnya menyala.
+
+---
+
+## 2. Provision — di Cloud Shell
+
+Buka **Cloud Shell** (ikon `>_` di kanan atas console). Gratis, sudah
+terautentikasi, tidak perlu memasang apa pun di laptop.
 
 ```bash
 gcloud config set project <PROJECT_ID>
-gcloud services enable compute.googleapis.com
-gcloud config set compute/region asia-southeast1
-gcloud config set compute/zone   asia-southeast1-b
+
+git clone --branch claude/satus-award-website-foundation-r6o5cf \
+  https://github.com/ashaamoon-lang/-1.git ~/arth-infra
+bash ~/arth-infra/infra/provision.sh lab.<domain>
 ```
+
+Skripnya:
+
+- **Mensurvei dulu** — mencetak VM, IP, dan aturan firewall yang sudah ada
+  sebelum menyentuh apa pun. Anda sudah pernah mencoba; yang selamat dipakai
+  ulang, bukan dibuat ganda.
+- **Tidak pernah menghapus apa pun.** Kalau ada VM dengan spek berbeda, ia
+  berhenti dan menyebutkan bedanya — bukan diam-diam memakai mesin yang salah.
+- **Memperingatkan IP statis menganggur**, yang tetap ditagih.
+- **Menerjemahkan dua galat GCP** yang kata-katanya tidak memberi tahu apa yang
+  harus dilakukan: kuota, dan tipe mesin yang tidak tersedia di zona itu.
+
+Aman di-Ctrl-C kapan saja dan dijalankan ulang — ia melewati yang sudah selesai.
 
 ---
 
-## 2. Cadangkan dua IP statis
+## 3. DNS di Porkbun
 
-```bash
-gcloud compute addresses create arth-lab-ip  --region=asia-southeast1 --network-tier=STANDARD
-gcloud compute addresses create arth-prod-ip --region=asia-southeast1 --network-tier=STANDARD
+`provision.sh` mencetak barisnya persis. Bentuknya:
 
-# Catat keduanya — ini yang masuk ke Porkbun.
-gcloud compute addresses list --filter="region:asia-southeast1" \
-  --format="table(name, address, status)"
-```
+| Type | Host  | Answer          | TTL   |
+| ---- | ----- | --------------- | ----- |
+| `A`  | `lab` | IP yang dicetak | `600` |
 
----
+Porkbun memasang record parkir bawaan — **periksa tidak ada record lain di host
+yang sama**, karena dua record di satu host resolve tak terduga.
 
-## 3. Firewall
-
-```bash
-# Web, terbuka.
-gcloud compute firewall-rules create allow-http \
-  --allow=tcp:80  --target-tags=http-server  --source-ranges=0.0.0.0/0
-gcloud compute firewall-rules create allow-https \
-  --allow=tcp:443 --target-tags=https-server --source-ranges=0.0.0.0/0
-
-# SSH, TIDAK terbuka. 35.235.240.0/20 adalah rentang IAP milik Google —
-# artinya hanya sesi yang sudah lolos autentikasi Google yang bisa mencapai
-# port 22, dan tidak ada satu pun pemindai internet yang bisa.
-gcloud compute firewall-rules create allow-ssh-iap \
-  --allow=tcp:22 --source-ranges=35.235.240.0/20
-```
+Setelah Anda menyimpannya, `provision.sh` **menunggu sampai DNS itu benar**
+sebelum mencetak perintah berikutnya. Anda tidak bisa maju ke bootstrap dengan
+DNS yang salah, dan itu disengaja: Caddy meminta sertifikat begitu menyala,
+Let's Encrypt membatasi kegagalan, dan domain yang terkunci berjam-jam adalah
+kegagalan yang sembuhnya dengan menunggu — bukan dengan memperbaiki sesuatu.
 
 ---
 
-## 4. Buat Box A — `arth-lab`
+## 4. Bootstrap — di VM
+
+`provision.sh` mencetak perintah lengkapnya. Bentuknya:
 
 ```bash
-gcloud compute instances create arth-lab \
-  --machine-type=e2-custom-4-16384 \
-  --image-family=ubuntu-2404-lts-amd64 --image-project=ubuntu-os-cloud \
-  --boot-disk-size=150GB --boot-disk-type=pd-balanced \
-  --address=arth-lab-ip --network-tier=STANDARD \
-  --tags=http-server,https-server \
-  --metadata=enable-oslogin=TRUE \
-  --scopes=https://www.googleapis.com/auth/logging.write \
-  --maintenance-policy=MIGRATE
+gcloud compute ssh arth-lab --zone=asia-southeast1-b --tunnel-through-iap
 ```
 
-`--scopes` sengaja minimal: mesin ini tidak memanggil API GCP mana pun, jadi
-service account-nya tidak diberi kemampuan untuk itu.
-
----
-
-## 5. DNS di Porkbun — **sebelum** bootstrap
-
-Porkbun → Account → **Domain Management** → domain Anda → **DNS**.
-
-| Type | Host   | Answer                 | TTL   |
-| ---- | ------ | ---------------------- | ----- |
-| `A`  | `lab`  | IP dari `arth-lab-ip`  | `600` |
-| `A`  | `arth` | IP dari `arth-prod-ip` | `600` |
-
-Dua hal yang sering menggigit:
-
-- **Periksa tidak ada record lain di host yang sama.** Porkbun memasang
-  record parkir bawaan; dua record di host yang sama membuat resolusi tak
-  terduga.
-- Anda boleh memakai subdomain lain. Kalau ya, sesuaikan argumen di §6 dan
-  §9 — skripnya menerima domain sebagai argumen, tidak ada yang di-hardcode.
-
-Verifikasi sebelum lanjut. **Jangan lewati langkah ini:**
+lalu di dalam VM:
 
 ```bash
-dig +short lab.<domain>     # harus persis IP arth-lab-ip
-dig +short arth.<domain>    # harus persis IP arth-prod-ip
-```
-
-Kalau masih kosong, tunggu. TTL 600 berarti biasanya di bawah sepuluh menit.
-
----
-
-## 6. Bootstrap Box A
-
-```bash
-gcloud compute ssh arth-lab --tunnel-through-iap
-```
-
-Lalu di dalam VM:
-
-```bash
+sudo rm -rf /tmp/arth-infra
 sudo apt-get update -qq && sudo apt-get install -y -qq git
 git clone --branch claude/satus-award-website-foundation-r6o5cf \
   https://github.com/ashaamoon-lang/-1.git /tmp/arth-infra
 sudo bash /tmp/arth-infra/infra/bootstrap-lab.sh lab.<domain>
 ```
 
-Perlu ~10–15 menit — sebagian besar `bun install` dan mengunduh Chromium.
+`rm -rf /tmp/arth-infra` di depan memastikan Anda memakai skrip terbaru, bukan
+salinan dari percobaan sebelumnya. Butuh 12–18 menit.
+
+Bootstrap **memeriksa DNS lagi sebelum menyentuh Caddy** dan menolak lanjut
+kalau tidak cocok — sabuk pengaman kedua untuk hal yang sama, karena ini
+kegagalan yang paling mahal untuk dibiarkan terjadi.
 
 Setelah selesai:
 
 ```bash
-curl -sSI https://lab.<domain> | head -1     # sertifikat sudah terbit
-sudo systemctl status caddy
+bash /tmp/arth-infra/infra/doctor.sh lab.<domain>
 ```
+
+`doctor.sh` hanya membaca, memeriksa enam belas hal, dan **tiap baris yang gagal
+mencetak satu perintah untuk memperbaikinya** — tanda silang yang tidak
+mengatakan langkah berikutnya hanyalah cara lebih lambat untuk tersangkut.
 
 ---
 
-## 7. Beri Claude akses — ini tujuan Anda
+## 5. Beri Claude akses
 
 ```bash
 sudo -iu deploy
@@ -155,20 +115,19 @@ curl -fsSL https://claude.ai/install.sh | bash
 claude
 ```
 
-Masuk dengan akun Anda. Mulai saat itu, sesi yang berjalan **di mesin itu**
-punya shell asli: konfigurasi Caddy, jurnal systemd, build, Playwright pada
-situs hidup.
+Sesi yang berjalan **di mesin itu** punya shell asli. Sesi saya yang di tempat
+lain hanya punya egress HTTPS lewat policy proxy — saya tidak bisa SSH ke mesin
+Anda dari sana, jadi ini jalur langsungnya.
 
-> **Kenapa ini perlu:** sesi saya yang sekarang hanya punya egress HTTPS lewat
-> policy proxy, dan git SSH pun di-rewrite. Saya **tidak bisa** SSH ke mesin
-> Anda dari sini. Claude Code di VM adalah jalur langsungnya.
+Deploy otomatis sudah hidup sejak bootstrap; tidak ada yang perlu didaftarkan.
+Lihat [§6](#6-deploy-otomatis--sudah-terpasang).
 
 ---
 
-## 8. Deploy otomatis — sudah terpasang
+## 6. Deploy otomatis — sudah terpasang
 
-Bootstrap sudah memasang timer-nya. Tidak ada yang perlu Anda daftarkan, tidak
-ada token, tidak ada port masuk.
+Bootstrap sudah memasang timer-nya. Tidak ada yang perlu didaftarkan, tidak ada
+token, tidak ada port masuk.
 
 ```bash
 systemctl list-timers arth-deploy       # kapan cek berikutnya
@@ -181,32 +140,32 @@ melakukan apa pun**, jadi jurnalnya hanya berisi baris yang benar-benar
 berarti. Ada commit baru → build, restart lab, kirim ke Box B, restart
 produksi, lalu **buktikan produksi menjawab 200** sebelum melapor sukses.
 
-Kalau build gagal, skripnya berhenti di situ dan **Box B tidak disentuh** —
-produksi tetap menyajikan versi terakhir yang bekerja. Sebuah commit rusak
-tidak bisa menjatuhkan situs, ia hanya gagal menggantikannya.
+Kalau build gagal, skripnya berhenti dan **Box B tidak disentuh** — produksi
+tetap menyajikan versi terakhir yang bekerja. Commit rusak tidak bisa
+menjatuhkan situs, ia hanya gagal menggantikannya.
 
 Memicu deploy = mendorong commit. Tidak ada cara lain memulainya.
 
-### 8.1 Kenapa BUKAN self-hosted GitHub Actions runner
+### 6.1 Kenapa BUKAN self-hosted GitHub Actions runner
 
 Rancangan pertama infrastruktur ini memakai runner, dan itu **salah**.
 
 `ashaamoon-lang/-1` adalah repo **publik** — diperiksa lewat API:
-`visibility: public`, dan sudah ada satu fork. Self-hosted runner di repo
-publik adalah jalur bagi pull request dari fork untuk **menjalankan kode di
-mesin Anda**. GitHub sendiri menyarankan untuk tidak pernah melakukannya.
+`visibility: public`, dan sudah ada satu fork. Self-hosted runner di repo publik
+adalah jalur bagi pull request dari fork untuk **menjalankan kode di mesin
+Anda**. GitHub sendiri menyarankan untuk tidak pernah melakukannya.
 
-Peringatan itu sempat tertulis di runbook ini sebagai kondisi hipotetis
-("kalau repo dipublikkan nanti") padahal reponya sudah publik sejak awal.
-Dicatat apa adanya supaya pembaca berikutnya tidak memasangnya kembali karena
-kelihatan lebih cepat.
+Peringatan itu sempat tertulis di runbook ini sebagai kondisi hipotetis ("kalau
+repo dipublikkan nanti") padahal reponya sudah publik sejak awal. Dicatat apa
+adanya supaya pembaca berikutnya tidak memasangnya kembali karena kelihatan
+lebih cepat.
 
 Yang dibayar sebagai gantinya: deploy mendarat dalam ≤5 menit, bukan seketika.
 Itu harga dari permukaan serang nol.
 
 ---
 
-## 9. Box B — produksi
+## 7. Box B — produksi
 
 Kerjakan setelah §7 berhasil. Tidak ada gunanya menyalakan produksi sebelum
 ada yang mengirim aplikasi ke sana.
@@ -237,7 +196,7 @@ sudo bash /tmp/arth-infra/infra/bootstrap-prod.sh arth.<domain>
 `systemctl status arth` akan **gagal** sampai deploy pertama. Itu yang
 diharapkan, bukan kerusakan: mesin ini tidak membangun apa pun sendiri.
 
-### 9.1 Snapshot harian untuk produksi
+### 7.1 Snapshot harian untuk produksi
 
 ```bash
 gcloud compute resource-policies create snapshot-schedule arth-prod-daily \
@@ -252,7 +211,7 @@ Box A tidak perlu snapshot — isinya bisa dibangun ulang dari repo.
 
 ---
 
-## 10. Sambungkan Box A → Box B
+## 8. Sambungkan Box A → Box B
 
 Deploy job di Box A mengirim hasil build ke Box B lewat **jaringan internal
 VPC** — bukan lewat IAP, dan bukan lewat `gcloud`. Alasannya konkret: kedua
@@ -260,7 +219,7 @@ instance dibuat dengan access scope minimal dengan sengaja, jadi
 `gcloud compute ssh` dari dalam Box A memang akan ditolak. VM-ke-VM di satu
 VPC tidak butuh keduanya.
 
-**10.1 Izinkan SSH internal**
+**8.1 Izinkan SSH internal**
 
 ```bash
 # Rentang subnet default asia-southeast1. Periksa punya Anda:
@@ -271,7 +230,7 @@ gcloud compute firewall-rules create allow-ssh-internal \
   --allow=tcp:22 --source-ranges=<CIDR_DARI_PERINTAH_DI_ATAS>
 ```
 
-**10.2 Buat kunci di Box A**
+**8.2 Buat kunci di Box A**
 
 ```bash
 gcloud compute ssh arth-lab --tunnel-through-iap
@@ -279,7 +238,7 @@ sudo -u deploy ssh-keygen -t ed25519 -N "" -f /home/deploy/.ssh/id_ed25519
 sudo cat /home/deploy/.ssh/id_ed25519.pub      # salin barisnya
 ```
 
-**10.3 Pasang kunci itu di Box B**
+**8.3 Pasang kunci itu di Box B**
 
 ```bash
 gcloud compute ssh arth-prod --tunnel-through-iap
@@ -288,7 +247,7 @@ sudo bash /tmp/arth-infra/infra/bootstrap-prod.sh arth.<domain> "ssh-ed25519 AAA
 
 Skripnya idempoten — menjalankan ulang dengan kunci hanya menambahkan kunci.
 
-**10.4 Beri tahu deploy alamat Box B**
+**8.4 Beri tahu deploy alamat Box B**
 
 Di **Box A**:
 
@@ -311,7 +270,7 @@ Environment=PROD_DOMAIN=arth.<domain>
 `systemctl edit` dipakai alih-alih menyunting unit aslinya, supaya nilai ini
 tidak hilang saat bootstrap dijalankan ulang.
 
-**10.5 Coba**
+**8.5 Coba**
 
 ```bash
 sudo systemctl restart arth-deploy.timer
@@ -319,13 +278,13 @@ sudo systemctl start arth-deploy
 journalctl -u arth-deploy -n 60 -f
 ```
 
-Sebelum langkah 10.4, deploy melaporkan **"PROD_HOST is empty — Box B does not
+Sebelum langkah 8.4, deploy melaporkan **"PROD_HOST is empty — Box B does not
 exist yet, skipping the ship step"**. Itu benar, bukan rusak: lab berguna
 sendirian.
 
 ---
 
-## 11. Menghemat kredit
+## 9. Menghemat kredit
 
 Box A tidak harus hidup 24 jam. Instance yang di-stop hanya menagih disk-nya.
 
@@ -340,6 +299,52 @@ Box A menyala lagi. `Persistent=true` di timer-nya membuat jadwal yang
 terlewat dijalankan saat start berikutnya, jadi tidak ada yang hilang, hanya
 tertunda. Produksi tidak terpengaruh sama sekali — itu justru gunanya
 dipisah.
+
+---
+
+## Lampiran — langkah manual
+
+Yang `provision.sh` lakukan, kalau Anda ingin menjalankannya sendiri atau
+memeriksa apa yang sebenarnya terjadi.
+
+```bash
+gcloud services enable compute.googleapis.com
+
+gcloud compute addresses create arth-lab-ip \
+  --region=asia-southeast1 --network-tier=STANDARD
+gcloud compute addresses list --format="table(name,address)"
+
+gcloud compute firewall-rules create allow-http \
+  --allow=tcp:80  --target-tags=http-server  --source-ranges=0.0.0.0/0
+gcloud compute firewall-rules create allow-https \
+  --allow=tcp:443 --target-tags=https-server --source-ranges=0.0.0.0/0
+# 35.235.240.0/20 adalah rentang IAP milik Google. SSH tidak pernah terbuka
+# ke internet; hanya sesi yang lolos autentikasi Google yang mencapainya.
+gcloud compute firewall-rules create allow-ssh-iap \
+  --allow=tcp:22 --source-ranges=35.235.240.0/20
+
+gcloud compute instances create arth-lab \
+  --zone=asia-southeast1-b \
+  --machine-type=e2-custom-4-16384 \
+  --image-family=ubuntu-2404-lts-amd64 --image-project=ubuntu-os-cloud \
+  --boot-disk-size=150GB --boot-disk-type=pd-balanced \
+  --address=arth-lab-ip --network-tier=STANDARD \
+  --tags=http-server,https-server \
+  --metadata=enable-oslogin=TRUE \
+  --scopes=https://www.googleapis.com/auth/logging.write \
+  --maintenance-policy=MIGRATE
+```
+
+Variabel yang diterima `provision.sh`, untuk menyimpang dari bawaan tanpa
+menyunting skripnya:
+
+| variabel         | bawaan                     | untuk                                       |
+| ---------------- | -------------------------- | ------------------------------------------- |
+| `MACHINE`        | `e2-custom-4-16384`        | `e2-standard-4` kalau custom tidak tersedia |
+| `ZONE`           | `asia-southeast1-b`        | zona lain kalau kapasitasnya penuh          |
+| `REGION`         | `asia-southeast1`          | region lain                                 |
+| `DISK_GB`        | `150`                      | disk lebih kecil kalau kredit ketat         |
+| `VM` · `IP_NAME` | `arth-lab` · `arth-lab-ip` | nama lain                                   |
 
 ---
 
