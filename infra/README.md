@@ -23,7 +23,67 @@ baru berguna kalau sudah ada sebelum mesinnya menyala.
 
 ---
 
-## 2. Provision — di Cloud Shell
+## 2. Membuat Box A
+
+Dua jalur, hasilnya sama. **Pilih satu.**
+
+- **[Jalur A — console (klik)](#2a-jalur-console)** — kalau Anda lebih tenang
+  melihat formulir berlabel. Console juga menghapus pekerjaan yang nyata: dua
+  centang firewall membuat aturannya **sekaligus** memasang network tag-nya.
+- **[Jalur B — Cloud Shell (skrip)](#2b-jalur-cloud-shell)** — kalau Anda
+  ingin satu perintah dan hasil yang bisa diulang persis.
+
+---
+
+### 2a. Jalur console
+
+Compute Engine → **VM instances** → **Create instance**.
+
+**Tabel nilai di bawah ini yang mengikat, bukan nama bagiannya.** Saya tidak
+bisa melihat console Anda, dan GCP mengubah tata letaknya cukup sering —
+dokumentasi resminya pun tidak memuat label UI-nya. Kalau sebuah bagian tidak
+ada di tempat yang tertulis di sini, itu bukan Anda melewatkan sesuatu:
+kirimkan tangkapan layarnya.
+
+| pengaturan           | nilai                                                      | kalau salah                                                                                                                 |
+| -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Name                 | `arth-lab`                                                 | hanya nama; aman diganti asal konsisten                                                                                     |
+| Region               | `asia-southeast1` (Singapore)                              | latensi, dan harga                                                                                                          |
+| Zone                 | `asia-southeast1-b`                                        | kapasitas penuh → coba `-a` atau `-c`                                                                                       |
+| Machine family       | General purpose · **E2**                                   |                                                                                                                             |
+| Machine type         | **Custom** → **4 vCPU**, **16 GB**                         | kalau Custom bermasalah: `e2-standard-4`, bentuknya identik                                                                 |
+| Boot disk — OS       | **Ubuntu**                                                 |                                                                                                                             |
+| Boot disk — version  | **Ubuntu 24.04 LTS** (x86/64)                              | Playwright resmi mendukung 22.04/24.04                                                                                      |
+| Boot disk — type     | **Balanced persistent disk**                               |                                                                                                                             |
+| Boot disk — size     | **150 GB**                                                 | **bukan sekadar ruang: IOPS boot disk GCP naik mengikuti ukuran.** Disk 20 GB membuat `bun install` menyiksa                |
+| Firewall             | centang **Allow HTTP traffic** dan **Allow HTTPS traffic** | tanpa ini Caddy tidak bisa mengambil sertifikat                                                                             |
+| External IPv4        | **buat IP statis baru**, namai `arth-lab-ip`               | **paling mudah terlewat.** Bawaannya _Ephemeral_, dan itu berubah tiap VM restart — DNS Anda lalu menunjuk mesin orang lain |
+| Network Service Tier | **Standard**                                               | Premium tidak perlu, dan lebih mahal                                                                                        |
+
+**Dua baris terakhir ada di sub-layar.** Buka **Networking → Network
+interfaces → `default`**; External IPv4 dan Network Service Tier ada di
+dalamnya. Itu sebabnya keduanya sering terlewat — bukan karena tersembunyi,
+tapi karena bagian utamanya terlihat sudah lengkap tanpa membukanya.
+
+Dua hal lagi:
+
+- **Machine type Custom** adalah pilihan **di dalam dropdown** machine type,
+  bukan tab tersendiri. Memilihnya memunculkan slider vCPU dan memory.
+- **Data protection** → matikan snapshot otomatis untuk Box A. Isinya bisa
+  dibangun ulang dari repo, dan snapshot menagih penyimpanan. Box B nanti
+  berbeda — di sana snapshot masuk akal.
+
+Panel biaya di kanan bergerak sambil Anda mengisi. **Cocokkan dengan estimasi
+$115–150/bulan (Box A termasuk disk) sebelum menekan Create.** Kalau jauh
+berbeda, ada yang tidak sesuai — dan jauh lebih murah mengetahuinya sekarang
+daripada di tagihan.
+
+Setelah Create: **catat External IP**-nya dari daftar VM instances. Itu yang
+masuk ke Porkbun di langkah 3.
+
+---
+
+### 2b. Jalur Cloud Shell
 
 Buka **Cloud Shell** (ikon `>_` di kanan atas console). Gratis, sudah
 terautentikasi, tidak perlu memasang apa pun di laptop.
@@ -39,21 +99,24 @@ bash ~/arth-infra/infra/provision.sh lab.<domain>
 Skripnya:
 
 - **Mensurvei dulu** — mencetak VM, IP, dan aturan firewall yang sudah ada
-  sebelum menyentuh apa pun. Anda sudah pernah mencoba; yang selamat dipakai
+  sebelum menyentuh apa pun. Yang selamat dari percobaan sebelumnya dipakai
   ulang, bukan dibuat ganda.
-- **Tidak pernah menghapus apa pun.** Kalau ada VM dengan spek berbeda, ia
-  berhenti dan menyebutkan bedanya — bukan diam-diam memakai mesin yang salah.
+- **Tidak pernah menghapus apa pun.** VM dengan spek berbeda membuatnya
+  berhenti dan menyebutkan bedanya, bukan diam-diam memakai mesin yang salah.
 - **Memperingatkan IP statis menganggur**, yang tetap ditagih.
 - **Menerjemahkan dua galat GCP** yang kata-katanya tidak memberi tahu apa yang
   harus dilakukan: kuota, dan tipe mesin yang tidak tersedia di zona itu.
+- **Menunggu DNS resolve** sebelum mencetak perintah bootstrap.
 
-Aman di-Ctrl-C kapan saja dan dijalankan ulang — ia melewati yang sudah selesai.
+Aman di-Ctrl-C kapan saja dan dijalankan ulang — ia melewati yang sudah
+selesai.
 
 ---
 
 ## 3. DNS di Porkbun
 
-`provision.sh` mencetak barisnya persis. Bentuknya:
+Jalur Cloud Shell mencetak barisnya persis. Jalur console: pakai **External
+IP** yang Anda catat di langkah 2a. Bentuknya:
 
 | Type | Host  | Answer          | TTL   |
 | ---- | ----- | --------------- | ----- |
@@ -62,9 +125,15 @@ Aman di-Ctrl-C kapan saja dan dijalankan ulang — ia melewati yang sudah selesa
 Porkbun memasang record parkir bawaan — **periksa tidak ada record lain di host
 yang sama**, karena dua record di satu host resolve tak terduga.
 
-Setelah Anda menyimpannya, `provision.sh` **menunggu sampai DNS itu benar**
-sebelum mencetak perintah berikutnya. Anda tidak bisa maju ke bootstrap dengan
-DNS yang salah, dan itu disengaja: Caddy meminta sertifikat begitu menyala,
+Lalu **tunggu sampai DNS benar sebelum lanjut**:
+
+```bash
+dig +short lab.<domain>      # harus mengembalikan IP itu persis
+```
+
+Jalur Cloud Shell menunggu ini untuk Anda. Jalur console tidak — tapi bootstrap
+di langkah 4 **menolak jalan** kalau DNS belum cocok, jadi keduanya terlindung.
+Itu disengaja: Caddy meminta sertifikat begitu menyala,
 Let's Encrypt membatasi kegagalan, dan domain yang terkunci berjam-jam adalah
 kegagalan yang sembuhnya dengan menunggu — bukan dengan memperbaiki sesuatu.
 
@@ -72,13 +141,14 @@ kegagalan yang sembuhnya dengan menunggu — bukan dengan memperbaiki sesuatu.
 
 ## 4. Bootstrap — di VM
 
-`provision.sh` mencetak perintah lengkapnya. Bentuknya:
+Masuk ke mesinnya — **tombol SSH** di baris VM pada daftar VM instances
+(jalur console), atau:
 
 ```bash
-gcloud compute ssh arth-lab --zone=asia-southeast1-b --tunnel-through-iap
+gcloud compute ssh arth-lab --zone=asia-southeast1-b
 ```
 
-lalu di dalam VM:
+Lalu di dalam VM:
 
 ```bash
 sudo rm -rf /tmp/arth-infra
@@ -121,6 +191,44 @@ Anda dari sana, jadi ini jalur langsungnya.
 
 Deploy otomatis sudah hidup sejak bootstrap; tidak ada yang perlu didaftarkan.
 Lihat [§6](#6-deploy-otomatis--sudah-terpasang).
+
+---
+
+### 5.1 Perketat SSH — setelah situsnya hidup, bukan sebelum
+
+**Koreksi terhadap versi sebelumnya dari dokumen ini.** Ia membuat aturan
+`allow-ssh-iap` dan menyiratkan bahwa SSH Anda karenanya hanya lewat IAP. Itu
+tidak benar: **VPC bawaan GCP sudah berisi `default-allow-ssh`** yang
+mengizinkan tcp:22 dari `0.0.0.0/0`, dan menambahkan aturan baru **tidak
+menghapus** yang lama. Firewall GCP bersifat izin — aturan paling permisif yang
+menang.
+
+Jadi apa pun jalur yang Anda pakai, **port 22 Anda terbuka ke internet sampai
+Anda mengubah aturan itu.**
+
+Yang menahannya sementara ini bukan ketiadaan: GCP mematikan autentikasi
+password sepenuhnya pada image-nya, jadi hanya kunci yang diterima. Itu sebabnya
+konfigurasi ini yang dijalankan hampir semua orang tanpa kejadian. Tapi Anda
+berhak tahu bahwa itu keadaannya, bukan mengira ia sudah tertutup.
+
+**Menutupnya, satu layar:**
+
+VPC network → **Firewall** → `default-allow-ssh` → **Edit** → **Source IPv4
+ranges**: ganti `0.0.0.0/0` menjadi `35.235.240.0/20` → Save.
+
+`35.235.240.0/20` adalah rentang IAP milik Google. Sesudahnya tombol **SSH** di
+console tetap bekerja — ia lewat IAP — tapi tidak ada pemindai internet yang
+bisa menyentuh port 22 Anda.
+
+**Kenapa sesudah, bukan sebelum.** Kalau langkah ini salah dan Anda terkunci
+dari mesin yang belum menyajikan apa pun, Anda kehilangan dua hal sekaligus.
+Kalau salah setelah situsnya hidup, situsnya tetap hidup dan Anda punya waktu
+memperbaikinya. Urutan yang aman bukan yang paling ketat lebih dulu — melainkan
+yang menjaga jalan kembali tetap terbuka.
+
+> Terkunci? `gcloud compute firewall-rules update default-allow-ssh
+--source-ranges=0.0.0.0/0` dari Cloud Shell mengembalikannya. Cloud Shell
+> tidak melewati firewall VPC Anda, jadi ia selalu bisa dipakai.
 
 ---
 
@@ -318,8 +426,12 @@ gcloud compute firewall-rules create allow-http \
   --allow=tcp:80  --target-tags=http-server  --source-ranges=0.0.0.0/0
 gcloud compute firewall-rules create allow-https \
   --allow=tcp:443 --target-tags=https-server --source-ranges=0.0.0.0/0
-# 35.235.240.0/20 adalah rentang IAP milik Google. SSH tidak pernah terbuka
-# ke internet; hanya sesi yang lolos autentikasi Google yang mencapainya.
+# 35.235.240.0/20 adalah rentang IAP milik Google.
+#
+# PERHATIKAN: menambahkan aturan ini TIDAK menutup SSH. VPC bawaan sudah
+# berisi `default-allow-ssh` (0.0.0.0/0 -> tcp:22), dan firewall GCP bersifat
+# izin — aturan paling permisif yang menang. Untuk benar-benar menutupnya,
+# sunting `default-allow-ssh` seperti di §5.1.
 gcloud compute firewall-rules create allow-ssh-iap \
   --allow=tcp:22 --source-ranges=35.235.240.0/20
 

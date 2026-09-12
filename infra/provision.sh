@@ -103,8 +103,14 @@ ensure_rule() {
 }
 ensure_rule allow-http  --allow=tcp:80  --target-tags=http-server  --source-ranges=0.0.0.0/0
 ensure_rule allow-https --allow=tcp:443 --target-tags=https-server --source-ranges=0.0.0.0/0
-# 35.235.240.0/20 is Google's IAP range. SSH is reachable only through an
-# authenticated Google session — never from the open internet.
+# 35.235.240.0/20 is Google's IAP range.
+#
+# This rule ADDS a path; it does not close one. The default VPC already ships
+# `default-allow-ssh` (0.0.0.0/0 -> tcp:22) and GCP firewall rules are
+# permissive — the most open matching rule wins. Closing SSH means editing
+# that rule, which README section 5.1 covers as a step to take *after* the site
+# is serving, so a mistake cannot lock you out of a machine that is not yet
+# doing anything for you.
 ensure_rule allow-ssh-iap --allow=tcp:22 --source-ranges=35.235.240.0/20
 
 # -------------------------------------------------------------------------- VM
