@@ -1,0 +1,103 @@
+name: Deploy
+
+# Manual only, for now — and that is a decision rather than an omission.
+#
+# A `push:` trigger is added in the same change that brings Box B online. A
+# workflow that fails on every push because its target does not exist yet
+# teaches everyone to ignore a red mark, which is the most expensive habit a
+# repository can learn.
+#
+# `workflow_dispatch` is also the channel through which a Claude session that
+# cannot reach the VM directly (HTTPS-only egress, git SSH rewritten) runs work
+# on it: commit a change here, dispatch it, read the log. Auditable by
+# construction — every run is recorded against a commit.
+on:
+  workflow_dispatch:
+    inputs:
+      skip_build:
+        description: 'Restart production without rebuilding'
+        type: boolean
+        default: false
+
+# Never two deploys at once. `cancel-in-progress` is deliberately FALSE here,
+# unlike `ci.yml`: cancelling a deploy halfway can leave production with a
+# partially copied `.next`, which is worse than waiting for the one in flight.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # Box A. The label is set when the runner is registered (infra/README.md
+    # step 8), so this never lands on a GitHub-hosted runner by accident.
+    runs-on: [self-hosted, arth-lab]
+
+    env:
+      # Box B's *internal* address. VM-to-VM inside one VPC needs no IAP and
+      # no GCP API scope — which matters, because both instances are created
+      # with minimal scopes on purpose and `gcloud compute ssh` would be
+      # refused from here.
+      PROD_HOST: ${{ vars.PROD_INTERNAL_IP }}
+      PROD_DOMAIN: ${{ vars.PROD_DOMAIN }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        if: ${{ !inputs.skip_build }}
+        env:
+          # Already public — the `NEXT_PUBLIC_` prefix means Next inlines these
+          # into the client bundle, so every shipped page already contains
+          # them. `SANITY_API_WRITE_TOKEN` is deliberately absent and must stay
+          # absent: a deploy has no business writing content.
+          NEXT_PUBLIC_SANITY_PROJECT_ID: az53j4l1
+          NEXT_PUBLIC_SANITY_DATASET: production
+          NEXT_PUBLIC_SANITY_API_VERSION: '2025-03-01'
+        run: |
+          bun install --frozen-lockfile
+          bun run build
+
+      # Box A builds, Box B serves. The agency site never runs a build, so it
+      # is never slow because one is running — and a runaway experiment in the
+      # lab cannot take down the page that finds clients.
+      #
+      # `--delete` matters: a stale chunk left from a previous build gets
+      # served to a browser whose HTML no longer references it, producing the
+      # kind of intermittent 404 nobody can reproduce.
+      #
+      # `node_modules` ships too, because this project does not use
+      # `output: 'standalone'` — `next start` needs the real dependency tree.
+      # Turning standalone on would shrink this a lot and is a measured
+      # decision, not a free one (see the plan, Bagian V.2.1).
+      - name: Ship to production
+        if: ${{ !inputs.skip_build }}
+        run: |
+          for dir in .next node_modules; do
+            rsync -az --delete \
+              -e "ssh -o StrictHostKeyChecking=accept-new" \
+              "$dir/" "deploy@${PROD_HOST}:/srv/arth/$dir/"
+          done
+          rsync -az -e "ssh -o StrictHostKeyChecking=accept-new" \
+            package.json bun.lock next.config.ts "deploy@${PROD_HOST}:/srv/arth/"
+
+      - name: Restart production
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "deploy@${PROD_HOST}" \
+            'sudo systemctl restart arth && sleep 3 && systemctl is-active arth'
+
+      # A deploy that reports success while the site is down is worse than one
+      # that fails: it moves the discovery of an outage from this log to a
+      # visitor.
+      - name: Prove the site answers
+        run: |
+          for attempt in $(seq 1 10); do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' "https://${PROD_DOMAIN}/en" || true)
+            echo "attempt ${attempt}: ${code}"
+            [ "$code" = "200" ] && exit 0
+            sleep 5
+          done
+          echo "production did not return 200 within 50s — check: journalctl -u arth -n 80"
+          exit 1
