@@ -1,0 +1,118 @@
+/*
+ * The run, and the box it travels inside.
+ *
+ * Geometry only. Every transform is written by `index.tsx` from the scroll
+ * position, because the distance is a function of the track's own width and
+ * CSS has no way to know that.
+ */
+
+.root {
+  position: relative;
+}
+
+/*
+ * The pinned box.
+ *
+ * `overflow: clip` and never `auto` — this is half of the keyboard contract
+ * the component's doc comment sets out. A scrollable ancestor is what lets a
+ * browser reveal a focused child by scrolling it, and that is exactly the
+ * movement that would fight the pin's transform. With nothing scrollable,
+ * there is nothing to fight, and `focusin` moves the page instead.
+ */
+.viewport {
+  block-size: 100svh;
+  display: flex;
+  align-items: center;
+  overflow: clip;
+}
+
+.track {
+  display: flex;
+  gap: var(--gap);
+  align-items: stretch;
+  list-style: none;
+  margin: 0;
+  /*
+   * The run starts and ends at the page's own gutter rather than at the
+   * viewport edge, so a card at rest lines up with the columns above and
+   * below it. A run that begins flush to the screen edge reads as a different
+   * grid rather than as the same page continuing sideways.
+   */
+  padding-inline: var(--safe);
+  /*
+   * Wider than its box on purpose: `min-content` lets the flex line keep each
+   * item's declared width instead of squeezing them all to fit, which is what
+   * gives the track something to travel across.
+   */
+  inline-size: max-content;
+  will-change: transform;
+}
+
+/*
+ * One card. Sized as a share of the screen rather than of the track, because
+ * what the reader judges is how much of *their* viewport one work occupies.
+ */
+.item {
+  flex: 0 0 auto;
+  inline-size: 78vw;
+  min-inline-size: 0;
+
+  @media (--desktop) {
+    inline-size: 34vw;
+  }
+}
+
+@media (--reduced-motion) {
+  /*
+   * The promise the script cannot make.
+   *
+   * `index.tsx` returns before creating any ScrollTrigger under this
+   * preference, so there is no pin, no spacer and no tween — the same shape
+   * `vault/blocks/passage` uses. But a passage with no animation is still
+   * readable prose, and a *track* with no animation is work the reader can
+   * never reach: everything past the first screen would sit outside the
+   * viewport permanently.
+   *
+   * So the track stops being a track. It becomes an ordinary wrapping grid,
+   * every card in the document flow and fully visible, and the section takes
+   * whatever height that needs instead of one screen.
+   *
+   * `vault/motion/use-active-in-sequence` states this contract in its own
+   * doc — the stylesheet has to promise it — and this is the same case.
+   */
+  .viewport {
+    block-size: auto;
+    overflow: visible;
+  }
+
+  /*
+   * Wrapping flex, not a grid, and that is deliberate rather than incidental.
+   *
+   * The obvious spelling here is
+   * `grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr))`.
+   * It is correct CSS and it satisfies `CLAUDE.md` #12 — its minimum is
+   * capped at 100%, so the track shrinks. But `scale-rules.test.ts`'s
+   * bare-`1fr` check strips well-formed tracks with `minmax\([^)]*\)`, which
+   * stops at the *first* `)` — so a nested `min()` leaves `, 1fr)` behind and
+   * the line reads as a bare `1fr`.
+   *
+   * Taking the documented `scale-exempt:` escape hatch would have worked and
+   * would have been a lie by omission: the rule is not being opted out of
+   * here, it is being satisfied in a spelling the checker cannot parse.
+   * Wrapping flex needs no track list at all, behaves identically for this
+   * content, and leaves the gate reading real code rather than an exemption.
+   */
+  .track {
+    display: flex;
+    flex-wrap: wrap;
+    inline-size: auto;
+    transform: none;
+    will-change: auto;
+  }
+
+  .item {
+    flex: 1 1 auto;
+    inline-size: auto;
+    min-inline-size: min(100%, 20rem);
+  }
+}
