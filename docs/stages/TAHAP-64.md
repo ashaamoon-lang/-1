@@ -118,6 +118,39 @@ diklaim.
 
 ---
 
+## 3.5 Yang ditemukan saat merencanakan penyambungannya
+
+Dicatat sebelum 64b dikerjakan, karena ia menentukan bentuk penyambungannya.
+
+**`useReveal({ perItem: true })` adalah mekanisme yang salah di dalam pin.**
+`ProjectGallery` memakainya, dan Tahap 56 menambahkannya dengan alasan yang
+terukur: tengah `/en/work/<slug>` mati — dua dari dua belas langkah gulir
+menghasilkan kedatangan. Satu `useReveal` di `<ul>` adalah satu peristiwa untuk
+setiap plat di bawahnya.
+
+Tapi `useReveal` adalah IntersectionObserver, dan **di dalam section ter-pin
+item tidak pernah bergerak secara vertikal.** Semuanya berada di dalam pita
+viewport yang sama sepanjang pin. Jadi per-item reveal akan menyala untuk
+semuanya sekaligus — persis defek yang Tahap 56 perbaiki, kembali lewat pintu
+lain.
+
+Jawabannya bukan menambal observer-nya: **perjalanan horizontal ITU
+kedatangannya.** Sebuah plat tiba saat ia masuk layar dari kanan, digerakkan
+oleh gulir pembaca. Itu peristiwa per-item yang sesungguhnya, dan ia tidak
+butuh observer sama sekali.
+
+Jadi 64b: `perItem` dilepas di mode run, `useReveal` pindah ke section-nya
+sebagai satu kedatangan untuk run itu, dan **alasan Tahap 56 tetap dipenuhi —
+oleh mekanisme yang berbeda, bukan dengan membatalkan temuannya.**
+
+Konsekuensi kedua, lebih kecil: `useParallax` di `.parallax` menghitung dari
+posisi vertikal item, yang di dalam pin tidak pernah berubah. Ia tidak
+_berkonflik_ dengan transform trek — elemennya berbeda — ia hanya jadi mati.
+Dilepas karena kode mati yang terlihat hidup lebih buruk daripada kode yang
+tidak ada.
+
+---
+
 ## 4. Gerbang
 
 | gerbang                     | yang dituntut                                                                                     |
