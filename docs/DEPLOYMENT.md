@@ -110,6 +110,63 @@ manage.sanity.io → project → **API → CORS origins → Add origin**
 This step is the single most common reason a correct deployment appears
 broken.
 
+### 2.1 Point the domain at it — Porkbun to Vercel
+
+Do this after the first deploy succeeds on the `*.vercel.app` URL, not before:
+a domain pointed at a project that does not build yet just fails in a place
+that is harder to read.
+
+**On Vercel first, not Porkbun first.** Project → **Settings → Domains → Add**,
+and add **three** names:
+
+| name            | what it is                                                     |
+| --------------- | -------------------------------------------------------------- |
+| `arth.<domain>` | the site. Or the apex, if you want the site at the bare domain |
+| `www.<domain>`  | add it and let Vercel redirect it to the canonical one         |
+| `lab.<domain>`  | the sandbox surface (`docs/DIREKSI.md` §5)                     |
+
+Vercel then shows the exact DNS records to create. **Those values are the
+source of truth — not this document, and not any other guide.** Vercel has
+changed its published record values before, and a guide that copied an old one
+is the most common way a domain ends up pointing at somebody else's project
+for hours. Copy them from the screen you are looking at.
+
+What it will ask for has this shape, so you know what you are reading:
+
+- an **A** record on the apex (`@`), pointing at an IP Vercel names
+- a **CNAME** for each subdomain (`arth`, `www`, `lab`), pointing at a Vercel
+  hostname
+
+**In Porkbun:** domain → **DNS** → delete the parking records Porkbun added at
+purchase (they will otherwise fight yours), then add the records exactly as
+Vercel printed them. Propagation is usually minutes; Vercel's Domains screen
+tells you when it sees them, and issues the certificate itself.
+
+### 2.2 Why `lab` is added now, before there is anything on it
+
+There is no `/lab` route yet — that is Tahap 67. The domain is added now
+anyway, because DNS is work you would otherwise do twice, and until the route
+exists `lab.<domain>` simply serves the same site. Nothing breaks.
+
+The decision it encodes, with its cost stated: **one Vercel project, two
+domains** — not a second project. A second project would mean two builds, two
+sets of environment variables and two deployments for every commit, and since
+both surfaces share `vault/`, every primitive change would have to ship twice.
+The cost of one project is the honest one: a lab experiment ships alongside
+the main site. That is exactly why `docs/DIREKSI.md` §3.1's correctness gates
+apply in full on `/lab`; only the taste gates are relaxed there.
+
+`lab.<domain>` starts being its own thing when `proxy.ts` learns to map it, in
+Tahap 67.
+
+One consequence worth knowing before you see it and read it as a bug:
+`NEXT_PUBLIC_BASE_URL` is a single value baked in at build time, so every page
+served on `lab.<domain>` will carry a canonical, `hreflang` and `og:url`
+pointing at the main domain. That is the correct answer while the two serve
+the same content — one canonical, no duplicate-content split — and it is why
+`e2e/canonical-sweep.e2e.ts` keeps passing. It becomes wrong the day `/lab`
+has content of its own, and Tahap 67 owns fixing it.
+
 ---
 
 ## 3. Check the deploy is actually right
@@ -164,8 +221,19 @@ instead of silently doing nothing.
 
 ## 5. Deploying to a VPS later
 
+> **Status, so nobody reads this as the plan: it is not.** `infra/` holds a
+> complete set of GCP provisioning and bootstrap scripts, written and then
+> **frozen** in Tahap 62. The VPS was cancelled once the machine was actually
+> measured — `bun run build` peaks at **3.35 GB RSS** and takes **74.9 s**, and
+> a site that is almost entirely prerendered never needed an always-on box to
+> serve it. Vercel's free tier does the job for nothing. The scripts stay
+> because the measurements in them are real and this section still promises
+> the route; `infra/README.md` says the same at its head.
+
 The app is a standard Next.js server. Nothing here is Vercel-specific except
-`@vercel/analytics`, which no-ops when `VERCEL_ENV` is unset.
+`@vercel/analytics`, which no-ops when `VERCEL_ENV` is unset. There is
+deliberately no `output: 'standalone'` in `next.config.ts` — that is a VPS
+packaging mode, and adding it would only cost Vercel builds size.
 
 ```bash
 bun install

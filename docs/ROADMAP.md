@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 61**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 62**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2065,6 +2065,52 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 62 — Vercel, domain Porkbun, dan `lab` yang dipesan lebih dulu ✅
+
+> Spec: [`docs/stages/TAHAP-62.md`](./stages/TAHAP-62.md)
+
+Nol perubahan visual, dan **lebih kecil dari yang direncanakan** — itu
+temuannya sendiri. Rencana menyebut tahap ini "membuat bagian Vercel di
+`DEPLOYMENT.md`"; bagian itu sudah ada sejak Tahap 6 dan sudah benar, lengkap
+sampai CORS Sanity dan webhook publish. Yang benar-benar hilang cuma satu
+hal, dan itu justru langkah yang milik user: **domainnya**.
+
+**§2.1 baru — Porkbun ke Vercel.** Vercel dulu, Porkbun sesudahnya, karena
+Vercel-lah yang mencetak recordnya. Tiga nama ditambahkan sekaligus:
+`arth.<domain>`, `www`, dan `lab`. **Nilai DNS-nya sengaja tidak ditulis
+sebagai angka** — hanya bentuknya (mana A, mana CNAME), dengan layar Domains
+Vercel dinyatakan menang atas dokumen ini sendiri. Vercel pernah mengubah A
+record-nya, dan panduan yang menyalin nilai lama adalah cara paling umum
+sebuah domain menunjuk ke proyek orang lain selama berjam-jam.
+
+**Keputusan `lab`: satu proyek Vercel, dua domain** — bukan proyek kedua.
+Proyek kedua berarti dua build, dua set env var, dua deployment per commit,
+dan karena `vault/` dibagi keduanya, tiap perubahan primitive naik dua kali.
+Ongkos satu proyek dinyatakan apa adanya: eksperimen lab ikut naik bersama
+situs utama — dan justru itu sebabnya gerbang kebenaran `DIREKSI.md` §3.1
+berlaku penuh di `/lab`. Domainnya ditambahkan sekarang meski rutenya baru ada
+di Tahap 67, karena DNS adalah pekerjaan yang kalau tidak begitu dikerjakan
+dua kali.
+
+Satu konsekuensi ditulis **sebelum** ia terlihat, supaya tidak ditemukan
+sebagai "bug": `NEXT_PUBLIC_BASE_URL` satu nilai dan dipanggang saat build,
+jadi halaman di `lab.<domain>` membawa canonical domain utama. Itu benar
+selama keduanya menyajikan isi yang sama, dan jadi salah pada hari `/lab`
+punya isi sendiri.
+
+**`infra/` dibekukan, bukan dihapus.** Tujuh berkas skrip GCP diberi catatan
+di kepala `infra/README.md`: VPS dibatalkan sesudah mesinnya diukur alih-alih
+ditebak (3,35 GB puncak RSS, 74,9 detik, separuh core hanya 11 detik lebih
+lama), dan situs yang hampir seluruhnya diprerender tidak pernah butuh mesin
+menyala 24 jam. Pengukurannya nyata, jadi berkasnya disimpan — statusnya
+berubah dari "rencana" jadi "kalau nanti perlu".
+
+Tahap ini **tidak bisa dinyatakan tayang oleh agen.** Lima langkahnya milik
+user; `DEPLOYMENT.md` §3 punya `curl` untuk membuktikannya dan §6 checklist
+pra-tayangnya.
 
 ---
 

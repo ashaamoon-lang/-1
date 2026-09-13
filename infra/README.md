@@ -1,5 +1,30 @@
 # Menyalakan infrastruktur ARTH
 
+> ## ⛔ DIBEKUKAN — VPS tidak jadi dibeli, dan tidak ada di roadmap
+>
+> **Situs ini tayang di Vercel.** Lihat [`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md)
+> §2. Tidak ada satu pun tahap di `ROADMAP.md` yang memakai berkas di folder
+> ini, dan tidak ada yang perlu Anda jalankan di sini.
+>
+> **Kenapa dibatalkan, dan kenapa berkasnya tetap ada.** Mesinnya akhirnya
+> diukur alih-alih ditebak: `bun run build` memuncak di **3,35 GB RSS** dalam
+> **74,9 detik**, dan separuh core hanya membuat build **11 detik** lebih lama
+> — spesifikasi 4 vCPU/16 GB yang saya tentukan lebih dulu adalah lima kali
+> lipat dari yang dipakai. Lalu pertanyaan yang lebih mendasar: situs ini
+> hampir seluruhnya diprerender, jadi ia tidak pernah butuh mesin yang menyala
+> 24 jam untuk menyajikannya, dan GitHub Actions sudah membangun serta
+> mengujinya gratis.
+>
+> Berkasnya disimpan karena **pengukurannya nyata** dan
+> `docs/DEPLOYMENT.md` §5 memang masih menjanjikan jalur VPS. Statusnya
+> berubah dari "rencana" jadi "kalau nanti perlu" — bukan dihapus dari
+> sejarah. Dibekukan di Tahap 62.
+>
+> Semua yang tertulis di bawah ini akurat untuk hari ia ditulis. Ia hanya
+> bukan pekerjaan yang sedang berjalan.
+
+---
+
 **Lima langkah.** Versi sebelumnya menuntut 43 perintah manual, 23 di antaranya
 `gcloud` — dan sebuah setup yang butuh 43 langkah benar berturut-turut tidak
 menguji kecermatan siapa pun, ia menyalahkan orang atas bentuknya sendiri.
