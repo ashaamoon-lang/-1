@@ -37,6 +37,14 @@ pekerjaan Tahap 61, bukan tahap ini.
 
 ### 2.2 Mesin animasinya sudah ada dan kurang dibelanjakan
 
+> **Tabel ini salah, dikoreksi Tahap 63.** Ia mengaku menghitung
+> `components/` dan tidak melakukannya: `icon` ada di tiga berkas di sana
+> (`breadcrumbs`, `command`, `lightbox`), bukan nol, dan `noise-texture` ada
+> di `components/layout/theme`, jadi tiga bukan satu. Yang benar-benar duduk
+> di satu konsumen ada **tiga** modul, bukan enam —
+> `docs/stages/TAHAP-63.md` §1 memuat hitungan yang benar. Kesimpulan di
+> bawahnya karena itu lebih lemah dari yang tertulis.
+
 Jumlah konsumen tiap komponen gerak, dihitung di `app/`, `vault/blocks/`,
 `components/`:
 

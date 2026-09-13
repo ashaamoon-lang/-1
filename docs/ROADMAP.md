@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 62**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 63**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2068,6 +2068,48 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 63 — Mesin yang menganggur, dan empat yang ternyata tidak ✅
+
+> Spec: [`docs/stages/TAHAP-63.md`](./stages/TAHAP-63.md)
+
+**Tahap ini lebih kecil dari rencananya, dan alasannya kesalahan pengukuran
+saya sendiri.** Rencana menyebut "enam mekanisme duduk di satu atau dua
+konsumen". Penghitungnya melewatkan `components/`: `icon` bukan 0 melainkan
+**3** (`breadcrumbs`, `command`, `lightbox`), `noise-texture` bukan 1
+melainkan **3**. Yang benar-benar duduk di satu konsumen ada **tiga** modul.
+Konsekuensinya lebih besar dari angkanya: argumen "kail tertahan karena mesin
+lama belum dibelanjakan" lebih lemah dari yang saya nyatakan — kailnya ada di
+Tahap 64 dan 65, bukan di sini.
+
+**Tiga tidak dibelanjakan, dan itu keputusan, bukan kelalaian.** `counter`
+beranimasi saat **berubah**, tidak pernah saat tiba, dan satu-satunya angka
+yang berubah karena aksi pembaca adalah hitungan katalog — tahun jurnal dan
+fakta studio tidak pernah berubah, jadi tidak ada yang bisa dihitung di
+antaranya. `flip` melayani `catalogue-sift`; rumah keduanya yang jelas, baris
+indeks `/journal`, sudah memakai view transition untuk pekerjaan yang sama, dan
+dua mekanisme untuk satu pekerjaan adalah kebalikan dari standar repo ini.
+404 tidak dapat `Magnetic` karena ia tidak memasang GSAP, dan menambah GSAP ke
+halaman yang dilihat pengunjung tersesat demi satu tautan magnetis adalah
+menukar bobot dengan hiasan di tempat yang paling tidak mampu membayarnya.
+
+**Dua dibelanjakan, empat penempatan, masing-masing dengan aturan yang
+menentukan tempatnya.** `pixel-image` milik gambar yang **tidak** punya
+lapisan material — setiap sampul di `/`, `/work`, `/practice/<v>` dan hero
+proyek sudah menjalankan `MaterialImage`, dan menumpuk tirai di atasnya adalah
+dua reveal berebut satu objek. Tersisa dua permukaan bersih: `next-project`
+dan `studio-note`. `magnetic` satu per permukaan, pada aksi yang permukaan itu
+ada untuk menawarkannya: closing action `/studio`, dan alamat email di
+`contact-block` — satu-satunya hal yang seluruh kunjungan bermuara padanya.
+
+**Diukur, bukan diasumsikan** (pelajaran Tahap 58/59). Tirai di produksi,
+1440×900: sebelum masuk view **24 tile semua di opacity 1,0**; +400ms
+**21 masih pekat** (min 0,33); +1300ms **nol pekat**; mengendap **0**. Itu
+stagger yang benar-benar berjalan, bukan tirai yang lahir transparan — yang
+akan lolos "tidak ada yang tertutup" tanpa pernah jadi efek. Reduced motion,
+tanpa gulir: nol tile pekat, gambar `opacity: 1` dan terlihat.
+
+---
+
 ## Tahap 62 — Vercel, domain Porkbun, dan `lab` yang dipesan lebih dulu ✅
 
 > Spec: [`docs/stages/TAHAP-62.md`](./stages/TAHAP-62.md)
@@ -2177,9 +2219,11 @@ dijatah. Nol perubahan visual di tahap ini: aturannya ditetapkan lebih dulu.
 Dua hal diukur sebelum satu baris diubah. **~~Tidak ada gerbang yang membatasi
 tinggi~~ — klaim ini salah, dikoreksi Tahap 61.** Penyisiran 39 berkas e2e
 melewatkan tiga gerbang yang membatasinya tanpa memakai kata "tinggi"; lihat
-entri Tahap 61 di atas. Yang benar dan bertahan: **mesin animasinya kurang
-dibelanjakan** — `magnetic`, `pixel-image`, `curtain` masing-masing 1 konsumen;
-`counter` dan `flip` masing-masing 2.
+entri Tahap 61 di atas. Klaim keduanya — **mesin animasinya kurang
+dibelanjakan** — **juga salah sebagian**, dikoreksi Tahap 63: penghitungnya
+melewatkan `components/`, jadi `icon` bukan 0 melainkan 3 dan `noise-texture`
+bukan 1 melainkan 3. Yang benar-benar duduk di satu konsumen ada **tiga**
+modul, bukan enam.
 
 Plafon momen 3 → **12** di empat rute merek, 6 di `/journal` dan
 `/work/<slug>`, **3** di `/journal/<slug>`. Tapi angkanya bukan lagi

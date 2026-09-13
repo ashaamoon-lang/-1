@@ -83,3 +83,15 @@
     scale: 1;
   }
 }
+
+/*
+ * The veil's ground — Tahap 63.
+ *
+ * `--surface-2` rather than the page ground, matching `.media` above: a tile
+ * the colour of the page would read as a tile against the box, one the colour
+ * of the box is invisible until it goes. Same escape hatch
+ * `project-gallery` uses, for the same reason.
+ */
+.pixels {
+  --pixel-ground: var(--surface-2);
+}

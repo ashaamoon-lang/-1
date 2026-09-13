@@ -17,6 +17,7 @@ import { StepSequence } from '@/vault/blocks/step-sequence'
 import { DotPattern } from '@/vault/magic/dot-pattern'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
+import { Magnetic } from '@/vault/primitives/magnetic'
 
 import s from './page.module.css'
 
@@ -451,15 +452,31 @@ export default async function StudioPage() {
             {t('closing')}
           </p>
           <div data-reveal-item>
-            <Link
-              href="/work"
-              className={cn('caption', s.closingAction)}
-              // `MOTION-SPEC.md` §9 — the page's one forward action.
-              data-press="cta"
-              data-intent=""
-            >
-              {t('closingAction')}
-            </Link>
+            {/*
+              Magnetic on the page's one forward action — Tahap 63.
+
+              The rule this follows, so it stays a rule: **one per surface, on
+              the action that surface exists to offer.** Scattering pointer
+              attraction across every link is how it stops meaning anything;
+              putting it on the single thing a reader is being asked to do is
+              what makes it read as considered rather than decorative. The
+              comment below already named this link as that action, which is
+              why it is the one that gets it.
+
+              Costs nothing new here: `<Wrapper gsap>` is already mounted for
+              `TextReveal` on this route, and `Magnetic` is `gsap.quickTo`.
+            */}
+            <Magnetic>
+              <Link
+                href="/work"
+                className={cn('caption', s.closingAction)}
+                // `MOTION-SPEC.md` §9 — the page's one forward action.
+                data-press="cta"
+                data-intent=""
+              >
+                {t('closingAction')}
+              </Link>
+            </Magnetic>
           </div>
         </Reveal>
       </div>
