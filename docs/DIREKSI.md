@@ -51,18 +51,29 @@ garis 75% milik `useReveal`, sehingga setiap sampul tinggal di `opacity: 0` dan
 
 Ruang tinggi yang benar-benar tersisa, terukur 1440×900:
 
-| rute              | sekarang | tersisa                                                |
-| ----------------- | -------- | ------------------------------------------------------ |
-| `/`               | 100svh   | nol — sudah penuh layar                                |
-| `/studio`         | 87%      | kecil                                                  |
-| `/practice/<v>`   | 70%      | **nyata** — satu-satunya rute merek yang tidak ditahan |
-| `/work/<slug>`    | 95%      | **nol** — fold 800px                                   |
-| `/journal/<slug>` | —        | nyata                                                  |
-| `/work`           | 31%      | **nol** — `first-screen`                               |
-| `/journal`        | 39%      | **nol** — `first-screen`                               |
+| rute              | sekarang | tersisa                                   |
+| ----------------- | -------- | ----------------------------------------- |
+| `/`               | 100svh   | nol — sudah penuh layar                   |
+| `/studio`         | 87%      | kecil                                     |
+| `/practice/<v>`   | 70%      | **nol** — diukur Tahap 65, lihat di bawah |
+| `/work/<slug>`    | 95%      | **nol** — fold 800px                      |
+| `/journal/<slug>` | —        | nyata                                     |
+| `/work`           | 31%      | **nol** — `first-screen`                  |
+| `/journal`        | 39%      | **nol** — `first-screen`                  |
 
-Jadi menaikkan tinggi menyentuh **tiga rute, bukan tujuh** — dan itu pun bukan
-pekerjaan yang berarti sendirian. Prinsipnya tidak berubah, dan justru
+**Dikoreksi Tahap 65: kolom `/practice/<v>` di tabel ini dulu berbunyi
+"nyata — satu-satunya rute merek yang tidak ditahan", dan itu salah.** Tidak
+ada _gerbang_ yang menahannya, tapi tata letaknya menahan: pernyataan halaman
+itu harus mendarat di atas garis reveal 75% (675px pada 1440×900), dan dengan
+jarak 48px dari hero itu berarti hero ≤ ~70% layar — persis di mana ia sudah
+berada. `TAHAP-52.md` §4a mengukurnya lebih dulu; Tahap 65 mengukurnya lagi
+**sesudah lapisannya benar-benar masuk** dan angkanya tidak bergerak satu
+piksel pun, karena lapisan itu duduk di bawah pernyataan. Kalimat di bawah
+tentang "tahap yang memasukkan lapisannya" tetap benar sebagai prinsip; di rute
+ini akibatnya sudah diuji dan tidak datang.
+
+Jadi menaikkan tinggi menyentuh **dua rute, bukan tiga dan bukan tujuh** — dan
+itu pun bukan pekerjaan yang berarti sendirian. Prinsipnya tidak berubah, dan justru
 prinsipnya yang penting: yang bertambah adalah **ruang, lapisan, dan gerak** —
 bukan baris teks. Konsekuensi jujurnya, **hero lebih tinggi dengan isi yang
 sama bukan lebih memukau, melainkan lebih kosong**; jadi tinggi naik sebagai

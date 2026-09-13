@@ -1,0 +1,187 @@
+/*
+ * How far a capability that is not being read recedes.
+ *
+ * The same 0.7 `vault/blocks/step-sequence` arrived at, and deliberately not
+ * re-derived by eye. That value was not chosen — it was swept against axe in
+ * Tahap 27 after 0.55 measured 3.7:1 on the dark ground, under the 4.5 floor,
+ * and re-swept in Tahap 43 for the light theme. Copying the number without
+ * its reasoning is how a measured value becomes a magic one, so: 0.65 is the
+ * first that passes there, and 0.7 is one step above that floor.
+ *
+ * It is conservative here rather than borrowed. WCAG's floor for large text
+ * is 3:1, not 4.5:1, and everything that recedes in this block is `h2`-scale.
+ * A value proven safe for body copy is safe for display type on the same
+ * ground; the reverse would not have been.
+ */
+.set {
+  --capability-recede: 0.7;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-lead);
+
+  @media (--desktop) {
+    display: grid;
+    grid-template-columns:
+      calc((100% - var(--gap) * 11) / 12 * 3 + var(--gap) * 2)
+      minmax(0, 1fr);
+    column-gap: var(--gap);
+    /*
+     * `start` for the items column so it begins at the top of the row rather
+     * than being stretched to it; `.column` opts back out below. Same
+     * containing-block mechanism `step-sequence` records: a sticky element
+     * travels through its containing block, so the wrapper must be as tall
+     * as the row while the pinned element inside stays its own size.
+     */
+    align-items: start;
+  }
+}
+
+.column {
+  min-width: 0;
+
+  @media (--desktop) {
+    align-self: stretch;
+    block-size: 100%;
+  }
+}
+
+.held {
+  display: flex;
+  flex-direction: column;
+  gap: desktop-vw(12px);
+
+  @media (--desktop) {
+    /*
+     * The pin. Its offset clears the fixed header from the header's own
+     * measurement rather than a round number.
+     */
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + var(--section-lead));
+  }
+}
+
+.label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+
+/*
+ * The echo of the capability being read.
+ *
+ * Not uppercase and, unlike `.label`, **no colour declared at all** — it
+ * inherits the surface's own text colour, which is the theme's full-contrast
+ * one. Declaring a "primary text" token here would have invented one: this
+ * project has `--text-muted` and nothing beside it, because unmuted *is* the
+ * inherited state. The difference between the two lines is that one opts out
+ * and the other does not.
+ *
+ * It is also the only thing in this column that can change — the alternative
+ * signal, a numeral, is the one this block exists to refuse — and
+ * `step-sequence` records why a column that cannot change should not be
+ * pinned at all.
+ */
+.echo {
+  margin: 0;
+  transition: opacity var(--duration) var(--ease-out-expo);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  border-top: 1px solid var(--line);
+  padding-block: mobile-vw(24px);
+  /*
+   * Only `opacity`, and only on the whole item — never a colour transition,
+   * which animates a paint property (`CLAUDE.md` #4).
+   */
+  opacity: var(--capability-recede);
+  transition: opacity var(--duration) var(--ease-out-expo);
+
+  @media (--desktop) {
+    /*
+     * The length that makes the pin real.
+     *
+     * `step-sequence` uses 62svh per step and holds its label for roughly
+     * three viewports across four steps. This is shorter on purpose: a step
+     * there carries a title *and* a paragraph, and a capability is two or
+     * three words. At 62svh four of these would be four screens of air.
+     *
+     * 46svh is where two things are true at once, both measured on the
+     * production build at 1440x900: the column holds for **1349px** against
+     * an 800px viewport — long past the ~200px Tahap 24 proved no reader
+     * perceives as holding — and **exactly two statements share the screen**,
+     * the one being read and the one arriving. Three at a time would undo
+     * "one thing at a time"; one at a time would leave nothing to scroll
+     * toward.
+     *
+     * `svh`, not `vh`: a mobile toolbar resizing `vh` mid-scroll would
+     * re-run layout during exactly the gesture this section is read with.
+     */
+    min-block-size: 46svh;
+    /*
+     * Pack to the top and let the height spill below. Without this the row
+     * stretches and a two-word statement floats in the middle of half a
+     * screen; the extra height is meant to be space *after* an item.
+     */
+    display: grid;
+    align-content: start;
+    padding-block: desktop-vw(32px) desktop-vw(48px);
+  }
+}
+
+.item[data-active] {
+  opacity: 1;
+}
+
+.statement {
+  margin: 0;
+  max-width: 20ch;
+}
+
+/*
+ * Reduced motion: nothing recedes, nothing is held, and the section collapses
+ * to the height its content actually needs.
+ *
+ * The component creates no trigger under the preference, so `data-active`
+ * would stay on the first item forever and the other three would sit at
+ * `--capability-recede` permanently — content dimmed by an effect that was
+ * switched off. `CLAUDE.md` #5 is explicit that content must end fully
+ * visible, and the stylesheet is the layer that can promise it.
+ *
+ * The heights go too, and that is the part `step-sequence` does not do. Its
+ * steps carry a paragraph each, so their length is still reading surface with
+ * the motion off. Four two-word statements at 46svh with nothing leading the
+ * reader between them is two screens of empty page bought by an effect that
+ * is not running.
+ */
+@media (--reduced-motion) {
+  .item,
+  .item[data-active] {
+    opacity: 1;
+    transition: none;
+  }
+
+  .echo {
+    transition: none;
+  }
+
+  @media (--desktop) {
+    .item {
+      min-block-size: 0;
+      padding-block: desktop-vw(32px);
+    }
+
+    .held {
+      position: static;
+    }
+  }
+}

@@ -1,14 +1,16 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 63**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 65**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
 > sampai Tahap 45 — empat puluh lima tahap setelah itu berhenti benar. Lalu ia
-> berhenti di "45" sampai Tahap 61, enam belas tahap terlalu lama. **Dokumen
-> yang berbohong tentang kodenya sendiri lebih buruk daripada tidak ada
-> dokumen**, dan baris ini sudah dua kali membuktikannya: perbarui angkanya di
-> tahap yang menambah entrinya, bukan nanti.
+> berhenti di "45" sampai Tahap 61, enam belas tahap terlalu lama. Lalu Tahap
+> 64 tidak menulis entrinya sama sekali dan meninggalkan baris ini di "63",
+> diperbaiki di Tahap 65. **Dokumen yang berbohong tentang kodenya sendiri
+> lebih buruk daripada tidak ada dokumen**, dan baris ini sudah **tiga** kali
+> membuktikannya: perbarui angkanya di tahap yang menambah entrinya, bukan
+> nanti.
 >
 > Dokumen ini adalah kontrak kerja untuk membangun situsnya. Agen mana pun yang
 > membuka repo ini membacanya setelah `CLAUDE.md`. Ia menetapkan **apa** yang
@@ -2065,6 +2067,124 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 65 — Subjeknya ada sejak Tahap 24, di halaman yang salah dicari ✅
+
+> Spec: [`docs/stages/TAHAP-65.md`](./stages/TAHAP-65.md)
+
+**`DIREKSI.md` §2.3 meminta tiga hal, dan ketiganya sudah punya mekanismenya.**
+`step-sequence`, `counter`, `progress-text` — masing-masing sudah dikirim dan
+dipakai. Yang belum ada adalah **subjek** untuk yang pertama, dan Tahap 52 §2.1
+menolak butir itu karena tidak menemukannya: _"Butir ini bukan 'ditunda' — ia
+tidak punya subjek. Ditolak."_
+
+**Bacaan itu benar tentang berkasnya dan salah tentang repo ini.** Daftarnya
+ada di `messages/{en,id}.json` sejak Tahap 24 — `studio.capabilities.<praktik>`,
+**dua belas butir tersimpan sebagai tiga string**, tayang hanya di `/studio`
+sebagai tiga baris `caption`. Jadi yang dikirim tahap ini bentuknya, bukan
+kata-katanya. Nol entri karangan, nol perubahan pada katalog pesan.
+
+**Restrukturisasi katalog pesan dicoba dan tidak bisa dikompilasi.** Empat
+kunci bernama per praktik memuai jadi hasil kali tiga praktik × dua belas nama
+butir ketika halaman memetakan `PRACTICES` — 36 kunci, yang ada 12, dan
+TypeScript tidak bisa mengorelasikan dua paruhnya lewat `.map()`. Nama slot
+seragam lolos tipe tapi **menomori himpunan tak berurutan**, yang persis
+ditolak `step-sequence`. Jadi katalognya tidak disentuh dan `capabilityItems()`
+membaca barisnya kembali jadi butirnya — dan jaminannya pindah ke uji yang
+menuntut kedua locale pecah jadi jumlah yang sama.
+
+`vault/blocks/capability-set`: kolom tertahan, empat kapabilitas sebagai tipe
+terbesar di layar. **Bukan `StepSequence`**, karena blok itu memasang `01 / 04`
+dan proses studio berurutan sementara himpunan kapabilitas tidak. Yang dipakai
+ulang mekanismenya — `use-active-in-sequence`, hook yang sama.
+
+**Satu cacat cascade ditemukan karena diukur, bukan karena dilihat.**
+Pemasangan pertama melewatkan `className={s.section}` halaman ini ke blok itu.
+`.section` adalah flex column; `.set` jadi grid di dalam `@media (--desktop)`,
+dan media query tidak menambah spesifisitas — jadi blok itu tata letaknya jadi
+flex, pembungkus ter-pin-nya menyusut ke kontennya, dan sticky-nya kehilangan
+seluruh rentangnya. **Kolom: 200 → −1357, held 0px.** Tanpa class itu: 115
+tetap di sebelas perhentian, **held 1349px**. `/studio` memberi `StepSequence`
+nol class untuk alasan yang sama.
+
+Terukur, 1280×800: lead 4 nilai berbeda, **tepat satu memimpin di setiap
+perhentian**, mundur 0,70 · memimpin 1,00. Reduced motion: bagian 1472 → 396px,
+kolom `static`, keempat butir `opacity: 1` dan tergambar — tingginya ikut
+hilang, yang `step-sequence` sengaja tidak lakukan karena step-nya membawa
+paragraf dan ini tidak.
+
+**Tinggi hero `/practice/<v>` ditolak kedua kalinya, sekarang dengan lapisannya
+benar-benar terpasang.** `DIREKSI.md` §2.1 menulis tinggi naik "sebagai akibat
+di tahap yang memasukkan lapisannya"; tahap ini memasukkannya dan akibatnya
+tidak datang — lapisan itu duduk **di bawah** pernyataan, jadi hero (630 = 70%),
+`h1` (542–644) dan pernyataan (788) tidak bergerak satu piksel pun dan batas
+Tahap 52 §4a berlaku persis seperti adanya. Dokumen 3030 → **4734px**
+(3,37 → 5,26 layar): yang bertambah dua layar yang dibaca, bukan udara di atas.
+
+Gerbang barunya `e2e/practice-capabilities.e2e.ts`, **dibuktikan merah dengan
+cacat yang nyata alih-alih stub** — `className` dikembalikan, dibuild ulang,
+dijalankan: 1 gagal ("held 0px"), 5 lulus. Lima yang hijau mengukur klaim yang
+berbeda dan memang tidak rusak oleh cacat itu.
+
+Keyboard diuji, bukan diargumentasikan: **nol** elemen fokusable di dalam
+bagian ter-pin, **nol** fokus terperangkap, dan Tab dari breadcrumb mendarat di
+kartu pertama kisi proyek (scrollY 0 → 2862, y=19). Tahanannya CSS `sticky`,
+bukan GSAP `pin`, jadi tidak ada posisi gulir yang ditulis ulang.
+
+unit **427 lulus** · e2e **652 lulus, 0 gagal**, 14 dilewati (19,0m) ·
+`route-budget` hijau pada plafon 900 KB **yang tidak dinaikkan** ·
+`interaction-grammar` rute ini 3 → 4 dari 12.
+
+---
+
+## Tahap 64 — Gulir horizontal dalam vertikal, dan konten yang belum cukup memakainya ✅
+
+> Spec: [`docs/stages/TAHAP-64.md`](./stages/TAHAP-64.md)
+>
+> **Entri ini ditulis di Tahap 65, bukan di Tahap 64.** Header dokumen ini
+> melarang itu dua kali dengan kalimatnya sendiri — "perbarui angkanya di tahap
+> yang menambah entrinya, bukan nanti" — dan Tahap 64 melanggarnya: tidak ada
+> entri sama sekali, dan baris status berhenti di 63. Dicatat di sini alih-alih
+> diperbaiki diam-diam, karena itu ketiga kalinya dokumen ini berbohong tentang
+> kodenya sendiri.
+
+`vault/motion/horizontal`: satu bagian ter-pin di mana gulir vertikal
+menggerakkan deretan horizontal. Mekanismenya **benar**, dan hasil utama
+tahap itu tetap **negatif**.
+
+Dipasang tanpa syarat di galeri `/work/<slug>`, seperti rencananya, lalu
+diukur:
+
+```
+items: 2   trackWidth: 1027   viewportWidth: 1161   travel: -134
+TRACK x: 0 .. 0   |   sampel yang bergerak: 0 / 9
+```
+
+**Treknya lebih sempit dari kotaknya sendiri.** `travel()` di-clamp ke nol, dan
+yang tayang adalah pin yang menahan satu layar penuh lalu tidak melakukan
+apa-apa. Dan itu bukan kasus tepi: **keenam proyek fixture punya tepat dua
+gambar**, jadi itu satu-satunya kasus yang ada. `step-sequence` sudah menamai
+kegagalan ini — "a held note that resolves inside one screen is not held; it is
+a coincidence".
+
+Dengan perjalanan tersedia (ambang diturunkan sementara, diukur, lalu
+dikembalikan): `travel: 1133`, trek −1133..0, 8/12 sampel bergerak,
+`overflow-x: clip`, `.pin-spacer` ada. Mekanismenya benar.
+
+Jadi bentuknya milik **konten**, bukan rute: `RUN_MINIMUM = 4` di
+`project-gallery`, angkanya dari pengukuran — pada 34vw per butir, tiga butir
+melewati kotaknya ~320px (sebuah sentakan), empat ~800px (kira-kira satu
+layar). **Pada fixture hari ini run-nya tidak pernah muncul**, dan itu ditulis
+di dalam kodenya. Konten fixture naik dari catatan kaki jadi jalur kritis.
+
+`TAHAP-64.md` §3.5 ditulis ulang jadi **pertanyaan terbuka**: klaim saya bahwa
+`useReveal({perItem})` adalah mekanisme yang salah di dalam pin punya lubang —
+`IntersectionObserver` dua dimensi dan `rootMargin` repo ini hanya menyisipkan
+bagian bawah. Diuji, dan pengukurannya tidak menyelesaikan apa pun ke arah mana
+pun karena dengan dua butir yang kedua tidak pernah keluar viewport 1440.
+`perItem` dipertahankan, dengan bukti dan batasnya tertulis.
 
 ---
 
