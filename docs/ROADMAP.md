@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 66**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 67**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,72 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 67 — Komposisi yang tiga dokumen gambarkan, dan halamannya tidak render ✅
+
+> Spec: [`docs/stages/TAHAP-67.md`](./stages/TAHAP-67.md)
+
+`vault/blocks/hero` menulis, sejak Tahap 12d: _"The text elements sit on a
+diagonal: the index in the top right, the headline and its action at the bottom
+left."_ Prop `index`-nya ada, bertipe, berdokumen. Markup-nya ada. CSS-nya ada
+(`grid-column: 9 / -1`, "the four columns the headline's 9em measure leaves
+free"). `home.heroIndexLabel` ada di **kedua** kamus. `lib/content/practices.ts`
+mengatakan hal yang sama.
+
+**Dan `app/[locale]/page.tsx` tidak pernah mengoper prop itu**, selama lima
+puluh lima tahap. Terukur pada build produksi, 1440×900:
+
+```
+.frame     72–836
+.content  462–836       h1 462–666 w=1080   subline 698–758 w=363   action 790–836 w=178
+```
+
+Tidak ada apa pun di atas 462 — **51% layar pertama hanya ground** — dan tiga
+elemen teks berukuran 1080/363/178: sebuah tangga menuruni tepi kiri. Persis
+komposisi yang doc prop itu catat Tahap 12 **hapus**.
+
+Kelas cacat yang sama dengan `[data-epic]` yang menyebut momen tanpa elemen,
+yang Tahap 50 dan 52 temukan dua kali di motion. Kali ini di **komposisi**, dan
+tidak ada satu gerbang pun yang bisa melihatnya.
+
+**Satu prop dioper, kata-katanya yang halaman ini sudah pakai** — label dari
+`home.heroIndexLabel`, tiga nama praktik dari `PRACTICES` + `workIndex.<praktik>`,
+sumber yang sama persis yang `PracticeList` di bawahnya baca. Nol kata karangan.
+
+**Cacat kedua muncul begitu index-nya tayang, dan ditemukan dengan melihatnya:**
+`.frame` mulai tepat di `--header-height`, jadi labelnya mendarat di **y=72
+terhadap header fixed yang tepi bawahnya 72** — rapat, pita z-20-nya menyentuh
+tinggi huruf. Di telepon **58 terhadap 58**. `padding-block-start` dua sisi,
+ruangnya diambil dari slack baris 2 frame yang menyerap 304px. Terukur: label
++24px (1440), +21px (1280), +17px (390); hero tetap tepat `100svh` di
+ketiganya; CTA tetap di atas fold; dokumen tetap 9918px.
+
+```
+                 sebelum              sesudah
+kolom konten     4/12                 8/12
+baris konten     462–836 (dari 900)   96–836
+telepon          665–794              58–794
+```
+
+**Story-nya juga tidak pernah mengoper prop itu**, jadi katalog komponen
+memperagakan tangga yang sama. Diperbaiki bersama halamannya: story yang
+menghilangkan argumen yang bloknya dirancang di sekitarnya mendokumentasikan
+bloknya salah.
+
+**Dua koreksi terhadap saya sendiri.** Instrumen pengukur pertama melaporkan
+12/12 kolom di setiap rute — ia menghitung `canvas`, grain dan grid pattern
+yang membentang selebar layar dan tidak membawa informasi; diperbaiki jadi
+menghitung hanya daun teks dan gambar. Dan klaim saya di Tahap 66 bahwa layar
+pertama setengah kosong adalah "kebiasaan yang sama di `/work` dan `/journal`"
+**salah**: keduanya mengisi 12/12. Yang sempit hanya beranda (4/12) dan
+`/practice/<v>` (5/12), dan yang kedua sudah diukur di Tahap 65 dan ada di
+plafon yang tata letaknya izinkan.
+
+`taste-preflight` — yang menahan **hero ≤ 4 elemen teks**, dan yang baseline
+merahnya dulu **5** termasuk index — tetap hijau dengan index-nya kembali.
+Plafon tidak ada yang dinaikkan.
 
 ---
 

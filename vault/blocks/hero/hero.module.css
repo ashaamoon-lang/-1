@@ -152,11 +152,35 @@
   display: flex;
   flex-direction: column;
   gap: mobile-vw(8px);
+  /*
+   * Clearance from the fixed header — the mobile half of the note below.
+   *
+   * Measured at 390×844 with the index finally rendered and only the desktop
+   * clearance in place: the label sat at **y=58 against a header whose bottom
+   * edge is 58**, touching it. The phone header is shorter than the desktop
+   * one, so the collision is the same one and arrives sooner.
+   */
+  padding-block-start: mobile-vw(16px);
 
   @media (--desktop) {
     /* The four columns the headline's 9em measure leaves free. */
     grid-column: 9 / -1;
     gap: desktop-vw(12px);
+    /*
+     * Clearance from the header, measured — Tahap 67.
+     *
+     * The frame begins at `--header-height` exactly, so with the index
+     * finally rendered its label started at **y=72 against a fixed header
+     * whose own bottom edge is 72**: flush, with the header's z-20 band
+     * touching the label's cap height. It read as clipped rather than as a
+     * corner.
+     *
+     * The space is taken from row 2, which is the frame's `minmax(0, 1fr)`
+     * slack and was absorbing 304px at 1440×900. That row is meant to give
+     * space up, never to ask for it — the note on `.frame` records what
+     * happened the one time it asked.
+     */
+    padding-block-start: desktop-vw(24px);
   }
 }
 
