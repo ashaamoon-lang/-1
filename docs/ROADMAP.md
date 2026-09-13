@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 65**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 66**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,69 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 66 — Baris yang tidak pernah terisi, di halaman yang paling menjual ✅
+
+> Spec: [`docs/stages/TAHAP-66.md`](./stages/TAHAP-66.md)
+
+**Tiga tahap memperbaiki trek galeri ini. Tidak satu pun memperbaiki barisnya.**
+`/work/<slug>` membelanjakan **1 dari 6** momen — rasio terendah di situs ini —
+dan galerinya berjalan `full, half`, jadi `half`-nya membuka baris yang tidak
+bisa dimasuki apa pun: **572px tanah kosong**, ~450 ribu piksel², di
+satu-satunya halaman tempat sebuah agency menjual satu pekerjaan.
+`project-gallery` sendiri sudah menamai kegagalan itu sebagai alasan aturan
+Tahap 44 ada — _"A portrait sat with 836px of empty page beside it"_ — dan
+aturan itu menurunkan 836 → 572 tanpa menghapusnya.
+
+**Enam kolom kosong itu diisi teks yang sudah ada di halaman:** deskripsi plat
+yang Tahap 44 tulis per plat justru supaya "the gallery plates are not the
+cover", dan yang sampai hari ini hanya terdengar oleh pembaca layar. Nol kata
+baru.
+
+**Platnya tidak melebar, dan aritmetikanya yang menjaganya.** Item mengambil
+dua belas kolom lalu memecahnya kembali jadi dua trek dengan `--gap` yang sama:
+`(1161 − 17) ÷ 2 = 572`, persis lebar sebelumnya. Terukur sesudahnya `liW=1161`
+tapi `imgW=572` — `media-edge` menuntut artwork duduk di paling banyak **dua
+lebar**, dan spread yang meregangkan potret akan lolos "tidak ada yang
+sendirian" sambil melanggarnya. Note-nya naik dari `caption` ke `p-big`: mono
+membawa yang dipindai (`02 / 02` tetap di bawah gambar), display membawa yang
+dibaca.
+
+**`loneHalves()` mensimulasikan aliran grid, bukan menebak dari tetangga** —
+"tetangganya `half`" salah pada tiga `half` berturut-turut. Dibuktikan merah
+dengan aturan naif terpasang: **1 gagal dari 11**, dan yang gagal persis kasus
+itu.
+
+**Satu koreksi terhadap pengukuran saya sendiri.** Bacaan pertama menghitung
+**dua** lubang dan menyebut "860 ribu piksel²". Salah: `half` yang pertama
+adalah sampul `project-hero`, dan barisnya sudah terisi daftar fakta sejak
+Tahap 51. Keduanya memakai atribut `data-span` yang sama; yang membedakan
+tag-nya, dan gerbangnya sekarang memakai `li[data-span]` dengan alasan itu
+ditulis di dalamnya.
+
+**Dua penolakan, dan yang pertama sudah dibangun sebelum ditolak.** Kolom fakta
+hero meninggalkan 487px kosong — spesies yang sama. `align-self: stretch` +
+`align-content: space-between` dipasang, dibuild, diukur: baris pindah dari
+425/482/539/596 ke 425/645/864/1083. **Lubangnya tertutup dan bloknya jadi
+lebih buruk** — empat fakta satu baris ~183px terpisah berhenti jadi daftar dan
+jadi empat label tak berhubungan. Dikembalikan dengan angkanya; alasannya
+tinggal di dalam CSS-nya. Dan rute ini **tetap 1 dari 6 momen**: plafon yang
+tersedia bukan alasan membelanjakannya, dan galeri ini sudah sekali diputuskan
+berada di pita standar dengan alasan terukur.
+
+**Palet tidak berubah.** Monokrom ketat ditegaskan ulang oleh pemilik. Yang
+diperbaiki dokumennya: `DESIGN-SYSTEM.md` §1 dan `TEARDOWN.md` §3 membenarkan
+penolakan aksen dengan _"This site shows commissioned artwork"_, dan sektornya
+berubah di Tahap 60 — ARTH agency sekarang, kategori yang sama dengan ketujuh
+situs yang §3 ukur, yang semuanya mengirim tepat satu aksen. Premisnya
+kedaluwarsa, keputusannya tidak; dicatat supaya tidak dibuka ulang.
+
+Gerbang baru `e2e/project-spread.e2e.ts`, dibuktikan merah dengan spread
+dimatikan: **1 gagal, 1 dilewati, 3 lulus** — yang merah persis "every
+half-width plate has its row filled", dan yang dilewati melewati dirinya karena
+memang tidak ada spread untuk diukur.
 
 ---
 

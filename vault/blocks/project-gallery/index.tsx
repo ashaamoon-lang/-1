@@ -95,6 +95,71 @@ export function isFullWidth(ratio: number | null): boolean {
   return ratio === null || ratio >= 1
 }
 
+/** The twelve-column desktop grid, in the units the spans are written in. */
+const COLUMNS = 12
+
+/**
+ * Which half-width plates end up alone in their row.
+ *
+ * ## The hole this exists to close, and why the last rule did not close it
+ *
+ * `isFullWidth` above fixed a real defect in Tahap 44 — the box and its track
+ * disagreed, so a picture ignored the column it was given. Its own note
+ * records what that looked like: *"A portrait sat with 836px of empty page
+ * beside it."*
+ *
+ * Measured on the production build at 1440×900, `/en/work/arus-balik`,
+ * 2026-09-13 — after that fix:
+ *
+ * ```
+ * span=half   x=16  w= 572  top= 404   h=715
+ * span=full   x=16  w=1161  top=1234   h=675
+ * span=half   x=16  w= 572  top=1957   h=786
+ * ```
+ *
+ * The spans run `half, full, half`, so **neither half ever meets another**:
+ * each one opens a row, the full cannot join it, and 572px of ground sits
+ * beside each picture. Roughly 860 thousand square pixels of empty page, on
+ * the one route that exists to sell a piece of work.
+ *
+ * So the rule fixed the *track* and left the *row*. 836px became 572px, and
+ * stayed.
+ *
+ * ## Why the flow is simulated rather than guessed from neighbours
+ *
+ * "A half pairs when the next item is a half" is wrong on three halves in a
+ * row: the first two fill a row and the third opens its own. The only answer
+ * that is right for every sequence is the one the browser computes — walk the
+ * items, fill rows to twelve columns, and report any row that holds exactly
+ * one half.
+ *
+ * @param spans `true` for a full-width plate, `false` for a half.
+ * @returns One boolean per plate: `true` where a half stands alone in its row.
+ */
+export function loneHalves(spans: readonly boolean[]): boolean[] {
+  const lone = spans.map(() => false)
+
+  let row: number[] = []
+  let used = 0
+
+  const close = () => {
+    const only = row.length === 1 ? row[0] : undefined
+    if (only !== undefined && spans[only] === false) lone[only] = true
+    row = []
+    used = 0
+  }
+
+  for (const [index, full] of spans.entries()) {
+    const width = full ? COLUMNS : COLUMNS / 2
+    if (used + width > COLUMNS) close()
+    row.push(index)
+    used += width
+  }
+  close()
+
+  return lone
+}
+
 interface ProjectGalleryProps {
   /**
    * Anchor target and spine marker — Tahap 40.
@@ -320,9 +385,21 @@ export function ProjectGallery({
    * marker is asserted in both branches rather than assumed from one.
    */
   const plates = (
-    entries: { key: string; full: boolean; figure: ReactNode }[]
-  ) =>
-    travels ? (
+    entries: {
+      key: string
+      full: boolean
+      figure: ReactNode
+      note: string | null
+    }[]
+  ) => {
+    /*
+     * Only the grid needs this. The run lays its plates out horizontally, so
+     * no plate is ever alone in a row there, and asking the question would
+     * produce an answer that describes a layout the reader is not looking at.
+     */
+    const lone = loneHalves(entries.map((entry) => entry.full))
+
+    return travels ? (
       <Horizontal
         name="project-run"
         label={t('run', { count: images.length })}
@@ -337,18 +414,56 @@ export function ProjectGallery({
         {...(id && { id })}
         {...(region !== undefined && { 'data-region': region })}
       >
-        {entries.map((entry) => (
-          <li
-            key={entry.key}
-            data-reveal-item
-            className={s.item}
-            data-span={entry.full ? 'full' : 'half'}
-          >
-            {entry.figure}
-          </li>
-        ))}
+        {entries.map((entry, position) => {
+          /*
+           * A spread needs both halves of itself: a row with a hole in it and
+           * something true to put in the hole. A plate with no description —
+           * the schema allows it — gets the plain half it has always had,
+           * because an empty column beside a picture is the defect this is
+           * here to remove, not a smaller version of it worth shipping.
+           */
+          const spread = lone[position] === true && entry.note !== null
+
+          return (
+            <li
+              key={entry.key}
+              data-reveal-item
+              className={s.item}
+              data-span={entry.full ? 'full' : 'half'}
+              {...(spread && { 'data-spread': '' })}
+            >
+              {entry.figure}
+              {spread && (
+                /*
+                 * `aria-hidden`, for the reason the position label above is:
+                 * this text is already the image's `alt`, so a screen reader
+                 * has heard it from the picture itself. Rendering it again in
+                 * the tree would read one plate's description twice.
+                 *
+                 * It is the description Tahap 44 wrote *per plate*, and the
+                 * reason it wrote them is the reason this column is worth
+                 * having: the gallery plates are not the cover, and until now
+                 * the only person told what they were was one using a screen
+                 * reader.
+                 *
+                 * `p-big`, not `caption`, and the two voices are assigned the
+                 * way the rest of the site assigns them: mono carries what a
+                 * reader *scans* — the `02 / 02` still sitting under the
+                 * picture — and the display face carries what a reader
+                 * *reads*. At `caption` this column measured 245px of 11px
+                 * mono in a 572px track and read as a footnote for a picture
+                 * 786px tall.
+                 */
+                <p aria-hidden="true" className={cn('p-big', s.note)}>
+                  {entry.note}
+                </p>
+              )}
+            </li>
+          )
+        })}
       </ul>
     )
+  }
 
   return (
     <>
@@ -426,7 +541,14 @@ export function ProjectGallery({
             </figure>
           )
 
-          return { key: image._key, full, figure }
+          /*
+           * Trimmed to `null` rather than passed through: the schema marks
+           * `alt` required, but a whitespace-only string satisfies that and
+           * would open a spread column holding nothing.
+           */
+          const note = image.alt?.trim() ? image.alt.trim() : null
+
+          return { key: image._key, full, figure, note }
         })
       )}
 

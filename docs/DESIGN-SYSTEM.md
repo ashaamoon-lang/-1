@@ -95,6 +95,25 @@ whose content — code, type, 3D — carries no colour of its own, so the accent
 _is_ the identity. This site shows commissioned artwork. The work is the
 colour, and an accent beside it competes with every image on the page.
 
+> **The rule stands; half of the sentence above expired. Tahap 66.**
+>
+> "This site shows commissioned artwork" stopped being the whole truth at
+> Tahap 60: ARTH is an agency (`DIREKSI.md` §1), which puts it in **the same
+> category as all seven sites `TEARDOWN.md` §3 measured** — and every one of
+> them ships exactly one accent. On basement.studio it is the most-declared
+> colour on the site. So the argument as written no longer separates this
+> project from the set it was arguing against.
+>
+> Put to the repo owner at Tahap 66 with that correction, and **re-affirmed:
+> strict monochrome stays.** The half of the reason that survives is the half
+> that was always the stronger one — every project plate still carries its own
+> colour, so an accent beside them competes with every image on the page,
+> whatever sector the studio is in.
+>
+> Recorded rather than quietly edited, so the next reader does not re-open a
+> settled decision on finding its stated premise out of date. Zero tokens
+> changed; `contrast.test.ts` untouched.
+
 Two independent sources in this repo say the same thing:
 
 - the **Museum/Gallery** palette in `.claude/skills/ui-ux-pro-max` sets

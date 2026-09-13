@@ -240,5 +240,33 @@
      */
     grid-template-columns: minmax(0, 1fr);
     row-gap: desktop-vw(20px);
+    /*
+     * ## Tahap 66 tried to fill the rest of this column, and put it back
+     *
+     * `align-items: start` on the row above leaves a real hole: measured at
+     * 1440×900, the cover runs 404→1120 and this list 404→633, so **487px of
+     * the column is empty** beside a 715px picture. That is the same species
+     * of defect Tahap 66 removed from the gallery one section down, so it was
+     * worth trying here.
+     *
+     * It was tried — `align-self: stretch` plus `align-content: space-between`
+     * — built, and measured:
+     *
+     * ```
+     * before   rows at 425, 482, 539, 596   list 404→ 633
+     * after    rows at 425, 645, 864, 1083  list 404→1120
+     * ```
+     *
+     * The hole closed and the block got worse. Four one-line facts across
+     * 715px sit ~183px apart, which is further than any of them is tall: they
+     * stop reading as a list and become four unrelated labels, and the column
+     * reads *emptier* than when the void was in one piece at the bottom.
+     *
+     * So the void stays, and it is the honest cost of four short facts beside
+     * a tall portrait. What the gallery needed was a companion with something
+     * to say; this column has nothing left to say, and spacing is not content.
+     * Reverted, with the numbers, rather than shipped because it was already
+     * written.
+     */
   }
 }
