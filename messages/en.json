@@ -32,9 +32,7 @@
     "practiceLink": "See work in this practice"
   },
   "work": {
-    "sectionTitle": "Selected work",
-    "viewProject": "View",
-    "nextProject": "Next project"
+    "viewProject": "View"
   },
   "workIndex": {
     "title": "Work",
@@ -58,11 +56,6 @@
     "allWork": "All work",
     "relatedPractice": "Related practice",
     "aboutPractice": "About {practice}"
-  },
-  "meta": {
-    "client": "Client",
-    "year": "Year",
-    "medium": "Medium"
   },
   "language": {
     "label": "Language",

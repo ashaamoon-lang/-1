@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 67**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 68**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,79 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 68 — Gerbang yang seharusnya menangkap Tahap 67, dan empat versinya yang salah ✅
+
+> Spec: [`docs/stages/TAHAP-68.md`](./stages/TAHAP-68.md)
+
+Tahap 67 menemukan prop yang dibangun lengkap dan tidak pernah dioper selama
+lima puluh lima tahap, dan **tidak satu pun dari delapan puluh delapan berkas
+gerbang repo ini — 42 e2e dan 46 unit — bisa melihatnya**. Alasannya struktural: setiap gerbang mengukur apa yang
+halaman _lakukan_, dan elemen yang tidak dirender tidak bisa dibedakan dari
+desain yang memang tidak menginginkannya.
+
+**Bagian terpenting tahap ini adalah empat kali saya membangun gerbangnya
+salah.** Tiap kali: ditulis, dijalankan, hijau, disimpulkan bersih — dan
+cacatnya masih ada.
+
+| versi                    | kenapa hijau padahal cacatnya ada                                                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 berbasis nama          | `project-gallery` mengoper `index={index}` ke lightbox; prop bernama `index` apa pun tampak terpakai                                            |
+| 2 + kecualikan modul     | melewatkan `{...(x && { portraitAlt })}` dan melaporkan prop yang **selalu** dioper                                                             |
+| 3 + bentuk spread        | melewatkan `<ProjectHero material` diikuti komentar — prop yang Tahap 58 dan 59 habiskan dua tahap untuknya                                     |
+| 4 + pemindai sadar-kutip | prosa: `"the headline's 9em measure"` membuka kutip yang tidak pernah tutup, satu `<Hero` jadi region **5700 karakter** dan menelan sisa berkas |
+
+Ditambah: versi 4 memindai berkas ujinya sendiri, yang ada di bawah `vault/`,
+dan menjamin prop yang seharusnya ia awasi.
+
+Pelajarannya bukan "hati-hati". **Gerbang yang tidak bisa gagal pada cacat yang
+melahirkannya lebih buruk daripada tidak ada gerbang**, karena ia mengubah
+pertanyaan terbuka jadi jawaban palsu — dan empat kali saya hampir
+mengirimkannya.
+
+**Versi kelima bertanya ke parser.** `oxc-parser`, mesin yang sama yang
+`oxlint` jalankan. (`typescript` 7.0.2 di repo ini port Go; compiler API klasik
+tidak ada di `exports`.) Sebelumnya transitif lewat `oxlint`, sekarang
+dideklarasikan eksplisit di `devDependencies` — gerbang yang bergantung pada
+tepi transitif rusak diam-diam saat tepi itu berubah.
+
+**Dibuktikan merah pada keadaan pra-Tahap-67 yang persis** — `index` dihapus
+dari halaman _dan_ story-nya, yang memang keadaan sebenarnya: 10 lulus, 1
+gagal, dan yang gagal menyebut namanya. Dikembalikan: 11 lulus.
+
+Satu jalan tersisa untuk kembali diam, dan ia ditutup: `oxc-parser` **toleran
+terhadap galat**, jadi sumber yang tidak terbaca menghasilkan pohon terpotong
+alih-alih lemparan — dan titik panggil di baliknya terbaca "tidak mengoper apa
+pun", yang mengarang cacat pada prop yang sebenarnya dioper. Sapuan yang tidak
+parse utuh sekarang **menolak menjawab**. (Hari ini: 147 berkas, 773.939
+karakter, nol galat.) Dibuktikan merah dengan cara yang sama — penjagaan
+dilepas, 11 lulus 1 gagal; dikembalikan, 12 lulus.
+
+Dan jalan kedua: sisi deklarasi masih regex, jadi modul yang menulis
+`type XProps = { … }` alih-alih `interface` menyumbang **nol** prop — dan prop
+yang tidak pernah terkumpul tidak akan pernah bisa dilaporkan hilang. **30 dari
+30** modul sudah memakai interface, jadi uji barunya menegakkan konvensi yang
+ada, bukan yang baru. Dibuktikan merah dengan mengubah `HeroProps` jadi alias:
+2 gagal dari 13; dikembalikan, 13 lulus.
+
+**Dua puluh satu prop tanpa pemanggil, dan keduapuluhsatunya sah** — tiga
+belas knob Magic UI yang di-vendor, dan delapan keputusan proyek ini sendiri:
+plafon pengaman, rasa magnet yang disetel di primitifnya, default
+`text-reveal:once` yang justru gaya rumah, `icon:title` yang benar
+`aria-hidden`, dan `studio-note:eyebrow` yang sengaja dihilangkan dengan alasan
+di titik panggilnya. Masing-masing masuk `DELIBERATE` dengan alasannya —
+daftar itu inti gerbangnya, bukan lubang di dalamnya. **Nol cacat baru:**
+Tahap 67 sudah memperbaiki satu-satunya yang nyata, dan mengatakannya begitu
+lebih jujur daripada mengarang temuan supaya tahapnya terasa penuh.
+
+**Dua namespace kamus yang tidak pernah dimuat**, dan bentuk bertitik hampir
+menipu saya lagi: `t('work.viewProject')` di `layout.tsx:288` memanggil dari
+namespace induk, yang pemeriksaan namespace tidak lihat. Diperiksa satu per
+satu — `work.viewProject` **2 referensi**, lima sisanya nol. `work.sectionTitle`,
+`work.nextProject` dan seluruh `meta.*` dihapus dari kedua kamus;
+`project.client/year/nextProject` yang menggantikannya memang terpakai.
 
 ---
 
