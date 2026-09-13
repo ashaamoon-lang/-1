@@ -445,6 +445,20 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               id="images"
               data-region=""
               className={s.gallery}
+              /*
+               * The run — Tahap 64.
+               *
+               * This route, and not `/` or `/work`, because a gate rules both
+               * of those out: `first-screen` needs the catalogue's first
+               * cover open at scroll 0, and replacing the home grid would make
+               * `catalogue-layout`'s span check *skip* rather than fail —
+               * silently switching off a gate, which its own comment names as
+               * the expensive way to break something.
+               *
+               * Here there is no such conflict, the content is already a run
+               * of images, and this page carries one named moment out of six.
+               */
+              run
               images={project.gallery.map((image) => ({
                 ...image,
                 alt: image.alt,

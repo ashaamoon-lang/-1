@@ -215,6 +215,7 @@
     "zoom": "Zoom",
     "close": "Close",
     "goTo": "Go to image {position}",
-    "openImage": "Open image {position} full screen"
+    "openImage": "Open image {position} full screen",
+    "run": "The work, {count} images, travelling sideways as you scroll"
   }
 }

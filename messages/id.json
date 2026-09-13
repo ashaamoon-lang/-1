@@ -215,6 +215,7 @@
     "zoom": "Perbesar",
     "close": "Tutup",
     "goTo": "Ke gambar {position}",
-    "openImage": "Buka gambar {position} layar penuh"
+    "openImage": "Buka gambar {position} layar penuh",
+    "run": "Karyanya, {count} gambar, melaju menyamping saat Anda menggulir"
   }
 }

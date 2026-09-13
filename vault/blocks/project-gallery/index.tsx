@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { useTranslations } from 'next-intl'
-import type { ComponentType, CSSProperties } from 'react'
+import type { ComponentType, CSSProperties, ReactNode } from 'react'
 import { useCallback, useRef, useState } from 'react'
 
 import type { LightboxProps } from '@/components/ui/lightbox'
@@ -15,6 +15,7 @@ import {
 } from '@/lib/integrations/sanity/utils/image'
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
 import { PixelImage } from '@/vault/magic/pixel-image'
+import { Horizontal } from '@/vault/motion/horizontal'
 import { useParallax } from '@/vault/motion/parallax'
 
 import s from './project-gallery.module.css'
@@ -106,6 +107,16 @@ interface ProjectGalleryProps {
   'data-region'?: string | undefined
   images: readonly GalleryImage[]
   className?: string | undefined
+  /**
+   * Render the plates as a pinned horizontal run rather than a column.
+   *
+   * Opt-in rather than the default because `vault/` is a library and a
+   * gallery in a Storybook frame has no scroll container to pin against.
+   * `/work/<slug>` is the one caller that turns it on — see
+   * `docs/stages/TAHAP-64.md` §1.2 for why that route and not `/` or
+   * `/work`, both of which a gate rules out.
+   */
+  run?: boolean | undefined
 }
 
 /*
@@ -229,6 +240,7 @@ export function ProjectGallery({
   images,
   id,
   'data-region': region,
+  run = false,
   className,
 }: ProjectGalleryProps) {
   /*
@@ -270,15 +282,88 @@ export function ProjectGallery({
 
   if (images.length === 0) return null
 
-  return (
-    <>
+  /*
+   * A run has to have somewhere to run — measured, 2026-09-13.
+   *
+   * The first wiring enabled the track unconditionally on this route, and the
+   * production build reported: `items: 2, trackWidth: 1027,
+   * viewportWidth: 1161, travel: -134`. Every one of the six seeded projects
+   * carries exactly two gallery images, so on all of them the track is
+   * *narrower than its own viewport*: `travel()` clamps to zero, and what
+   * ships is a pin that holds a full screen and never moves.
+   *
+   * `vault/blocks/step-sequence`'s doc already names that failure — "a held
+   * note that resolves inside one screen is not held; it is a coincidence" —
+   * and a pin with zero travel is the same defect with the volume up.
+   *
+   * So the shape is a property of the **content**, not of the route. Four is
+   * the floor because at `34vw` per item a run needs to out-measure its box
+   * by about a screen to read as travel rather than as a nudge: three items
+   * clear the viewport by roughly 320px, four by roughly 800px.
+   *
+   * Consequence, stated rather than hidden: **on today's fixtures the run
+   * never appears.** Every project falls back to the grid, which is the
+   * correct, already-measured design. The moment arrives with the first real
+   * project that has a real set of images — which is the fixture-content debt
+   * `docs/ROADMAP.md` already carries, not a new one.
+   */
+  const RUN_MINIMUM = 4
+  const travels = run && images.length >= RUN_MINIMUM
+
+  /**
+   * Wraps the plates in whichever container this gallery is being.
+   *
+   * Both branches carry `data-reveal-item` on each item and hand the same
+   * `useReveal` ref to the list, so the veil in `GalleryMedia` — which keys
+   * off `[data-reveal-item='visible']` — dissolves either way. That is the
+   * detail most likely to be lost by a change like this, and it is why the
+   * marker is asserted in both branches rather than assumed from one.
+   */
+  const plates = (
+    entries: { key: string; full: boolean; figure: ReactNode }[]
+  ) =>
+    travels ? (
+      <Horizontal
+        name="project-run"
+        label={t('run', { count: images.length })}
+        listRef={ref}
+        items={entries.map((entry) => entry.figure)}
+        className={className}
+      />
+    ) : (
       <ul
         ref={ref}
         className={cn(s.gallery, className)}
         {...(id && { id })}
         {...(region !== undefined && { 'data-region': region })}
       >
-        {images.map((image, position) => {
+        {entries.map((entry) => (
+          <li
+            key={entry.key}
+            data-reveal-item
+            className={s.item}
+            data-span={entry.full ? 'full' : 'half'}
+          >
+            {entry.figure}
+          </li>
+        ))}
+      </ul>
+    )
+
+  return (
+    <>
+      {/*
+        Two shapes, one set of plates — Tahap 64.
+
+        The `<figure>` below is byte-identical in both: same trigger, same
+        `GalleryMedia`, same veil, same caption. What differs is only what
+        holds it — a twelve-column grid the reader scrolls down, or a pinned
+        track the reader scrolls sideways. Keeping the plate out of that
+        decision is what makes the run an addition rather than a rewrite of
+        three stages of measured work.
+      */}
+      {plates(
+        images.map((image, position) => {
           const ratio = aspectRatioFor(image)
           const full = isFullWidth(ratio)
           /*
@@ -289,15 +374,9 @@ export function ProjectGallery({
             images.length
           ).padStart(2, '0')}`
 
-          return (
-            <li
-              key={image._key}
-              data-reveal-item
-              className={s.item}
-              data-span={full ? 'full' : 'half'}
-            >
-              <figure className={s.figure}>
-                {/*
+          const figure = (
+            <figure className={s.figure}>
+              {/*
                   A real button, not a div with a click handler: it is
                   reachable by Tab, activates on Enter and Space, and
                   announces itself as something that does a thing. The
@@ -305,50 +384,51 @@ export function ProjectGallery({
                   because "image" alone tells a screen reader nothing about
                   the difference between three of them.
                 */}
-                <button
-                  type="button"
-                  className={s.trigger}
-                  data-gallery-trigger=""
-                  data-press="nav"
-                  data-intent=""
-                  aria-label={t('openImage', { position: position + 1 })}
-                  /*
-                   * The plate's place in the set, carried in the ring —
-                   * Tahap 43. Where it is in a sequence is the one thing a
-                   * reader cannot see from the picture itself, and until now
-                   * it existed only in the `aria-label` above: announced to a
-                   * screen reader, invisible to everyone else.
-                   *
-                   * The same string is rendered below, because
-                   * `vault/primitives/cursor` never mounts on a coarse
-                   * pointer and information that lives only in the ring does
-                   * not exist on a phone.
-                   */
-                  data-cursor="view"
-                  data-cursor-label={positionLabel}
-                  onClick={(event) => {
-                    void openAt(position, event.currentTarget)
-                  }}
-                >
-                  <GalleryMedia image={image} ratio={ratio} full={full} />
-                </button>
-                {/*
+              <button
+                type="button"
+                className={s.trigger}
+                data-gallery-trigger=""
+                data-press="nav"
+                data-intent=""
+                aria-label={t('openImage', { position: position + 1 })}
+                /*
+                 * The plate's place in the set, carried in the ring —
+                 * Tahap 43. Where it is in a sequence is the one thing a
+                 * reader cannot see from the picture itself, and until now
+                 * it existed only in the `aria-label` above: announced to a
+                 * screen reader, invisible to everyone else.
+                 *
+                 * The same string is rendered below, because
+                 * `vault/primitives/cursor` never mounts on a coarse
+                 * pointer and information that lives only in the ring does
+                 * not exist on a phone.
+                 */
+                data-cursor="view"
+                data-cursor-label={positionLabel}
+                onClick={(event) => {
+                  void openAt(position, event.currentTarget)
+                }}
+              >
+                <GalleryMedia image={image} ratio={ratio} full={full} />
+              </button>
+              {/*
                   `aria-hidden`, because the button above already announces
                   "Open image 2 of 4" as its accessible name. Announcing the
                   figure's number again would have a screen reader read the
                   position twice for one plate.
                 */}
-                <figcaption
-                  aria-hidden="true"
-                  className={cn('caption', s.position)}
-                >
-                  {positionLabel}
-                </figcaption>
-              </figure>
-            </li>
+              <figcaption
+                aria-hidden="true"
+                className={cn('caption', s.position)}
+              >
+                {positionLabel}
+              </figcaption>
+            </figure>
           )
-        })}
-      </ul>
+
+          return { key: image._key, full, figure }
+        })
+      )}
 
       {Lightbox && (
         <Lightbox

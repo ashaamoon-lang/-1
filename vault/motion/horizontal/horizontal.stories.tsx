@@ -2,8 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react'
 
 import { Horizontal } from './index'
 
-import s from './horizontal.module.css'
-
 /**
  * A plate, so the run has something with width to carry.
  *
@@ -14,21 +12,19 @@ import s from './horizontal.module.css'
  */
 function Plate({ index }: { index: number }) {
   return (
-    <li className={s.item} data-run-item="">
-      <div
-        style={{
-          display: 'grid',
-          placeItems: 'center',
-          aspectRatio: '4 / 3',
-          background:
-            'linear-gradient(135deg, var(--color-secondary), var(--surface-2))',
-          color: 'var(--color-primary)',
-        }}
-      >
-        {/* A focusable child, because the keyboard path is half the contract. */}
-        <button type="button">{String(index + 1).padStart(2, '0')}</button>
-      </div>
-    </li>
+    <div
+      style={{
+        display: 'grid',
+        placeItems: 'center',
+        aspectRatio: '4 / 3',
+        background:
+          'linear-gradient(135deg, var(--color-secondary), var(--surface-2))',
+        color: 'var(--color-primary)',
+      }}
+    >
+      {/* A focusable child, because the keyboard path is half the contract. */}
+      <button type="button">{String(index + 1).padStart(2, '0')}</button>
+    </div>
   )
 }
 
@@ -70,7 +66,7 @@ export const Resting: Story = {
   args: {
     name: 'story-run',
     label: 'A run of six plates',
-    children: Array.from({ length: 6 }, (_, index) => (
+    items: Array.from({ length: 6 }, (_, index) => (
       <Plate key={index} index={index} />
     )),
   },
@@ -87,7 +83,7 @@ export const NothingToTravel: Story = {
   args: {
     name: 'story-run-short',
     label: 'A run of two plates',
-    children: Array.from({ length: 2 }, (_, index) => (
+    items: Array.from({ length: 2 }, (_, index) => (
       <Plate key={index} index={index} />
     )),
   },

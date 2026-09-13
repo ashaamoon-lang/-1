@@ -4,7 +4,7 @@ import { useGSAP } from '@gsap/react'
 import cn from 'clsx'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import type { ReactNode } from 'react'
+import type { Ref, ReactNode } from 'react'
 import { useRef } from 'react'
 
 import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
@@ -91,16 +91,33 @@ interface HorizontalProps {
    * scroll range.
    */
   name: string
-  children: ReactNode
+  /**
+   * One entry per item in the run.
+   *
+   * Taken as an array rather than as `children` so the `<li>`, its width and
+   * its `data-run-item` marker are written **here**, once. A caller that had
+   * to remember three things to be focusable inside the track would forget
+   * one of them, and the one it forgot would be the keyboard contract.
+   */
+  items: readonly ReactNode[]
   /** Accessible name for the run, since it is a labelled region. */
   label: string
+  /**
+   * Attaches to the track itself, so a caller can observe the items.
+   *
+   * The one caller that needs it hands over `useReveal({ perItem: true })`.
+   * Every `<li>` below already carries `data-reveal-item`, which is the half
+   * of that contract this component owns; the observer is the caller's.
+   */
+  listRef?: Ref<HTMLUListElement> | undefined
   className?: string | undefined
 }
 
 export function Horizontal({
   name,
-  children,
+  items,
   label,
+  listRef,
   className,
 }: HorizontalProps) {
   const root = useRef<HTMLElement | null>(null)
@@ -204,7 +221,26 @@ export function Horizontal({
       className={cn(s.root, className)}
     >
       <div className={s.viewport}>
-        <ul className={s.track}>{children}</ul>
+        <ul ref={listRef} className={s.track}>
+          {items.map((item, index) => (
+            <li
+              // The run's order is the content's order and never reorders.
+              // eslint-disable-next-line react/no-array-index-key
+              key={index}
+              className={s.item}
+              data-run-item=""
+              /*
+               * Marked here rather than by the caller, because it is half a
+               * contract whose other half — `data-run-item` above — is also
+               * here. A caller that had to remember one of the two would
+               * remember the one that is visible when it is missing.
+               */
+              data-reveal-item=""
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )

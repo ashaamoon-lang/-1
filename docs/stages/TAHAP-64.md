@@ -118,36 +118,54 @@ diklaim.
 
 ---
 
-## 3.5 Yang ditemukan saat merencanakan penyambungannya
+## 3.5 Klaim saya sendiri, diuji dan tidak didukung
 
-Dicatat sebelum 64b dikerjakan, karena ia menentukan bentuk penyambungannya.
+Bagian ini sebelumnya menyatakan, dengan yakin, bahwa
+`useReveal({ perItem: true })` adalah **mekanisme yang salah di dalam pin**:
+karena item tidak bergerak vertikal, observernya akan menyala untuk semuanya
+sekaligus. Itu ditulis dari penalaran, bukan pengukuran, dan **penalarannya
+punya lubang**.
 
-**`useReveal({ perItem: true })` adalah mekanisme yang salah di dalam pin.**
-`ProjectGallery` memakainya, dan Tahap 56 menambahkannya dengan alasan yang
-terukur: tengah `/en/work/<slug>` mati — dua dari dua belas langkah gulir
-menghasilkan kedatangan. Satu `useReveal` di `<ul>` adalah satu peristiwa untuk
-setiap plat di bawahnya.
+`IntersectionObserver` bekerja dua dimensi. `lib/hooks/use-reveal.ts` memakai
+`rootMargin: '0px 0px -25% 0px'` — sisipannya hanya di **bawah**, tepi
+kiri-kanan utuh. Sebuah item yang digeser trek ke luar tepi kanan viewport
+karena itu memang berada di luar root observernya, dan seharusnya menyala saat
+ia masuk. Perjalanan horizontal bisa jadi kedatangan per-item yang sah,
+bukan pengganti yang harus ditambal.
 
-Tapi `useReveal` adalah IntersectionObserver, dan **di dalam section ter-pin
-item tidak pernah bergerak secara vertikal.** Semuanya berada di dalam pita
-viewport yang sama sepanjang pin. Jadi per-item reveal akan menyala untuk
-semuanya sekaligus — persis defek yang Tahap 56 perbaiki, kembali lewat pintu
-lain.
+### Kenapa ini tetap tidak diselesaikan
 
-Jawabannya bukan menambal observer-nya: **perjalanan horizontal ITU
-kedatangannya.** Sebuah plat tiba saat ia masuk layar dari kanan, digerakkan
-oleh gulir pembaca. Itu peristiwa per-item yang sesungguhnya, dan ia tidak
-butuh observer sama sekali.
+Diukur pada build produksi dengan trek yang benar-benar bergerak
+(`travel: 1133`, x menempuh −1133..0):
 
-Jadi 64b: `perItem` dilepas di mode run, `useReveal` pindah ke section-nya
-sebagai satu kedatangan untuk run itu, dan **alasan Tahap 56 tetap dipenuhi —
-oleh mekanisme yang berbeda, bukan dengan membatalkan temuannya.**
+```
+y=0     -@x32*         -@x1171*
+y=600   visible@x32*   visible@x1171*
+y=1800  visible@x-556* visible@x583*
+```
 
-Konsekuensi kedua, lebih kecil: `useParallax` di `.parallax` menghitung dari
-posisi vertikal item, yang di dalam pin tidak pernah berubah. Ia tidak
-_berkonflik_ dengan transform trek — elemennya berbeda — ia hanya jadi mati.
-Dilepas karena kode mati yang terlihat hidup lebih buruk daripada kode yang
-tidak ada.
+Keduanya menyala pada sampel yang sama — tapi itu **tidak membuktikan apa-apa
+ke arah mana pun**. Setiap proyek fixture hanya punya dua gambar, dan pada
+lebar probe item kedua mulai di `x=1171` di dalam viewport 1440: ia tidak
+pernah benar-benar keluar layar, jadi observer yang membedakan posisi
+horizontal dan yang tidak akan melaporkan hal yang sama.
+
+**Jadi pertanyaannya terbuka, dan ditulis terbuka.** Ia butuh satu proyek
+dengan empat gambar atau lebih untuk dijawab — konten yang belum ada. Yang
+berubah dari versi sebelumnya bukan jawabannya melainkan status: dari klaim
+yang terdengar pasti jadi pertanyaan yang menyebutkan bukti dan batasnya.
+
+`perItem` **tetap dipakai** sampai ada yang membantahnya. Ia sudah benar untuk
+jalur grid, dan tirai `PixelImage` bergantung pada `[data-reveal-item]`-nya di
+kedua jalur — melepasnya atas dasar penalaran yang sudah sekali salah akan
+menukar satu tebakan dengan tebakan lain.
+
+### Satu konsekuensi yang tetap berlaku
+
+`useParallax` menghitung dari posisi vertikal item, yang di dalam pin tidak
+pernah berubah. Ia tidak _berkonflik_ dengan transform trek — elemennya
+berbeda — ia hanya jadi mati di jalur run. Itu tidak bergantung pada
+pertanyaan di atas.
 
 ---
 
@@ -171,4 +189,58 @@ itu; kalau angkanya naik tajam, itu temuan yang harus ditulis, bukan diabaikan.
 
 ## 5. Hasil
 
-_Diisi sesudah dikerjakan._
+| gerbang                    | hasil                                             |
+| -------------------------- | ------------------------------------------------- |
+| `bun run check`            | **424 lulus / 0 gagal**                           |
+| `bun run build`            | hijau                                             |
+| Mekanisme terukur bergerak | §5.1                                              |
+| Klaim §3.5 diuji           | tidak didukung; dikoreksi jadi pertanyaan terbuka |
+
+### 5.1 Mekanismenya bekerja, dan konten hari ini tidak cukup untuk memakainya
+
+Dua pengukuran, keduanya pada build produksi 1440×900.
+
+**Pertama — run diaktifkan tanpa syarat, seperti rencananya:**
+
+```
+items: 2  trackWidth: 1027  viewportWidth: 1161  travel: -134
+TRACK x: 0 .. 0   |  sampel yang bergerak: 0 / 9
+```
+
+Treknya **lebih sempit dari kotaknya sendiri**. `travel()` di-clamp ke nol,
+dan yang tayang adalah pin yang menahan satu layar penuh lalu tidak
+melakukan apa pun. Semua **enam** proyek fixture punya tepat dua gambar, jadi
+itu bukan kasus tepi — itu satu-satunya kasus yang ada.
+
+`vault/blocks/step-sequence` sudah menamai kegagalan ini: _"a held note that
+resolves inside one screen is not held; it is a coincidence."_ Pin dengan nol
+perjalanan adalah cacat yang sama dengan volume dinaikkan.
+
+**Kedua — dengan perjalanan tersedia (ambang dan lebar item diturunkan
+sementara, lalu dikembalikan):**
+
+```
+items: 2  trackWidth: 2294  viewportWidth: 1161  travel: 1133
+TRACK x: -1133 .. 0  |  sampel yang bergerak: 8 / 12
+overflow-x: clip     |  pin-spacer: ada
+```
+
+Trek menempuh jarak penuhnya, pin bertahan melintasi rentang gulir nyata,
+viewport-nya tidak bisa digulir sendiri. **Mekanismenya benar.**
+
+### 5.2 Jadi bentuknya milik konten, bukan rute
+
+`RUN_MINIMUM = 4` di `project-gallery`, dengan angkanya diturunkan dari
+pengukuran: pada `34vw` per item, tiga item melewati kotaknya sekitar 320px —
+sebuah sentakan; empat sekitar 800px — kira-kira satu layar, yang adalah
+ambang di mana perjalanan terbaca sebagai perjalanan.
+
+**Konsekuensi yang dinyatakan, bukan disembunyikan: pada fixture hari ini run
+tidak pernah muncul.** Keenam proyek jatuh ke grid, yang memang desain yang
+sudah terukur benar. Momennya tiba bersama proyek nyata pertama yang punya
+kumpulan gambar sungguhan — dan itu utang konten fixture yang `ROADMAP.md`
+sudah bawa, bukan utang baru.
+
+Mengirimkannya aktif tanpa syarat akan mengirim cacat "dibangun dan tidak
+pernah dipakai" **dan** cacat "pin yang tidak menahan" sekaligus, di keenam
+halaman proyek.
