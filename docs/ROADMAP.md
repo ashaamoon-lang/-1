@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 73**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 74**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,56 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 74 — Index yang tidak pernah duduk di samping apa pun ✅
+
+Spec: `docs/stages/TAHAP-74.md`.
+
+Beranda membuka dengan lubang **516px menembus tengah layar pertama** — 57%
+pada 1440×900 dan **66%** pada 390×844, terhadap 4–16% di seluruh rute lain.
+
+Sebabnya bukan konten kurang. `hero.module.css` memaku `.index` di
+`grid-row: 1` sementara `.content` membentang baris 2–4 dengan
+`justify-content: end`, jadi slack `minmax(0, 1fr)` milik frame duduk di antara
+keduanya — dan komentar `.index` sendiri mencatat angkanya: _"absorbing 304px at
+1440×900"_. Satu elemen dipaku ke atas, sisanya ke bawah, lubang di tengah
+**by construction**.
+
+Dan baris di atasnya sudah menyebutkan maksudnya sejak Tahap 12d: _"the four
+columns the headline's 9em measure leaves free"_ — **di samping** headline.
+Terukur, index y 100–182 dan `h1` y 465–655. Ia tidak pernah di samping apa pun.
+Tahap 67 mengirim prop-nya ke kolom yang benar dan **baris yang salah**, dan
+empat puluh tahap tidak ada yang bisa melihat bedanya.
+
+```
+SEBELUM   /en 1440×900  516px (57%)     /en 390×844  554px (66%)
+SESUDAH   /en 1440×900   12px ( 1%)     /en 390×844  125px (15%)
+```
+
+Yang dikirim: baris frame dibalik jadi `minmax(0,1fr) auto auto` sehingga slack
+ada di **atas** kedua massa; index pindah ke baris konten (desktop: rata bawah
+di kolom 9/-1 sebagai kolom kanan; telepon: standfirst tepat di atas headline,
+yang memang maksud komentarnya). Plus gerbang `first-screen-void` — modul murni
+
+- 20 uji unit + delapan rute dua viewport — yang menanyakan hal yang tak satu
+  pun gerbang lain tanyakan: **berapa besar pita kosong di antara isi.**
+  `held-screen` mengukur ekor kotak, `first-screen` mengukur di mana item pertama
+  mulai; lubang di tengah buta bagi keduanya sekaligus.
+
+Dua rute dikecualikan, **bukan diperbaiki**: `/practice/<v>` dan `/en/studio`
+adalah komposisi yang Tahap 52/65 dan Tahap 69 sudah ukur, dan membatalkan
+pengukuran orang lain karena alat baru saya rewel adalah urutan yang terbalik.
+Pengecualiannya **ber-viewport** — `/en/studio` hanya di 1440×900, karena di
+390×844 ia 9% dan mematikan seluruh rute akan mematikan justru viewport tempat
+defek tahap ini paling parah.
+
+Alat ukur pertama saya juga salah lagi, dan dibuang sebelum membenarkan apa pun:
+metrik "ink coverage" memberi `/studio` nilai **100%** karena menghitung grain
+sebagai isi.
+
+`bun test` 486 -> **506 lulus**, 0 gagal.
 
 ---
 

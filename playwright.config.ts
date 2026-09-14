@@ -40,6 +40,12 @@ export default defineConfig({
       name: 'mobile',
       testMatch: [
         '**/route-sweep.e2e.ts',
+        // The hole this gate was written for is worse on a phone than on a
+        // desktop — 66% of the first screen against 57% — because the hero's
+        // index goes full width at `grid-column: 1 / -1` and the slack below
+        // it grows. A desktop-only run would under-report the one route it
+        // exists to catch (Tahap 74).
+        '**/first-screen-void.e2e.ts',
         // The defect this gate was written for exists ONLY below 800px.
         // `project-spine` is sticky with no ground of its own; at `--desktop`
         // it sits in column 2 and never meets artwork, so 759 desktop runs
