@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 72**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 73**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,54 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 73 — Tabel utang yang tidak ada yang mengukur ✅
+
+Spec: `docs/stages/TAHAP-73.md`.
+
+`DESIGN-SYSTEM.md` §7 ada persis supaya dokumen itu tidak menggambarkan sistem
+yang tidak ada — kalimat pembukanya sendiri mengatakannya. **Setiap angka di
+dalamnya salah.**
+
+```
+klaim  7 stylesheet menulis tipenya sendiri   ->  1
+klaim  6 pengecualian per baris               ->  7 (9 situs, 2 rujukan silang)
+klaim  25 direktori tanpa story               ->  15 dari 55
+klaim  "termasuk lima vault block"            ->  NOL; 16 dari 16 punya story
+klaim  ditutup di Tahap 45c / Tahap 46        ->  keduanya dikirim 26-27 tahap lalu
+```
+
+Tidak ada yang rusak di kodenya. Yang tidak pernah ada adalah **pembacanya**:
+`grep -rl "stories.tsx"` di `e2e/`, `lib/`, `tools/` dan `.storybook/`
+mengembalikan nol, dan `manifest:check` menghitung komponen, bukan story. §6.4
+adalah aturan tanpa alat ukur dan §7 catatan utangnya tanpa alat ukur — di satu
+dokumen yang tugasnya justru tidak menua.
+
+Dan satu angkanya tidak bisa diverifikasi sama sekali, karena **aturan hitungnya
+tidak pernah ditulis**: dari 9 situs `scale-exempt:`, dua adalah paruh mobile
+dari keputusan yang sama dan satu lagi prosa tentang escape hatch-nya. Enam,
+tujuh dan sembilan sama-sama bisa dibela. Angka tanpa aturan hitung tidak bisa
+salah, karena itu tidak bisa benar juga.
+
+Yang dikirim: `lib/scripts/design-debt.ts` memindai dan me-render angkanya ke
+blok bertanda di §7, `design-debt.test.ts` memerahkan `bun run check` kalau
+dokumen dan repo berbeda — mekanisme yang sama dengan `COMPONENTS.md`. Cakupan
+§6.4 dinyatakan: 13 direktori dikecualikan **berikut alasan masing-masing
+sebagai data**, dan pengecualian yang berhenti benar juga memerahkan gerbang.
+Story `vault/motion/parallax` dan `components/ui/lightbox` ditulis. Utang story
+15 -> **0**.
+
+Dua yang **tidak bisa**, dan diukur bukan diasumsikan: `material-image`
+(tanpa aset Sanity, `SanityImage` mengembalikan null — story mendokumentasikan
+div kosong) dan `scene-shell`. Yang kedua ditulis dulu, lolos semua gerbang,
+lalu ditarik setelah saya melihat screenshot-nya rata: ia mem-portal ke kanvas
+bersama milik `Wrapper`, dan katalog tidak punya penyedia itu — terukur
+`canvas di dokumen: 0`. Tebakan pertama saya (dekorator `min-height`) salah dan
+dicatat begitu.
+
+`bun test` 477 -> **486 lulus**, 0 gagal.
 
 ---
 

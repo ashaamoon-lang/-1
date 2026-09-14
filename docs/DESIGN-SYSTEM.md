@@ -513,13 +513,56 @@ by band, easing from `--ease-*` tokens only, `transform` and `opacity` only,
 ## 7. Where this document and the code still disagree
 
 Kept here rather than quietly fixed in prose, because a design document that
-describes a system nobody built is worse than no document. Each line names the
-stage that closes it; until then, the code is the truth and this is the debt.
+describes a system nobody built is worse than no document.
 
-| This document says                            | The code does                                                                                                                                                                                                                                                                              | Closes in |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| §2 the seven-class scale                      | `h3` now fills the 20→48 gap and the 404's parallel scale is gone. **Seven stylesheets still hand-write their type** under a `scale-exempt-file:` marker naming the reason: every one has zero consumers and is deleted in Tahap 45c. Six per-line exemptions remain, each with its reason | Tahap 45c |
-| §6.4 "every primitive gets a Storybook story" | **25 component directories have none**, including five vault blocks, `parallax`, both `vault/webgl/*` and the lightbox                                                                                                                                                                     | Tahap 46  |
+**The counts below are generated, not written.** `lib/scripts/design-debt.ts`
+scans the repository and `design-debt.test.ts` fails `bun run check` if this
+block and the code disagree. Regenerate with:
 
-The measurements behind every row are in the curator audit that opened Tahap
-34; none of them is an estimate.
+```bash
+bun lib/scripts/design-debt.ts --write
+```
+
+That machinery is Tahap 73, and it exists because of what happened without it.
+This section previously claimed seven hand-written stylesheets (there was one),
+six per-line exemptions (there are seven), twenty-five component directories
+without a story (there were fifteen), and named "five vault blocks" among them
+when **all sixteen** had stories. It also pointed both rows at Tahap 45c and
+Tahap 46 — stages that had shipped twenty-six and twenty-seven stages earlier.
+
+Nothing had gone wrong in the code. Nothing ever read the numbers again: no
+test, gate or script in the repository mentioned `stories.tsx`, and
+`manifest:check` counts components, not stories. §6.4 was a rule with no
+instrument and this was its debt note with no instrument, in the one document
+whose stated job is not to drift.
+
+<!-- design-debt:start -->
+
+```
+scale-exempt-file       1 stylesheet(s) hand-write their type
+scale-exempt (per line) 7 exemption(s) across 6 file(s)
+                        9 marker site(s); 2 cross-reference(s) to another marker
+no Storybook story      0 of 55 component directories
+                        13 exempt by rule, each with a reason in lib/scripts/design-debt.ts
+```
+
+<!-- design-debt:end -->
+
+### What each number means
+
+| Number                    | The debt behind it                                                                                                                                                                                                    |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scale-exempt-file`       | A stylesheet that hand-writes type instead of taking §2's scale. The one that remains is `components/ui/not-configured`, which has zero consumers and is scheduled for deletion — the marker names that reason itself |
+| `scale-exempt` (per line) | A single declaration off the scale, each carrying its own reason. Most are marks rather than text — a wordmark, a step numeral, the 404's figure                                                                      |
+| `no Storybook story`      | §6.4's rule, now with a scope. The directories exempt from it are listed **with a reason each** in `lib/scripts/design-debt.ts`; an exemption that stops being true fails the gate                                    |
+
+### The counting rules
+
+They are in the scanner, and they are there because the old "six" could not be
+checked against anything. Nine `scale-exempt:` sites exist. Two read "see the
+note on the mobile size above" — the mobile half of one decision, not a second
+one. One more is prose _about_ the escape hatch, in backticks, mid-sentence. So
+six, seven and nine were all defensible readings of the same repository.
+
+A number with no counting rule cannot be wrong, which is exactly why it cannot
+be right either.
