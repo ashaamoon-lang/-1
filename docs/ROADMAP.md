@@ -2110,6 +2110,22 @@ terhadap Storybook, jadi ia **tidak bergantung pada dataset sama sekali**.
 Server statis Storybook diangkat ke `e2e/storybook-server.ts` supaya ada satu
 salinan, bukan dua.
 
+**Dan story `Run` melempar saat pertama dijalankan**, yang membuka temuan
+kedua: `.storybook/preview.tsx` **tidak memasang `NextIntlClientProvider` sama
+sekali**. Tidak ada yang menangkapnya karena tidak ada satu story pun yang
+pernah menggambar cabang yang benar-benar memanggil `t(key)` — katalog komponen
+ini akan crash pada story jujur pertama yang merender string. Diperbaiki dengan
+`messages/en.json` yang asli, bukan stub, supaya `storybook-a11y` mengukur nama
+aksesibel yang situsnya benar-benar kirim.
+
+**Lalu gerbang barunya sendiri yang salah, bukan kodenya.** Assertion pertama
+saya "setiap plat terlihat" merah dengan `1, 1, 1, 0` — dan plat keempat duduk
+di `1386..1821` dalam viewport 1280, **sepenuhnya di luar layar**, yang memang
+apa itu run horizontal. Setelah trek bergerak: `1, 1, 1, 1`. Ketiga kalinya
+dalam tiga tahap sebuah pemeriksaan saya salah lebih dulu daripada kodenya.
+Yang bertahan lebih tajam: plat yang **bisa dilihat** tidak boleh tak terlihat,
+dan setiap plat harus tiba begitu trek mencapainya.
+
 **Dan satu rencana dibatalkan setelah membaca gerbangnya**, yang justru temuan
 tahap ini: memberi satu proyek empat gambar **tidak** akan menayangkan run —
 `e2e/media-edge.e2e.ts:218` menuntut potret lebih sempit daripada lanskap di

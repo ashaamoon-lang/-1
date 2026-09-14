@@ -132,29 +132,65 @@ test.describe('the gallery run has somewhere to run', () => {
     ).toBeGreaterThan(measured.boxWidth)
   })
 
-  test('every plate is drawn and none is stranded invisible', async ({
+  test('a plate on screen is visible, and the track brings the rest in', async ({
     page,
   }) => {
     await page.goto(storyUrl(origin, STORY_ID), { waitUntil: 'networkidle' })
     await page.waitForTimeout(900)
 
     /*
-     * `CLAUDE.md` #5, and the lesson Tahap 69 learned the expensive way: a
-     * block can be laid out perfectly and be entirely invisible, and geometry
-     * alone cannot tell the two apart.
+     * ## The assertion this started as, and why it was wrong
+     *
+     * "Every plate is visible" — which failed, reporting `1, 1, 1, 0`. The
+     * fourth plate sits at `1386..1821` in a 1280px viewport: entirely off
+     * screen to the right, which is **what a horizontal run is**. Plates
+     * arrive as the track carries them in, so demanding all four at rest
+     * contradicts the mechanism rather than testing it.
+     *
+     * That was a defect in this gate, not in the block — the third time in
+     * three stages that a check of mine was wrong before the code was. What
+     * survives is the part that matters: a plate the reader can actually see
+     * must not be invisible (`CLAUDE.md` #5, and the Tahap 69 lesson), and
+     * every plate must arrive once the track reaches it.
      */
-    const opacities = await page.evaluate(() =>
+    const onScreen = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-run-item]')]
+        .map((item) => {
+          const rect = item.getBoundingClientRect()
+          return {
+            visible: rect.left < window.innerWidth && rect.right > 0,
+            opacity: Number(getComputedStyle(item).opacity),
+          }
+        })
+        .filter((plate) => plate.visible)
+    )
+
+    expect(
+      onScreen.length,
+      'no plate is on screen at rest — the run opened somewhere the reader is not'
+    ).toBeGreaterThan(0)
+    expect(
+      onScreen.filter((plate) => plate.opacity < 0.01).length,
+      `plate(s) on screen but invisible: ${onScreen.map((p) => p.opacity).join(', ')}`
+    ).toBe(0)
+
+    // And the ones still waiting do arrive, rather than staying dark forever.
+    await page.evaluate(() => window.scrollTo(0, 400))
+    await page.waitForTimeout(1200)
+
+    const after = await page.evaluate(() =>
       [...document.querySelectorAll('[data-run-item]')].map((item) =>
         Number(getComputedStyle(item).opacity)
       )
     )
 
-    expect(opacities.length, 'no run items to measure').toBeGreaterThanOrEqual(
-      4
-    )
     expect(
-      opacities.filter((value) => value < 0.01).length,
-      `${opacities.filter((value) => value < 0.01).length} plate(s) stranded at opacity 0: ${opacities.join(', ')}`
+      after.length,
+      'the run lost its plates on scroll'
+    ).toBeGreaterThanOrEqual(4)
+    expect(
+      after.filter((opacity) => opacity < 0.01).length,
+      `after the track moved, plate(s) still at opacity 0: ${after.join(', ')}`
     ).toBe(0)
   })
 

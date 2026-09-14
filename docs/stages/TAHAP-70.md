@@ -109,6 +109,30 @@ perintah pertama yang Anda jalankan.
 Ia dapat tahapnya sendiri. Yang tahap ini kirim adalah cabangnya benar-benar
 digambar dan ditahan, tanpa bergantung pada dataset sama sekali.
 
+### 70d — Storybook tidak punya provider next-intl sama sekali
+
+Story `Run` **melempar** saat pertama dijalankan:
+
+```
+Error rendering story 'blocks-projectgallery--run'
+```
+
+Sebabnya bukan story-nya. `.storybook/preview.tsx` tidak memasang
+`NextIntlClientProvider` sama sekali, dan galeri memanggil
+`t('run', { count })` untuk label aksesibel run-nya. Tidak ada yang pernah
+menangkapnya karena **tidak ada satu story pun yang pernah menggambar cabang
+yang benar-benar memanggil `t(key)`** — galeri membaca
+`useTranslations('lightbox')` di atas dan hanya memakainya di dalam run dan
+lightbox, dan katalog tidak menggambar keduanya.
+
+Jadi katalog komponen ini akan **crash pada story jujur pertama** yang
+merender string. Diperbaiki dengan memasang `messages/en.json` yang asli, bukan
+stub: stub akan melenceng, dan justru nilai merender label asli adalah
+`storybook-a11y` lalu mengukur nama aksesibel yang situsnya benar-benar kirim.
+
+Setelah provider-nya ada, run-nya tergambar dan treknya terukur
+**1386..1821 di dalam viewport 1280** untuk plat keempat — yang membawa ke §7.2.
+
 ## 4. Yang **tidak** dikerjakan, dan kenapa
 
 | butir                                  | kenapa tidak                                                                                                                                                                                     |
@@ -121,15 +145,15 @@ digambar dan ditahan, tanpa bergantung pada dataset sama sekali.
 
 ## 5. Gerbang
 
-| gerbang                     | menuntut                                                             |
-| --------------------------- | -------------------------------------------------------------------- |
-| **baru** `gallery-run`      | trek melebihi kotaknya, bergerak, reduced-motion terbaca, axe bersih |
-| `storybook-a11y`            | story `Run` ikut tersapu                                             |
-| `vault/vault-api.test.ts`   | tetap hijau — gerbang Tahap 68                                       |
-| `e2e/media-edge.e2e.ts`     | jalur kisi tidak tersentuh; `figure`-nya tetap byte-identical        |
-| `e2e/project-spread.e2e.ts` | spread Tahap 66 tetap hijau                                          |
-| `e2e/held-screen.e2e.ts`    | tetap hijau — gerbang Tahap 69                                       |
-| `contrast.test.ts`          | **tidak berubah** — nol token warna disentuh                         |
+| gerbang                     | menuntut                                                                                            |
+| --------------------------- | --------------------------------------------------------------------------------------------------- |
+| **baru** `gallery-run`      | trek melebihi kotaknya, plat di layar terlihat dan sisanya tiba, reduced-motion terbaca, axe bersih |
+| `storybook-a11y`            | story `Run` ikut tersapu                                                                            |
+| `vault/vault-api.test.ts`   | tetap hijau — gerbang Tahap 68                                                                      |
+| `e2e/media-edge.e2e.ts`     | jalur kisi tidak tersentuh; `figure`-nya tetap byte-identical                                       |
+| `e2e/project-spread.e2e.ts` | spread Tahap 66 tetap hijau                                                                         |
+| `e2e/held-screen.e2e.ts`    | tetap hijau — gerbang Tahap 69                                                                      |
+| `contrast.test.ts`          | **tidak berubah** — nol token warna disentuh                                                        |
 
 ## 6. Apa yang tersisa sebelum run tayang di situs
 
@@ -162,6 +186,24 @@ keempatnya ditulis di sini karena saya mengatakannya lebih dulu:
    scaffolding Satūs), `lib/dev/theatre` (khusus dev), dan `tools/oxlint`. Itu
    permukaan pustaka, bukan kode situs. Tidak dijadikan temuan.
 4. Ditambah dua dari Tahap 69 yang sudah tercatat di spec-nya.
+
+### 7.2 Dan gerbang barunya sendiri salah, bukan kodenya
+
+Assertion pertama saya: **"setiap plat terlihat"**. Ia merah — `1, 1, 1, 0`.
+
+Plat keempat duduk di `1386..1821` dalam viewport 1280: **sepenuhnya di luar
+layar ke kanan**, yang memang **apa itu run horizontal**. Plat tiba saat trek
+membawanya masuk; diukur setelah menggulir, keempatnya `1, 1, 1, 1`.
+
+Jadi yang cacat gerbangnya, bukan bloknya — **ketiga kalinya dalam tiga tahap
+sebuah pemeriksaan saya salah lebih dulu daripada kodenya** (Tahap 69 dua kali,
+Tahap 70 sekali). Yang bertahan adalah bagian yang memang berarti: plat yang
+**benar-benar bisa dilihat pembaca** tidak boleh tak terlihat, dan setiap plat
+harus tiba begitu trek mencapainya. Keduanya sekarang diuji, dan keduanya lulus.
+
+Pola yang sama, dan sudah cukup sering untuk dicatat sebagai aturan kedua di
+samping aturan instrumen Tahap 69: **gerbang baru yang merah diperiksa dulu
+terhadap mekanismenya, sebelum kodenya disalahkan.**
 
 Aturan yang Tahap 69 §8 tulis berlaku lagi dan berhasil: **angka pertama dari
 instrumen baru diperiksa dulu terhadap sumbernya, sebelum dipakai membenarkan
