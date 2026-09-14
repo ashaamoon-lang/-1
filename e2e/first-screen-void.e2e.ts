@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import {
   type Band,
   INTERIOR_MAX_PCT,
-  WIDTH_MIN_PCT,
+  EXTENT_MIN_PCT,
   voidFaults,
   voidProfile,
   widthFaults,
@@ -94,10 +94,34 @@ function collectContentBands() {
     // The same box projected onto the other axis. `Band` is named for spans,
     // not for rows — reusing it keeps one merge implementation instead of two
     // that can drift apart.
-    columns.push({
-      top: Math.max(0, rect.left),
-      bottom: Math.min(window.innerWidth, rect.right),
-    })
+    /*
+     * Ink, not the box — Tahap 76. A one-word eyebrow inside a column-wide
+     * block has a 1398px box and about 60px of ink, and summing boxes made
+     * every horizontal number this gate reported wrong. `Range.getClientRects()`
+     * over the text nodes is the same technique `contrast-situ` uses to find
+     * glyph boxes. A picture is its own ink.
+     */
+    if (isPicture) {
+      columns.push({
+        top: Math.max(0, rect.left),
+        bottom: Math.min(window.innerWidth, rect.right),
+      })
+    } else {
+      for (const node of element.childNodes) {
+        if (node.nodeType !== 3) continue
+        if ((node.textContent ?? '').trim() === '') continue
+        const range = document.createRange()
+        range.selectNodeContents(node)
+        for (const line of range.getClientRects()) {
+          if (line.bottom <= 0 || line.top >= height) continue
+          if (line.width < 4 || line.height < 4) continue
+          columns.push({
+            top: Math.max(0, line.left),
+            bottom: Math.min(window.innerWidth, line.right),
+          })
+        }
+      }
+    }
   }
   return { rows: bands, columns }
 }
@@ -133,7 +157,7 @@ test.describe('a first screen is a composition, not two corners', () => {
       const profile = voidProfile(boxes, height)
       const across = widthProfile(columns, width)
       await testInfo.attach('first-screen-void', {
-        body: `${route} ${label}: leading ${profile.leading}px, interior ${profile.interior}px (${profile.interiorPct}%), trailing ${profile.trailing}px${profile.at ? ` at ${profile.at}` : ''} | width used ${across.usedPct}%, widest bare ${across.widestGap}px ${across.at}`,
+        body: `${route} ${label}: leading ${profile.leading}px, interior ${profile.interior}px (${profile.interiorPct}%), trailing ${profile.trailing}px${profile.at ? ` at ${profile.at}` : ''} | ink coverage ${across.coveragePct}%, extent ${across.extentPct}% (x ${across.leftmost}–${across.rightmost})`,
         contentType: 'text/plain',
       })
 
@@ -145,13 +169,14 @@ test.describe('a first screen is a composition, not two corners', () => {
       ).toEqual([])
 
       /*
-       * The other axis — Tahap 75. `/practice/<v>` gave its subject 600px of a
-       * 1440px screen and left 824px bare beside it, while five routes used
-       * 95–97%. Nothing measured that, on any route, at either viewport.
+       * The other axis. A floor against **confinement** only — see the note on
+       * `EXTENT_MIN_PCT`. Measured honestly these routes read 53 to 97 with no
+       * cliff in between, so this says "the subject is not locked in one narrow
+       * column", and deliberately says nothing about composition quality.
        */
       expect(
         widthFaults([screen]),
-        `unused width on ${route} at ${label} (floor ${WIDTH_MIN_PCT}%)`
+        `confined ink on ${route} at ${label} (floor ${EXTENT_MIN_PCT}%)`
       ).toEqual([])
     })
   }

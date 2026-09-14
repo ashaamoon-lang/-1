@@ -203,98 +203,123 @@ export function voidFaults(
 }
 
 /**
- * Routes whose horizontal profile cannot be trusted, and why.
+ * How far a first screen's **ink** reaches across it.
  *
- * This is an exemption for the **instrument**, not for the page — which is a
- * distinction worth keeping visible. SplitText replaces a headline's text node
- * with one span per word, so "elements that own text directly" measures word
- * fragments rather than the headline, and the gaps between words read as empty
- * column. Measured: `/en` reports 58% width used, which is not a fact about
- * the page.
+ * ## Why this replaced a measurement of boxes — Tahap 76
  *
- * Left here rather than silently skipped so the limitation is countable, and
- * so the day someone teaches the collector about SplitText they can find the
- * routes that were waiting for it.
+ * The first version summed element **box** widths. On `/en/journal` that made
+ * a one-word eyebrow inside a column-wide block count as 1398px of used width:
+ *
+ * ```
+ * <p class="caption">Journal</p>   box x 16–1414 (1398px), ink about 60px
+ * ```
+ *
+ * Every comparison Tahap 75 drew from it was wrong. It reported five routes at
+ * "95–97%" and set a floor beneath that; measured as ink the same routes span
+ * **30–97%**. Worse, the gate barely bit: with box widths every route reports
+ * >= 95%, so it caught `/practice/<v>` only because `max-width: 60ch` happened
+ * to cap that page's boxes too. Any route with wide boxes and narrow ink sailed
+ * through — a gate that cannot fail on the defect that produced it, which is
+ * the failure Tahap 68, 70 and 72 each recorded once.
+ *
+ * Ink comes from `Range.getClientRects()` over the text nodes, the same
+ * technique `e2e/contrast-situ.ts` uses to find glyph boxes.
+ *
+ * The vertical axis was checked the same way before any of this was blamed on
+ * the file as a whole: box and ink agree within 1–2px on all seven routes,
+ * because for text a box's height *is* its ink's height. Tahap 74 stands.
  */
-export const WIDTH_EXEMPT: readonly { route: string; because: string }[] = [
-  {
-    route: '/en',
-    because:
-      'SplitText fragments the headline into per-word spans, so the collector measures words and reports the spaces between them as empty column. The number is an artefact of the instrument, not a measurement of the page',
-  },
-  {
-    route: '/id',
-    because: 'same hero, same SplitText, same artefact as /en',
-  },
-]
 
 export interface WidthProfile {
-  /** Share of the viewport width any content box covers. */
-  readonly usedPct: number
-  /** The widest run of columns carrying nothing. */
-  readonly widestGap: number
-  readonly at: string
+  /** Share of the viewport width ink actually covers. */
+  readonly coveragePct: number
+  /**
+   * Leftmost to rightmost ink, as a share of the viewport.
+   *
+   * The number the gate below uses, and the two are not interchangeable: the
+   * home hero measures 30% coverage and 70% extent, because it is two masses
+   * with a deliberate gap between them. Coverage calls that the emptiest page
+   * on the site; extent knows it reaches across. A composition is allowed to
+   * leave air in the middle — that is what Tahap 74 established — and is not
+   * allowed to be confined to one narrow column.
+   */
+  readonly extentPct: number
+  readonly leftmost: number
+  readonly rightmost: number
 }
 
 export function widthProfile(
   columns: readonly Band[],
   width: number
 ): WidthProfile {
-  if (width <= 0) return { usedPct: 0, widestGap: 0, at: '' }
+  if (width <= 0 || columns.length === 0) {
+    return { coveragePct: 0, extentPct: 0, leftmost: 0, rightmost: 0 }
+  }
   const merged = mergeBands(columns)
-  const used = merged.reduce(
+  const covered = merged.reduce(
     (total, band) => total + (band.bottom - band.top),
     0
   )
-
-  let widest = 0
-  let at = ''
-  const consider = (from: number, to: number) => {
-    if (to - from > widest) {
-      widest = to - from
-      at = `x ${Math.round(from)}–${Math.round(to)}`
-    }
-  }
   const first = merged[0]
-  if (!first) return { usedPct: 0, widestGap: width, at: `x 0–${width}` }
-  consider(0, first.top)
-  for (let index = 1; index < merged.length; index += 1) {
-    const previous = merged[index - 1]
-    const current = merged[index]
-    if (previous && current) consider(previous.bottom, current.top)
-  }
   const last = merged.at(-1)
-  if (last) consider(last.bottom, width)
-
+  const leftmost = Math.round(first?.top ?? 0)
+  const rightmost = Math.round(last?.bottom ?? 0)
   return {
-    usedPct: Math.round((100 * used) / width),
-    widestGap: Math.round(widest),
-    at,
+    coveragePct: Math.round((100 * covered) / width),
+    extentPct: Math.round((100 * (rightmost - leftmost)) / width),
+    leftmost,
+    rightmost,
   }
 }
 
 /**
- * The least of its width a first screen may actually use.
+ * The least of its width a first screen's ink may span.
  *
- * Derived, not chosen: five of seven routes measure 95–97%, and the two that
- * do not are the SplitText artefact above. 60% is comfortably clear of the
- * working figure and still catches the 42% this was written for.
+ * **A floor against confinement, not a measure of composition.** That
+ * distinction is the whole of what Tahap 76 learned: measured honestly these
+ * routes read 66, 70, 79, 89, 97, 97, 97 — a continuum with no cliff in it. No
+ * threshold separates a good composition from a poor one here, and a number
+ * that pretends otherwise is taste wearing a measurement's clothes, which is
+ * exactly what the first version of this constant was.
+ *
+ * What it *can* say is that a page has not confined its subject to one narrow
+ * column while its grid offers twelve. The margins, written down rather than
+ * implied — every figure here measured as ink, at 1440x900:
+ *
+ * ```
+ * /practice before Tahap 75 fixed it       45%   would fail
+ * this floor                               50%
+ * lowest passing route                     66%   (/journal)
+ * next lowest                              70%   (/en)
+ * ```
+ *
+ * The 45% is measured, not inherited: Tahap 75 reported that same state as
+ * "42%", which was its *box* extent, and quoting it in an ink table would have
+ * repeated the error this stage exists to correct.
+ *
+ * The passing margin was much tighter when this constant was written —
+ * `/practice` sat at 53%, three points off the floor — and Tahap 76c moved it
+ * to 97% for reasons of composition rather than of this gate. The floor did
+ * not move to suit it.
+ *
+ * At 390px every route measures 83–89% — blocks stack full width on a phone —
+ * so this is a desktop question and the gate says so rather than pretending to
+ * measure something on both.
  */
-export const WIDTH_MIN_PCT = 60
+export const EXTENT_MIN_PCT = 50
 
-/** Every screen that leaves most of its width bare. */
+/** Every screen whose ink is confined to a narrow column. */
 export function widthFaults(
   screens: readonly Screen[],
-  minPct: number = WIDTH_MIN_PCT
+  minPct: number = EXTENT_MIN_PCT
 ): string[] {
   const faults: string[] = []
   for (const screen of screens) {
     if (screen.width === undefined || screen.columns === undefined) continue
-    if (WIDTH_EXEMPT.some((entry) => entry.route === screen.route)) continue
     const profile = widthProfile(screen.columns, screen.width)
-    if (profile.usedPct >= minPct) continue
+    if (profile.extentPct >= minPct) continue
     faults.push(
-      `${screen.route} at ${screen.viewport}: uses ${profile.usedPct}% of its width, leaving ${profile.widestGap}px bare (${profile.at})`
+      `${screen.route} at ${screen.viewport}: ink spans ${profile.extentPct}% of the width (x ${profile.leftmost}–${profile.rightmost}), confined below the ${minPct}% floor`
     )
   }
   return faults

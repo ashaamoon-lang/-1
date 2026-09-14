@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'bun:test'
 
 import {
+  EXTENT_MIN_PCT,
   INTERIOR_MAX_PCT,
   type Screen,
   VOID_EXEMPT,
-  WIDTH_EXEMPT,
   mergeBands,
   voidFaults,
   voidProfile,
@@ -210,38 +210,23 @@ describe('a viewport-scoped exemption', () => {
   })
 })
 
-describe('the horizontal profile', () => {
-  it('measures the width a first screen actually uses', () => {
-    // `/practice/consulting` as measured: every box x 16–616 of 1440.
+describe('the horizontal profile, measured as ink', () => {
+  it('reports coverage and extent separately, because they answer different questions', () => {
+    // The home hero: two masses with a deliberate gap. Coverage calls it the
+    // emptiest page on the site; extent knows it reaches across.
+    const profile = widthProfile([band(16, 380), band(958, 1030)], 1440)
+    expect(profile.coveragePct).toBe(30)
+    expect(profile.extentPct).toBe(70)
+  })
+
+  it('measures the Tahap 75 defect at the number that made it one', () => {
     const profile = widthProfile([band(16, 616)], 1440)
-    expect(profile.usedPct).toBe(42)
-    expect(profile.widestGap).toBe(824)
-    expect(profile.at).toBe('x 616–1440')
+    expect(profile.extentPct).toBe(42)
+    expect(profile.leftmost).toBe(16)
+    expect(profile.rightmost).toBe(616)
   })
 
-  it('counts a leading gutter as bare too', () => {
-    const profile = widthProfile([band(700, 1440)], 1440)
-    expect(profile.at).toBe('x 0–700')
-  })
-
-  it('reads the site’s working routes as clean', () => {
-    // 16–1414 of 1440 is the 97% five routes measure.
-    expect(widthProfile([band(16, 1414)], 1440).usedPct).toBe(97)
-    expect(
-      widthFaults([
-        {
-          route: '/en/work',
-          viewport: '1440×900',
-          height: 900,
-          boxes: [],
-          width: 1440,
-          columns: [band(16, 1414)],
-        },
-      ])
-    ).toEqual([])
-  })
-
-  it('catches the Tahap 75 defect at its measured number', () => {
+  it('catches ink confined to one column', () => {
     const faults = widthFaults([
       {
         route: '/en/practice/consulting',
@@ -253,21 +238,17 @@ describe('the horizontal profile', () => {
       },
     ])
     expect(faults.length).toBe(1)
-    expect(faults[0]).toContain('uses 42% of its width')
-    expect(faults[0]).toContain('824px bare')
+    expect(faults[0]).toContain('ink spans 42% of the width')
+    expect(faults[0]).toContain('confined below the 50% floor')
   })
 
-  it('skips a screen that supplied no horizontal measurement', () => {
-    // Not "clean" — unmeasured. The two are different, and conflating them is
-    // how a gate reports green for a page it never looked at.
-    expect(
-      widthFaults([
-        { route: '/en/work', viewport: '1440×900', height: 900, boxes: [] },
-      ])
-    ).toEqual([])
-  })
-
-  it('excuses the routes whose instrument is known broken, and names why', () => {
+  it('lets a composition leave air in the middle', () => {
+    /*
+     * The distinction the whole module turns on, and the one a coverage
+     * measure gets wrong: 30% of the width carries ink, but it reaches from
+     * x=16 to x=1030. Tahap 74 established that air between two masses is a
+     * composition; this is that rule on the other axis.
+     */
     expect(
       widthFaults([
         {
@@ -276,12 +257,43 @@ describe('the horizontal profile', () => {
           height: 900,
           boxes: [],
           width: 1440,
-          columns: [band(16, 394)],
+          columns: [band(16, 380), band(958, 1030)],
         },
       ])
     ).toEqual([])
+  })
+
+  it('passes every route this site actually measures', () => {
+    // 53, 66, 70, 79, 89, 97, 97 — the real spread, all above the floor.
+    for (const rightmost of [775, 961, 1030, 1159, 1300, 1414]) {
+      expect(
+        widthFaults([
+          {
+            route: '/x',
+            viewport: '1440×900',
+            height: 900,
+            boxes: [],
+            width: 1440,
+            columns: [band(16, rightmost)],
+          },
+        ])
+      ).toEqual([])
+    }
+  })
+
+  it('skips a screen that supplied no horizontal measurement', () => {
+    // Not "clean" — unmeasured. Conflating the two is how a gate reports green
+    // for a page it never looked at.
     expect(
-      WIDTH_EXEMPT.filter((entry) => entry.because.trim().length < 40)
+      widthFaults([
+        { route: '/en/work', viewport: '1440×900', height: 900, boxes: [] },
+      ])
     ).toEqual([])
+  })
+
+  it('keeps the floor clear of the lowest passing route and of the defect', () => {
+    // The margins as a test rather than a comment: 8 points either side.
+    expect(EXTENT_MIN_PCT).toBeGreaterThan(42)
+    expect(EXTENT_MIN_PCT).toBeLessThan(53)
   })
 })

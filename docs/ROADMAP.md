@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 75**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 76**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2070,6 +2070,63 @@ ada di gerbangnya dan di sini, dan membalikkannya satu baris.
 
 ---
 
+## Tahap 76 — Sumbu yang diukur dengan penggaris yang salah ✅
+
+Spec: `docs/stages/TAHAP-76.md`.
+
+Tahap 75 mengirim perbaikan yang benar dan **gerbang yang nyaris tidak
+menggigit**, lalu membenarkan ambangnya dengan angka yang tidak mengukur apa
+yang dikatakannya. `widthProfile()` menjumlahkan lebar **kotak** elemen, jadi di
+`/en/journal` sebuah eyebrow satu kata di dalam blok selebar kolom terhitung
+1398px lebar terpakai — padahal tintanya ~60px.
+
+```
+route                                 KOTAK   tinta:coverage   tinta:extent
+/en                                    58%         30%             70%
+/en/work                               97%         96%             97%
+/en/studio                             97%         65%             79%
+/en/journal                            97%         66%             66%
+/en/practice/consulting                96%         53%             53%
+/en/work/arus-balik                    95%         62%             89%
+/en/journal/scope-is-the-deliverable   97%         97%             97%
+```
+
+Yang paling serius bukan angkanya, tapi bahwa **dengan lebar kotak setiap rute
+melaporkan ≥95%**: gerbang itu menangkap `/practice` hanya karena
+`max-width: 60ch` kebetulan membatasi kotaknya juga. Rute mana pun dengan kotak
+lebar dan tinta sempit lolos begitu saja — gerbang yang tidak bisa gagal pada
+defek yang melahirkannya, kelas kegagalan yang Tahap 68, 70 dan 72 masing-masing
+catat sekali.
+
+Sumbu **vertikal** diperiksa dengan kedua cara sebelum seluruh berkas
+disalahkan: kotak dan tinta sepakat dalam 1–2px di ketujuh rute, karena untuk
+teks tinggi kotak memang tinggi tinta. **Tahap 74 berdiri utuh.**
+
+Yang dikirim: instrumennya pindah ke tinta (`Range.getClientRects()`, teknik
+yang sama yang Tahap 72 pakai untuk kotak glif) dan melaporkan **dua** angka —
+coverage dan extent. Keduanya perlu: beranda punya coverage 30% dan extent 70%,
+dua massa dengan jarak di antaranya, yang komposisi dan bukan cacat. Lantainya
+diturunkan ulang jadi **50% extent**, dan dinyatakan sebagai apa adanya —
+lantai terhadap konfinemen, **bukan** ukuran mutu komposisi. Keadaan pra-75
+diukur ulang di 45%, di bawah lantai, jadi gerbang ini bisa gagal pada defek
+yang melahirkannya.
+
+`/practice` ditambat ke kedua tepi (53% -> 97% extent) — dan itu **komposisi,
+bukan kepatuhan**: pada 53% ia sudah lulus. Dua hal di situ hanya ketahuan
+karena dilihat, bukan diukur: `text-align: end` memindahkan labelnya dan
+meninggalkan item-itemnya di kiri (perbaikan `target-size` Tahap 75 menjadikan
+tiap `li` flex container), dan komentar `align-self: end` menjanjikan index itu
+"level with the foot of the nameplate" — yang **tidak pernah** terjadi dan tidak
+bisa. Rata-bawah yang sungguhan dicoba dan ditolak dengan pengukuran: rule-nya
+memotong ekor "g" pada _Consulting_ (−12px lawan +61px lega).
+
+Enam tempat membawa klaim "95–97%" itu, dua di antaranya saling bertentangan
+(42% lawan 57%) — tanda sendiri bahwa tidak ada yang mengukur ulang. Semuanya
+dikoreksi di tempatnya: `TAHAP-75.md`, entri ROADMAP Tahap 75, dan tiga berkas
+sumber `practice-hero`.
+
+---
+
 ## Tahap 75 — Halaman yang memberi subjeknya 600 dari 1440 piksel ✅
 
 Spec: `docs/stages/TAHAP-75.md`.
@@ -2104,6 +2161,12 @@ angkanya artefak instrumen. Dicatat sebagai data ber-alasan supaya bisa
 dihitung.
 
 `bun test` 506 -> **512 lulus**, 0 gagal.
+
+> **KOREKSI — Tahap 76.** Setiap persentase di entri ini (42%, 96%, "95–97%")
+> lebar **kotak**, bukan tinta, karena instrumennya menjumlahkan kotak elemen.
+> Sebagai tinta: `/practice` 45% sebelum dan 53% sesudah, rute lain 66–97%.
+> Cacatnya nyata dan perbaikannya benar; ukuran yang dilaporkan terlalu besar,
+> dan lantai 60% yang diturunkan darinya diganti di Tahap 76.
 
 ---
 

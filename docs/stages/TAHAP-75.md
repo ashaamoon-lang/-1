@@ -6,6 +6,25 @@
 
 ## 1. Yang diukur, sebelum satu baris kode
 
+> **KOREKSI — Tahap 76.** Setiap persentase di §1.1, §5.1 dan §5.2 diukur
+> dengan menjumlahkan **lebar kotak** elemen, bukan tintanya. Sebuah eyebrow
+> satu kata di dalam blok selebar kolom karenanya terhitung ~1398px. Angka-angka
+> itu dibiarkan berdiri di bawah ini sebagaimana dilaporkan, dengan koreksinya
+> di sampingnya; `docs/stages/TAHAP-76.md` §1 menjelaskan instrumennya.
+>
+> Ringkasnya, diukur sebagai tinta pada 1440×900:
+>
+> ```
+> /practice sebelum diperbaiki   dilaporkan 42%   sebenarnya 45%
+> /practice sesudah diperbaiki   dilaporkan 96%   sebenarnya 53%
+> "lima rute di 95–97%"                  extent tinta 66–97%
+> ```
+>
+> **Cacatnya nyata dan perbaikannya benar** — keempat kotak nameplate memang
+> berhenti di x=616 dari 1440. Yang salah cuma ukuran yang saya laporkan, dan
+> lantai 60% yang diturunkan darinya (Tahap 76 menggantinya dengan 50% extent
+> tinta).
+
 ### 1.1 Lebar yang benar-benar dipakai, tujuh rute, 1440×900
 
 Pita **kolom** kosong terlebar di layar pertama, dihitung dari kotak yang
@@ -23,6 +42,11 @@ membawa teks atau gambar:
 
 Lima rute duduk di 95–97%, dan sisa 22–26px itu cuma gutter kanan. Satu rute
 duduk di **42%**.
+
+> Semua angka baris ini **lebar kotak**. Tinta yang sebenarnya, Tahap 76:
+> `/en` 70%, `/en/work` 97%, `/en/studio` 79%, `/en/journal` 66%,
+> `/journal/<slug>` 97%, `/work/<slug>` 89%, `/practice/<v>` 45%. Urutan
+> "terburuk"-nya bertahan; jaraknya tidak.
 
 ### 1.2 Diverifikasi ke DOM, bukan hanya ke screenshot
 
@@ -98,6 +122,13 @@ dan `first-screen-void.e2e.ts` menegakkan keduanya. Ambangnya **diturunkan dari
 §1.1**: lima rute duduk di 95–97%, jadi lantai 60% lebar terpakai lapang dan
 tetap menggigit pada 42%.
 
+> **KOREKSI — Tahap 76.** Lantai itu diturunkan dari angka kotak, jadi dari
+> angka yang salah — dan lebih buruk: dengan lebar kotak **setiap** rute
+> melaporkan ≥95%, sehingga gerbang ini menangkap `/practice` hanya karena
+> `max-width: 60ch` kebetulan membatasi kotaknya juga. Rute mana pun dengan
+> kotak lebar dan tinta sempit lolos begitu saja. Diganti dengan lantai **50%
+> extent tinta**.
+
 Rute ber-SplitText dikecualikan dari sumbu horizontal **berikut alasannya**
 (§1.3) — pola pengecualian-sebagai-data Tahap 73, supaya alat yang belum bisa
 mengukur sesuatu mengatakannya alih-alih diam-diam salah.
@@ -134,10 +165,27 @@ SESUDAH  /en/practice/consulting   26px kosong  x 1414–1440  lebar terpakai 96
 26px itu gutter kanan — persis yang lima rute lain sisakan. Tidak satu pun
 rute lain bergerak.
 
+> **KOREKSI — Tahap 76.** Kedua angka itu lebar kotak. Sebagai tinta, diukur
+> ulang di Chromium:
+>
+> ```
+> SEBELUM  extent 45%   tinta x 16–668
+> SESUDAH  extent 53%   tinta x 16–775
+> ```
+>
+> Index-nya memang mengisi kolom keduanya, tapi tintanya berhenti di x=775
+> sementara rule-nya berlari ke 1414 — sesuatu yang laporan berbasis kotak
+> tidak bisa tunjukkan. Tahap 76c menambatnya ke tepi kanan dan extent-nya
+> jadi 97%.
+
 ### 5.2 Gerbangnya, dua sumbu, dua viewport
 
 `first-screen-void` sekarang 16 uji (delapan rute × dua viewport), masing-masing
 menegakkan lubang interior **dan** lebar terpakai. Semuanya lulus.
+
+> **KOREKSI — Tahap 76.** "Semuanya lulus" benar dan **tidak berarti banyak**:
+> sumbu horizontalnya saat itu tidak bisa gagal pada apa pun kecuali kebetulan.
+> Sumbu vertikalnya sehat dan tidak disentuh (TAHAP-76 §1.4).
 
 `bun test` 506 → **512 lulus**, 0 gagal.
 

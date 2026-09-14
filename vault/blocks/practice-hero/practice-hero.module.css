@@ -10,10 +10,14 @@
    * **Moved off the container in Tahap 75.** It was right about the nameplate
    * and silent about the rest of the screen: applied here it capped all four
    * children at 600px and left **824px of a 1440px first screen carrying
-   * nothing** — 42% width used, against 95–97% on every other route. The
-   * measure now belongs to the first column of the desktop grid below, so the
-   * Tahap 15 decision stands and the other half of the screen stops being
-   * empty by accident.
+   * nothing**. The measure now belongs to the first column of the desktop
+   * grid below, so the Tahap 15 decision stands and the other half of the
+   * screen stops being empty by accident.
+   *
+   * The figures Tahap 75 attached to this — "42% width used, against 95–97%
+   * on every other route" — were box widths, and Tahap 76 replaced the
+   * instrument that produced them. As ink extent — leftmost to rightmost —
+   * this state is 45% and the other routes 66–97%.
    */
   max-width: 60ch;
 
@@ -79,9 +83,49 @@
 
   @media (--desktop) {
     grid-column: 2;
-    /* Level with the foot of the nameplate, so the two columns read as one
-       band rather than as a list that happens to be nearby. */
-    align-self: end;
+    /*
+     * The two columns open together; they do not close together — Tahap 76
+     * measured it, and the declaration that claimed otherwise is gone.
+     *
+     * `align-self: end` stood here with a comment promising the index sat
+     * "level with the foot of the nameplate". It never did, and it could not:
+     * auto-placement lands this nav in the last row beside `.count`, and at
+     * 87px it is the taller of the two, so it *defines* that row and has no
+     * slack to be pushed into. Measured at 1440x900: nameplate ink ends at
+     * y=668, this list at y=737.
+     *
+     * Bottom-aligning for real was tried — explicit rows plus `grid-row:
+     * 1 / -1` — and rejected by measurement, not taste: it lifts the rule to
+     * meet a headline that has descenders in it.
+     *
+     *   shipped          headline ink ends 592, rule at 653   +61px clear
+     *   bottom-aligned   headline ink ends 665, rule at 653   -12px, crossed
+     *
+     * What actually happens is the better composition anyway: the rule lands
+     * at y=653 and `2 engagements` at y=652, so the two columns open the same
+     * band within a pixel, under a headline with room to breathe.
+     */
+
+    /*
+     * Anchored to the right edge of its column — Tahap 76.
+     *
+     * **Composition, not compliance, and the distinction matters here.** At
+     * 53% ink extent this route *passed* the 50% floor in
+     * `e2e/first-screen-void.ts`; nothing was red. The reason is what the
+     * screenshot showed: the rule above this list ran to the page edge while
+     * the words stopped at x=775 of 1440, which reads as a list that lost its
+     * right-hand side. Anchoring it makes the hero hold both margins — the
+     * headline bottom-left, the index bottom-right — the same diagonal
+     * `vault/blocks/hero` composes the home page around.
+     *
+     * The extent went 53% to 97% as a side effect. That is not the argument
+     * for the change, and `EXTENT_MIN_PCT` says why at length: it is a floor
+     * against confinement, not a score to raise.
+     *
+     * `text-align` rather than a flex alignment so the label and the items
+     * agree without either of them needing its own rule.
+     */
+    text-align: end;
     gap: desktop-vw(8px);
     padding-block-start: desktop-vw(12px);
   }
@@ -135,6 +179,22 @@
     display: flex;
     align-items: center;
     min-block-size: calc(var(--tap-target) / 2);
+  }
+
+  /*
+   * Aligned with the label above them — Tahap 76, and the reason is worth
+   * keeping.
+   *
+   * `text-align: end` on the container moved the label to the right edge and
+   * left these where they were, because the target-size fix above made each
+   * item a flex container and flex children answer to `justify-content`, not
+   * to `text-align`. The measurement went **up** — ink extent 53% to 97% —
+   * while the composition got worse: a label at one edge and its own list at
+   * the other. Optimising the number is exactly what a gate is not for, and
+   * the screenshot is what caught it.
+   */
+  @media (--desktop) {
+    justify-content: flex-end;
   }
 }
 

@@ -49,10 +49,18 @@ interface PracticeHeroProps {
    * column this shipped with, rather than a grid with an empty half.
    *
    * Measured at 1440x900 before this existed: every one of the hero's four
-   * boxes ran x 16-616, and the remaining **824px — 57% of the first screen —
-   * carried nothing**, against 95-97% width used on every other route. The
-   * `max-width: 60ch` that caused it is correct about the nameplate and silent
-   * about the rest of the screen. `docs/stages/TAHAP-75.md`.
+   * boxes ran x 16-616, and the remaining **824px of the first screen carried
+   * nothing**. The `max-width: 60ch` that caused it is correct about the
+   * nameplate and silent about the rest of the screen.
+   * `docs/stages/TAHAP-75.md`.
+   *
+   * **The comparison that used to sit here was wrong** — Tahap 76. It read
+   * "against 95-97% width used on every other route", which was measured by
+   * summing element *boxes*, so a one-word eyebrow in a column-wide block
+   * counted as 1398px of used width. Measured as ink the other routes reach
+   * 66-97% of the width (leftmost to rightmost), and this page's own
+   * before-state is 45%, not the 57% claimed above it. The defect was real and the fix was right; only the size of it
+   * was overstated. `e2e/first-screen-void.ts` measures ink now.
    */
   index?:
     | {
