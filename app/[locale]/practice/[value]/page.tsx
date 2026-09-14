@@ -233,6 +233,36 @@ export default async function PracticePage({ params }: PracticePageProps) {
           label={tWork(value)}
           intro={tWork(`${value}Intro`)}
           count={tWork('count', { count: projects.length })}
+          /*
+            The siblings, in the column the nameplate's measure leaves free —
+            Tahap 75. Same source the home hero's index reads, and the same
+            strings: `PRACTICES` and `workIndex.<practice>`. Nothing written
+            for this.
+
+            The *other* practices rather than all three, labelled with the
+            `relatedPractice` string this page's dictionary already carries.
+            Listing all three under "Practice" would print the eyebrow's own
+            word twice in one hero and say nothing the eyebrow does not.
+
+            Reachable from the top of the page instead of only from
+            `NextPractice` at the very bottom, which is what a reader
+            comparing two practices actually needs.
+          */
+          index={{
+            label: tWork('relatedPractice'),
+            items: PRACTICES.filter((practice) => practice !== value).map(
+              (practice) => ({
+                key: practice,
+                node: (
+                  <Link
+                    href={localizedPath(locale, practiceTemplate(practice))}
+                  >
+                    {tWork(practice)}
+                  </Link>
+                ),
+              })
+            ),
+          }}
         />
 
         {/*

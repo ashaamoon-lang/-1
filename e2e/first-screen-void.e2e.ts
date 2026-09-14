@@ -3,8 +3,11 @@ import { expect, test } from '@playwright/test'
 import {
   type Band,
   INTERIOR_MAX_PCT,
+  WIDTH_MIN_PCT,
   voidFaults,
   voidProfile,
+  widthFaults,
+  widthProfile,
 } from './first-screen-void'
 
 /**
@@ -60,9 +63,10 @@ const ROUTES = [
  * Declared at module scope rather than inline so the same function serialises
  * into every route's evaluate call — one definition to keep honest.
  */
-function collectContentBands(): Band[] {
+function collectContentBands() {
   const height = window.innerHeight
   const bands: Band[] = []
+  const columns: Band[] = []
   for (const element of document.querySelectorAll('main *')) {
     // Decorative layers announce themselves; they are ground, not content.
     if (element.closest('[aria-hidden="true"]')) continue
@@ -87,8 +91,15 @@ function collectContentBands(): Band[] {
       top: Math.max(0, rect.top),
       bottom: Math.min(height, rect.bottom),
     })
+    // The same box projected onto the other axis. `Band` is named for spans,
+    // not for rows — reusing it keeps one merge implementation instead of two
+    // that can drift apart.
+    columns.push({
+      top: Math.max(0, rect.left),
+      bottom: Math.min(window.innerWidth, rect.right),
+    })
   }
-  return bands
+  return { rows: bands, columns }
 }
 
 test.describe('a first screen is a composition, not two corners', () => {
@@ -104,7 +115,10 @@ test.describe('a first screen is a composition, not two corners', () => {
       const height = viewport?.height ?? 900
       const label = `${viewport?.width ?? 0}×${height}`
 
-      const boxes = await page.evaluate(collectContentBands)
+      const collected = await page.evaluate(collectContentBands)
+      const boxes = collected.rows
+      const columns = collected.columns
+      const width = viewport?.width ?? 1440
 
       /*
        * Anti-vacuum, and it is the assertion that would have caught this
@@ -117,14 +131,27 @@ test.describe('a first screen is a composition, not two corners', () => {
       ).toBeGreaterThan(1)
 
       const profile = voidProfile(boxes, height)
+      const across = widthProfile(columns, width)
       await testInfo.attach('first-screen-void', {
-        body: `${route} ${label}: leading ${profile.leading}px, interior ${profile.interior}px (${profile.interiorPct}%), trailing ${profile.trailing}px${profile.at ? ` at ${profile.at}` : ''}`,
+        body: `${route} ${label}: leading ${profile.leading}px, interior ${profile.interior}px (${profile.interiorPct}%), trailing ${profile.trailing}px${profile.at ? ` at ${profile.at}` : ''} | width used ${across.usedPct}%, widest bare ${across.widestGap}px ${across.at}`,
         contentType: 'text/plain',
       })
 
+      const screen = { route, viewport: label, height, boxes, width, columns }
+
       expect(
-        voidFaults([{ route, viewport: label, height, boxes }]),
+        voidFaults([screen]),
         `interior void on ${route} at ${label} (ceiling ${INTERIOR_MAX_PCT}%)`
+      ).toEqual([])
+
+      /*
+       * The other axis — Tahap 75. `/practice/<v>` gave its subject 600px of a
+       * 1440px screen and left 824px bare beside it, while five routes used
+       * 95–97%. Nothing measured that, on any route, at either viewport.
+       */
+      expect(
+        widthFaults([screen]),
+        `unused width on ${route} at ${label} (floor ${WIDTH_MIN_PCT}%)`
       ).toEqual([])
     })
   }

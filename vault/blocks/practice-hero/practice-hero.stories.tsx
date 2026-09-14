@@ -51,3 +51,30 @@ export const Empty: Story = {
     count: 'No work listed yet',
   },
 }
+
+/**
+ * The nameplate with the column its measure leaves free — Tahap 75.
+ *
+ * Without the index this block gave its subject **600px of a 1440px first
+ * screen** and left 824px bare beside it: 42% of the width used, against
+ * 95–97% on every other route. The `max-width: 60ch` behind that is right
+ * about the nameplate and was silent about the rest of the screen.
+ *
+ * The story exists because the prop that composes a block belongs in its
+ * catalogue entry. Tahap 67 shipped a hero whose own story omitted exactly
+ * that, and documented the block wrong for fifty-five stages.
+ *
+ * Plain text here rather than links: the route supplies `<Link>` nodes, and a
+ * catalogue that routes nowhere would document a navigation it cannot perform.
+ */
+export const WithIndex: Story = {
+  args: {
+    index: {
+      label: 'Related practice',
+      items: [
+        { key: 'ai-data', node: 'AI & Data' },
+        { key: 'consulting', node: 'Consulting' },
+      ],
+    },
+  },
+}

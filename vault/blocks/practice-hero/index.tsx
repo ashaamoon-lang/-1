@@ -41,6 +41,26 @@ interface PracticeHeroProps {
   intro: ReactNode
   /** How many works sit under this practice — real, from the CMS. */
   count: ReactNode
+  /**
+   * The practice index, in the column the nameplate's measure leaves free.
+   *
+   * Optional because the measure is the block's contract and the index is
+   * not: a caller with nothing to put beside the nameplate gets the single
+   * column this shipped with, rather than a grid with an empty half.
+   *
+   * Measured at 1440x900 before this existed: every one of the hero's four
+   * boxes ran x 16-616, and the remaining **824px — 57% of the first screen —
+   * carried nothing**, against 95-97% width used on every other route. The
+   * `max-width: 60ch` that caused it is correct about the nameplate and silent
+   * about the rest of the screen. `docs/stages/TAHAP-75.md`.
+   */
+  index?:
+    | {
+        label: ReactNode
+        /** One entry per sibling practice. The caller decides if they link. */
+        items: { key: string; node: ReactNode }[]
+      }
+    | undefined
   className?: string | undefined
 }
 
@@ -50,6 +70,7 @@ export function PracticeHero({
   eyebrow,
   intro,
   count,
+  index,
   className,
 }: PracticeHeroProps) {
   return (
@@ -85,6 +106,23 @@ export function PracticeHero({
       <p data-reveal-item className={cn('caption', s.count)}>
         {count}
       </p>
+
+      {index ? (
+        <nav
+          data-reveal-item
+          className={s.index}
+          aria-label={String(index.label)}
+        >
+          <p className={cn('caption', s.indexLabel)}>{index.label}</p>
+          <ul className={s.indexList}>
+            {index.items.map((item) => (
+              <li key={item.key} className={cn('caption', s.indexItem)}>
+                {item.node}
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
     </Reveal>
   )
 }

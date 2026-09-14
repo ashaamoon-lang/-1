@@ -54,6 +54,10 @@ export interface Screen {
   /** Human label for the viewport, e.g. `1440×900`. */
   readonly viewport: string
   readonly height: number
+  /** Viewport width, for the horizontal profile. Omit to skip it. */
+  readonly width?: number
+  /** Horizontal spans the same content boxes occupy. Omit to skip. */
+  readonly columns?: readonly Band[]
   /**
    * Boxes that carry **content** — text the reader reads, or a picture.
    *
@@ -193,6 +197,104 @@ export function voidFaults(
     if (profile.interiorPct <= maxPct) continue
     faults.push(
       `${screen.route} at ${screen.viewport}: ${profile.interior}px of nothing between content (${profile.interiorPct}% of the screen, ${profile.at}) — leading ${profile.leading}px, trailing ${profile.trailing}px`
+    )
+  }
+  return faults
+}
+
+/**
+ * Routes whose horizontal profile cannot be trusted, and why.
+ *
+ * This is an exemption for the **instrument**, not for the page — which is a
+ * distinction worth keeping visible. SplitText replaces a headline's text node
+ * with one span per word, so "elements that own text directly" measures word
+ * fragments rather than the headline, and the gaps between words read as empty
+ * column. Measured: `/en` reports 58% width used, which is not a fact about
+ * the page.
+ *
+ * Left here rather than silently skipped so the limitation is countable, and
+ * so the day someone teaches the collector about SplitText they can find the
+ * routes that were waiting for it.
+ */
+export const WIDTH_EXEMPT: readonly { route: string; because: string }[] = [
+  {
+    route: '/en',
+    because:
+      'SplitText fragments the headline into per-word spans, so the collector measures words and reports the spaces between them as empty column. The number is an artefact of the instrument, not a measurement of the page',
+  },
+  {
+    route: '/id',
+    because: 'same hero, same SplitText, same artefact as /en',
+  },
+]
+
+export interface WidthProfile {
+  /** Share of the viewport width any content box covers. */
+  readonly usedPct: number
+  /** The widest run of columns carrying nothing. */
+  readonly widestGap: number
+  readonly at: string
+}
+
+export function widthProfile(
+  columns: readonly Band[],
+  width: number
+): WidthProfile {
+  if (width <= 0) return { usedPct: 0, widestGap: 0, at: '' }
+  const merged = mergeBands(columns)
+  const used = merged.reduce(
+    (total, band) => total + (band.bottom - band.top),
+    0
+  )
+
+  let widest = 0
+  let at = ''
+  const consider = (from: number, to: number) => {
+    if (to - from > widest) {
+      widest = to - from
+      at = `x ${Math.round(from)}–${Math.round(to)}`
+    }
+  }
+  const first = merged[0]
+  if (!first) return { usedPct: 0, widestGap: width, at: `x 0–${width}` }
+  consider(0, first.top)
+  for (let index = 1; index < merged.length; index += 1) {
+    const previous = merged[index - 1]
+    const current = merged[index]
+    if (previous && current) consider(previous.bottom, current.top)
+  }
+  const last = merged.at(-1)
+  if (last) consider(last.bottom, width)
+
+  return {
+    usedPct: Math.round((100 * used) / width),
+    widestGap: Math.round(widest),
+    at,
+  }
+}
+
+/**
+ * The least of its width a first screen may actually use.
+ *
+ * Derived, not chosen: five of seven routes measure 95–97%, and the two that
+ * do not are the SplitText artefact above. 60% is comfortably clear of the
+ * working figure and still catches the 42% this was written for.
+ */
+export const WIDTH_MIN_PCT = 60
+
+/** Every screen that leaves most of its width bare. */
+export function widthFaults(
+  screens: readonly Screen[],
+  minPct: number = WIDTH_MIN_PCT
+): string[] {
+  const faults: string[] = []
+  for (const screen of screens) {
+    if (screen.width === undefined || screen.columns === undefined) continue
+    if (WIDTH_EXEMPT.some((entry) => entry.route === screen.route)) continue
+    const profile = widthProfile(screen.columns, screen.width)
+    if (profile.usedPct >= minPct) continue
+    faults.push(
+      `${screen.route} at ${screen.viewport}: uses ${profile.usedPct}% of its width, leaving ${profile.widestGap}px bare (${profile.at})`
     )
   }
   return faults

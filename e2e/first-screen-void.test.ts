@@ -4,9 +4,12 @@ import {
   INTERIOR_MAX_PCT,
   type Screen,
   VOID_EXEMPT,
+  WIDTH_EXEMPT,
   mergeBands,
   voidFaults,
   voidProfile,
+  widthFaults,
+  widthProfile,
 } from './first-screen-void'
 
 /**
@@ -204,5 +207,81 @@ describe('a viewport-scoped exemption', () => {
         ])
       ).toEqual([])
     }
+  })
+})
+
+describe('the horizontal profile', () => {
+  it('measures the width a first screen actually uses', () => {
+    // `/practice/consulting` as measured: every box x 16–616 of 1440.
+    const profile = widthProfile([band(16, 616)], 1440)
+    expect(profile.usedPct).toBe(42)
+    expect(profile.widestGap).toBe(824)
+    expect(profile.at).toBe('x 616–1440')
+  })
+
+  it('counts a leading gutter as bare too', () => {
+    const profile = widthProfile([band(700, 1440)], 1440)
+    expect(profile.at).toBe('x 0–700')
+  })
+
+  it('reads the site’s working routes as clean', () => {
+    // 16–1414 of 1440 is the 97% five routes measure.
+    expect(widthProfile([band(16, 1414)], 1440).usedPct).toBe(97)
+    expect(
+      widthFaults([
+        {
+          route: '/en/work',
+          viewport: '1440×900',
+          height: 900,
+          boxes: [],
+          width: 1440,
+          columns: [band(16, 1414)],
+        },
+      ])
+    ).toEqual([])
+  })
+
+  it('catches the Tahap 75 defect at its measured number', () => {
+    const faults = widthFaults([
+      {
+        route: '/en/practice/consulting',
+        viewport: '1440×900',
+        height: 900,
+        boxes: [],
+        width: 1440,
+        columns: [band(16, 616)],
+      },
+    ])
+    expect(faults.length).toBe(1)
+    expect(faults[0]).toContain('uses 42% of its width')
+    expect(faults[0]).toContain('824px bare')
+  })
+
+  it('skips a screen that supplied no horizontal measurement', () => {
+    // Not "clean" — unmeasured. The two are different, and conflating them is
+    // how a gate reports green for a page it never looked at.
+    expect(
+      widthFaults([
+        { route: '/en/work', viewport: '1440×900', height: 900, boxes: [] },
+      ])
+    ).toEqual([])
+  })
+
+  it('excuses the routes whose instrument is known broken, and names why', () => {
+    expect(
+      widthFaults([
+        {
+          route: '/en',
+          viewport: '1440×900',
+          height: 900,
+          boxes: [],
+          width: 1440,
+          columns: [band(16, 394)],
+        },
+      ])
+    ).toEqual([])
+    expect(
+      WIDTH_EXEMPT.filter((entry) => entry.because.trim().length < 40)
+    ).toEqual([])
   })
 })

@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 74**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 75**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,43 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 75 — Halaman yang memberi subjeknya 600 dari 1440 piksel ✅
+
+Spec: `docs/stages/TAHAP-75.md`.
+
+Tahap 74 mengukur lubang **vertikal** dan menutupnya di beranda. Sumbu satunya
+tidak pernah diukur sama sekali — dan di sana `/practice/<v>` memakai **42%
+lebar layar pertamanya**, dengan pita kolom kosong **824px** dari x 616 ke tepi.
+Lima rute lain memakai 95–97%; sisa 22–26px mereka cuma gutter.
+
+Diverifikasi ke DOM, bukan hanya ke screenshot: `splitMarkers` nol, `h1`
+memiliki teksnya langsung, dan keempat kotak isi hero berhenti di x=616.
+Sebabnya satu baris — `max-width: 60ch` dipasang di **kontainer**, jadi ia
+membatasi keempat anaknya sekaligus. Komentarnya benar soal measure nameplate
+dan tidak pernah menjawab apa yang menempati 824px sisanya.
+
+```
+SEBELUM  824px kosong  lebar terpakai 42%
+SESUDAH   26px kosong  lebar terpakai 96%
+```
+
+Yang dikirim: measure pindah dari kontainer ke kolom pertama grid dua kolom di
+desktop — keputusan Tahap 15 berdiri utuh — dan kolom kedua mendapat index
+praktik dari sumber yang **sudah ada** (`PRACTICES` + `workIndex.<practice>` +
+`relatedPractice`). Nol kata karangan, dan praktik saudaranya jadi terjangkau
+dari atas halaman alih-alih hanya dari `NextPractice` di paling bawah.
+
+Gerbang `first-screen-void` diperluas ke sumbu kedua: 16 uji, delapan rute dua
+viewport, menegakkan lubang interior **dan** lebar terpakai. `/en` dan `/id`
+dikecualikan dari sumbu horizontal — dan itu pengecualian **untuk alatnya**,
+bukan untuk halamannya: SplitText memecah headline jadi span per kata, jadi
+angkanya artefak instrumen. Dicatat sebagai data ber-alasan supaya bisa
+dihitung.
+
+`bun test` 506 -> **512 lulus**, 0 gagal.
 
 ---
 

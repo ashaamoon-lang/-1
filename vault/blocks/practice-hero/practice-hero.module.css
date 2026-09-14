@@ -3,8 +3,18 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: mobile-vw(16px);
-  /* The measure, not the column: a nameplate that runs the full 12 columns
-     reads as a banner rather than as a subject. */
+  /*
+   * The measure, not the column: a nameplate that runs the full 12 columns
+   * reads as a banner rather than as a subject.
+   *
+   * **Moved off the container in Tahap 75.** It was right about the nameplate
+   * and silent about the rest of the screen: applied here it capped all four
+   * children at 600px and left **824px of a 1440px first screen carrying
+   * nothing** — 42% width used, against 95–97% on every other route. The
+   * measure now belongs to the first column of the desktop grid below, so the
+   * Tahap 15 decision stands and the other half of the screen stops being
+   * empty by accident.
+   */
   max-width: 60ch;
 
   /*
@@ -29,7 +39,80 @@
 
   @media (--desktop) {
     gap: desktop-vw(16px);
+
+    /*
+     * Two columns: the nameplate at its measure, the index in what that
+     * measure leaves free. `align-content: end` keeps the whole composition
+     * bottom-anchored, which is the part Tahap 52 measured and this stage
+     * does not touch.
+     */
+    display: grid;
+    grid-template-columns: minmax(0, 60ch) minmax(0, 1fr);
+    align-content: end;
+    column-gap: var(--gap);
+    max-width: none;
   }
+}
+
+/*
+ * Every nameplate child stays in column one, so the measure above is what it
+ * always was. Declared once rather than per element: a new child arriving in
+ * this block should land in the nameplate column by default, not beside it.
+ */
+@media (--desktop) {
+  .eyebrow,
+  .name,
+  .intro,
+  .count {
+    grid-column: 1;
+  }
+}
+
+.index {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(8px);
+  /* A rule under the label, the same hairline weight the rest of the site
+     uses for a quiet division. */
+  border-block-start: 1px solid var(--line);
+  padding-block-start: mobile-vw(12px);
+
+  @media (--desktop) {
+    grid-column: 2;
+    /* Level with the foot of the nameplate, so the two columns read as one
+       band rather than as a list that happens to be nearby. */
+    align-self: end;
+    gap: desktop-vw(8px);
+    padding-block-start: desktop-vw(12px);
+  }
+}
+
+.indexLabel {
+  margin: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.indexList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  /* A row on a phone, where this sits under the count and a column would cost
+     four lines; a column on desktop, where it is the second column. */
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: mobile-vw(16px);
+
+  @media (--desktop) {
+    flex-direction: column;
+    gap: desktop-vw(8px);
+  }
+}
+
+.indexItem {
+  color: var(--text-muted);
 }
 
 .eyebrow {
