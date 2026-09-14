@@ -133,6 +133,32 @@ stub: stub akan melenceng, dan justru nilai merender label asli adalah
 Setelah provider-nya ada, run-nya tergambar dan treknya terukur
 **1386..1821 di dalam viewport 1280** untuk plat keempat — yang membawa ke §7.2.
 
+### 70e — dan provider itu merusak tema, yang hanya ketahuan karena diminta screenshot
+
+Latar screenshot pertama **terang**, padahal situs ini monokrom gelap. Diukur:
+story galeri `data-theme: null`, ground `oklch(0.964 …)` — default `:root`
+telanjang — sementara `Blocks/Hero` tetap `dark`.
+
+Saya tidak menebak penyebabnya. Storybook dibangun ulang dari keadaan
+**sebelum** perubahan saya: **ketiganya `dark`**. Jadi penyebabnya saya —
+decorator provider global membuat efek `withTheme` berhenti berjalan khusus
+untuk story blok itu. **Nol error konsol, nol page error**; efeknya hanya tidak
+jalan. Menukar urutan decorator tidak mengubah apa pun.
+
+Akar interaksinya **belum dipahami**, jadi perbaikannya tidak berpura-pura
+memperbaikinya: `withTheme` menulis atributnya **saat render** selain di
+efeknya. `data-theme` itu properti dokumen, bukan state React, dan menulisnya
+di jalur render deterministik apa pun cara rantai decorator-nya rekonsiliasi.
+Efeknya tetap ada karena itu yang menanggapi toolbar.
+
+Sesudahnya, terukur: ketiga story `dark`, ground `oklch(0.17 …)`.
+
+Pelajarannya bukan soal Storybook. **Cacat ini lolos dari `bun run check`,
+`tsc`, lint, `build-storybook`, gerbang run yang baru, dan `storybook-a11y`
+122 uji — dan ketahuan karena seseorang minta gambar.** Kontras yang salah di
+katalog tidak melanggar satu pun kontrak yang repo ini punya. Itu celah nyata,
+dan dicatat di sini alih-alih ditambal diam-diam.
+
 ## 4. Yang **tidak** dikerjakan, dan kenapa
 
 | butir                                  | kenapa tidak                                                                                                                                                                                     |

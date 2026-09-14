@@ -46,6 +46,29 @@ const withIntl: Decorator = (Story) => (
 const withTheme: Decorator = (Story, context) => {
   const theme = (context.globals.theme as string) ?? 'dark'
 
+  /*
+   * Set during render as well as in the effect — Tahap 70.
+   *
+   * The effect alone was enough while this was the only decorator. Adding
+   * `withIntl` beside it stopped the effect firing for `Blocks/ProjectGallery`
+   * specifically: measured, those stories rendered with `data-theme` **null**
+   * and the bare light `:root` ground (`oklch(0.964 …)`) while `Blocks/Hero`
+   * still got `dark`. No console error and no page error — the effect simply
+   * did not run, and swapping the decorator order changed nothing.
+   *
+   * The root cause of that interaction is still not understood, so this does
+   * not pretend to fix it. What it does is remove the dependency on an effect
+   * firing at all: the attribute is a property of the document, not of React
+   * state, and writing it on the way through is deterministic regardless of
+   * how the decorator chain reconciles.
+   *
+   * The effect stays, because it is what reacts to the toolbar switching the
+   * global after the first render.
+   */
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
