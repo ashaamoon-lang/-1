@@ -247,6 +247,87 @@ export default async function StudioPage() {
               {t('factsNote')}
             </p>
           </Reveal>
+
+          {/*
+            The capabilities, at the foot of the hero — Tahap 69.
+
+            They used to sit at `y=4255` of a 5008px page: **160px at 85%
+            depth**, behind a 2232px process sequence. The same twelve items
+            Tahap 65 gave a full pinned screen to on `/practice/<value>` were,
+            on the page that exists to say what this studio does, the least
+            likely thing on it to be read.
+
+            Meanwhile this box held `100svh` for a motion reason that is real
+            and was re-checked (§1.1 of the stage spec) — and left **493px,
+            63% of itself, empty** underneath its two columns. One move
+            answers both: the page's most concrete statement goes where the
+            page is most read, and it costs **no page height at all**, because
+            it fills slack the hero had already reserved.
+
+            Not spread, and not expanded: the block moves as it is. A hero
+            that grew a twelve-item feature list would be the pattern
+            `e2e/taste-preflight.e2e.ts:148` exists to keep out — that rule is
+            scoped to `[data-epic="hero-arrival"]` and cannot see this header,
+            which makes it guidance here rather than a gate, and guidance is
+            still binding.
+          */}
+          {/*
+            Capabilities, grouped by the three practices — and the grouping comes
+            from `lib/content/practices.ts`, the same constant the routes and the
+            footer index read. A hand-written fourth grouping here would be a
+            second source of truth for what this studio does.
+          */}
+          <Reveal
+            as="section"
+            className={s.heroCapabilities}
+            /*
+             * Opens on load, not on a scroll that never comes.
+             *
+             * This band sits at the foot of a box that holds the screen, so
+             * its top lands at **764** against the default trigger line at
+             * **675** of a 900px viewport. Measured with the default: the
+             * three practices stayed at `opacity: 0` and `translateY(16px)`
+             * five seconds after load, on the first screen — content moved
+             * here to be read, and invisible once it arrived.
+             */
+            rootMargin="0px"
+          >
+            <p data-reveal-item className={cn('caption', s.eyebrow)}>
+              {t('capabilitiesEyebrow')}
+            </p>
+            <dl className={s.capabilityList}>
+              {PRACTICES.map((practice) => (
+                <div className={s.capability} data-reveal-item key={practice}>
+                  {/*
+                    The name is the link — Tahap 38.
+
+                    This section already says it is "grouped by the three
+                    practices", and each of those three has had a page since
+                    Tahap 15a that nothing on this page pointed at: measured,
+                    `/en/studio` offered **one** onward link in its own content,
+                    the closing "See the work". A reader who got this far is
+                    reading about a practice, and the page about it was one
+                    segment away and invisible.
+                  */}
+                  <dt className={cn('h3', s.capabilityName)}>
+                    <Link
+                      href={practiceTemplate(practice)}
+                      className={s.capabilityLink}
+                      // `MOTION-SPEC.md` §9 — INTENT and COMMIT on a noun the
+                      // reader can press.
+                      data-press="practice"
+                      data-intent=""
+                    >
+                      {tPractice(practice)}
+                    </Link>
+                  </dt>
+                  <dd className={cn('caption', s.capabilityItems)}>
+                    {t(`capabilities.${practice}`)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Reveal>
         </header>
 
         {/*
@@ -376,50 +457,6 @@ export default async function StudioPage() {
             body: t(`process.${step}Body`),
           }))}
         />
-
-        {/*
-          Capabilities, grouped by the three practices — and the grouping comes
-          from `lib/content/practices.ts`, the same constant the routes and the
-          footer index read. A hand-written fourth grouping here would be a
-          second source of truth for what this studio does.
-        */}
-        <Reveal as="section" className={s.capabilities}>
-          <p data-reveal-item className={cn('caption', s.eyebrow)}>
-            {t('capabilitiesEyebrow')}
-          </p>
-          <dl className={s.capabilityList}>
-            {PRACTICES.map((practice) => (
-              <div className={s.capability} data-reveal-item key={practice}>
-                {/*
-                  The name is the link — Tahap 38.
-
-                  This section already says it is "grouped by the three
-                  practices", and each of those three has had a page since
-                  Tahap 15a that nothing on this page pointed at: measured,
-                  `/en/studio` offered **one** onward link in its own content,
-                  the closing "See the work". A reader who got this far is
-                  reading about a practice, and the page about it was one
-                  segment away and invisible.
-                */}
-                <dt className={cn('h3', s.capabilityName)}>
-                  <Link
-                    href={practiceTemplate(practice)}
-                    className={s.capabilityLink}
-                    // `MOTION-SPEC.md` §9 — INTENT and COMMIT on a noun the
-                    // reader can press.
-                    data-press="practice"
-                    data-intent=""
-                  >
-                    {tPractice(practice)}
-                  </Link>
-                </dt>
-                <dd className={cn('caption', s.capabilityItems)}>
-                  {t(`capabilities.${practice}`)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </Reveal>
 
         {/*
           The receipt. Unlike everything above it, this is not scaffolding —

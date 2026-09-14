@@ -77,3 +77,28 @@ export const Named: Story = {
     'data-epic': 'journal-index',
   },
 }
+
+/**
+ * A block that is already on the first screen when the page loads.
+ *
+ * The default `rootMargin` insets the observer's root by −25% at the bottom, so
+ * a block opens once it is a quarter of the way up the screen. That is right
+ * for everything a reader scrolls to, and wrong for anything sitting in the
+ * lower quarter of the *first* screen: the trigger line is above it, the scroll
+ * that would cross it never happens, and the block holds `opacity: 0` on a
+ * screen the reader is looking at.
+ *
+ * Measured on `/studio` in Tahap 69, moving the capability band into the foot
+ * of a hero that holds `100svh`: band top **764** against a line at **675** of
+ * a 900px viewport, still `opacity: 0` six seconds after load. `CLAUDE.md` #5
+ * calls stranded content a defect, and no one had written a bug to cause it.
+ *
+ * This story exists because the argument a block is designed around belongs in
+ * the catalogue — Tahap 67 shipped a hero whose own story omitted the prop that
+ * composed it, and documented the block wrong for fifty-five stages.
+ */
+export const OnFirstScreen: Story = {
+  args: {
+    rootMargin: '0px',
+  },
+}

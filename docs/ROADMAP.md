@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 68**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 69**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,68 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 69 — Hero yang meminta satu layar dan mengisi sepertiganya ✅
+
+> Spec: [`docs/stages/TAHAP-69.md`](./stages/TAHAP-69.md)
+
+Hero `/studio` menahan `100svh` dengan alasan gerak yang sah — Tahap 25 §2.2
+mengukur pernyataan di bawahnya sudah sepertiga tersingkap pada `scrollY 0`, dan
+scrub pada elemen yang sudah di layar sudah terlanjur berjalan. Tingginya
+load-bearing, dan diperiksa ulang di sini: `statementSection` mulai di **980**
+terhadap fold 900, jadi kotak 780px itu membeli margin **80px**.
+
+Yang tidak pernah diperiksa: apakah ada **isinya**. Terukur, isi berhenti di 439
+dari kotak yang berakhir di 932 — **493px, 63% kotaknya, kosong** — dan kedua
+kolomnya berhenti di ketinggian yang sama, jadi bukan diagonal seperti beranda
+melainkan satu pita isi dengan tanah mati di bawahnya.
+
+**Dan makin besar layar makin parah:** 55% di 1280×720, 63% di 1440×900,
+**68% di 1728×1117**. Itu tanda tangan cacatnya, bukan efek sampingnya — kotaknya
+diikat ke viewport dan isinya tidak diikat ke kotaknya.
+
+Isi paling konkret halaman ini duduk di tempat paling tidak terbaca: `capabilities`
+— **dua belas butir yang sama** yang Tahap 65 beri sekuens ter-pin setinggi layar
+di `/practice/<value>` — dapat **160px pada kedalaman 85%** dari halaman 5008px,
+di belakang sekuens proses setinggi 2232px. Jadi bukan dua cacat, satu: **yang
+paling konkret ada di tempat paling tidak terbaca, sementara tempat paling
+terbaca kosong.**
+
+Satu pemindahan menjawab keduanya, **nol kata baru**, dan **nol tinggi baru** —
+pita itu mengisi slack yang sudah dipesan hero:
+
+```
+                 sebelum   sesudah        ekor hero   sebelum   sesudah
+hero             152 h780  152 h780       1728×1117   673px 68%   0%
+statementSection y=980     y=980   ✓      1440×900    493px 63%   0%
+colophon         y=4464    y=4255         1280×720    334px 55%   0%
+dokumen          5708px    5500px          390×844    267px 35%   0%
+```
+
+**Gerbang baru `e2e/held-screen.e2e.ts`**, dan ambangnya bukan angka selera:
+setiap kotak tertahan di situs ini diukur lebih dulu — beranda 6–8%, masthead
+`/work` dan `/journal` 0%, hero `/practice` 0%, hero `/studio` **35–68%**.
+Batasnya ditaruh di celah itu, 27 poin dari kedua tepi. Dibuktikan merah:
+4 gagal, 6 lulus.
+
+**Bagian yang paling layak dibaca: cacat yang saya buat sendiri, dan gerbang
+saya sendiri yang hijau di atasnya — dua kali.** Pemindahan pertama benar secara
+geometri dan **isinya tidak terlihat**: pita itu duduk di bawah garis pemicu
+`useReveal` (puncak **764** terhadap garis **675**), jadi `opacity: 0` dan
+`translateY(16px)` **masih begitu enam detik setelah muat** — isi terdampar,
+yang `CLAUDE.md` #5 sebut cacat. Gerbangnya lolos karena hanya mengukur kotak;
+ditambahi perkalian opacity, **masih lolos**, karena filter "daun"-nya
+meloloskan wadah ber-anak-banyak — jadi `<section>` pita itu sendiri terhitung
+sebagai tinta yang mencapai lantai kotak, **menjamin isi yang tidak satu pun
+terlihat**. Setelah keduanya diperbaiki: merah pada keadaan tak-terlihat, hijau
+setelah diperbaiki.
+
+Perbaikannya: `Reveal` tidak pernah meneruskan `rootMargin` milik hook-nya.
+Sekarang meneruskannya, pita ini mengoper `'0px'`, dan story-nya ada — gerbang
+Tahap 68 menuntut prop baru punya pemanggil, dan Tahap 67 lahir dari story yang
+menghilangkan argumen yang bloknya dirancang di sekitarnya.
 
 ---
 

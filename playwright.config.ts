@@ -90,6 +90,13 @@ export default defineConfig({
         // is where that goes wrong first. The file is deliberately small so
         // adding it here costs three tests, not thirteen.
         '**/first-screen.e2e.ts',
+        // A held box is sized in `svh`, so how much of it the content fills is
+        // a different number at every width — measured on `/studio` before
+        // Tahap 69 fixed it: 35% empty at 390x844, 63% at 1440x900, 68% at
+        // 1728x1117. The defect grows with the screen, so the desktop run
+        // catches the worst case and the phone run is what proves the bound is
+        // not merely a desktop artefact.
+        '**/held-screen.e2e.ts',
         // The hairline is pinned to `--header-height`, which is a clamp that
         // resolves to 58px on a phone and 72 on this desktop — so where it
         // sits, and whether it lands on the header rather than under it, is a
