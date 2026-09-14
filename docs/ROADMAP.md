@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 69**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 70**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,57 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 70 — Cabang yang tidak pernah diambil ✅
+
+> Spec: [`docs/stages/TAHAP-70.md`](./stages/TAHAP-70.md)
+
+Tahap 64 membangun gulir horizontal-dalam-vertikal untuk galeri `/work/<slug>`:
+ter-pin, bertoken, ber-reduced-motion, punya penanda epic, punya label aksesibel
+di **kedua** kamus, dan **dioper** dari halamannya. Dan cabangnya **tidak pernah
+sekali pun diambil** — tidak oleh rute, tidak oleh story, tidak oleh uji.
+
+```ts
+const RUN_MINIMUM = 4
+const travels = run && images.length >= RUN_MINIMUM
+```
+
+| tempat       | keadaan                                                                         |
+| ------------ | ------------------------------------------------------------------------------- |
+| **rute**     | keenam proyek yang disemai membawa tepat **dua** plate, dari kolam tiga bersama |
+| **katalog**  | lima story, **tidak satu pun mengoper `run`**                                   |
+| **uji unit** | menguji lebar plate dan `loneHalves`, bukan kondisi `travels`                   |
+
+Story `Five` yang paling telak: **lima** gambar, lewat dari minimum dengan sisa,
+dan tetap menggambar kisi. Katalog memperagakan mode yang salah pada hitungan
+yang justru dirancang untuk mode satunya — persis pelajaran Tahap 67, terbalik.
+
+**Kenapa gerbang Tahap 68 tidak melihatnya:** ia bertanya "apakah prop punya
+pemanggil?", dan `run` **punya**. Tapi boolean yang mengganti seluruh mode render
+bisa dioper dan tetap tidak pernah mengambil cabangnya. Gerbang itu mengukur
+_tepi panggilan_, bukan _cabang yang dieksekusi_ — satu tingkat terlalu dangkal
+untuk kelas ini.
+
+Yang dikirim: story `Run` (`images(4)` + `run`) sehingga katalog menggambar
+modenya dan `storybook-a11y` meliputinya, dan `e2e/gallery-run.e2e.ts` yang
+menuntut **trek melebihi kotaknya** — karena pin dengan travel nol adalah
+kegagalan yang Tahap 64 sudah ukur dan tolak (`trackWidth: 1027` di dalam
+`viewportWidth: 1161`). Ditambah: nol plat terdampar pada `opacity: 0`, reduced
+motion berakhir terbaca, dan axe dari dalam run-nya. Gerbangnya berjalan
+terhadap Storybook, jadi ia **tidak bergantung pada dataset sama sekali**.
+Server statis Storybook diangkat ke `e2e/storybook-server.ts` supaya ada satu
+salinan, bukan dua.
+
+**Dan satu rencana dibatalkan setelah membaca gerbangnya**, yang justru temuan
+tahap ini: memberi satu proyek empat gambar **tidak** akan menayangkan run —
+`e2e/media-edge.e2e.ts:218` menuntut potret lebih sempit daripada lanskap di
+halaman yang sama, dan run memberi setiap plat `34vw` yang sama. Menyemai
+fixture akan **memerahkan** gerbang itu, bukan menyalakan modenya. Mengajari
+`media-edge` soal run butuh datanya untuk diverifikasi, jadi ia tahap
+tersendiri — dan generator yang memecah suite pada perintah pertama lebih buruk
+daripada generator yang belum diubah.
 
 ---
 
