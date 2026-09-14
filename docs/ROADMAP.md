@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 71**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 72**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,52 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 72 — Teks di atas gambar, dan gerbang yang tidak bisa melihatnya ✅
+
+Spec: `docs/stages/TAHAP-72.md`.
+
+Subjeknya ditemukan dengan pengukuran: **`results.incomplete` milik axe tidak
+dibaca oleh satu pun berkas e2e.** Sebelas pemanggilan `new AxeBuilder` di
+sepuluh berkas, sebelas membaca `violations`, **nol** membaca `incomplete` —
+sementara `incomplete` berisi **185 node `color-contrast` (serious)** di tujuh
+rute, semuanya _"background color could not be determined due to a pseudo
+element"_. Tujuh halaman dilaporkan bersih dengan 185 node yang tidak dinilai
+siapa pun.
+
+Di dalam lubang itu ada defek yang terlihat dengan mata. `project-spine`
+memakai `position: sticky` **tanpa latar sendiri**. Di `--desktop` ia duduk di
+kolom 2 dan tidak pernah bertemu karya — itu sebabnya ia lolos tiga puluh
+tahap. Di bawah 800px kisinya runtuh, indeks halaman jadi baris lengket, dan
+galeri bergulir **di bawahnya**:
+
+```
+SEBELUM   /en/work/arus-balik  390x844
+  "Images"  2.25:1    "Next"  1.90:1    "Overview"  3.77:1    (lantai 4,5)
+  /id       "Gambar"  2.28:1  "Berikutnya"  2.08:1
+SESUDAH   9 uji lulus, dua rute itu termasuk
+```
+
+Alatnya sendiri salah **tiga kali** sebelum benar, dan ketiganya tercatat:
+regex `rgb()` yang tidak pernah cocok dengan `oklch()` yang situs ini authorkan
+(`Infinity:1` di semua rute); sampel **kotak border** yang membuat tombol
+bergaris terbaca 1,00:1; dan koordinat CSS dibaca dari bitmap `deviceScaleFactor: 3`
+— yang memerahkan **kedelapan** rute dengan meyakinkan, sampai prosa isi jurnal
+membaca 1,00:1 dan membongkarnya. Aturan Tahap 70–71 menahan ketiganya.
+
+Yang dikirim: latar `var(--surface)` membentang ke tepi + hairline `var(--line)`,
+**mobile saja** (`::before` tidak ada sama sekali di desktop, diverifikasi);
+`e2e/contrast-situ.ts` + 20 uji unit terhadap nilai WCAG kanonik; gerbang
+`contrast-situ.e2e.ts` delapan rute dua viewport; `route-sweep` membaca
+`incomplete` dan menolak **jenis** kebutaan baru; dan satu aturan di
+`DESIGN-SYSTEM.md` §6.6 — elemen lengket wajib membawa tanahnya sendiri.
+
+Ditolak: berhenti lengket di mobile (membatalkan keputusan Tahap 40 atas dasar
+alat ukur), `backdrop-filter` (mekanisme baru yang mengaburkan latar tanpa
+menjamin kontras), dan menjadikan 185 `incomplete` blocking (memerahkan tujuh
+rute karena keterbatasan axe, bukan karena defek).
 
 ---
 

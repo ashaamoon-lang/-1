@@ -40,6 +40,13 @@ export default defineConfig({
       name: 'mobile',
       testMatch: [
         '**/route-sweep.e2e.ts',
+        // The defect this gate was written for exists ONLY below 800px.
+        // `project-spine` is sticky with no ground of its own; at `--desktop`
+        // it sits in column 2 and never meets artwork, so 759 desktop runs
+        // across seven full pages came back clean while "Images" measured
+        // 1.48:1 over a photograph at 390px. A desktop-only run would report
+        // this page green forever (Tahap 72).
+        '**/contrast-situ.e2e.ts',
         '**/responsive.e2e.ts',
         '**/project-detail.e2e.ts',
         '**/image-resolution.e2e.ts',

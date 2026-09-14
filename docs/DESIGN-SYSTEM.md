@@ -489,6 +489,24 @@ by band, easing from `--ease-*` tokens only, `transform` and `opacity` only,
 5. **Accessibility is not a later pass.** Focus states visible, targets
    ≥44×44px, contrast checked. `@axe-core/playwright` is already installed —
    there is no excuse for guessing.
+6. **A sticky or fixed element carries its own ground.** Anything that leaves
+   the flow and sits over the page must set a `background-color` from a token,
+   because what scrolls under it is not knowable from the component. A
+   transparent sticky element has the contrast of whatever happens to pass
+   behind it, which on this site includes photographs.
+
+   This is not hypothetical: `project-spine` shipped `position: sticky` with
+   no background for thirty stages. At `--desktop` it sits in column 2 and
+   never meets artwork, so it measured clean; below 800px the grid collapses,
+   the gallery scrolls beneath it, and the page index read **1.48:1** against
+   an AA floor of 4.5. Tahap 72.
+
+   The blindness matters as much as the defect. `contrast.test.ts` measures
+   token _pairs_ and cannot see composition; axe reports these nodes as
+   `incomplete` — not a violation — because it genuinely cannot resolve a
+   backdrop of grain, wash and pseudo-elements. So a transparent sticky
+   element is invisible to both guards by construction.
+   `e2e/contrast-situ.e2e.ts` samples the painted pixels instead.
 
 ---
 
