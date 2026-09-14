@@ -266,10 +266,16 @@ export default async function StudioPage() {
 
             Not spread, and not expanded: the block moves as it is. A hero
             that grew a twelve-item feature list would be the pattern
-            `e2e/taste-preflight.e2e.ts:148` exists to keep out — that rule is
-            scoped to `[data-epic="hero-arrival"]` and cannot see this header,
-            which makes it guidance here rather than a gate, and guidance is
-            still binding.
+            `e2e/taste-preflight.e2e.ts` exists to keep out.
+
+            **Tahap 77 turned the rest of this note into data.** It used to
+            read that the rule "is scoped to `[data-epic="hero-arrival"]` and
+            cannot see this header, which makes it guidance here rather than a
+            gate". That was true, and two other stages wrote the same sentence
+            about other heroes. The scope now lives in `STACK_EXEMPT` in
+            `e2e/hero-stack.ts`, this header is an entry in it carrying the
+            measurement above as its reason, and a sweep fails if any hero on
+            the site is neither governed nor listed. Stack measured 8.
           */}
           {/*
             Capabilities, grouped by the three practices — and the grouping comes

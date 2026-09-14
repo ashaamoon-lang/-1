@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 76**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 77**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,63 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 77 — Aturan situs yang berlaku di dua dari tujuh hero ✅
+
+Spec: `docs/stages/TAHAP-77.md`.
+
+`e2e/taste-preflight.e2e.ts` menegakkan _"the hero is a single moment, not a
+feature list"_ sejak Tahap 34, dengan plafon empat. Ia jalan di **`/en` dan
+`/id`**. Situs ini punya **tujuh hero**.
+
+```
+route                                 beats   h1 sebuah beat?   stack   daun teks
+/en                                       3   tidak                 4           6
+/en/studio                                7   tidak                 8          18
+/en/work                                  2   tidak                 3           2
+/en/work/arus-balik                       2   tidak                 3           8
+/en/journal                               1   tidak                 2           2
+/en/journal/scope-is-the-deliverable      1   tidak                 2           4
+/en/practice/consulting                   5   YA                    5           7
+```
+
+Dua cacat. **Rumusnya menghitung headline dua kali** di mana `h1` sendiri sebuah
+beat — benar di lima hero, salah di `PracticeHero`, yang dilaporkan 6 untuk
+tumpukan 5. Dan yang lebih tajam: `/practice/<v>` duduk **tepat di plafon 4**
+sebelum Tahap 75, lalu menyeberang ke **5** saat Tahap 75 menambahkan index —
+dan tidak ada yang bisa melihatnya. Tahap 76 bahkan menulis panjang soal
+komposisi index itu tanpa sekali pun mengujinya terhadap aturan hero situs ini.
+
+Tiga tahap menemukan lubang yang sama dan masing-masing menulis komentar:
+Tahap 69 di `studio/page.tsx` (_"cannot see this header, which makes it guidance
+here rather than a gate"_), Tahap 76 di specnya, dan tahap ini. **Nol gerbang.**
+Kelas cacat yang sama dengan `[data-epic]` tanpa elemen (Tahap 50, 52), §7 yang
+salah dua puluh enam tahap (Tahap 73), dan `results.incomplete` yang tak pernah
+dibaca (Tahap 72).
+
+Yang **tidak** dikerjakan, dan diukur lebih dulu: memasang plafon 4 ke tujuh
+hero akan memerahkan `/studio` (8) dan `/practice/<v>` (5) — keduanya keputusan
+yang diambil dengan pengukuran (Tahap 69 memindahkan kapabilitas dari kedalaman
+85%; Tahap 75 mengisi 824px layar pertama yang kosong). Memerahkannya demi
+sebuah angka akan membatalkan dua keputusan terukur dengan selera, kebalikan
+persis dari kesalahan yang baru saja Tahap 76 koreksi. Empat itu angka **hero
+kedatangan**, dan kalimat aturannya sendiri bukan sesuatu yang satu bilangan
+bisa ungkapkan di tujuh hero dengan tugas berbeda.
+
+Yang dikirim: rumusnya berhenti menghitung dua kali; cakupan aturannya jadi
+`STACK_EXEMPT` — data ber-alasan, preseden `STORY_EXEMPT` (Tahap 73) dan
+`VOID_EXEMPT` (Tahap 74) — dengan angka terukur di tiap entri; dan **sapuan
+kelengkapan** yang memerahkan hero mana pun yang tidak diatur maupun
+dikecualikan, plus arah sebaliknya (pengecualian tanpa hero). Itu bagian yang
+membuat komentar keempat tidak perlu ada.
+
+Dibuktikan merah lebih dulu: entri `/en/studio` dihapus sementara, sapuannya
+gagal menyebut rute itu dan menunjuk berkasnya, lalu dikembalikan dan hijau.
+
+**Nol piksel bergerak.** Seluruhnya instrumen dan dokumen.
+`bun test` 513 -> **534 lulus**, 0 gagal.
 
 ---
 

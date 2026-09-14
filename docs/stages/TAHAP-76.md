@@ -216,7 +216,14 @@ SplitText dan tidak membawa penanda beat. Di `PracticeHero` `h1`-nya membawa
 `data-reveal-item`, jadi rumus itu akan menghitungnya dua kali. Dicatat sebagai
 utang, bukan ditambal dengan angka yang salah — persis kesalahan yang tahap ini
 koreksi.
-| `css-rules` | `text-align` dan `justify-content` bukan properti beranimasi; nol `cubic-bezier` baru |
+
+> **DITUTUP — Tahap 77.** Utang ini dibayar: rumusnya diperbaiki (headline
+> ditambahkan hanya kalau ia belum sebuah beat), cakupan aturannya jadi data di
+> `e2e/hero-stack.ts`, dan sapuan kelengkapan memerahkan hero mana pun yang
+> tidak diatur maupun dikecualikan. Tahap 77 juga menemukan apa yang tidak
+> terlihat dari sini: `/practice/<v>` duduk tepat di plafon 4 sebelum Tahap 75
+> dan menyeberang ke 5 sesudahnya, tanpa satu gerbang pun yang bisa melihatnya.
+> | `css-rules` | `text-align` dan `justify-content` bukan properti beranimasi; nol `cubic-bezier` baru |
 
 ## 5. Hasil
 
