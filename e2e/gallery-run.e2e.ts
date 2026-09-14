@@ -194,6 +194,43 @@ test.describe('the gallery run has somewhere to run', () => {
     ).toBe(0)
   })
 
+  test('every plate takes the same track, whatever its shape', async ({
+    page,
+  }) => {
+    await page.goto(storyUrl(origin, STORY_ID), { waitUntil: 'networkidle' })
+    await page.waitForTimeout(600)
+
+    /*
+     * The run's own contract, and the reason `media-edge` had to learn about
+     * it — Tahap 71.
+     *
+     * A grid gives a portrait a narrower track than a landscape; that is the
+     * Tahap 11b rule and `media-edge.e2e.ts` has held it since. A run does the
+     * opposite on purpose: one track, every plate takes it whole, and the
+     * picture sits inside. Judged by the grid's rule a correct run is red,
+     * which is exactly the false failure Tahap 70 measured and refused to
+     * ship a fixture change into.
+     *
+     * So the rule is asserted here, against the catalogue, where a run exists
+     * today — rather than on a route, where none does.
+     */
+    const widths = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-run-item]')].map(
+        (item) => item.getBoundingClientRect().width
+      )
+    )
+
+    expect(widths.length, 'no run plates to measure').toBeGreaterThanOrEqual(4)
+
+    const spread = Math.max(...widths) - Math.min(...widths)
+    expect(
+      spread,
+      `the run spreads its plates across ${Math.round(spread)}px of width (${widths
+        .map((width) => `${Math.round(width)}px`)
+        .join(', ')}) — a run is one track`
+    ).toBeLessThanOrEqual(1.5)
+  })
+
   test('under reduced motion the plates are readable, not hidden', async ({
     browser,
   }) => {

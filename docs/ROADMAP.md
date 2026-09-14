@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 70**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 71**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,51 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 71 — Gerbang yang hanya tahu satu tata letak ✅
+
+> Spec: [`docs/stages/TAHAP-71.md`](./stages/TAHAP-71.md)
+
+Tahap 70 menemukan bahwa menyemai empat gambar **tidak** akan menayangkan run
+horizontal — ia akan memerahkan `media-edge`. Tahap ini memperbaiki sebabnya:
+gerbang itu menghakimi **setiap** gambar dengan kontrak kisi, dan run bukan
+kisi.
+
+Diperiksa satu per satu, bukan ditebak — karena di Tahap 70 saya menebak yang
+ini dan salah. **Uji 1 selamat**: sampul hero + plat run = tepat dua lebar, dan
+plafonnya dua. **Uji 2 yang pecah**, dua cara: sampul hero potret dan plat run
+potret masuk golongan `halves` yang sama dengan lebar berbeda, lalu di dalam run
+`half === full` sehingga `toBeLessThan(full - 1.5)` gagal. **Uji 3 tidak bisa
+dipastikan tanpa datanya**, dan dikatakan sebagai perkiraan.
+
+Perbaikan pertama yang terpikir — kecualikan saja plat run — **salah**: itu
+membuat tidak ada yang mengatakan apa pun tentang lebar mereka. Run punya
+kontraknya sendiri, dan ia lebih ketat: **satu** lebar, dibagi setiap plat, apa
+pun rasionya. Jadi gerbangnya harus tahu ia melihat tata letak yang mana.
+
+`trackFaults()` di `e2e/track-contract.ts` — fungsi murni, karena kalau
+logikanya ditulis inline cabang run-nya **tidak akan pernah dijalankan** pada
+dataset hari ini, dan itu persis kegagalan yang Tahap 68, 69 dan 70 masing-masing
+catat sekali. Preseden `loneHalves()` Tahap 66. Sepuluh uji sintetis meliputi
+kedua tata letak.
+
+**Bukti**, aturan lama dijalankan ulang terhadap bentuk halaman ber-run:
+
+```
+LAMA   2 pelanggaran — persis dua yang Tahap 70 prediksi
+BARU   0 pada halaman yang sama
+BARU   1 pada run yang platnya dua lebar   <- tidak jadi lunak
+```
+
+Ditambah `gallery-run` menuntut plat run berbagi satu lebar — berjalan terhadap
+Storybook, jadi kontrak itu hidup **sekarang**, bukan menunggu dataset.
+
+Tersisa sebelum run tayang: satu proyek berisi empat gambar di dataset
+(perintah milik pemilik), dan satu risiko yang disebut lebih dulu alih-alih
+ditemukan sebagai kejutan — `epic-sequence` untuk halaman ber-run naik 1 → 2
+momen dari plafon 6, dan itu tidak bisa diverifikasi tanpa datanya.
 
 ---
 
