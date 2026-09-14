@@ -131,6 +131,40 @@ describe('motion rules (CLAUDE.md #1-#4, #8)', () => {
     expect((await declarations()).length).toBeGreaterThan(10)
   })
 
+  /**
+   * The first hard rule, and until Tahap 78 it could not fail here.
+   *
+   * `CLAUDE.md` #1 reads "never write a raw `cubic-bezier()` in a component".
+   * The only thing enforcing it was `vendor-rules.test.ts`, whose glob is
+   * `vault/magic/**` — **4 of this repo's 65 authored stylesheets.** Proved by
+   * swapping one token for a raw bezier in `vault/primitives/cursor`, changing
+   * nothing else: `bun run check` exited 0 with 534 tests passing.
+   *
+   * It belongs here because this file already walks every authored stylesheet
+   * and already owns #2, #4 and #8 — the three rules about the same
+   * declarations.
+   *
+   * **`vendor-rules` keeps its own copy, and that is not duplication.** The
+   * two cover different surfaces and neither contains the other: this one
+   * reads `transition`/`animation` declarations in all 65 authored
+   * stylesheets; that one reads every line of `vault/magic/` source,
+   * TypeScript included, where a curve can hide in a string that never
+   * reaches a stylesheet. Deleting either would open a hole. Checked before
+   * assuming, because the first draft of this note claimed the opposite.
+   *
+   * The token layer does not trip it. `easings.css` declares `--ease-*` as
+   * custom properties, and the scanner above only matches `transition*` and
+   * `animation` declarations, so the definitions are invisible to it by
+   * construction rather than by exemption.
+   */
+  it('#1: no raw `cubic-bezier()` — easing comes from an `--ease-*` token', async () => {
+    const offenders = (await declarations()).filter(
+      (d) => !d.exempt && d.text.includes('cubic-bezier(')
+    )
+
+    expect(offenders, report(offenders)).toEqual([])
+  })
+
   it('#2: no bare `ease`, `ease-in`, `ease-out` or `ease-in-out`', async () => {
     const offenders = (await declarations()).filter(
       (d) =>
@@ -241,6 +275,81 @@ describe('reveal knobs carry tokens, not literals', () => {
     expect(
       offenders,
       'use var(--stagger-words|cards) or var(--duration-*)'
+    ).toEqual([])
+  })
+})
+
+/**
+ * The same rule, in the dialect the other half of this site's motion speaks.
+ *
+ * Everything above reads CSS. But this site animates in two languages, and
+ * `vault/motion/tokens.ts` says so in its own words: *"`cubic-bezier()`; GSAP
+ * speaks named eases like `power3.out`"*. A tween written in TypeScript never
+ * reaches a stylesheet, so every check above is blind to it.
+ *
+ * Measured before this was written — the surface is real and it is compliant:
+ *
+ * ```
+ * raw GSAP ease strings outside the token layer    0
+ * tokenised `easing.*.gsap`                        3
+ * `ease: 'none'`                                  10   linear, for scrubs
+ * ```
+ *
+ * So this gate is **green on the day it ships**, and that is said plainly
+ * rather than dressed up: its worth is not a defect caught today but that the
+ * fourth dialect-native curve somebody writes cannot land silently. `'none'`
+ * is allowed because a scrubbed ScrollTrigger must be linear — the scroll
+ * position *is* the easing, and curving it twice is the defect.
+ */
+describe('CLAUDE.md #1 in the GSAP dialect', () => {
+  /** Named GSAP eases, as GSAP spells them. */
+  const RAW_GSAP_EASE =
+    /ease:\s*'(power\d|expo|circ|back|elastic|sine|quad|cubic|quart|quint|bounce|steps|rough|slow)/
+
+  const TS_GLOBS = [
+    'components/**/*.{ts,tsx}',
+    'vault/**/*.{ts,tsx}',
+    'app/**/*.{ts,tsx}',
+  ]
+
+  async function tweens() {
+    const found: string[] = []
+    for (const pattern of TS_GLOBS) {
+      for await (const file of new Glob(pattern).scan('.')) {
+        if (file.includes('.test.') || file.includes('.stories.')) continue
+        /*
+         * The token layer is where a curve is allowed to be a curve — the
+         * same boundary `#8` draws at `lib/styles/css/`. Declared here rather
+         * than skipped silently, so removing it is a decision somebody makes
+         * on purpose.
+         */
+        if (file === 'vault/motion/tokens.ts') continue
+        const source = await readFile(file, 'utf8')
+        source.split('\n').forEach((line, index) => {
+          const code = line.split('//')[0] ?? line
+          if (code.includes('cubic-bezier(') || RAW_GSAP_EASE.test(code)) {
+            found.push(`${file}:${index + 1}  ${code.trim().slice(0, 90)}`)
+          }
+        })
+      }
+    }
+    return found
+  }
+
+  it('finds TypeScript to check at all', async () => {
+    let seen = 0
+    for (const pattern of TS_GLOBS) {
+      for await (const _ of new Glob(pattern).scan('.')) seen += 1
+    }
+    // Anti-vacuum: a gate that scanned nothing must not report success.
+    expect(seen).toBeGreaterThan(20)
+  })
+
+  it('#1: tweens take their easing from `easing.*.gsap`, not a literal', async () => {
+    const offenders = await tweens()
+    expect(
+      offenders,
+      `raw easing in a tween — use easing.*.gsap from vault/motion/tokens:\n${offenders.join('\n')}`
     ).toEqual([])
   })
 })

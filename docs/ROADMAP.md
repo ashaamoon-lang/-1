@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 77**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 78**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2067,6 +2067,64 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 78 — Konstitusi yang tidak bisa gagal ✅
+
+Spec: `docs/stages/TAHAP-78.md`.
+
+`CLAUDE.md` membuka aturan kerasnya dengan _"These are not preferences.
+Violating one is a defect."_ Ada 21. Aturan **#1** — yang pertama — ditegakkan
+hanya oleh `vendor-rules.test.ts`, yang glob-nya `vault/magic/**`:
+
+```
+stylesheet yang ditulis tangan   65
+tercakup vendor-rules             4
+DI LUAR jangkauan aturan #1      61
+```
+
+Dibuktikan, bukan disimpulkan: satu token easing ditukar jadi bezier mentah di
+`vault/primitives/cursor/cursor.module.css:49`, tanpa mengubah apa pun yang
+lain. **`bun run check` exit 0, 534 uji lulus.**
+
+Probe pertama saya terkontaminasi — ia membawa durasi literal, jadi yang menyala
+#8 dan #5, bukan #1. Ditulis ulang supaya hanya satu variabel berubah; baru itu
+buktinya berdiri. Dua kesalahan instrumen lain dicatat di spec: grep `#N` untuk
+memetakan cakupan **kurang hitung** (#5 dan #12 dijaga tanpa menyebut nomornya),
+dan pemindai cleanup saya menghasilkan **dua positif palsu** yang ternyata prosa
+di dalam komentar.
+
+Yang dikirim: `motion-rules` mendapat #1 untuk CSS di seluruh repo **dan** untuk
+dialek GSAP (tween mengambil easing dari `easing.*.gsap`; `ease: 'none'`
+diizinkan karena scrub harus linear). `vendor-rules` **tetap** memegang
+salinannya — draf pertama saya menyebutnya duplikasi dan itu salah: ia membaca
+setiap baris `vault/magic`, TypeScript termasuk, tempat kurva bisa bersembunyi
+di string yang tak pernah sampai ke stylesheet. Aturan #9 dan #11 mendapat
+instrumen pertamanya. Dan peta cakupannya jadi data: `lib/scripts/rule-coverage.ts`
+mem-parse aturannya **dari `CLAUDE.md`** supaya tidak bisa melenceng, tiap
+aturan diklasifikasikan, dan aturan ke-22 memerahkan gerbang sampai seseorang
+memutuskan. Tabelnya ter-generate ke `CLAUDE.md` sendiri dan diuji agar tidak
+basi — pola Tahap 73, yang ada justru karena §7 salah dua puluh enam tahap.
+
+```
+aturan dengan gerbang yang bisa gagal    12 -> 16
+tanpa gerbang                             9 ->  5   (#7, #18, #19, #20, #21)
+terjaga sebagian, dinyatakan              0 ->  3   (#3, #11, #15)
+stylesheet dalam jangkauan #1             4 -> 65
+```
+
+Empat gerbang baru masing-masing **dibuktikan merah** dengan pelanggarannya
+sendiri lalu dikembalikan. Tiga di antaranya hijau di hari pertama, dan itu
+dikatakan apa adanya; yang menemukan cacat nyata adalah #1 CSS.
+
+Lima aturan tetap tanpa gerbang **dengan alasannya tertulis**: #19–#21 mengatur
+apa yang saya tulis, bukan apa yang pohon ini muat — gerbang yang mengaku
+mengukurnya akan jadi klaim tak terukur, persis yang #19 larang. #18 menuntut
+sebuah tindakan. #7 bisa digerbangi dan sengaja tidak, karena `useGSAP` sudah
+membalikkan semuanya dan kepatuhannya 100%.
+
+**Nol piksel bergerak.** `bun test` 534 -> **554 lulus**, 0 gagal.
 
 ---
 

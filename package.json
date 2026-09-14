@@ -40,6 +40,7 @@
     "generate": "bun ./lib/scripts/generate.ts",
     "generate:manifest": "bun ./lib/scripts/generate-manifest.ts",
     "manifest:check": "bun ./lib/scripts/generate-manifest.ts --check",
+    "rules:coverage": "bun ./lib/scripts/rule-coverage.ts",
     "check:assets": "bun ./lib/scripts/check-assets.ts",
     "brand:assets": "bun ./lib/scripts/generate-brand-assets.ts",
     "handoff": "bun ./lib/scripts/prepare-handoff.ts",
