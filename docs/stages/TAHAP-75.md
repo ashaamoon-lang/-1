@@ -157,3 +157,30 @@ kolom kosong. Angka 58% itu bukan fakta tentang halamannya.
 Ditinggalkan sebagai data ber-alasan alih-alih dilewati diam-diam, supaya
 keterbatasannya bisa dihitung — dan supaya hari ketika pengumpulnya diajari
 soal SplitText, rute yang menunggunya bisa ditemukan.
+
+### 5.5 Regresi aksesibilitas yang saya kirim, ditangkap suite, diperbaiki
+
+Commit pertama tahap ini (`149f979`) **mengirim pelanggaran axe nyata**, dan
+suite penuh menangkapnya sesudah push:
+
+```
+practice-capabilities.e2e.ts:255   /en dan /id practice/consulting
+  violations: ["target-size"]
+```
+
+WCAG 2.2 §2.5.8. Dua `<Link>` baru di index itu berukuran caption — sekitar
+14px tinggi — tanpa tinggi minimum, jadi target sentuhnya di bawah 24×24.
+
+Dan repo ini **sudah membayar ini dua kali**: `project-spine` kena persis
+begini di Tahap 40, dan doc `axe-tags.ts` mencatat pengalih bahasa melakukannya
+di 12,6×14px sebelum itu. Perbaikannya karena itu bukan penemuan — ia preseden
+repo ini sendiri: `min-block-size: calc(var(--tap-target) / 2)` pada item dan
+pada anchor-nya, token dan nilai yang sama yang header nav dan page index pakai.
+
+Dua hal yang jujur disebut di sini:
+
+1. **Saya menambahkan tautan baru ke sebuah blok tanpa memeriksa target-size**,
+   padahal aturan itu punya dua preseden tertulis di repo ini. Gerbangnya
+   bekerja; saya yang tidak memeriksanya lebih dulu.
+2. Pesan commit `149f979` menyatakan suite sedang berjalan dan bahwa perbaikan
+   akan jadi commit berikutnya kalau merah. Ia merah, dan ini commit itu.

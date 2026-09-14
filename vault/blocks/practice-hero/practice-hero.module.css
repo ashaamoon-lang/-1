@@ -113,6 +113,29 @@
 
 .indexItem {
   color: var(--text-muted);
+
+  /*
+   * WCAG 2.2 target size, and this repository has paid for it twice already.
+   *
+   * These entries are caption-sized links — about 14px tall — and axe reported
+   * `target-size` on both locales the moment they shipped. `project-spine`
+   * hit exactly this in Tahap 40 and `axe-tags.ts` records the language
+   * switcher doing it at 12.6x14px before that.
+   *
+   * Half the tap target as a minimum block size is what
+   * `lib/styles/css/global.css` says covers this site's small controls, and
+   * what the header nav and the page index already use. The link is the box,
+   * not the glyphs, so the rule sits on the anchor too.
+   */
+  display: flex;
+  align-items: center;
+  min-block-size: calc(var(--tap-target) / 2);
+
+  & a {
+    display: flex;
+    align-items: center;
+    min-block-size: calc(var(--tap-target) / 2);
+  }
 }
 
 .eyebrow {
