@@ -154,3 +154,81 @@ describe('token rules', () => {
     ).toEqual([])
   })
 })
+
+/**
+ * `CLAUDE.md` #9 and #11 — stated since the first stage, enforced from Tahap 78.
+ *
+ * Neither had an instrument. Both were measured at **100% compliance** before
+ * these were written, so both ship green, and that is said plainly: the worth
+ * is not a defect caught today, it is that tomorrow's can fail.
+ */
+describe('token rules (CLAUDE.md #9, #11)', () => {
+  /**
+   * The literal end of the palette.
+   *
+   * `--color-ink` and `--color-paper` are this site's `--color-black` and
+   * `--color-white`: real values, defined in `tailwind.css`, from which the
+   * semantic tokens are derived. Rule #9 says a component reaches for
+   * `--color-primary`, never for one of these — otherwise theming breaks,
+   * because a literal cannot change meaning when the ground does.
+   */
+  const LITERAL_COLOUR = /var\(--color-(ink|paper)\)/
+
+  /**
+   * `lib/styles/` is where a literal is allowed to be a literal — the same
+   * boundary `motion-rules` #8 draws for durations. The shadow tokens in
+   * `global.css` derive from `--color-ink` through `color-mix()`, which is
+   * exactly what rule #10 asks for.
+   */
+  const TOKEN_LAYER = 'lib/styles/'
+
+  it('#9: components reach for semantic tokens, not the literal palette', async () => {
+    const offenders: string[] = []
+    for (const pattern of [
+      'components/**/*.css',
+      'vault/**/*.css',
+      'app/**/*.css',
+      'lib/**/*.css',
+      ...SOURCE_GLOBS,
+    ]) {
+      for await (const file of new Glob(pattern).scan('.')) {
+        if (file.startsWith(TOKEN_LAYER)) continue
+        if (file.includes('.test.') || file.includes('.stories.')) continue
+        const source = await readFile(file, 'utf8')
+        source.split('\n').forEach((line, index) => {
+          if (LITERAL_COLOUR.test(line)) {
+            offenders.push(`${file}:${index + 1}  ${line.trim().slice(0, 90)}`)
+          }
+        })
+      }
+    }
+
+    expect(
+      offenders,
+      `literal palette token in a component — use a semantic token:\n${offenders.join('\n')}`
+    ).toEqual([])
+  })
+
+  /**
+   * #11: *"Never silence `contrast.test.ts`. Fix the colour, or record a
+   * deliberate baseline with `bun run contrast:accept`."*
+   *
+   * The mechanism for a deliberate exception already exists, and the baseline
+   * is currently empty — zero accepted exceptions. What had no instrument was
+   * the other half: nothing stopped the test itself being skipped, which is
+   * the cheapest way to make a colour problem disappear.
+   */
+  it('#11: the contrast gate is not skipped, only baselined', async () => {
+    const source = await readFile('lib/styles/scripts/contrast.test.ts', 'utf8')
+    const silenced = source
+      .split('\n')
+      .map((line, index) => [line, index + 1] as const)
+      .filter(([line]) => /\b(it|test|describe)\.(skip|todo|only)\b/.test(line))
+      .map(([line, n]) => `contrast.test.ts:${n}  ${line.trim()}`)
+
+    expect(
+      silenced,
+      `the contrast gate is silenced — fix the colour or run \`bun run contrast:accept\`:\n${silenced.join('\n')}`
+    ).toEqual([])
+  })
+})

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Link } from '@/components/ui/link'
 import { SectionHeader } from '@/components/ui/section-header'
 import { Reveal } from '@/vault/motion/reveal'
+import { Magnetic } from '@/vault/primitives/magnetic'
 
 import s from './contact-block.module.css'
 
@@ -74,16 +75,32 @@ export function ContactBlock({
       */}
       <Reveal>
         <div data-reveal-item className={s.actions}>
-          <Link
-            href={`mailto:${email}`}
-            aria-label={emailLabel}
-            className={cn('h2', s.email)}
-            // `MOTION-SPEC.md` §9.
-            data-press="email"
-            data-intent=""
-          >
-            {email}
-          </Link>
+          {/*
+            Magnetic on the site's one conversion action — Tahap 63.
+
+            Same rule as `/studio`'s closing link: one per surface, on the
+            action that surface exists to offer. For an agency site that
+            action is the email address, and it is the only element on the
+            page a visitor's whole visit resolves into — so if pointer
+            attraction earns its place anywhere, it is here.
+
+            The marker discipline above still holds: `data-press` stays on the
+            link, `data-reveal-item` on the container, and `Magnetic` wraps
+            without claiming either. It moves the wrapper, not the noun, so
+            the 150ms COMMIT band is untouched.
+          */}
+          <Magnetic>
+            <Link
+              href={`mailto:${email}`}
+              aria-label={emailLabel}
+              className={cn('h2', s.email)}
+              // `MOTION-SPEC.md` §9.
+              data-press="email"
+              data-intent=""
+            >
+              {email}
+            </Link>
+          </Magnetic>
 
           {note && (
             <p data-placeholder-note className={cn('caption', s.note)}>

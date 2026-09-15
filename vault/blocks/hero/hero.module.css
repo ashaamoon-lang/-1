@@ -81,9 +81,26 @@
   opacity: 0.4;
 }
 
-/* Grain, so the wash reads as a surface rather than as an empty buffer. */
+/*
+ * Grain, so the wash reads as a surface rather than as an empty buffer.
+ *
+ * Two values, both set by Tahap 55 and both consequences of the same repair.
+ *
+ * `--noise-base`: since that stage the grain is noise added *around a base
+ * colour*, and its default base is `--color-primary` — correct everywhere the
+ * layer sits on the page ground, wrong here, where `SceneShell` paints a wash
+ * over that ground. Pointing it at the wash's midpoint keeps the layer's mean
+ * inside the range it actually covers, so the largest error is half the
+ * wash's amplitude rather than all of it.
+ *
+ * `opacity`: the same 0.45 the ground carries (`components/layout/theme`), so
+ * the hero's surface and the rest of the page are the same material. It was
+ * 0.5, chosen when the number weighted a veil rather than an amplitude.
+ */
 .heroGrain {
-  opacity: 0.5;
+  --noise-base: var(--hero-wash-mid);
+
+  opacity: 0.45;
 }
 
 /*
@@ -116,7 +133,19 @@
    *
    * The slack in this row is meant to absorb space, never to ask for it.
    */
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  /*
+   * Slack first, then the two content rows — Tahap 74.
+   *
+   * This was `auto minmax(0, 1fr) auto`: the index in row 1, `.content`
+   * bottom-anchored across rows 2–4, and the slack between them. On a phone
+   * that put **554px of nothing between the index and the headline**, 66% of
+   * the first screen. Moving the slack above both makes the hero one
+   * bottom-anchored band with air over it, which is the composition the rest
+   * of this site already uses and `practice-hero` defends with measurements.
+   *
+   * The slack keeps its `minmax(0, 1fr)`, and the note below is still why.
+   */
+  grid-template-rows: minmax(0, 1fr) auto auto;
   column-gap: var(--gap);
   row-gap: mobile-vw(32px);
   min-height: 0;
@@ -127,7 +156,10 @@
 }
 
 .index {
-  grid-row: 1;
+  /* Row 2: directly above `.content` in row 3, with the frame's slack over
+     both. On desktop this is overridden to share `.content`'s rows so the
+     list sits beside the headline instead of above it. */
+  grid-row: 2;
   /* Full width on mobile — four columns is not enough to sit a list beside a
      display headline, and stacking it reads as a standfirst rather than as a
      cramped sidebar. */
@@ -135,18 +167,76 @@
   display: flex;
   flex-direction: column;
   gap: mobile-vw(8px);
+  /*
+   * Clearance from the fixed header — the mobile half of the note below.
+   *
+   * Measured at 390×844 with the index finally rendered and only the desktop
+   * clearance in place: the label sat at **y=58 against a header whose bottom
+   * edge is 58**, touching it. The phone header is shorter than the desktop
+   * one, so the collision is the same one and arrives sooner.
+   */
+  padding-block-start: mobile-vw(16px);
 
   @media (--desktop) {
     /* The four columns the headline's 9em measure leaves free. */
     grid-column: 9 / -1;
+    /*
+     * The same rows as `.content`, bottom-aligned — Tahap 74.
+     *
+     * This was `grid-row: 1`, which is the top of a `100svh` frame, while
+     * `.content` spans rows 2–4 and is `justify-content: end`. One element
+     * pinned to the top, everything else to the bottom, and the frame's
+     * `minmax(0, 1fr)` slack in between: a **516px hole through the middle of
+     * the first screen**, 57% of it at 1440x900 and 66% at 390x844, against
+     * 4–16% everywhere else on this site.
+     *
+     * The line above has said where this belongs since Tahap 12d — *beside*
+     * the headline, in the columns its measure leaves free. It never was:
+     * measured at 1440x900 the index sat at y 100–182 and the `h1` at
+     * y 465–655. Tahap 67 shipped the prop that renders it into the right
+     * columns and the wrong row, and no gate could see the difference.
+     *
+     * Sharing `.content`'s rows makes the two masses one band, and what was a
+     * hole becomes leading air — which is what the rest of the site does, and
+     * what `practice-hero` defends with its own measurements.
+     *
+     * `e2e/first-screen-void.e2e.ts` holds it.
+     */
+    grid-row: 2 / 4;
+    align-self: end;
     gap: desktop-vw(12px);
+    /*
+     * Clearance from the header, measured — Tahap 67.
+     *
+     * The frame begins at `--header-height` exactly, so with the index
+     * finally rendered its label started at **y=72 against a fixed header
+     * whose own bottom edge is 72**: flush, with the header's z-20 band
+     * touching the label's cap height. It read as clipped rather than as a
+     * corner.
+     *
+     * The space is taken from row 2, which is the frame's `minmax(0, 1fr)`
+     * slack and was absorbing 304px at 1440×900. That row is meant to give
+     * space up, never to ask for it — the note on `.frame` records what
+     * happened the one time it asked.
+     *
+     * **Zeroed at desktop in Tahap 74, and the note above is kept rather than
+     * deleted.** Once the index shares `.content`'s rows it is no longer the
+     * topmost element, so there is no header to clear — but the collision it
+     * was measured against was real, and removing the fix without leaving its
+     * reasoning behind is the fastest way to invite it back the next time
+     * someone moves this element. On a phone the index is still `grid-column:
+     * 1 / -1` in row 1, so the mobile clearance above stays load-bearing.
+     */
+    padding-block-start: 0;
   }
 }
 
 .content {
   position: relative;
   z-index: 1;
-  grid-row: 2 / 4;
+  /* Row 3 on a phone, under the index in row 2. On desktop it takes both
+     content rows so the index — which spans the same two — sits beside it. */
+  grid-row: 3;
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;

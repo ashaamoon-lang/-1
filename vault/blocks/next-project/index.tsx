@@ -7,6 +7,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { PixelImage } from '@/vault/magic/pixel-image'
 import { Reveal } from '@/vault/motion/reveal'
 
 import s from './next-project.module.css'
@@ -81,6 +82,25 @@ export function NextProject({
               data-intent=""
               sizes="(max-width: 800px) 100vw, 33vw"
             />
+            {/*
+              The next work assembles rather than fades — Tahap 63.
+
+              This is one of only two image surfaces on the site that carry no
+              WebGL material layer (the other is `studio-note`), which is why
+              the veil belongs here and not on a catalogue cover: a plate
+              already running `MaterialImage` would be two reveals arguing over
+              one object.
+
+              `--pixel-ground` is `--surface-2` because that is what `.media`
+              paints while the asset is arriving, so an undissolved tile is
+              indistinguishable from the empty box rather than announcing
+              itself against it. Same reasoning as `project-gallery`.
+
+              The dissolve keys off the ancestor `<Link data-reveal-item>`
+              turning `visible`, so it is already inside this block's entrance
+              rather than a second, competing one.
+            */}
+            <PixelImage className={s.pixels} />
           </div>
         )}
         <span className={s.text}>

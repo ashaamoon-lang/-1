@@ -1,12 +1,16 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 45**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 78**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
-> sampai Tahap 45 — empat puluh lima tahap setelah itu berhenti benar.
-> Dokumen yang berbohong tentang kodenya sendiri lebih buruk daripada tidak
-> ada dokumen, dan ini contohnya yang paling lama bertahan.
+> sampai Tahap 45 — empat puluh lima tahap setelah itu berhenti benar. Lalu ia
+> berhenti di "45" sampai Tahap 61, enam belas tahap terlalu lama. Lalu Tahap
+> 64 tidak menulis entrinya sama sekali dan meninggalkan baris ini di "63",
+> diperbaiki di Tahap 65. **Dokumen yang berbohong tentang kodenya sendiri
+> lebih buruk daripada tidak ada dokumen**, dan baris ini sudah **tiga** kali
+> membuktikannya: perbarui angkanya di tahap yang menambah entrinya, bukan
+> nanti.
 >
 > Dokumen ini adalah kontrak kerja untuk membangun situsnya. Agen mana pun yang
 > membuka repo ini membacanya setelah `CLAUDE.md`. Ia menetapkan **apa** yang
@@ -2063,6 +2067,1388 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 78 — Konstitusi yang tidak bisa gagal ✅
+
+Spec: `docs/stages/TAHAP-78.md`.
+
+`CLAUDE.md` membuka aturan kerasnya dengan _"These are not preferences.
+Violating one is a defect."_ Ada 21. Aturan **#1** — yang pertama — ditegakkan
+hanya oleh `vendor-rules.test.ts`, yang glob-nya `vault/magic/**`:
+
+```
+stylesheet yang ditulis tangan   65
+tercakup vendor-rules             4
+DI LUAR jangkauan aturan #1      61
+```
+
+Dibuktikan, bukan disimpulkan: satu token easing ditukar jadi bezier mentah di
+`vault/primitives/cursor/cursor.module.css:49`, tanpa mengubah apa pun yang
+lain. **`bun run check` exit 0, 534 uji lulus.**
+
+Probe pertama saya terkontaminasi — ia membawa durasi literal, jadi yang menyala
+#8 dan #5, bukan #1. Ditulis ulang supaya hanya satu variabel berubah; baru itu
+buktinya berdiri. Dua kesalahan instrumen lain dicatat di spec: grep `#N` untuk
+memetakan cakupan **kurang hitung** (#5 dan #12 dijaga tanpa menyebut nomornya),
+dan pemindai cleanup saya menghasilkan **dua positif palsu** yang ternyata prosa
+di dalam komentar.
+
+Yang dikirim: `motion-rules` mendapat #1 untuk CSS di seluruh repo **dan** untuk
+dialek GSAP (tween mengambil easing dari `easing.*.gsap`; `ease: 'none'`
+diizinkan karena scrub harus linear). `vendor-rules` **tetap** memegang
+salinannya — draf pertama saya menyebutnya duplikasi dan itu salah: ia membaca
+setiap baris `vault/magic`, TypeScript termasuk, tempat kurva bisa bersembunyi
+di string yang tak pernah sampai ke stylesheet. Aturan #9 dan #11 mendapat
+instrumen pertamanya. Dan peta cakupannya jadi data: `lib/scripts/rule-coverage.ts`
+mem-parse aturannya **dari `CLAUDE.md`** supaya tidak bisa melenceng, tiap
+aturan diklasifikasikan, dan aturan ke-22 memerahkan gerbang sampai seseorang
+memutuskan. Tabelnya ter-generate ke `CLAUDE.md` sendiri dan diuji agar tidak
+basi — pola Tahap 73, yang ada justru karena §7 salah dua puluh enam tahap.
+
+```
+aturan dengan gerbang yang bisa gagal    12 -> 16
+tanpa gerbang                             9 ->  5   (#7, #18, #19, #20, #21)
+terjaga sebagian, dinyatakan              0 ->  3   (#3, #11, #15)
+stylesheet dalam jangkauan #1             4 -> 65
+```
+
+Empat gerbang baru masing-masing **dibuktikan merah** dengan pelanggarannya
+sendiri lalu dikembalikan. Tiga di antaranya hijau di hari pertama, dan itu
+dikatakan apa adanya; yang menemukan cacat nyata adalah #1 CSS.
+
+Lima aturan tetap tanpa gerbang **dengan alasannya tertulis**: #19–#21 mengatur
+apa yang saya tulis, bukan apa yang pohon ini muat — gerbang yang mengaku
+mengukurnya akan jadi klaim tak terukur, persis yang #19 larang. #18 menuntut
+sebuah tindakan. #7 bisa digerbangi dan sengaja tidak, karena `useGSAP` sudah
+membalikkan semuanya dan kepatuhannya 100%.
+
+**Nol piksel bergerak.** `bun test` 534 -> **554 lulus**, 0 gagal.
+
+---
+
+## Tahap 77 — Aturan situs yang berlaku di dua dari tujuh hero ✅
+
+Spec: `docs/stages/TAHAP-77.md`.
+
+`e2e/taste-preflight.e2e.ts` menegakkan _"the hero is a single moment, not a
+feature list"_ sejak Tahap 34, dengan plafon empat. Ia jalan di **`/en` dan
+`/id`**. Situs ini punya **tujuh hero**.
+
+```
+route                                 beats   h1 sebuah beat?   stack   daun teks
+/en                                       3   tidak                 4           6
+/en/studio                                7   tidak                 8          18
+/en/work                                  2   tidak                 3           2
+/en/work/arus-balik                       2   tidak                 3           8
+/en/journal                               1   tidak                 2           2
+/en/journal/scope-is-the-deliverable      1   tidak                 2           4
+/en/practice/consulting                   5   YA                    5           7
+```
+
+Dua cacat. **Rumusnya menghitung headline dua kali** di mana `h1` sendiri sebuah
+beat — benar di lima hero, salah di `PracticeHero`, yang dilaporkan 6 untuk
+tumpukan 5. Dan yang lebih tajam: `/practice/<v>` duduk **tepat di plafon 4**
+sebelum Tahap 75, lalu menyeberang ke **5** saat Tahap 75 menambahkan index —
+dan tidak ada yang bisa melihatnya. Tahap 76 bahkan menulis panjang soal
+komposisi index itu tanpa sekali pun mengujinya terhadap aturan hero situs ini.
+
+Tiga tahap menemukan lubang yang sama dan masing-masing menulis komentar:
+Tahap 69 di `studio/page.tsx` (_"cannot see this header, which makes it guidance
+here rather than a gate"_), Tahap 76 di specnya, dan tahap ini. **Nol gerbang.**
+Kelas cacat yang sama dengan `[data-epic]` tanpa elemen (Tahap 50, 52), §7 yang
+salah dua puluh enam tahap (Tahap 73), dan `results.incomplete` yang tak pernah
+dibaca (Tahap 72).
+
+Yang **tidak** dikerjakan, dan diukur lebih dulu: memasang plafon 4 ke tujuh
+hero akan memerahkan `/studio` (8) dan `/practice/<v>` (5) — keduanya keputusan
+yang diambil dengan pengukuran (Tahap 69 memindahkan kapabilitas dari kedalaman
+85%; Tahap 75 mengisi 824px layar pertama yang kosong). Memerahkannya demi
+sebuah angka akan membatalkan dua keputusan terukur dengan selera, kebalikan
+persis dari kesalahan yang baru saja Tahap 76 koreksi. Empat itu angka **hero
+kedatangan**, dan kalimat aturannya sendiri bukan sesuatu yang satu bilangan
+bisa ungkapkan di tujuh hero dengan tugas berbeda.
+
+Yang dikirim: rumusnya berhenti menghitung dua kali; cakupan aturannya jadi
+`STACK_EXEMPT` — data ber-alasan, preseden `STORY_EXEMPT` (Tahap 73) dan
+`VOID_EXEMPT` (Tahap 74) — dengan angka terukur di tiap entri; dan **sapuan
+kelengkapan** yang memerahkan hero mana pun yang tidak diatur maupun
+dikecualikan, plus arah sebaliknya (pengecualian tanpa hero). Itu bagian yang
+membuat komentar keempat tidak perlu ada.
+
+Dibuktikan merah lebih dulu: entri `/en/studio` dihapus sementara, sapuannya
+gagal menyebut rute itu dan menunjuk berkasnya, lalu dikembalikan dan hijau.
+
+**Nol piksel bergerak.** Seluruhnya instrumen dan dokumen.
+`bun test` 513 -> **534 lulus**, 0 gagal.
+
+---
+
+## Tahap 76 — Sumbu yang diukur dengan penggaris yang salah ✅
+
+Spec: `docs/stages/TAHAP-76.md`.
+
+Tahap 75 mengirim perbaikan yang benar dan **gerbang yang nyaris tidak
+menggigit**, lalu membenarkan ambangnya dengan angka yang tidak mengukur apa
+yang dikatakannya. `widthProfile()` menjumlahkan lebar **kotak** elemen, jadi di
+`/en/journal` sebuah eyebrow satu kata di dalam blok selebar kolom terhitung
+1398px lebar terpakai — padahal tintanya ~60px.
+
+```
+route                                 KOTAK   tinta:coverage   tinta:extent
+/en                                    58%         30%             70%
+/en/work                               97%         96%             97%
+/en/studio                             97%         65%             79%
+/en/journal                            97%         66%             66%
+/en/practice/consulting                96%         53%             53%
+/en/work/arus-balik                    95%         62%             89%
+/en/journal/scope-is-the-deliverable   97%         97%             97%
+```
+
+Yang paling serius bukan angkanya, tapi bahwa **dengan lebar kotak setiap rute
+melaporkan ≥95%**: gerbang itu menangkap `/practice` hanya karena
+`max-width: 60ch` kebetulan membatasi kotaknya juga. Rute mana pun dengan kotak
+lebar dan tinta sempit lolos begitu saja — gerbang yang tidak bisa gagal pada
+defek yang melahirkannya, kelas kegagalan yang Tahap 68, 70 dan 72 masing-masing
+catat sekali.
+
+Sumbu **vertikal** diperiksa dengan kedua cara sebelum seluruh berkas
+disalahkan: kotak dan tinta sepakat dalam 1–2px di ketujuh rute, karena untuk
+teks tinggi kotak memang tinggi tinta. **Tahap 74 berdiri utuh.**
+
+Yang dikirim: instrumennya pindah ke tinta (`Range.getClientRects()`, teknik
+yang sama yang Tahap 72 pakai untuk kotak glif) dan melaporkan **dua** angka —
+coverage dan extent. Keduanya perlu: beranda punya coverage 30% dan extent 70%,
+dua massa dengan jarak di antaranya, yang komposisi dan bukan cacat. Lantainya
+diturunkan ulang jadi **50% extent**, dan dinyatakan sebagai apa adanya —
+lantai terhadap konfinemen, **bukan** ukuran mutu komposisi. Keadaan pra-75
+diukur ulang di 45%, di bawah lantai, jadi gerbang ini bisa gagal pada defek
+yang melahirkannya.
+
+`/practice` ditambat ke kedua tepi (53% -> 97% extent) — dan itu **komposisi,
+bukan kepatuhan**: pada 53% ia sudah lulus. Dua hal di situ hanya ketahuan
+karena dilihat, bukan diukur: `text-align: end` memindahkan labelnya dan
+meninggalkan item-itemnya di kiri (perbaikan `target-size` Tahap 75 menjadikan
+tiap `li` flex container), dan komentar `align-self: end` menjanjikan index itu
+"level with the foot of the nameplate" — yang **tidak pernah** terjadi dan tidak
+bisa. Rata-bawah yang sungguhan dicoba dan ditolak dengan pengukuran: rule-nya
+memotong ekor "g" pada _Consulting_ (−12px lawan +61px lega).
+
+Enam tempat membawa klaim "95–97%" itu, dua di antaranya saling bertentangan
+(42% lawan 57%) — tanda sendiri bahwa tidak ada yang mengukur ulang. Semuanya
+dikoreksi di tempatnya: `TAHAP-75.md`, entri ROADMAP Tahap 75, dan tiga berkas
+sumber `practice-hero`.
+
+---
+
+## Tahap 75 — Halaman yang memberi subjeknya 600 dari 1440 piksel ✅
+
+Spec: `docs/stages/TAHAP-75.md`.
+
+Tahap 74 mengukur lubang **vertikal** dan menutupnya di beranda. Sumbu satunya
+tidak pernah diukur sama sekali — dan di sana `/practice/<v>` memakai **42%
+lebar layar pertamanya**, dengan pita kolom kosong **824px** dari x 616 ke tepi.
+Lima rute lain memakai 95–97%; sisa 22–26px mereka cuma gutter.
+
+Diverifikasi ke DOM, bukan hanya ke screenshot: `splitMarkers` nol, `h1`
+memiliki teksnya langsung, dan keempat kotak isi hero berhenti di x=616.
+Sebabnya satu baris — `max-width: 60ch` dipasang di **kontainer**, jadi ia
+membatasi keempat anaknya sekaligus. Komentarnya benar soal measure nameplate
+dan tidak pernah menjawab apa yang menempati 824px sisanya.
+
+```
+SEBELUM  824px kosong  lebar terpakai 42%
+SESUDAH   26px kosong  lebar terpakai 96%
+```
+
+Yang dikirim: measure pindah dari kontainer ke kolom pertama grid dua kolom di
+desktop — keputusan Tahap 15 berdiri utuh — dan kolom kedua mendapat index
+praktik dari sumber yang **sudah ada** (`PRACTICES` + `workIndex.<practice>` +
+`relatedPractice`). Nol kata karangan, dan praktik saudaranya jadi terjangkau
+dari atas halaman alih-alih hanya dari `NextPractice` di paling bawah.
+
+Gerbang `first-screen-void` diperluas ke sumbu kedua: 16 uji, delapan rute dua
+viewport, menegakkan lubang interior **dan** lebar terpakai. `/en` dan `/id`
+dikecualikan dari sumbu horizontal — dan itu pengecualian **untuk alatnya**,
+bukan untuk halamannya: SplitText memecah headline jadi span per kata, jadi
+angkanya artefak instrumen. Dicatat sebagai data ber-alasan supaya bisa
+dihitung.
+
+`bun test` 506 -> **512 lulus**, 0 gagal.
+
+> **KOREKSI — Tahap 76.** Setiap persentase di entri ini (42%, 96%, "95–97%")
+> lebar **kotak**, bukan tinta, karena instrumennya menjumlahkan kotak elemen.
+> Sebagai tinta: `/practice` 45% sebelum dan 53% sesudah, rute lain 66–97%.
+> Cacatnya nyata dan perbaikannya benar; ukuran yang dilaporkan terlalu besar,
+> dan lantai 60% yang diturunkan darinya diganti di Tahap 76.
+
+---
+
+## Tahap 74 — Index yang tidak pernah duduk di samping apa pun ✅
+
+Spec: `docs/stages/TAHAP-74.md`.
+
+Beranda membuka dengan lubang **516px menembus tengah layar pertama** — 57%
+pada 1440×900 dan **66%** pada 390×844, terhadap 4–16% di seluruh rute lain.
+
+Sebabnya bukan konten kurang. `hero.module.css` memaku `.index` di
+`grid-row: 1` sementara `.content` membentang baris 2–4 dengan
+`justify-content: end`, jadi slack `minmax(0, 1fr)` milik frame duduk di antara
+keduanya — dan komentar `.index` sendiri mencatat angkanya: _"absorbing 304px at
+1440×900"_. Satu elemen dipaku ke atas, sisanya ke bawah, lubang di tengah
+**by construction**.
+
+Dan baris di atasnya sudah menyebutkan maksudnya sejak Tahap 12d: _"the four
+columns the headline's 9em measure leaves free"_ — **di samping** headline.
+Terukur, index y 100–182 dan `h1` y 465–655. Ia tidak pernah di samping apa pun.
+Tahap 67 mengirim prop-nya ke kolom yang benar dan **baris yang salah**, dan
+empat puluh tahap tidak ada yang bisa melihat bedanya.
+
+```
+SEBELUM   /en 1440×900  516px (57%)     /en 390×844  554px (66%)
+SESUDAH   /en 1440×900   12px ( 1%)     /en 390×844  125px (15%)
+```
+
+Yang dikirim: baris frame dibalik jadi `minmax(0,1fr) auto auto` sehingga slack
+ada di **atas** kedua massa; index pindah ke baris konten (desktop: rata bawah
+di kolom 9/-1 sebagai kolom kanan; telepon: standfirst tepat di atas headline,
+yang memang maksud komentarnya). Plus gerbang `first-screen-void` — modul murni
+
+- 20 uji unit + delapan rute dua viewport — yang menanyakan hal yang tak satu
+  pun gerbang lain tanyakan: **berapa besar pita kosong di antara isi.**
+  `held-screen` mengukur ekor kotak, `first-screen` mengukur di mana item pertama
+  mulai; lubang di tengah buta bagi keduanya sekaligus.
+
+Dua rute dikecualikan, **bukan diperbaiki**: `/practice/<v>` dan `/en/studio`
+adalah komposisi yang Tahap 52/65 dan Tahap 69 sudah ukur, dan membatalkan
+pengukuran orang lain karena alat baru saya rewel adalah urutan yang terbalik.
+Pengecualiannya **ber-viewport** — `/en/studio` hanya di 1440×900, karena di
+390×844 ia 9% dan mematikan seluruh rute akan mematikan justru viewport tempat
+defek tahap ini paling parah.
+
+Alat ukur pertama saya juga salah lagi, dan dibuang sebelum membenarkan apa pun:
+metrik "ink coverage" memberi `/studio` nilai **100%** karena menghitung grain
+sebagai isi.
+
+`bun test` 486 -> **506 lulus**, 0 gagal.
+
+---
+
+## Tahap 73 — Tabel utang yang tidak ada yang mengukur ✅
+
+Spec: `docs/stages/TAHAP-73.md`.
+
+`DESIGN-SYSTEM.md` §7 ada persis supaya dokumen itu tidak menggambarkan sistem
+yang tidak ada — kalimat pembukanya sendiri mengatakannya. **Setiap angka di
+dalamnya salah.**
+
+```
+klaim  7 stylesheet menulis tipenya sendiri   ->  1
+klaim  6 pengecualian per baris               ->  7 (9 situs, 2 rujukan silang)
+klaim  25 direktori tanpa story               ->  15 dari 55
+klaim  "termasuk lima vault block"            ->  NOL; 16 dari 16 punya story
+klaim  ditutup di Tahap 45c / Tahap 46        ->  keduanya dikirim 26-27 tahap lalu
+```
+
+Tidak ada yang rusak di kodenya. Yang tidak pernah ada adalah **pembacanya**:
+`grep -rl "stories.tsx"` di `e2e/`, `lib/`, `tools/` dan `.storybook/`
+mengembalikan nol, dan `manifest:check` menghitung komponen, bukan story. §6.4
+adalah aturan tanpa alat ukur dan §7 catatan utangnya tanpa alat ukur — di satu
+dokumen yang tugasnya justru tidak menua.
+
+Dan satu angkanya tidak bisa diverifikasi sama sekali, karena **aturan hitungnya
+tidak pernah ditulis**: dari 9 situs `scale-exempt:`, dua adalah paruh mobile
+dari keputusan yang sama dan satu lagi prosa tentang escape hatch-nya. Enam,
+tujuh dan sembilan sama-sama bisa dibela. Angka tanpa aturan hitung tidak bisa
+salah, karena itu tidak bisa benar juga.
+
+Yang dikirim: `lib/scripts/design-debt.ts` memindai dan me-render angkanya ke
+blok bertanda di §7, `design-debt.test.ts` memerahkan `bun run check` kalau
+dokumen dan repo berbeda — mekanisme yang sama dengan `COMPONENTS.md`. Cakupan
+§6.4 dinyatakan: 13 direktori dikecualikan **berikut alasan masing-masing
+sebagai data**, dan pengecualian yang berhenti benar juga memerahkan gerbang.
+Story `vault/motion/parallax` dan `components/ui/lightbox` ditulis. Utang story
+15 -> **0**.
+
+Dua yang **tidak bisa**, dan diukur bukan diasumsikan: `material-image`
+(tanpa aset Sanity, `SanityImage` mengembalikan null — story mendokumentasikan
+div kosong) dan `scene-shell`. Yang kedua ditulis dulu, lolos semua gerbang,
+lalu ditarik setelah saya melihat screenshot-nya rata: ia mem-portal ke kanvas
+bersama milik `Wrapper`, dan katalog tidak punya penyedia itu — terukur
+`canvas di dokumen: 0`. Tebakan pertama saya (dekorator `min-height`) salah dan
+dicatat begitu.
+
+`bun test` 477 -> **486 lulus**, 0 gagal.
+
+---
+
+## Tahap 72 — Teks di atas gambar, dan gerbang yang tidak bisa melihatnya ✅
+
+Spec: `docs/stages/TAHAP-72.md`.
+
+Subjeknya ditemukan dengan pengukuran: **`results.incomplete` milik axe tidak
+dibaca oleh satu pun berkas e2e.** Sebelas pemanggilan `new AxeBuilder` di
+sepuluh berkas, sebelas membaca `violations`, **nol** membaca `incomplete` —
+sementara `incomplete` berisi **185 node `color-contrast` (serious)** di tujuh
+rute, semuanya _"background color could not be determined due to a pseudo
+element"_. Tujuh halaman dilaporkan bersih dengan 185 node yang tidak dinilai
+siapa pun.
+
+Di dalam lubang itu ada defek yang terlihat dengan mata. `project-spine`
+memakai `position: sticky` **tanpa latar sendiri**. Di `--desktop` ia duduk di
+kolom 2 dan tidak pernah bertemu karya — itu sebabnya ia lolos tiga puluh
+tahap. Di bawah 800px kisinya runtuh, indeks halaman jadi baris lengket, dan
+galeri bergulir **di bawahnya**:
+
+```
+SEBELUM   /en/work/arus-balik  390x844
+  "Images"  2.25:1    "Next"  1.90:1    "Overview"  3.77:1    (lantai 4,5)
+  /id       "Gambar"  2.28:1  "Berikutnya"  2.08:1
+SESUDAH   9 uji lulus, dua rute itu termasuk
+```
+
+Alatnya sendiri salah **tiga kali** sebelum benar, dan ketiganya tercatat:
+regex `rgb()` yang tidak pernah cocok dengan `oklch()` yang situs ini authorkan
+(`Infinity:1` di semua rute); sampel **kotak border** yang membuat tombol
+bergaris terbaca 1,00:1; dan koordinat CSS dibaca dari bitmap `deviceScaleFactor: 3`
+— yang memerahkan **kedelapan** rute dengan meyakinkan, sampai prosa isi jurnal
+membaca 1,00:1 dan membongkarnya. Aturan Tahap 70–71 menahan ketiganya.
+
+Yang dikirim: latar `var(--surface)` membentang ke tepi + hairline `var(--line)`,
+**mobile saja** (`::before` tidak ada sama sekali di desktop, diverifikasi);
+`e2e/contrast-situ.ts` + 20 uji unit terhadap nilai WCAG kanonik; gerbang
+`contrast-situ.e2e.ts` delapan rute dua viewport; `route-sweep` membaca
+`incomplete` dan menolak **jenis** kebutaan baru; dan satu aturan di
+`DESIGN-SYSTEM.md` §6.6 — elemen lengket wajib membawa tanahnya sendiri.
+
+Ditolak: berhenti lengket di mobile (membatalkan keputusan Tahap 40 atas dasar
+alat ukur), `backdrop-filter` (mekanisme baru yang mengaburkan latar tanpa
+menjamin kontras), dan menjadikan 185 `incomplete` blocking (memerahkan tujuh
+rute karena keterbatasan axe, bukan karena defek).
+
+---
+
+## Tahap 71 — Gerbang yang hanya tahu satu tata letak ✅
+
+> Spec: [`docs/stages/TAHAP-71.md`](./stages/TAHAP-71.md)
+
+Tahap 70 menemukan bahwa menyemai empat gambar **tidak** akan menayangkan run
+horizontal — ia akan memerahkan `media-edge`. Tahap ini memperbaiki sebabnya:
+gerbang itu menghakimi **setiap** gambar dengan kontrak kisi, dan run bukan
+kisi.
+
+Diperiksa satu per satu, bukan ditebak — karena di Tahap 70 saya menebak yang
+ini dan salah. **Uji 1 selamat**: sampul hero + plat run = tepat dua lebar, dan
+plafonnya dua. **Uji 2 yang pecah**, dua cara: sampul hero potret dan plat run
+potret masuk golongan `halves` yang sama dengan lebar berbeda, lalu di dalam run
+`half === full` sehingga `toBeLessThan(full - 1.5)` gagal. **Uji 3 tidak bisa
+dipastikan tanpa datanya**, dan dikatakan sebagai perkiraan.
+
+Perbaikan pertama yang terpikir — kecualikan saja plat run — **salah**: itu
+membuat tidak ada yang mengatakan apa pun tentang lebar mereka. Run punya
+kontraknya sendiri, dan ia lebih ketat: **satu** lebar, dibagi setiap plat, apa
+pun rasionya. Jadi gerbangnya harus tahu ia melihat tata letak yang mana.
+
+`trackFaults()` di `e2e/track-contract.ts` — fungsi murni, karena kalau
+logikanya ditulis inline cabang run-nya **tidak akan pernah dijalankan** pada
+dataset hari ini, dan itu persis kegagalan yang Tahap 68, 69 dan 70 masing-masing
+catat sekali. Preseden `loneHalves()` Tahap 66. Sepuluh uji sintetis meliputi
+kedua tata letak.
+
+**Bukti**, aturan lama dijalankan ulang terhadap bentuk halaman ber-run:
+
+```
+LAMA   2 pelanggaran — persis dua yang Tahap 70 prediksi
+BARU   0 pada halaman yang sama
+BARU   1 pada run yang platnya dua lebar   <- tidak jadi lunak
+```
+
+Ditambah `gallery-run` menuntut plat run berbagi satu lebar — berjalan terhadap
+Storybook, jadi kontrak itu hidup **sekarang**, bukan menunggu dataset.
+
+Tersisa sebelum run tayang: satu proyek berisi empat gambar di dataset
+(perintah milik pemilik), dan satu risiko yang disebut lebih dulu alih-alih
+ditemukan sebagai kejutan — `epic-sequence` untuk halaman ber-run naik 1 → 2
+momen dari plafon 6, dan itu tidak bisa diverifikasi tanpa datanya.
+
+---
+
+## Tahap 70 — Cabang yang tidak pernah diambil ✅
+
+> Spec: [`docs/stages/TAHAP-70.md`](./stages/TAHAP-70.md)
+
+Tahap 64 membangun gulir horizontal-dalam-vertikal untuk galeri `/work/<slug>`:
+ter-pin, bertoken, ber-reduced-motion, punya penanda epic, punya label aksesibel
+di **kedua** kamus, dan **dioper** dari halamannya. Dan cabangnya **tidak pernah
+sekali pun diambil** — tidak oleh rute, tidak oleh story, tidak oleh uji.
+
+```ts
+const RUN_MINIMUM = 4
+const travels = run && images.length >= RUN_MINIMUM
+```
+
+| tempat       | keadaan                                                                         |
+| ------------ | ------------------------------------------------------------------------------- |
+| **rute**     | keenam proyek yang disemai membawa tepat **dua** plate, dari kolam tiga bersama |
+| **katalog**  | lima story, **tidak satu pun mengoper `run`**                                   |
+| **uji unit** | menguji lebar plate dan `loneHalves`, bukan kondisi `travels`                   |
+
+Story `Five` yang paling telak: **lima** gambar, lewat dari minimum dengan sisa,
+dan tetap menggambar kisi. Katalog memperagakan mode yang salah pada hitungan
+yang justru dirancang untuk mode satunya — persis pelajaran Tahap 67, terbalik.
+
+**Kenapa gerbang Tahap 68 tidak melihatnya:** ia bertanya "apakah prop punya
+pemanggil?", dan `run` **punya**. Tapi boolean yang mengganti seluruh mode render
+bisa dioper dan tetap tidak pernah mengambil cabangnya. Gerbang itu mengukur
+_tepi panggilan_, bukan _cabang yang dieksekusi_ — satu tingkat terlalu dangkal
+untuk kelas ini.
+
+Yang dikirim: story `Run` (`images(4)` + `run`) sehingga katalog menggambar
+modenya dan `storybook-a11y` meliputinya, dan `e2e/gallery-run.e2e.ts` yang
+menuntut **trek melebihi kotaknya** — karena pin dengan travel nol adalah
+kegagalan yang Tahap 64 sudah ukur dan tolak (`trackWidth: 1027` di dalam
+`viewportWidth: 1161`). Ditambah: nol plat terdampar pada `opacity: 0`, reduced
+motion berakhir terbaca, dan axe dari dalam run-nya. Gerbangnya berjalan
+terhadap Storybook, jadi ia **tidak bergantung pada dataset sama sekali**.
+Server statis Storybook diangkat ke `e2e/storybook-server.ts` supaya ada satu
+salinan, bukan dua.
+
+**Dan story `Run` melempar saat pertama dijalankan**, yang membuka temuan
+kedua: `.storybook/preview.tsx` **tidak memasang `NextIntlClientProvider` sama
+sekali**. Tidak ada yang menangkapnya karena tidak ada satu story pun yang
+pernah menggambar cabang yang benar-benar memanggil `t(key)` — katalog komponen
+ini akan crash pada story jujur pertama yang merender string. Diperbaiki dengan
+`messages/en.json` yang asli, bukan stub, supaya `storybook-a11y` mengukur nama
+aksesibel yang situsnya benar-benar kirim.
+
+**Lalu gerbang barunya sendiri yang salah, bukan kodenya.** Assertion pertama
+saya "setiap plat terlihat" merah dengan `1, 1, 1, 0` — dan plat keempat duduk
+di `1386..1821` dalam viewport 1280, **sepenuhnya di luar layar**, yang memang
+apa itu run horizontal. Setelah trek bergerak: `1, 1, 1, 1`. Ketiga kalinya
+dalam tiga tahap sebuah pemeriksaan saya salah lebih dulu daripada kodenya.
+Yang bertahan lebih tajam: plat yang **bisa dilihat** tidak boleh tak terlihat,
+dan setiap plat harus tiba begitu trek mencapainya.
+
+**Dan satu rencana dibatalkan setelah membaca gerbangnya**, yang justru temuan
+tahap ini: memberi satu proyek empat gambar **tidak** akan menayangkan run —
+`e2e/media-edge.e2e.ts:218` menuntut potret lebih sempit daripada lanskap di
+halaman yang sama, dan run memberi setiap plat `34vw` yang sama. Menyemai
+fixture akan **memerahkan** gerbang itu, bukan menyalakan modenya. Mengajari
+`media-edge` soal run butuh datanya untuk diverifikasi, jadi ia tahap
+tersendiri — dan generator yang memecah suite pada perintah pertama lebih buruk
+daripada generator yang belum diubah.
+
+---
+
+## Tahap 69 — Hero yang meminta satu layar dan mengisi sepertiganya ✅
+
+> Spec: [`docs/stages/TAHAP-69.md`](./stages/TAHAP-69.md)
+
+Hero `/studio` menahan `100svh` dengan alasan gerak yang sah — Tahap 25 §2.2
+mengukur pernyataan di bawahnya sudah sepertiga tersingkap pada `scrollY 0`, dan
+scrub pada elemen yang sudah di layar sudah terlanjur berjalan. Tingginya
+load-bearing, dan diperiksa ulang di sini: `statementSection` mulai di **980**
+terhadap fold 900, jadi kotak 780px itu membeli margin **80px**.
+
+Yang tidak pernah diperiksa: apakah ada **isinya**. Terukur, isi berhenti di 439
+dari kotak yang berakhir di 932 — **493px, 63% kotaknya, kosong** — dan kedua
+kolomnya berhenti di ketinggian yang sama, jadi bukan diagonal seperti beranda
+melainkan satu pita isi dengan tanah mati di bawahnya.
+
+**Dan makin besar layar makin parah:** 55% di 1280×720, 63% di 1440×900,
+**68% di 1728×1117**. Itu tanda tangan cacatnya, bukan efek sampingnya — kotaknya
+diikat ke viewport dan isinya tidak diikat ke kotaknya.
+
+Isi paling konkret halaman ini duduk di tempat paling tidak terbaca: `capabilities`
+— **dua belas butir yang sama** yang Tahap 65 beri sekuens ter-pin setinggi layar
+di `/practice/<value>` — dapat **160px pada kedalaman 85%** dari halaman 5008px,
+di belakang sekuens proses setinggi 2232px. Jadi bukan dua cacat, satu: **yang
+paling konkret ada di tempat paling tidak terbaca, sementara tempat paling
+terbaca kosong.**
+
+Satu pemindahan menjawab keduanya, **nol kata baru**, dan **nol tinggi baru** —
+pita itu mengisi slack yang sudah dipesan hero:
+
+```
+                 sebelum   sesudah        ekor hero   sebelum   sesudah
+hero             152 h780  152 h780       1728×1117   673px 68%   0%
+statementSection y=980     y=980   ✓      1440×900    493px 63%   0%
+colophon         y=4464    y=4255         1280×720    334px 55%   0%
+dokumen          5708px    5500px          390×844    267px 35%   0%
+```
+
+**Gerbang baru `e2e/held-screen.e2e.ts`**, dan ambangnya bukan angka selera:
+setiap kotak tertahan di situs ini diukur lebih dulu — beranda 6–8%, masthead
+`/work` dan `/journal` 0%, hero `/practice` 0%, hero `/studio` **35–68%**.
+Batasnya ditaruh di celah itu, 27 poin dari kedua tepi. Dibuktikan merah:
+4 gagal, 6 lulus.
+
+**Bagian yang paling layak dibaca: cacat yang saya buat sendiri, dan gerbang
+saya sendiri yang hijau di atasnya — dua kali.** Pemindahan pertama benar secara
+geometri dan **isinya tidak terlihat**: pita itu duduk di bawah garis pemicu
+`useReveal` (puncak **764** terhadap garis **675**), jadi `opacity: 0` dan
+`translateY(16px)` **masih begitu enam detik setelah muat** — isi terdampar,
+yang `CLAUDE.md` #5 sebut cacat. Gerbangnya lolos karena hanya mengukur kotak;
+ditambahi perkalian opacity, **masih lolos**, karena filter "daun"-nya
+meloloskan wadah ber-anak-banyak — jadi `<section>` pita itu sendiri terhitung
+sebagai tinta yang mencapai lantai kotak, **menjamin isi yang tidak satu pun
+terlihat**. Setelah keduanya diperbaiki: merah pada keadaan tak-terlihat, hijau
+setelah diperbaiki.
+
+Perbaikannya: `Reveal` tidak pernah meneruskan `rootMargin` milik hook-nya.
+Sekarang meneruskannya, pita ini mengoper `'0px'`, dan story-nya ada — gerbang
+Tahap 68 menuntut prop baru punya pemanggil, dan Tahap 67 lahir dari story yang
+menghilangkan argumen yang bloknya dirancang di sekitarnya.
+
+---
+
+## Tahap 68 — Gerbang yang seharusnya menangkap Tahap 67, dan empat versinya yang salah ✅
+
+> Spec: [`docs/stages/TAHAP-68.md`](./stages/TAHAP-68.md)
+
+Tahap 67 menemukan prop yang dibangun lengkap dan tidak pernah dioper selama
+lima puluh lima tahap, dan **tidak satu pun dari delapan puluh delapan berkas
+gerbang repo ini — 42 e2e dan 46 unit — bisa melihatnya**. Alasannya struktural: setiap gerbang mengukur apa yang
+halaman _lakukan_, dan elemen yang tidak dirender tidak bisa dibedakan dari
+desain yang memang tidak menginginkannya.
+
+**Bagian terpenting tahap ini adalah empat kali saya membangun gerbangnya
+salah.** Tiap kali: ditulis, dijalankan, hijau, disimpulkan bersih — dan
+cacatnya masih ada.
+
+| versi                    | kenapa hijau padahal cacatnya ada                                                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 berbasis nama          | `project-gallery` mengoper `index={index}` ke lightbox; prop bernama `index` apa pun tampak terpakai                                            |
+| 2 + kecualikan modul     | melewatkan `{...(x && { portraitAlt })}` dan melaporkan prop yang **selalu** dioper                                                             |
+| 3 + bentuk spread        | melewatkan `<ProjectHero material` diikuti komentar — prop yang Tahap 58 dan 59 habiskan dua tahap untuknya                                     |
+| 4 + pemindai sadar-kutip | prosa: `"the headline's 9em measure"` membuka kutip yang tidak pernah tutup, satu `<Hero` jadi region **5700 karakter** dan menelan sisa berkas |
+
+Ditambah: versi 4 memindai berkas ujinya sendiri, yang ada di bawah `vault/`,
+dan menjamin prop yang seharusnya ia awasi.
+
+Pelajarannya bukan "hati-hati". **Gerbang yang tidak bisa gagal pada cacat yang
+melahirkannya lebih buruk daripada tidak ada gerbang**, karena ia mengubah
+pertanyaan terbuka jadi jawaban palsu — dan empat kali saya hampir
+mengirimkannya.
+
+**Versi kelima bertanya ke parser.** `oxc-parser`, mesin yang sama yang
+`oxlint` jalankan. (`typescript` 7.0.2 di repo ini port Go; compiler API klasik
+tidak ada di `exports`.) Sebelumnya transitif lewat `oxlint`, sekarang
+dideklarasikan eksplisit di `devDependencies` — gerbang yang bergantung pada
+tepi transitif rusak diam-diam saat tepi itu berubah.
+
+**Dibuktikan merah pada keadaan pra-Tahap-67 yang persis** — `index` dihapus
+dari halaman _dan_ story-nya, yang memang keadaan sebenarnya: 10 lulus, 1
+gagal, dan yang gagal menyebut namanya. Dikembalikan: 11 lulus.
+
+Satu jalan tersisa untuk kembali diam, dan ia ditutup: `oxc-parser` **toleran
+terhadap galat**, jadi sumber yang tidak terbaca menghasilkan pohon terpotong
+alih-alih lemparan — dan titik panggil di baliknya terbaca "tidak mengoper apa
+pun", yang mengarang cacat pada prop yang sebenarnya dioper. Sapuan yang tidak
+parse utuh sekarang **menolak menjawab**. (Hari ini: 147 berkas, 773.939
+karakter, nol galat.) Dibuktikan merah dengan cara yang sama — penjagaan
+dilepas, 11 lulus 1 gagal; dikembalikan, 12 lulus.
+
+Dan jalan kedua: sisi deklarasi masih regex, jadi modul yang menulis
+`type XProps = { … }` alih-alih `interface` menyumbang **nol** prop — dan prop
+yang tidak pernah terkumpul tidak akan pernah bisa dilaporkan hilang. **30 dari
+30** modul sudah memakai interface, jadi uji barunya menegakkan konvensi yang
+ada, bukan yang baru. Dibuktikan merah dengan mengubah `HeroProps` jadi alias:
+2 gagal dari 13; dikembalikan, 13 lulus.
+
+**Dua puluh satu prop tanpa pemanggil, dan keduapuluhsatunya sah** — tiga
+belas knob Magic UI yang di-vendor, dan delapan keputusan proyek ini sendiri:
+plafon pengaman, rasa magnet yang disetel di primitifnya, default
+`text-reveal:once` yang justru gaya rumah, `icon:title` yang benar
+`aria-hidden`, dan `studio-note:eyebrow` yang sengaja dihilangkan dengan alasan
+di titik panggilnya. Masing-masing masuk `DELIBERATE` dengan alasannya —
+daftar itu inti gerbangnya, bukan lubang di dalamnya. **Nol cacat baru:**
+Tahap 67 sudah memperbaiki satu-satunya yang nyata, dan mengatakannya begitu
+lebih jujur daripada mengarang temuan supaya tahapnya terasa penuh.
+
+**Dua namespace kamus yang tidak pernah dimuat**, dan bentuk bertitik hampir
+menipu saya lagi: `t('work.viewProject')` di `layout.tsx:288` memanggil dari
+namespace induk, yang pemeriksaan namespace tidak lihat. Diperiksa satu per
+satu — `work.viewProject` **2 referensi**, lima sisanya nol. `work.sectionTitle`,
+`work.nextProject` dan seluruh `meta.*` dihapus dari kedua kamus;
+`project.client/year/nextProject` yang menggantikannya memang terpakai.
+
+---
+
+## Tahap 67 — Komposisi yang tiga dokumen gambarkan, dan halamannya tidak render ✅
+
+> Spec: [`docs/stages/TAHAP-67.md`](./stages/TAHAP-67.md)
+
+`vault/blocks/hero` menulis, sejak Tahap 12d: _"The text elements sit on a
+diagonal: the index in the top right, the headline and its action at the bottom
+left."_ Prop `index`-nya ada, bertipe, berdokumen. Markup-nya ada. CSS-nya ada
+(`grid-column: 9 / -1`, "the four columns the headline's 9em measure leaves
+free"). `home.heroIndexLabel` ada di **kedua** kamus. `lib/content/practices.ts`
+mengatakan hal yang sama.
+
+**Dan `app/[locale]/page.tsx` tidak pernah mengoper prop itu**, selama lima
+puluh lima tahap. Terukur pada build produksi, 1440×900:
+
+```
+.frame     72–836
+.content  462–836       h1 462–666 w=1080   subline 698–758 w=363   action 790–836 w=178
+```
+
+Tidak ada apa pun di atas 462 — **51% layar pertama hanya ground** — dan tiga
+elemen teks berukuran 1080/363/178: sebuah tangga menuruni tepi kiri. Persis
+komposisi yang doc prop itu catat Tahap 12 **hapus**.
+
+Kelas cacat yang sama dengan `[data-epic]` yang menyebut momen tanpa elemen,
+yang Tahap 50 dan 52 temukan dua kali di motion. Kali ini di **komposisi**, dan
+tidak ada satu gerbang pun yang bisa melihatnya.
+
+**Satu prop dioper, kata-katanya yang halaman ini sudah pakai** — label dari
+`home.heroIndexLabel`, tiga nama praktik dari `PRACTICES` + `workIndex.<praktik>`,
+sumber yang sama persis yang `PracticeList` di bawahnya baca. Nol kata karangan.
+
+**Cacat kedua muncul begitu index-nya tayang, dan ditemukan dengan melihatnya:**
+`.frame` mulai tepat di `--header-height`, jadi labelnya mendarat di **y=72
+terhadap header fixed yang tepi bawahnya 72** — rapat, pita z-20-nya menyentuh
+tinggi huruf. Di telepon **58 terhadap 58**. `padding-block-start` dua sisi,
+ruangnya diambil dari slack baris 2 frame yang menyerap 304px. Terukur: label
++24px (1440), +21px (1280), +17px (390); hero tetap tepat `100svh` di
+ketiganya; CTA tetap di atas fold; dokumen tetap 9918px.
+
+```
+                 sebelum              sesudah
+kolom konten     4/12                 8/12
+baris konten     462–836 (dari 900)   96–836
+telepon          665–794              58–794
+```
+
+**Story-nya juga tidak pernah mengoper prop itu**, jadi katalog komponen
+memperagakan tangga yang sama. Diperbaiki bersama halamannya: story yang
+menghilangkan argumen yang bloknya dirancang di sekitarnya mendokumentasikan
+bloknya salah.
+
+**Dua koreksi terhadap saya sendiri.** Instrumen pengukur pertama melaporkan
+12/12 kolom di setiap rute — ia menghitung `canvas`, grain dan grid pattern
+yang membentang selebar layar dan tidak membawa informasi; diperbaiki jadi
+menghitung hanya daun teks dan gambar. Dan klaim saya di Tahap 66 bahwa layar
+pertama setengah kosong adalah "kebiasaan yang sama di `/work` dan `/journal`"
+**salah**: keduanya mengisi 12/12. Yang sempit hanya beranda (4/12) dan
+`/practice/<v>` (5/12), dan yang kedua sudah diukur di Tahap 65 dan ada di
+plafon yang tata letaknya izinkan.
+
+`taste-preflight` — yang menahan **hero ≤ 4 elemen teks**, dan yang baseline
+merahnya dulu **5** termasuk index — tetap hijau dengan index-nya kembali.
+Plafon tidak ada yang dinaikkan.
+
+---
+
+## Tahap 66 — Baris yang tidak pernah terisi, di halaman yang paling menjual ✅
+
+> Spec: [`docs/stages/TAHAP-66.md`](./stages/TAHAP-66.md)
+
+**Tiga tahap memperbaiki trek galeri ini. Tidak satu pun memperbaiki barisnya.**
+`/work/<slug>` membelanjakan **1 dari 6** momen — rasio terendah di situs ini —
+dan galerinya berjalan `full, half`, jadi `half`-nya membuka baris yang tidak
+bisa dimasuki apa pun: **572px tanah kosong**, ~450 ribu piksel², di
+satu-satunya halaman tempat sebuah agency menjual satu pekerjaan.
+`project-gallery` sendiri sudah menamai kegagalan itu sebagai alasan aturan
+Tahap 44 ada — _"A portrait sat with 836px of empty page beside it"_ — dan
+aturan itu menurunkan 836 → 572 tanpa menghapusnya.
+
+**Enam kolom kosong itu diisi teks yang sudah ada di halaman:** deskripsi plat
+yang Tahap 44 tulis per plat justru supaya "the gallery plates are not the
+cover", dan yang sampai hari ini hanya terdengar oleh pembaca layar. Nol kata
+baru.
+
+**Platnya tidak melebar, dan aritmetikanya yang menjaganya.** Item mengambil
+dua belas kolom lalu memecahnya kembali jadi dua trek dengan `--gap` yang sama:
+`(1161 − 17) ÷ 2 = 572`, persis lebar sebelumnya. Terukur sesudahnya `liW=1161`
+tapi `imgW=572` — `media-edge` menuntut artwork duduk di paling banyak **dua
+lebar**, dan spread yang meregangkan potret akan lolos "tidak ada yang
+sendirian" sambil melanggarnya. Note-nya naik dari `caption` ke `p-big`: mono
+membawa yang dipindai (`02 / 02` tetap di bawah gambar), display membawa yang
+dibaca.
+
+**`loneHalves()` mensimulasikan aliran grid, bukan menebak dari tetangga** —
+"tetangganya `half`" salah pada tiga `half` berturut-turut. Dibuktikan merah
+dengan aturan naif terpasang: **1 gagal dari 11**, dan yang gagal persis kasus
+itu.
+
+**Satu koreksi terhadap pengukuran saya sendiri.** Bacaan pertama menghitung
+**dua** lubang dan menyebut "860 ribu piksel²". Salah: `half` yang pertama
+adalah sampul `project-hero`, dan barisnya sudah terisi daftar fakta sejak
+Tahap 51. Keduanya memakai atribut `data-span` yang sama; yang membedakan
+tag-nya, dan gerbangnya sekarang memakai `li[data-span]` dengan alasan itu
+ditulis di dalamnya.
+
+**Dua penolakan, dan yang pertama sudah dibangun sebelum ditolak.** Kolom fakta
+hero meninggalkan 487px kosong — spesies yang sama. `align-self: stretch` +
+`align-content: space-between` dipasang, dibuild, diukur: baris pindah dari
+425/482/539/596 ke 425/645/864/1083. **Lubangnya tertutup dan bloknya jadi
+lebih buruk** — empat fakta satu baris ~183px terpisah berhenti jadi daftar dan
+jadi empat label tak berhubungan. Dikembalikan dengan angkanya; alasannya
+tinggal di dalam CSS-nya. Dan rute ini **tetap 1 dari 6 momen**: plafon yang
+tersedia bukan alasan membelanjakannya, dan galeri ini sudah sekali diputuskan
+berada di pita standar dengan alasan terukur.
+
+**Palet tidak berubah.** Monokrom ketat ditegaskan ulang oleh pemilik. Yang
+diperbaiki dokumennya: `DESIGN-SYSTEM.md` §1 dan `TEARDOWN.md` §3 membenarkan
+penolakan aksen dengan _"This site shows commissioned artwork"_, dan sektornya
+berubah di Tahap 60 — ARTH agency sekarang, kategori yang sama dengan ketujuh
+situs yang §3 ukur, yang semuanya mengirim tepat satu aksen. Premisnya
+kedaluwarsa, keputusannya tidak; dicatat supaya tidak dibuka ulang.
+
+Gerbang baru `e2e/project-spread.e2e.ts`, dibuktikan merah dengan spread
+dimatikan: **1 gagal, 1 dilewati, 3 lulus** — yang merah persis "every
+half-width plate has its row filled", dan yang dilewati melewati dirinya karena
+memang tidak ada spread untuk diukur.
+
+---
+
+## Tahap 65 — Subjeknya ada sejak Tahap 24, di halaman yang salah dicari ✅
+
+> Spec: [`docs/stages/TAHAP-65.md`](./stages/TAHAP-65.md)
+
+**`DIREKSI.md` §2.3 meminta tiga hal, dan ketiganya sudah punya mekanismenya.**
+`step-sequence`, `counter`, `progress-text` — masing-masing sudah dikirim dan
+dipakai. Yang belum ada adalah **subjek** untuk yang pertama, dan Tahap 52 §2.1
+menolak butir itu karena tidak menemukannya: _"Butir ini bukan 'ditunda' — ia
+tidak punya subjek. Ditolak."_
+
+**Bacaan itu benar tentang berkasnya dan salah tentang repo ini.** Daftarnya
+ada di `messages/{en,id}.json` sejak Tahap 24 — `studio.capabilities.<praktik>`,
+**dua belas butir tersimpan sebagai tiga string**, tayang hanya di `/studio`
+sebagai tiga baris `caption`. Jadi yang dikirim tahap ini bentuknya, bukan
+kata-katanya. Nol entri karangan, nol perubahan pada katalog pesan.
+
+**Restrukturisasi katalog pesan dicoba dan tidak bisa dikompilasi.** Empat
+kunci bernama per praktik memuai jadi hasil kali tiga praktik × dua belas nama
+butir ketika halaman memetakan `PRACTICES` — 36 kunci, yang ada 12, dan
+TypeScript tidak bisa mengorelasikan dua paruhnya lewat `.map()`. Nama slot
+seragam lolos tipe tapi **menomori himpunan tak berurutan**, yang persis
+ditolak `step-sequence`. Jadi katalognya tidak disentuh dan `capabilityItems()`
+membaca barisnya kembali jadi butirnya — dan jaminannya pindah ke uji yang
+menuntut kedua locale pecah jadi jumlah yang sama.
+
+`vault/blocks/capability-set`: kolom tertahan, empat kapabilitas sebagai tipe
+terbesar di layar. **Bukan `StepSequence`**, karena blok itu memasang `01 / 04`
+dan proses studio berurutan sementara himpunan kapabilitas tidak. Yang dipakai
+ulang mekanismenya — `use-active-in-sequence`, hook yang sama.
+
+**Satu cacat cascade ditemukan karena diukur, bukan karena dilihat.**
+Pemasangan pertama melewatkan `className={s.section}` halaman ini ke blok itu.
+`.section` adalah flex column; `.set` jadi grid di dalam `@media (--desktop)`,
+dan media query tidak menambah spesifisitas — jadi blok itu tata letaknya jadi
+flex, pembungkus ter-pin-nya menyusut ke kontennya, dan sticky-nya kehilangan
+seluruh rentangnya. **Kolom: 200 → −1357, held 0px.** Tanpa class itu: 115
+tetap di sebelas perhentian, **held 1349px**. `/studio` memberi `StepSequence`
+nol class untuk alasan yang sama.
+
+Terukur, 1280×800: lead 4 nilai berbeda, **tepat satu memimpin di setiap
+perhentian**, mundur 0,70 · memimpin 1,00. Reduced motion: bagian 1472 → 396px,
+kolom `static`, keempat butir `opacity: 1` dan tergambar — tingginya ikut
+hilang, yang `step-sequence` sengaja tidak lakukan karena step-nya membawa
+paragraf dan ini tidak.
+
+**Tinggi hero `/practice/<v>` ditolak kedua kalinya, sekarang dengan lapisannya
+benar-benar terpasang.** `DIREKSI.md` §2.1 menulis tinggi naik "sebagai akibat
+di tahap yang memasukkan lapisannya"; tahap ini memasukkannya dan akibatnya
+tidak datang — lapisan itu duduk **di bawah** pernyataan, jadi hero (630 = 70%),
+`h1` (542–644) dan pernyataan (788) tidak bergerak satu piksel pun dan batas
+Tahap 52 §4a berlaku persis seperti adanya. Dokumen 3030 → **4734px**
+(3,37 → 5,26 layar): yang bertambah dua layar yang dibaca, bukan udara di atas.
+
+Gerbang barunya `e2e/practice-capabilities.e2e.ts`, **dibuktikan merah dengan
+cacat yang nyata alih-alih stub** — `className` dikembalikan, dibuild ulang,
+dijalankan: 1 gagal ("held 0px"), 5 lulus. Lima yang hijau mengukur klaim yang
+berbeda dan memang tidak rusak oleh cacat itu.
+
+Keyboard diuji, bukan diargumentasikan: **nol** elemen fokusable di dalam
+bagian ter-pin, **nol** fokus terperangkap, dan Tab dari breadcrumb mendarat di
+kartu pertama kisi proyek (scrollY 0 → 2862, y=19). Tahanannya CSS `sticky`,
+bukan GSAP `pin`, jadi tidak ada posisi gulir yang ditulis ulang.
+
+unit **427 lulus** · e2e **652 lulus, 0 gagal**, 14 dilewati (19,0m) ·
+`route-budget` hijau pada plafon 900 KB **yang tidak dinaikkan** ·
+`interaction-grammar` rute ini 3 → 4 dari 12.
+
+---
+
+## Tahap 64 — Gulir horizontal dalam vertikal, dan konten yang belum cukup memakainya ✅
+
+> Spec: [`docs/stages/TAHAP-64.md`](./stages/TAHAP-64.md)
+>
+> **Entri ini ditulis di Tahap 65, bukan di Tahap 64.** Header dokumen ini
+> melarang itu dua kali dengan kalimatnya sendiri — "perbarui angkanya di tahap
+> yang menambah entrinya, bukan nanti" — dan Tahap 64 melanggarnya: tidak ada
+> entri sama sekali, dan baris status berhenti di 63. Dicatat di sini alih-alih
+> diperbaiki diam-diam, karena itu ketiga kalinya dokumen ini berbohong tentang
+> kodenya sendiri.
+
+`vault/motion/horizontal`: satu bagian ter-pin di mana gulir vertikal
+menggerakkan deretan horizontal. Mekanismenya **benar**, dan hasil utama
+tahap itu tetap **negatif**.
+
+Dipasang tanpa syarat di galeri `/work/<slug>`, seperti rencananya, lalu
+diukur:
+
+```
+items: 2   trackWidth: 1027   viewportWidth: 1161   travel: -134
+TRACK x: 0 .. 0   |   sampel yang bergerak: 0 / 9
+```
+
+**Treknya lebih sempit dari kotaknya sendiri.** `travel()` di-clamp ke nol, dan
+yang tayang adalah pin yang menahan satu layar penuh lalu tidak melakukan
+apa-apa. Dan itu bukan kasus tepi: **keenam proyek fixture punya tepat dua
+gambar**, jadi itu satu-satunya kasus yang ada. `step-sequence` sudah menamai
+kegagalan ini — "a held note that resolves inside one screen is not held; it is
+a coincidence".
+
+Dengan perjalanan tersedia (ambang diturunkan sementara, diukur, lalu
+dikembalikan): `travel: 1133`, trek −1133..0, 8/12 sampel bergerak,
+`overflow-x: clip`, `.pin-spacer` ada. Mekanismenya benar.
+
+Jadi bentuknya milik **konten**, bukan rute: `RUN_MINIMUM = 4` di
+`project-gallery`, angkanya dari pengukuran — pada 34vw per butir, tiga butir
+melewati kotaknya ~320px (sebuah sentakan), empat ~800px (kira-kira satu
+layar). **Pada fixture hari ini run-nya tidak pernah muncul**, dan itu ditulis
+di dalam kodenya. Konten fixture naik dari catatan kaki jadi jalur kritis.
+
+`TAHAP-64.md` §3.5 ditulis ulang jadi **pertanyaan terbuka**: klaim saya bahwa
+`useReveal({perItem})` adalah mekanisme yang salah di dalam pin punya lubang —
+`IntersectionObserver` dua dimensi dan `rootMargin` repo ini hanya menyisipkan
+bagian bawah. Diuji, dan pengukurannya tidak menyelesaikan apa pun ke arah mana
+pun karena dengan dua butir yang kedua tidak pernah keluar viewport 1440.
+`perItem` dipertahankan, dengan bukti dan batasnya tertulis.
+
+---
+
+## Tahap 63 — Mesin yang menganggur, dan empat yang ternyata tidak ✅
+
+> Spec: [`docs/stages/TAHAP-63.md`](./stages/TAHAP-63.md)
+
+**Tahap ini lebih kecil dari rencananya, dan alasannya kesalahan pengukuran
+saya sendiri.** Rencana menyebut "enam mekanisme duduk di satu atau dua
+konsumen". Penghitungnya melewatkan `components/`: `icon` bukan 0 melainkan
+**3** (`breadcrumbs`, `command`, `lightbox`), `noise-texture` bukan 1
+melainkan **3**. Yang benar-benar duduk di satu konsumen ada **tiga** modul.
+Konsekuensinya lebih besar dari angkanya: argumen "kail tertahan karena mesin
+lama belum dibelanjakan" lebih lemah dari yang saya nyatakan — kailnya ada di
+Tahap 64 dan 65, bukan di sini.
+
+**Tiga tidak dibelanjakan, dan itu keputusan, bukan kelalaian.** `counter`
+beranimasi saat **berubah**, tidak pernah saat tiba, dan satu-satunya angka
+yang berubah karena aksi pembaca adalah hitungan katalog — tahun jurnal dan
+fakta studio tidak pernah berubah, jadi tidak ada yang bisa dihitung di
+antaranya. `flip` melayani `catalogue-sift`; rumah keduanya yang jelas, baris
+indeks `/journal`, sudah memakai view transition untuk pekerjaan yang sama, dan
+dua mekanisme untuk satu pekerjaan adalah kebalikan dari standar repo ini.
+404 tidak dapat `Magnetic` karena ia tidak memasang GSAP, dan menambah GSAP ke
+halaman yang dilihat pengunjung tersesat demi satu tautan magnetis adalah
+menukar bobot dengan hiasan di tempat yang paling tidak mampu membayarnya.
+
+**Dua dibelanjakan, empat penempatan, masing-masing dengan aturan yang
+menentukan tempatnya.** `pixel-image` milik gambar yang **tidak** punya
+lapisan material — setiap sampul di `/`, `/work`, `/practice/<v>` dan hero
+proyek sudah menjalankan `MaterialImage`, dan menumpuk tirai di atasnya adalah
+dua reveal berebut satu objek. Tersisa dua permukaan bersih: `next-project`
+dan `studio-note`. `magnetic` satu per permukaan, pada aksi yang permukaan itu
+ada untuk menawarkannya: closing action `/studio`, dan alamat email di
+`contact-block` — satu-satunya hal yang seluruh kunjungan bermuara padanya.
+
+**Diukur, bukan diasumsikan** (pelajaran Tahap 58/59). Tirai di produksi,
+1440×900: sebelum masuk view **24 tile semua di opacity 1,0**; +400ms
+**21 masih pekat** (min 0,33); +1300ms **nol pekat**; mengendap **0**. Itu
+stagger yang benar-benar berjalan, bukan tirai yang lahir transparan — yang
+akan lolos "tidak ada yang tertutup" tanpa pernah jadi efek. Reduced motion,
+tanpa gulir: nol tile pekat, gambar `opacity: 1` dan terlihat.
+
+---
+
+## Tahap 62 — Vercel, domain Porkbun, dan `lab` yang dipesan lebih dulu ✅
+
+> Spec: [`docs/stages/TAHAP-62.md`](./stages/TAHAP-62.md)
+
+Nol perubahan visual, dan **lebih kecil dari yang direncanakan** — itu
+temuannya sendiri. Rencana menyebut tahap ini "membuat bagian Vercel di
+`DEPLOYMENT.md`"; bagian itu sudah ada sejak Tahap 6 dan sudah benar, lengkap
+sampai CORS Sanity dan webhook publish. Yang benar-benar hilang cuma satu
+hal, dan itu justru langkah yang milik user: **domainnya**.
+
+**§2.1 baru — Porkbun ke Vercel.** Vercel dulu, Porkbun sesudahnya, karena
+Vercel-lah yang mencetak recordnya. Tiga nama ditambahkan sekaligus:
+`arth.<domain>`, `www`, dan `lab`. **Nilai DNS-nya sengaja tidak ditulis
+sebagai angka** — hanya bentuknya (mana A, mana CNAME), dengan layar Domains
+Vercel dinyatakan menang atas dokumen ini sendiri. Vercel pernah mengubah A
+record-nya, dan panduan yang menyalin nilai lama adalah cara paling umum
+sebuah domain menunjuk ke proyek orang lain selama berjam-jam.
+
+**Keputusan `lab`: satu proyek Vercel, dua domain** — bukan proyek kedua.
+Proyek kedua berarti dua build, dua set env var, dua deployment per commit,
+dan karena `vault/` dibagi keduanya, tiap perubahan primitive naik dua kali.
+Ongkos satu proyek dinyatakan apa adanya: eksperimen lab ikut naik bersama
+situs utama — dan justru itu sebabnya gerbang kebenaran `DIREKSI.md` §3.1
+berlaku penuh di `/lab`. Domainnya ditambahkan sekarang meski rutenya baru ada
+di Tahap 67, karena DNS adalah pekerjaan yang kalau tidak begitu dikerjakan
+dua kali.
+
+Satu konsekuensi ditulis **sebelum** ia terlihat, supaya tidak ditemukan
+sebagai "bug": `NEXT_PUBLIC_BASE_URL` satu nilai dan dipanggang saat build,
+jadi halaman di `lab.<domain>` membawa canonical domain utama. Itu benar
+selama keduanya menyajikan isi yang sama, dan jadi salah pada hari `/lab`
+punya isi sendiri.
+
+**`infra/` dibekukan, bukan dihapus.** Tujuh berkas skrip GCP diberi catatan
+di kepala `infra/README.md`: VPS dibatalkan sesudah mesinnya diukur alih-alih
+ditebak (3,35 GB puncak RSS, 74,9 detik, separuh core hanya 11 detik lebih
+lama), dan situs yang hampir seluruhnya diprerender tidak pernah butuh mesin
+menyala 24 jam. Pengukurannya nyata, jadi berkasnya disimpan — statusnya
+berubah dari "rencana" jadi "kalau nanti perlu".
+
+Tahap ini **tidak bisa dinyatakan tayang oleh agen.** Lima langkahnya milik
+user; `DEPLOYMENT.md` §3 punya `curl` untuk membuktikannya dan §6 checklist
+pra-tayangnya.
+
+---
+
+## Tahap 61 — CI yang bisa mati karena satu kedipan, dan dua klaim yang salah ✅
+
+> Spec: [`docs/stages/TAHAP-61.md`](./stages/TAHAP-61.md)
+
+Nol perubahan visual. Tahap kebersihan, dikerjakan lebih dulu karena tahap
+62–67 diverifikasi oleh CI, dan CI yang bisa mati karena jaringan tidak
+memverifikasi apa pun.
+
+**`search.json` membunuh build produksi dengan satu `ECONNRESET`.**
+`buildIndex()` punya jalur mundur untuk "Sanity tidak dikonfigurasi" dan tidak
+punya apa pun untuk "dikonfigurasi tapi tidak terjangkau"; `attemptNumber: 5`
+di log membuktikan retry klien sudah habis, jadi rerun bukan perbaikan.
+`resolveSearchIndex(locale, load)` menerima loader dan merunduk ke set mundur
+yang sama. Membuktikannya menemukan yang kedua: `generateStaticParams`
+`/work/[slug]` melempar **lebih dulu**, sebelum export dimulai — jadi
+`search.json` hanya yang pertama kebetulan apes. Ia dapat penjagaan yang sama,
+dan komentarnya sendiri sudah menuliskan alasannya: _prerendering is an
+optimisation here, not a gate on content existing_. **Halaman konten sengaja
+tidak** — halaman kosong yang terlihat selesai lebih buruk daripada build yang
+gagal.
+
+**"Tidak ada gerbang yang membatasi tinggi hero" (Tahap 60) salah.** Tiga
+gerbang membatasinya: `first-screen` menahan `/work` dan `/journal`,
+`project-detail` menahan `/work/<slug>` pada fold 800px, `navigation-landing`
+menuntut `h1` mendarat di layar pertama. Dua yang pertama gerbang **kebenaran**,
+jadi menurut `DIREKSI.md` §3.1 keduanya tetap. Ruang tinggi yang benar-benar
+tersisa ada di **tiga rute, bukan tujuh** — dan konsekuensi jujurnya: hero
+lebih tinggi dengan isi yang sama bukan lebih memukau, melainkan lebih kosong.
+Tinggi naik sebagai akibat di tahap yang memasukkan lapisannya.
+
+**Pengukuran performa pertama proyek ini.** `CLAUDE.md` #19 ditutup kalimat
+_"No browser profiling has been possible in this environment"_ yang saya ulangi
+tanpa mengecek. Chromium asli ada di sini. Rute tanpa WebGL menggulir di
+**16,7ms, nol frame lewat 32ms**; rute ber-WebGL empat kali lebih lambat — tapi
+renderernya **SwiftShader tanpa GPU**, jadi angka itu lantai, bukan ramalan.
+Yang sah dikutip dan dicatat sebagai garis dasar: **90 long task di `/en`,
+terpanjang 173ms** — main thread, bukan rasteriser.
+
+**Sepuluh PR Dependabot npm gagal karena satu hal yang sama**, dan tidak satu
+pun tentang dependensinya: `lockfile had changes, but lockfile is frozen`.
+Ekosistem `npm` dilepas dari `dependabot.yml` dengan alasannya ditulis di
+berkasnya; update dikerjakan manual. Yang ikut ketahuan: `next-sanity` 13.3.4
+memecahkan build lewat `@sanity/browserslist-config` yang tidak pernah ada di
+lockfile, dan menaikkan `@playwright/test` sendirian melawan
+`overrides.playwright-core` mematikan **656 tes dalam <10ms** dengan
+ketidakcocokan protokol.
+
+---
+
+## Tahap 60 — Arah baru: batasan tetap alat, plafon animasi dilebarkan ✅
+
+> Spec: [`docs/stages/TAHAP-60.md`](./stages/TAHAP-60.md) ·
+> Arah: [`docs/DIREKSI.md`](./DIREKSI.md)
+
+**ARTH adalah agency.** Pendekatan studio karya dan pendekatan batasan adalah
+perancah untuk dua kemampuan — sistem desain di atas long context dan compact
+layout, dan UI/UX presisi yang bisa ditema-kan — dan keduanya sekarang ada.
+Animasi memukau adalah kail yang membawa klien masuk, bukan kemewahan yang
+dijatah. Nol perubahan visual di tahap ini: aturannya ditetapkan lebih dulu.
+
+Dua hal diukur sebelum satu baris diubah. **~~Tidak ada gerbang yang membatasi
+tinggi~~ — klaim ini salah, dikoreksi Tahap 61.** Penyisiran 39 berkas e2e
+melewatkan tiga gerbang yang membatasinya tanpa memakai kata "tinggi"; lihat
+entri Tahap 61 di atas. Klaim keduanya — **mesin animasinya kurang
+dibelanjakan** — **juga salah sebagian**, dikoreksi Tahap 63: penghitungnya
+melewatkan `components/`, jadi `icon` bukan 0 melainkan 3 dan `noise-texture`
+bukan 1 melainkan 3. Yang benar-benar duduk di satu konsumen ada **tiga**
+modul, bukan enam.
+
+Plafon momen 3 → **12** di empat rute merek, 6 di `/journal` dan
+`/work/<slug>`, **3** di `/journal/<slug>`. Tapi angkanya bukan lagi
+instrumennya: plafon lama tidak pernah menjaga _jumlah_, ia menjaga "satu hal
+memukau pada satu waktu" — dan pada halaman 110svh dengan passage 300vh itu
+instrumen yang salah. Invariannya pindah ke `e2e/epic-sequence.e2e.ts`: **dua
+momen bernama beda, tidak bersarang, tidak boleh berbagi rentang gulir.**
+
+Dua pengecualiannya diukur, bukan diasumsikan — aturan naif merah di lima dari
+tujuh rute dan semuanya sah: nama sama (`work-transport` ditandai sekali per
+kartu) dan bersarang (`work-transport` di dalam `catalogue-sift`). Dan rentang
+sebuah momen adalah **pin-spacer**-nya: `arth-passage` kotaknya 900px, tapi
+spacer-nya `1109..4259` — **3150px** yang benar-benar ia miliki.
+
+Dibuktikan merah dulu: satu kartu diberi nama beda sementara →
+`"work-transport-pelabuhan" (1008..1824) dan "work-transport-lantai-dua"
+(1051..1867) berbagi 773px`.
+
+**Plafon KB sengaja tidak dinaikkan** — menyimpang dari rencana, dengan alasan
+lebih kuat: tahap ini nol perubahan visual, jadi menaikkan plafon sebelum
+bobotnya datang membuat gerbangnya berhenti bekerja selama rentang itu.
+
+---
+
+## Tahap 59 — Mesh-nya melukis dengan benar; kotaknya sendiri yang menutupinya ✅
+
+> Spec: [`docs/stages/TAHAP-59.md`](./stages/TAHAP-59.md)
+
+Tahap 58 memasang **mundur**: material di hero halaman proyek dimatikan karena
+sebab kotak kosongnya tidak ketemu setelah lima build terinstrumentasi dan
+empat hipotesis yang semuanya gugur. Sebabnya ketemu, dan ia tidak pernah ada
+di mesh — probe Tahap 58 sudah melaporkan mesh yang benar seluruhnya.
+
+Kanvas duduk sebagai **satu lapisan `fixed` di belakang `<main>`**, jadi plate
+hanya terlihat kalau tidak ada yang opak di atas kotaknya. `.media` milik
+`project-hero` mengecat `var(--surface-2)`, yang di tema gelap menghitung ke
+`oklab(0.23352 …)` — **yaitu `#201d1b` yang Tahap 58 ukur dan sebut "warna
+kotak penampung" tanpa mengenalinya sebagai keluaran aturannya sendiri**.
+`project-card` sudah mencopot placeholder itu selama material menggambar sejak
+Tahap 14; Tahap 45 menyalin opt-in-nya dan tidak menyalin penjaganya. Audit
+konsumen `MaterialImage`: dua, satu berpenjaga.
+
+Mundurnya dibatalkan seluruhnya dan utang gerbang Tahap 58 §5 dibayar.
+`e2e/material-occlusion.e2e.ts` **tidak memotret apa pun** — berkas
+`material-layer` sudah mencatat bahwa gerbang piksel ditolak karena rewel di
+perender headless — melainkan berjalan dari `[data-material-shell]` naik
+sampai `<main>` menuntut tiap `background-color` tembus pandang, dan
+menaikkan `data-material` sendiri supaya hasilnya identik dengan atau tanpa
+GPU. Dibuktikan merah lebih dulu, menyebut elemen dan warnanya.
+
+Plate hero, sembilan sampel: `#201d1b` di setiap titik → `#987f5e #915836
+#7b4528 #6f4229 …`, karya yang sama yang `/en/work` render di `#965d39
+#7f492a`. Satu assertion yang Tahap 58 catat berhenti berjalan, menyala lagi
+di kedua viewport.
+
+check 421 lulus / 0 gagal · sepuluh berkas e2e, dua viewport: **143 lulus, 0
+gagal**, 14 dilewati · build-storybook sukses.
+
+---
+
+## Tahap 58 — Halaman yang paling menjual satu karya tidak menampilkan karyanya ✅
+
+> Spec: [`docs/stages/TAHAP-58.md`](./stages/TAHAP-58.md)
+
+Ditemukan dengan **melihat**, bukan oleh gerbang: build produksi, `/en/work/
+<slug>`, kotak besar tempat sampul karya seharusnya — kosong. Lima puluh
+delapan tahap dan CI hijau.
+
+Diukur: hero `#201d1b`, karya yang sama di `/en/work` `#8d4725`, hero yang
+sama di bawah `prefers-reduced-motion` `#bb9973` (benar). Empat hipotesis
+dibangun dan digugurkan dengan build sungguhan; probe di dalam `useFrame`
+melaporkan mesh yang benar seluruhnya. Sebabnya **tidak ketemu**, dan ditulis
+begitu alih-alih dikarang.
+
+Yang dikirim adalah mundur — material dimatikan di rute itu — beserta catatan
+bahwa `visual-substance › renders its work` hijau selama cacat ini hidup
+karena ia bertanya "apakah halaman merender karya" dan halaman itu merender
+plate **galerinya**. Gerbangnya sengaja **tidak** dibuat: menulisnya hari itu
+berarti gerbang yang lulus karena materialnya dimatikan. Utang itu dibayar di
+Tahap 59, yang juga menemukan sebabnya.
+
+CI run 23 (`f41e07b`): kedua job **success**.
+
+---
+
+## Tahap 57 — Satu kolom katalog di bawah lantai rentangnya sendiri ✅
+
+> Spec: [`docs/stages/TAHAP-57.md`](./stages/TAHAP-57.md)
+
+Tahap 56 §7 mengoreksi dirinya sendiri lebih dulu: angka "30,31px" yang ia
+tulis diukur pada **satu** plate, dan plate itu yang paling diam di halaman.
+Diukur pada keenamnya, katalog punya dua kolom yang **sengaja** berbeda
+(`COLUMN_DRIFT = [4, 9]`, `work-constellation` Tahap 43) — kolom B menempuh
+74–86px, kolom A hanya 30–37px.
+
+Yang tersisa sesudah koreksi itu satu temuan sempit: `vault/motion/parallax`
+mengutip preset `ui-ux-pro-max` "Parallax Scroll (Subtle)" dengan rentang
+**5–15** di header-nya sendiri, dan **kolom A duduk di 4** — di bawah lantai
+rentangnya sendiri.
+
+**Keduanya naik tiga**, jadi `[7, 12]`. Selisihnya tetap 5, yang memang bagian
+yang tidak boleh bergerak: `work-constellation` ada karena kedua kolom pernah
+melaporkan offset identik sampai tiga belas angka di belakang koma.
+
+```
+plate  kolom   sebelum          sesudah
+0      A       30,3px  3,3%  →  54,7px   5,8%
+2      A       36,6px  4,0%  →  65,9px   7,0%
+4      A       36,3px  4,0%  →  65,2px   6,9%
+1      B       74,1px  7,7%  →  101,9px 10,4%
+3      B       86,3px  9,0%  →  118,2px 12,0%
+5      B       81,1px  8,5%  →  111,0px 11,3%
+```
+
+Ukuran lapisannya tidak perlu disunting sama sekali di kartu — Tahap 43 sudah
+menurunkannya dari `--card-drift`, satu angka yang di-set dari nilai yang sama
+yang diberikan ke hook.
+
+**Galeri berhenti mengulang cacat yang sudah pernah diperbaiki.**
+`project-gallery` memanggil `useParallax(ref)` tanpa argumen (jadi 6) sementara
+stylesheet-nya menulis `-4%` / `108%` sebagai angka mati — dua angka yang harus
+sepakat tanpa cara untuk sepakat, bentuk kegagalan yang sama persis yang
+`e2e/continuous-motion.e2e.ts` tangkap di kartu sebagai **2 plate terekspos di
+tiga dari empat posisi gulir**. Sekarang ia punya `PLATE_DRIFT = 10` yang
+dibaca hook dan stylesheet. Diukur: kedua plate menempuh persis **10,0%**.
+
+**Gerbang**: `bun run check` 421 lulus / 0 gagal. Delapan berkas yang paling
+mungkin terganggu — `continuous-motion`, `exploratory-layer`, `motion`,
+`journey`, `project-detail`, `lightbox`, `material-layer`,
+`palette-integrity`, dua viewport — **104 lulus, 0 gagal**.
+
+---
+
+## Tahap 56 — Lima layar yang tidak melakukan apa-apa di antara dua kedatangan ✅
+
+> Spec: [`docs/stages/TAHAP-56.md`](./stages/TAHAP-56.md)
+
+Cacat ketiga: _"animasinya tidak sebanyak dan seluas yang saya harapkan…
+buat ANIMASI scroll yang nyaman menggunakan **Magic UI**"_ pada folder
+routing yang berat dan besar.
+
+**Sensus sesudah Tahap 54**, dua belas langkah gulir per rute:
+
+```
+/en                    4/12 langkah punya kedatangan
+/en/studio             5/12
+/en/practice/<v>       4/12
+/en/work               2/12   <- lima layar
+/en/work/<slug>        2/12   <- 4,7 layar
+/en/journal            2/12
+```
+
+Dua rute yang disebut "berat dan besar" punya kedatangan di **dua dari dua
+belas** langkah. Tapi menambah pemicu bukan jawabannya: `/en/work` hanya
+punya delapan benda — masthead, filter, enam sampul. Yang kurang adalah
+**perilaku selama benda itu melintas**, bukan satu kejadian saat ia masuk.
+
+**Magic UI `pixel-image` dibaca dari sumbernya** (`magicui.design/r/…json`,
+HTTP 200). Gagasannya berharga: kisi ubin yang `clip-path`-nya **statis**,
+jadi hanya `opacity` yang bergerak — mosaik tanpa melanggar #4. Bentuknya
+tidak ikut: upstream menumpuk satu salinan `<img>` per ubin, masing-masing
+ber-`alt="Pixel image piece N"` — 24 gambar bernama untuk satu foto.
+
+`vault/magic/pixel-image` **membalik lapisannya**: gambar aslinya dirender
+sekali dengan `alt`-nya sendiri, dan yang dirender komponen ini adalah
+kerudung ubin berwarna latar di atasnya. Kedatangannya adalah ubin-ubin itu
+pergi. Satu gambar, satu alt, nol duplikasi. Tujuh hal lain diubah, dan
+`Math.random()` yang paling menentukan: komponen ini dirender di server, jadi
+delay acak berarti hidrasi pecah. Diganti hash indeks yang deterministik.
+
+**Dipasang di galeri, bukan di hero**, dan alasannya ditulis: plate hero
+adalah ujung pendaratan morph `work-transport`; tertutup ubin saat
+`<ViewTransition>` memotret, morph-nya mendarat di sepetak warna latar.
+Galeri tidak punya view transition, dan justru di sana gulir matinya.
+Galerinya juga mendapat `perItem` — satu `useReveal` pada `<ul>` berarti
+seluruh galeri sudah tiba sebelum pembaca sampai ke gambar kedua.
+
+**Hasilnya jujur sedikit**: `/en/work/<slug>` naik dari 2/12 ke **3/12**.
+Penyebabnya isinya, bukan mekanismenya — proyek fixture `arus-balik` hanya
+punya **dua** plate galeri (diukur: 48 ubin = 2 × 24). Yang berubah banyak
+adalah kualitas kedatangannya, dan itu diverifikasi dengan mata: mid-dissolve
+kisi 6×4 terbaca jelas dengan gambar menembus di antaranya, dan sesudahnya
+nol jahitan sisa. Halaman proyek dengan enam plate akan memberi enam
+kedatangan dari mekanisme yang sama, tanpa satu baris kode tambahan.
+
+---
+
+## Tahap 55 — Grain yang ternyata sebuah kerudung ✅
+
+> Spec: [`docs/stages/TAHAP-55.md`](./stages/TAHAP-55.md)
+
+Cacat kedua yang disebut pemilik repo: _"Kamu punya 2 mode warna, dan salah
+satu mode warna malah menyatu dengan latar belakang."_ Tahap 54 membuka dengan
+kalimat "dua yang pertama sudah diperbaiki dan diukur". Kalimat itu terlalu
+cepat: Tahap 53 memperbaiki **besarnya**, bukan **mekanismenya**.
+
+**Diukur lebih dulu**, build produksi, satu petak 180×150 latar kosong,
+difoto dua kali — apa adanya, lalu dengan lapisan grain dimatikan. Selisihnya
+adalah sumbangan grain, bukan taksirannya:
+
+```
+light  /en/journal   paper #f4f3ef (244) dicat 232,7    −11,1   sd grain 3,63
+dark   /en/studio    ink   #110f0d  (17) dicat  21,6    + 4,5   sd grain 1,81
+dark   /en/work/<s>  ink   #110f0d  (17) dicat  21,5    + 4,5   sd grain 1,58
+```
+
+**Lapisan itu memberi 2,5–3× lebih banyak kerudung daripada tekstur.**
+Sebabnya bisa diturunkan, bukan ditebak: `feTurbulence` berpusat di 0,5,
+slope 0,15 menurunkan warnanya ke rata-rata 0,075, alpha dibiarkan sebagai
+noise, dan karena `color-interpolation-filters` **default-nya `linearRGB`**,
+0,075 linear itu sampai ke layar sebagai sRGB ≈ 0,30 — yaitu **#4d4d4d**.
+Satu kerudung abu-abu yang menarik _kedua_ mode warna ke satu titik yang sama.
+
+**Perbaikannya pada mekanisme**: `color-interpolation-filters="sRGB"`
+dinyatakan, `<rect>` diisi `var(--color-primary)`, `feFuncA` memaksa alpha ke
+1, dan `feComposite operator="arithmetic"` menambahkan grain lalu mengurangi
+rata-ratanya kembali (`k4 = -slope/2`). Rata-rata lapisan = warna latar
+**secara konstruksi, pada opacity berapa pun** — jadi `opacity` akhirnya hanya
+menyetel kekuatan tekstur, dan ditala ulang (0,45 gelap / 0,70 terang) sampai
+sd grain menyamai yang situs ini kirim sebelumnya.
+
+```
+                    geseran mean          sd grain
+              sebelum → sesudah     sebelum → sesudah
+light            −11,1 → −0,2          3,63 → 3,57
+dark  studio      +4,5 → −1,0          1,81 → 1,86
+dark  work/<s>    +4,5 → −1,0          1,58 → 1,62
+```
+
+**Gerbang baru** `e2e/palette-integrity.e2e.ts`, dibuktikan merah lebih dulu
+pada build pra-perbaikan — **lima dari lima**: 11,57 · 11,61 · 4,38 · 4,81 ·
+4,34, semuanya terhadap ambang < 2. Separuh keduanya ("grainnya masih ada",
+sd > 1) hijau di kedua build, yang memang seharusnya: kerudung itu memang
+membawa grain di dalamnya, dan gerbang yang hanya mengukur satu sifat akan
+lolos dengan menghapus lapisannya.
+
+**Dua hal lain yang ikut selesai di tahap ini**, keduanya konsekuensi CI yang
+akhirnya punya konten:
+
+- **CI diberi konten.** Job `e2e` pertama yang benar-benar selesai melaporkan
+  424 lulus / ~60 gagal, dan **seluruh** kegagalan bergantung pada konten —
+  runner tidak punya konfigurasi Sanity, jadi `/en/work` memanggil
+  `notFound()`. Tiga nilai `NEXT_PUBLIC_*` ditambahkan (sudah publik: ada di
+  bundle klien setiap halaman; dataset-nya terbaca tanpa token, HTTP 200 dan
+  `count(*[_type=="project"])` = 6). Token tulis **tidak** diberikan dan tidak
+  boleh. Hasil run berikutnya: **595 lulus, 3 gagal**.
+- **`networkidle` yang berhenti masuk akal.** Ketiga sisa kegagalan itu adalah
+  timeout `page.goto` — `responsive.e2e.ts` menavigasi tujuh lebar dan
+  `material-layer.e2e.ts` delapan kali, dan keduanya menunggu jaringan sunyi
+  di halaman yang kini benar-benar memuat gambar. `responsive` menunggu
+  `document.fonts.ready` (yang memang satu-satunya syarat pengukurannya) alih-
+  alih jaringan; keduanya diberi `test.slow()` dengan alasan tertulis.
+
+---
+
+## Tahap 54 — Halaman terpanjang situs ini tidak menganimasikan apa pun setelah dimuat ✅
+
+> Spec: [`docs/stages/TAHAP-54.md`](./stages/TAHAP-54.md)
+
+Pemilik repo menjalankan situsnya, melihatnya, dan menyebut tiga hal. Dua
+diperbaiki lebih dulu — navbar yang mengirim tujuh tautan dengan dua pasang
+nama kembar, dan hero beranda yang merender wash **luminansi 194** di bawah
+teks berwarna kertas. Yang ketiga, "animasinya tidak sebanyak dan seluas yang
+saya harapkan", ternyata yang paling terukur.
+
+**Sensus: sepuluh langkah gulir per halaman, hitung item reveal yang baru
+terlihat di tiap langkah.**
+
+```
+/en/work      8 item — DELAPAN-DELAPANNYA terlihat SAAT DIMUAT
+              sepuluh langkah menuruni lima layar:  NOL kejadian
+/en/journal   4 item — keempatnya terlihat saat dimuat
+              sepuluh langkah menuruni 3,4 layar:   NOL kejadian
+/en           18 item, 3 saat dimuat, 5 langkah menghasilkan kedatangan
+```
+
+Bukan "kurang efek" — **kurang kejadian**. `vault/blocks/project-grid`
+memasang satu `useReveal` pada `<ul>`-nya, jadi enam sampul katalog adalah
+satu kedatangan, yang menyala di layar pertama dari lima.
+
+`useReveal` mendapat mode `perItem`: tiap item diamati sendiri, kontainernya
+tetap `hidden` supaya aturan dasar terus menyembunyikan yang belum tiba, dan
+`--reveal-index` menjadi indeks **di dalam barisnya** — sebaris tiga tetap
+berundak, baris berikutnya berundak lagi. **Nol mekanisme baru**: CSS, token
+stagger dan jaminan reduced-motion-nya sudah ada dan sudah digerbangi; yang
+berubah kapan mereka menyala.
+
+```
+sesudah   /en/work      4 saat dimuat, lalu +2, +2
+          /en/journal   2 saat dimuat, lalu +1, +1
+```
+
+Beranda sengaja tetap mode kontainer: seleksinya satu komposisi di dalam
+halaman sebelas layar yang sudah punya tujuh blok lain.
+
+Dua lubang ikut ditutup — `MutationObserver` untuk kartu yang muncul setelah
+filter praktik (tanpanya mereka duduk di `opacity: 0` selamanya, `CLAUDE.md`
+#5), dan satu gerbang yang premisnya usang.
+
+Dan satu gerbang **tidak** dibangun, dengan alasan tertulis: "halaman lima
+layar tidak boleh punya kurang dari N kejadian" tidak punya dasar terukur, dan
+suite ini sudah punya sejarah ambang yang dikarang.
+
+unit 421 lulus · gerbang terkait 85 lulus · `bun run check` dan build hijau.
+
+---
+
+## Tahap 53 — Lapisan ambien, story yang benar-benar kurang, dan dokumen yang menyusul kodenya ✅
+
+> Spec: [`docs/stages/TAHAP-53.md`](./stages/TAHAP-53.md)
+
+Tahap terakhir rencana ini. **Satu butirnya sudah selesai sebelum tahap ini
+dimulai**, satu ditolak setelah dua kali ditunda, dan yang paling banyak isinya
+tidak ada di rencana sama sekali.
+
+| #   | Premis rencana                                   | Terukur                                                                                |
+| --- | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| 1   | Story untuk 10 `vault/magic` + curtain + passage | ✅ **sudah ada** — dan bukan sepuluh, **tiga** yang dipasang; Tahap 47 menolak sisanya |
+| 2   | `progressive-blur` site-wide                     | ❌ delapan lapis `backdrop-filter` untuk satu tepi, biaya tak terprofil                |
+| 3   | `noise-texture` site-wide                        | ⚠️ benar — tapi sudah ada **dua** salinannya, jadi ini memindahkan bukan menambah      |
+| 4   | Dokumen diselaraskan                             | ✅ dan lebih jauh: §0.1 terakhir diperbarui **Tahap 43**                               |
+
+**Satu grain, dan butuh tiga calon salinan untuk menyadarinya.** `NoiseTexture`
+pindah ke elemen ground milik `Theme`, sebagai anak pertama supaya wash hero
+tetap melukis di atasnya. Salinan `/studio` dicabut. Salinan hero **tetap**,
+dan itu bukan duplikat: ia duduk di atas wash WebGL, yang digambar di atas
+setiap `z-index` negatif dan karenanya satu-satunya permukaan yang lapisan
+site-wide ini tidak bisa jangkau.
+
+**Tepi header memudar, dengan satu lapisan bukan sembilan.** `border-bottom:
+1px solid var(--line)` adalah sebuah _potongan_, dan header ini menggantung di
+atas karya. Magic UI mendapat efek yang sama dengan menumpuk delapan
+`backdrop-filter`; header ini sudah punya satu, jadi yang kurang bukan blur-nya
+melainkan tepinya — satu `mask-image` pada lapisan yang sudah ada, dipindah ke
+`::before` karena mask ikut kena ke isi elemen. Tekniknya diambil, kodenya
+tidak; `PROVENANCE.md` mencatat bedanya, dan `progressive-blur` **ditolak**
+alih-alih ditunda ketiga kalinya.
+
+**Empat story yang memang kurang.** Audit `vault/`: 23 dari 31 komponen
+bercerita, dan **nol** yang tidak ada di `vault/primitives/` — aturan
+`CLAUDE.md` sudah dipenuhi. Empat dari delapan sisanya praktis:
+`practice-hero`, `practice-list`, `project-spine`, `reveal`. Empat lagi
+(`flip`, `parallax`, `material-image`, `scene-shell`) adalah hook dan shell
+WebGL yang story-nya akan menampilkan kotak kosong; alasannya ditulis.
+
+**Dokumen menyusul kodenya.** `MOTION-SPEC.md` §0.1 — daftar mekanisme
+kategori ketiga — terakhir diperbarui **Tahap 43**, sepuluh tahap di belakang;
+sekarang memuat kelimanya. `DESIGN-SYSTEM.md` mendapat tabel tinggi hero per
+rute **beserta aturan** yang Tahap 51 dan 52 temukan dengan mahal: tinggi
+adalah bagian _layar_, padding atas halaman ada di dalam bagian itu, dan di
+rute yang subjeknya daftar, tingginya dipilih supaya item pertama melewati
+garis reveal saat halaman dimuat.
+
+**Satu pengukuran gagal, dan ditulis apa adanya.** Butir 53e meminta anggaran
+rute dibaca ulang dengan angka baru. Gerbangnya lulus, jadi tiap rute di bawah
+plafonnya — tapi skrip yang meniru cara gerbang itu mengukur memberi angka yang
+bergerak sampai **delapan kali lipat antara dua jalannya** (`/id` 270 → 1091KB,
+`/en/journal` 141 → 17KB). Menerbitkan salah satunya sebagai "anggaran hari
+ini" adalah menerbitkan derau. Tabelnya tetap milik gerbang itu.
+
+unit 421 lulus · e2e **603 lulus, 0 gagal**, 1 flaky, 14 dilewati (18,6m) ·
+Storybook lulus.
+
+**Dan tahap ini mengirim satu cacat, yang gerbangnya sendiri tangkap.** Grain
+site-wide pada `opacity: 0.75` — bawaan komponennya, ditala untuk dua permukaan
+lokal — mengangkat ground polos **di atas** wash hero-nya, sehingga
+`visual-substance › a declared accent carries tone, and never subtracts it`
+melaporkan aksen sebagai _mengurangi_ cahaya di tiga viewport. Itu persis cacat
+yang gerbang itu ditulis untuk menangkap di Tahap 17. Disapu empat nilai,
+dikirim 0.18 dengan margin 3,5–4,7.
 
 ---
 

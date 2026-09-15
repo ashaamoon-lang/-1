@@ -2,7 +2,6 @@ import cn from 'clsx'
 import { getTranslations } from 'next-intl/server'
 import { locale as localeRootParam } from 'next/root-params'
 
-import type { SectionLink } from '@/components/layout/header'
 import { Wrapper } from '@/components/layout/wrapper'
 import { SectionHeader } from '@/components/ui/section-header'
 import { resolveHomeContent } from '@/lib/content/home-fallback'
@@ -130,15 +129,6 @@ export default async function Home() {
   const content = resolveHomeContent(locale, settings)
   const hasWork = projects.length > 0
 
-  // Document order, and only what rendered. `useActiveSection` relies on this
-  // order to decide which of several visible sections is the one being read.
-  const sections: SectionLink[] = [
-    ...(hasWork ? [{ id: 'work', labelKey: 'work' as const }] : []),
-    { id: 'practice', labelKey: 'practice' as const },
-    { id: 'studio', labelKey: 'studio' as const },
-    { id: 'contact', labelKey: 'contact' as const },
-  ]
-
   return (
     /*
      * `webgl` and `gsap` are mounted here, not in the layout.
@@ -164,7 +154,6 @@ export default async function Home() {
        * handling takes over. Same destination, no easing.
        */
       lenis={{ anchors: true }}
-      sections={sections}
       webgl
       /*
        * The velocity field the work grid's material reads
@@ -179,6 +168,35 @@ export default async function Home() {
       <Hero
         headline={content.headline}
         subline={content.subline}
+        /*
+         * The counterweight this block was built for, and never given —
+         * Tahap 67.
+         *
+         * `vault/blocks/hero` has carried the `index` prop, its markup, its
+         * CSS (`grid-column: 9 / -1`, the four columns a 9em headline leaves
+         * free) and the measurement that justified it since Tahap 12d. Its
+         * own doc describes the result as shipped: *"The text elements sit on
+         * a diagonal: the index in the top right, the headline and its action
+         * at the bottom left."* `lib/content/practices.ts` says the same
+         * thing — *"the hero's right-hand column has been labelled `Practice`
+         * / `Praktik` since Tahap 12d"* — and `home.heroIndexLabel` sits in
+         * both dictionaries.
+         *
+         * None of it reached the screen, because this call never passed the
+         * prop. Measured at 1440×900 before this line: the first screen's
+         * content ran **462→836 of 900**, so the top 51% held nothing but
+         * ground, and the diagonal was a staircase down the left — the exact
+         * composition the prop's own doc records Tahap 12 removing.
+         *
+         * The words are the ones the rest of the page already uses:
+         * `PracticeList` below is built from the same `PRACTICES` constant
+         * and the same `workIndex.<practice>` labels. Nothing here is copy
+         * invented for the hero.
+         */
+        index={{
+          label: t('heroIndexLabel'),
+          items: PRACTICES.map((practice) => tWork(practice)),
+        }}
         action={
           /* oxlint-disable-next-line react/forbid-elements -- deliberate native
              anchor, same reasoning as the header nav: a same-page hash must

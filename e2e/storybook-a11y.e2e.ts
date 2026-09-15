@@ -18,66 +18,23 @@
  */
 
 import type { Dirent } from 'node:fs'
-import {
-  createReadStream,
-  existsSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-} from 'node:fs'
-import { createServer, type Server } from 'node:http'
-import { extname, join, normalize } from 'node:path'
+import { readdirSync, statSync } from 'node:fs'
+import type { Server } from 'node:http'
+import { join } from 'node:path'
 
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { z } from 'zod'
 
 import { axeTags } from './axe-tags'
+import {
+  readStories,
+  serveStorybook,
+  STORYBOOK_ROOT,
+  storyUrl,
+} from './storybook-server'
 
-const ROOT = join(import.meta.dirname, '..', 'storybook-static')
+const ROOT = STORYBOOK_ROOT
 const INDEX = join(ROOT, 'index.json')
-
-// A Map rather than an object literal: the lookup key is an arbitrary file
-// extension, which an object literal cannot be indexed by without either a
-// widening annotation or a cast.
-const CONTENT_TYPES = new Map<string, string>([
-  ['.html', 'text/html; charset=utf-8'],
-  ['.js', 'text/javascript; charset=utf-8'],
-  ['.css', 'text/css; charset=utf-8'],
-  ['.json', 'application/json; charset=utf-8'],
-  ['.svg', 'image/svg+xml'],
-  ['.woff2', 'font/woff2'],
-  ['.png', 'image/png'],
-  ['.jpg', 'image/jpeg'],
-])
-
-/*
- * Storybook's own index format, parsed rather than asserted.
- *
- * It is a build artefact of another tool, so it is an I/O boundary: a
- * Storybook upgrade that reshapes it should surface as an empty story list
- * and a skipped gate, not as a runtime error halfway through the suite.
- * `.passthrough()` on the entry keeps unknown Storybook fields from failing
- * the parse.
- */
-const entrySchema = z
-  .object({
-    id: z.string(),
-    title: z.string().optional(),
-    name: z.string().optional(),
-    type: z.string().optional(),
-  })
-  .passthrough()
-
-const indexSchema = z.object({
-  entries: z.record(z.string(), entrySchema),
-})
-
-interface StoryEntry {
-  id: string
-  title: string
-  name: string
-}
 
 /**
  * The most recently modified file among the sources Storybook renders.
@@ -132,64 +89,6 @@ function newestSourceChange(): { path: string; mtimeMs: number } {
   return newest
 }
 
-function readStories(): StoryEntry[] {
-  if (!existsSync(INDEX)) return []
-
-  const parsed = indexSchema.safeParse(JSON.parse(readFileSync(INDEX, 'utf8')))
-  if (!parsed.success) return []
-
-  return Object.values(parsed.data.entries).flatMap((entry) => {
-    // `docs` entries render an MDX page, not the component; only stories.
-    if (entry.type !== undefined && entry.type !== 'story') return []
-    return [
-      {
-        id: entry.id,
-        title: entry.title ?? entry.id,
-        name: entry.name ?? entry.id,
-      },
-    ]
-  })
-}
-
-function serveStatic(): Promise<{ server: Server; origin: string }> {
-  const server = createServer((req, res) => {
-    const url = new URL(req.url ?? '/', 'http://localhost')
-    // `normalize` collapses `..`, and the prefix check rejects anything that
-    // still escapes the build directory. This server only ever runs locally
-    // for the length of one test file, but a path traversal is a path
-    // traversal.
-    const requested = normalize(join(ROOT, decodeURIComponent(url.pathname)))
-    if (!requested.startsWith(ROOT)) {
-      res.writeHead(403).end()
-      return
-    }
-
-    const file =
-      existsSync(requested) && statSync(requested).isDirectory()
-        ? join(requested, 'index.html')
-        : requested
-
-    if (!existsSync(file)) {
-      res.writeHead(404).end()
-      return
-    }
-
-    res.writeHead(200, {
-      'content-type':
-        CONTENT_TYPES.get(extname(file)) ?? 'application/octet-stream',
-    })
-    createReadStream(file).pipe(res)
-  })
-
-  return new Promise((resolve) => {
-    server.listen(0, '127.0.0.1', () => {
-      const address = server.address()
-      const port = typeof address === 'object' && address ? address.port : 0
-      resolve({ server, origin: `http://127.0.0.1:${port}` })
-    })
-  })
-}
-
 const stories = readStories()
 
 test.describe('Storybook a11y', () => {
@@ -198,7 +97,7 @@ test.describe('Storybook a11y', () => {
 
   test.beforeAll(async () => {
     if (stories.length === 0) return
-    const started = await serveStatic()
+    const started = await serveStorybook()
     server = started.server
     origin = started.origin
   })
@@ -248,10 +147,7 @@ test.describe('Storybook a11y', () => {
       const errors: string[] = []
       page.on('pageerror', (error) => errors.push(error.message))
 
-      await page.goto(
-        `${origin}/iframe.html?id=${encodeURIComponent(story.id)}&viewMode=story`,
-        { waitUntil: 'networkidle' }
-      )
+      await page.goto(storyUrl(origin, story.id), { waitUntil: 'networkidle' })
 
       expect(errors, `${story.id} threw while rendering`).toEqual([])
 

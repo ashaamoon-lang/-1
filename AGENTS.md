@@ -322,6 +322,17 @@ bun run setup:project  # Strip unused integrations (non-interactive: --preset/--
 bun run doctor       # Diagnose setup issues
 ```
 
+**`playwright-core` is pinned by an `overrides` entry in `package.json`, and
+`@playwright/test` must move with it or not at all.** Measured 2026-09-12
+(Tahap 61): bumping the runner alone to 1.63.0 left `playwright-core` at
+1.62.1, and every one of the 656 tests died in under 10ms with
+`TypeError: browserType.launch: renderParamsForCall is not a function` — a
+protocol mismatch, not a test failure. A Playwright bump is therefore a
+two-line change (`@playwright/test` **and** the override), and it has to be
+validated where browsers can be downloaded: this container ships only the
+1.62.x revisions under `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, and
+`playwright install` is not available here.
+
 Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequential, one command), in parallel with tsc typecheck. Type-aware linting is excluded from the hook to keep commits fast.
 
 `next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. It's a no-op once the file exists, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.

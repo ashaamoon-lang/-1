@@ -32,9 +32,7 @@
     "practiceLink": "Lihat karya di praktik ini"
   },
   "work": {
-    "sectionTitle": "Karya pilihan",
-    "viewProject": "Lihat",
-    "nextProject": "Karya berikutnya"
+    "viewProject": "Lihat"
   },
   "workIndex": {
     "title": "Karya",
@@ -58,11 +56,6 @@
     "allWork": "Semua karya",
     "relatedPractice": "Praktik terkait",
     "aboutPractice": "Tentang {practice}"
-  },
-  "meta": {
-    "client": "Klien",
-    "year": "Tahun",
-    "medium": "Medium"
   },
   "language": {
     "label": "Bahasa",
@@ -215,6 +208,7 @@
     "zoom": "Perbesar",
     "close": "Tutup",
     "goTo": "Ke gambar {position}",
-    "openImage": "Buka gambar {position} layar penuh"
+    "openImage": "Buka gambar {position} layar penuh",
+    "run": "Karyanya, {count} gambar, melaju menyamping saat Anda menggulir"
   }
 }
