@@ -18,6 +18,7 @@ Supporting documents, in the order they usually matter:
 
 | Document                                           | Covers                                                                                     |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`docs/HANDOFF.md`](./docs/HANDOFF.md)             | **Where the last session stopped, and the working rules in force.** Read this first.       |
 | [`docs/DIREKSI.md`](./docs/DIREKSI.md)             | **What we are building and why, and which limits apply.** Read before any motion work.     |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | **What we build, and in what order.** Each stage must be deepened into its own spec first. |
 | [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)       | Shipping it. Env vars, hosts, and the security checklist.                                  |
