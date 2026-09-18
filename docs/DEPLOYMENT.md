@@ -39,10 +39,26 @@ role **Viewer**.
 > commit — revoke it.** Same screen, delete and create a new one. Rotating is
 > free and takes a minute; assuming it was fine is the expensive option.
 
-**Never give a token a `NEXT_PUBLIC_` prefix.** That prefix inlines the value
-into the JavaScript sent to every visitor's browser. It is not a leak that
-shows up in testing — the site works perfectly while publishing your
-credentials. `lib/integrations/sanity/env.ts` documents this too.
+**Never give a write-capable token a `NEXT_PUBLIC_` prefix.** That prefix
+inlines the value into the JavaScript sent to every visitor's browser. It is
+not a leak that shows up in testing — the site works perfectly while publishing
+your credentials. `lib/integrations/sanity/env.ts` documents this too.
+
+> **This paragraph used to read "Never give a token a `NEXT_PUBLIC_` prefix",
+> full stop, and the codebase did not obey it.** There is exactly one
+> `NEXT_PUBLIC_` token here and it is deliberate:
+> `NEXT_PUBLIC_SANITY_API_READ_TOKEN` feeds `browserToken` in `next-sanity`'s
+> `defineLive`, and a browser token that cannot reach the browser does nothing.
+> A rule stated more absolutely than the code follows is a rule that gets
+> ignored wholesale the first time someone notices the gap, so it is narrowed
+> here to the thing that actually matters.
+>
+> **The narrower rule now has a gate**, which the absolute one never could:
+> `lib/env.ts` refuses to start when that variable holds the same string as
+> `SANITY_API_WRITE_TOKEN` or `SANITY_PRIVATE_TOKEN`, and
+> `lib/env-guard.test.ts` asserts the refusal fires rather than assuming it.
+> Prefer `SANITY_API_READ_TOKEN` (server-only) unless you specifically need
+> browser-side draft preview — and put only a **Viewer** token in either.
 
 ---
 

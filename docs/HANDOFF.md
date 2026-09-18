@@ -13,27 +13,50 @@
 
 ```
 branch    claude/satus-award-website-foundation-r6o5cf
-commit    9ee7922
-CI        run 63 — job `ci` dan `e2e` keduanya hijau
-PR        #9, mergeable_state clean, base `main`
+PR        #9, base `main`
 ```
 
-> **Dikoreksi saat serah-terima ke terminal lokal.** Blok ini dulu berbunyi
-> `af1f499` dan `CI run 62`, karena ia ditulis sebelum commit-nya sendiri ada —
-> dokumen yang menyebut posisi selalu punya masalah ini. Angka di atas
-> diverifikasi ke GitHub API, bukan diingat: `gh pr view 9` mengembalikan
-> `headRefOid 9ee7922…` dengan `mergeStateStatus CLEAN`, dan
-> `gh run view 35045507292` mengembalikan run **63** dengan job `ci` dan `e2e`
-> keduanya `success`.
+**Commit dan nomor run CI sengaja tidak ditulis di sini.** Tanyakan, jangan
+percaya dokumen:
 
-Terverifikasi di commit itu:
+```bash
+git rev-parse --short HEAD
+gh pr view 9 --json headRefOid,state,mergeStateStatus
+gh run list --branch claude/satus-award-website-foundation-r6o5cf --limit 5
+```
 
-| gerbang                   | hasil                                |
-| ------------------------- | ------------------------------------ |
-| `bun run check`           | **554 lulus / 0 gagal**              |
-| `bun run test:e2e`        | **716 lulus / 0 gagal**, 14 dilewati |
-| `bun run build`           | hijau                                |
-| `bun run build-storybook` | hijau                                |
+> **Kenapa dihapus, bukan diperbarui.** Blok ini pernah berbunyi `af1f499` /
+> `CI run 62` sementara posisi sebenarnya `9ee7922` / run 63, dan itu **bukan
+> kelalaian — itu struktural**: sebuah dokumen yang menuliskan hash commit-nya
+> sendiri ditulis _sebelum_ commit itu ada, jadi ia salah pada saat lahir dan
+> akan salah lagi setiap kali. Fakta yang tidak bisa benar saat ditulis tidak
+> ditulis; yang ditulis adalah perintah yang menjawabnya.
+>
+> Bandingkan dengan dua dokumen di repo ini yang **memverifikasi dirinya
+> sendiri** — blok `rule-coverage` di `CLAUDE.md` dan blok design-debt di
+> `DESIGN-SYSTEM.md` §7 — keduanya di-generate dan diuji agar tidak hanyut.
+> Nomor tahap di bawah kini ikut dijaga begitu, oleh
+> `lib/scripts/stage-position.test.ts`.
+
+Gerbang, sebagaimana terukur di CI (Linux, 4 vCPU / 16 GB):
+
+| gerbang                   | hasil                                         |
+| ------------------------- | --------------------------------------------- |
+| `bun run check`           | **565 lulus / 0 gagal**, 55 berkas            |
+| `bun run test:e2e`        | **713 lulus / 0 gagal**, 2 flaky, 15 dilewati |
+| `bun run build`           | hijau                                         |
+| `bun run build-storybook` | hijau                                         |
+
+`check` naik 554 → 565 karena sebelas uji baru, bukan karena uji lama berubah.
+`test:e2e` bergerak 716/0/14 → 713/2/15 pada **total yang sama, 730** — tiga uji
+pindah kolom, semuanya gerbang kanvas WebGL, dan semuanya balapan yang §5.1
+uraikan. Nol kegagalan di keduanya.
+
+**Angka gerbang milik mesin yang menjalankannya.** Diukur di laptop Windows
+4-core / 7,79 GB, suite e2e memakan **41,4 menit** melawan **18,5 menit** di
+CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
+halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
+log CI run yang sama — bukan ke tabel ini.
 
 Tahap terakhir yang dikerjakan: **78**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
@@ -48,7 +71,7 @@ boleh masuk** — ambil dari dashboard Sanity.
 git checkout claude/satus-award-website-foundation-r6o5cf
 bun install
 # buat .env.local — lihat MENJALANKAN-LOKAL.md §4
-bun run check        # harus 554 lulus
+bun run check        # harus 565 lulus
 bun dev
 ```
 
@@ -135,6 +158,44 @@ tertinggi, dan mesin pinned-run dari Tahap 64 sudah ada di galerinya.
 | `epic-sequence` untuk halaman run       | tidak bisa diverifikasi tanpa data ter-semai                                                              |
 | Plafon aturan #3 (band durasi)          | tidak ditegakkan — lihat `lib/scripts/rule-coverage.ts`, tercatat ber-alasan                              |
 | Typeface berlisensi                     | biaya pemilik repo                                                                                        |
+
+### 5.1 Utang instrumen: gerbang kanvas WebGL yang melewati dirinya sendiri
+
+**Bukan keputusan pemilik repo — pekerjaan yang belum dikerjakan, dicatat di
+sini supaya ia tidak hilang.**
+
+`e2e/visual-substance.e2e.ts:603` (dan `:421`, `:453`, plus
+`material-layer.e2e.ts:186`) melewati dirinya lewat `test.skip(!hasCanvas)`
+ketika kanvas tidak muncul dalam 6 detik. Komentarnya sendiri sudah menuliskan
+kenapa itu berbahaya:
+
+> _"the same route, the same commit, **passed on the mobile project in one full
+> run and skipped itself in the next**. A test that skips itself when the thing
+> it measures is merely late reports success either way."_
+
+**Yang baru: itu terbukti bukan khas satu mesin.** Diukur di CI, dua run pada
+branch yang sama:
+
+```
+run 63   716 lulus ·  0 flaky · 14 dilewati
+run 64   713 lulus ·  2 flaky · 15 dilewati      total 730 di keduanya
+```
+
+Ketiga selisihnya berada di berkas yang sama dan semuanya rute ber-kanvas —
+dua jadi flaky (`:179` `/en/practice/consulting at mobile`, `:603` `/en`), satu
+jadi skip (`:603` `[mobile] /en/work`). Di laptop Windows 4-core, bentuk yang
+sama muncul lebih keras: **lima** skip tambahan.
+
+Jadi ini balapan, bukan platform. Sebuah gerbang yang melaporkan sukses dengan
+cara tidak berjalan adalah cacat kelas yang sama dengan yang Tahap 79 perbaiki
+di `continuous-motion.e2e.ts` — di sana satu sampel tidak bisa membedakan
+transform entrance dari transform scroll-linked, di sini satu tenggat tidak bisa
+membedakan kanvas yang absen dari kanvas yang terlambat.
+
+**Belum diperbaiki, dan sengaja tidak diperbaiki di commit yang menemukannya** —
+`visual-substance.e2e.ts` ada di luar daftar berkas commit itu, dan memperluas
+lingkup adalah persis kebiasaan yang membuat cacat sulit dilacak. Ia milik tahap
+yang memang menyentuh lapisan material.
 
 ## 6. Kredensial
 

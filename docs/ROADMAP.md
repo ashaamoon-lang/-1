@@ -173,14 +173,27 @@ Bukan opsional dan bukan "kalau sempat". Urutannya tetap:
 ```bash
 S=.claude/skills/ui-ux-pro-max/scripts/search.py
 
-python3 $S "Portfolio Grid"        --domain landing      # urutan seksi
-python3 $S "<kebutuhan>"           --domain ux -n 5      # aturan interaksi & a11y
-python3 $S "<kebutuhan>"           --domain typography   # pasangan font
-python3 $S "<kebutuhan>"           --domain color        # palet + reasoning
-python3 $S "scroll reveal stagger" --domain gsap         # durasi, easing, snippet
-python3 $S "<topik>" --stack nextjs                      # 60 guideline Next
-python3 $S "<topik>" --stack threejs                     # 53 guideline 3D
+# Interpreter, per platform. Pilih satu dan pakai `$PY` di bawah.
+#   Linux / macOS : PY=python3
+#   Windows       : PY=python     <- `python3` TIDAK bekerja di sini
+PY=python3
+
+$PY $S "Portfolio Grid"        --domain landing      # urutan seksi
+$PY $S "<kebutuhan>"           --domain ux -n 5      # aturan interaksi & a11y
+$PY $S "<kebutuhan>"           --domain typography   # pasangan font
+$PY $S "<kebutuhan>"           --domain color        # palet + reasoning
+$PY $S "scroll reveal stagger" --domain gsap         # durasi, easing, snippet
+$PY $S "<topik>" --stack nextjs                      # 60 guideline Next
+$PY $S "<topik>" --stack threejs                     # 53 guideline 3D
 ```
+
+> **Kenapa `PY` dan bukan `python3` saja.** Di Windows, `python3` dicegat App
+> Execution Alias dan menjawab _"Python was not found; run without arguments to
+> install from the Microsoft Store"_ — exit non-nol, nol hasil. Ritual ini
+> **wajib** di tiap tahap, jadi perintah yang gagal di satu platform berarti
+> tiap tahap desain di platform itu kehilangan dasar risetnya **tanpa satu pun
+> gerbang menyala**. Diukur di mesin Windows: `python3 --version` gagal,
+> `python --version` menjawab `Python 3.14.6`, dan skripnya jalan.
 
 Dua aturan pemakaian yang lahir dari uji coba saya barusan:
 

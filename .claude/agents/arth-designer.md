@@ -15,12 +15,13 @@ keputusan desain bisa ditelusuri, bukan diperdebatkan sebagai selera:
 
 ```bash
 S=.claude/skills/ui-ux-pro-max/scripts/search.py
-python3 $S "Portfolio Grid"        --domain landing
-python3 $S "<kebutuhan>"           --domain ux -n 5
-python3 $S "<kebutuhan>"           --domain typography
-python3 $S "<kebutuhan>"           --domain color
-python3 $S "scroll reveal stagger" --domain gsap
-python3 $S "<topik>" --stack nextjs
+PY=python3   # Windows: PY=python — `python3` dicegat App Execution Alias
+$PY $S "Portfolio Grid"        --domain landing
+$PY $S "<kebutuhan>"           --domain ux -n 5
+$PY $S "<kebutuhan>"           --domain typography
+$PY $S "<kebutuhan>"           --domain color
+$PY $S "scroll reveal stagger" --domain gsap
+$PY $S "<topik>" --stack nextjs
 ```
 
 Dua aturan pemakaian yang lahir dari uji coba nyata:
@@ -46,6 +47,18 @@ Dari `CLAUDE.md`, dan semuanya cacat kalau dilanggar:
 
 ## Setelah mendesain
 
-Lihat halamannya berjalan — screenshot lewat Chromium di `/opt/pw-browsers`,
-1440×900 dan 390×844, kedua locale. Gate tidak bisa melihat cacat visual; itu
-sudah terbukti tiga kali di proyek ini.
+Lihat halamannya berjalan — 1440×900 dan 390×844, kedua locale. Gate tidak
+bisa melihat cacat visual; itu sudah terbukti tiga kali di proyek ini.
+
+Browser Chromium-nya **tidak** di `/opt/pw-browsers`. Path itu milik kontainer
+cloud tempat berkas ini ditulis, dan di mesin lain ia tidak ada — instruksi yang
+gagal di langkah terakhir tiap tahap desain. Cari lokasinya, jangan menebaknya:
+
+```bash
+bunx playwright install chromium   # idempoten; mencetak/menyiapkan lokasinya
+```
+
+Linux `~/.cache/ms-playwright` · macOS `~/Library/Caches/ms-playwright` ·
+Windows `%LOCALAPPDATA%\ms-playwright`. Cara paling aman tetap lewat Playwright
+sendiri (`bunx playwright test`), yang menemukan browsernya tanpa path ditulis
+tangan di mana pun.
