@@ -355,38 +355,58 @@ test.describe('interaction grammar', () => {
    * a corresponding route here is the kind of drift this file exists to stop.
    */
   /*
-   * The ceiling per route — `MOTION-SPEC.md` §9.5, amended in Tahap 49.
+   * The ceiling per route — `MOTION-SPEC.md` §9.5, widened in Tahap 60.
    *
-   * Two everywhere, and **three** on the three surfaces that carry the
-   * studio's image rather than its information: the home page, the studio
-   * page, and the catalogue. The amendment argues itself in the spec; what
-   * this table does is stop it being a general loosening. A ceiling that
-   * rises everywhere is not a ceiling, and the four routes still at two are
-   * the reason the number means anything on the three that are not.
+   * ## Why this number stopped being the instrument that matters
+   *
+   * It was two, then three from Tahap 49. Tahap 60 took it to **twelve** on
+   * the four routes that carry the agency's image, and the reason is that the
+   * count was never what was worth protecting.
+   *
+   * §9.5 exists because a page where everything is epic has nothing epic. On
+   * a short page, capping the number is a crude way to get there. On a page
+   * with a 110svh hero and a 300vh pinned passage it is the wrong instrument
+   * entirely: such a page can hold many moments **in sequence** without any
+   * of them competing, and a count cannot tell the difference.
+   *
+   * So the real invariant moved to `e2e/epic-sequence.e2e.ts` — two moments
+   * with different names, neither nested in the other, may not occupy the
+   * same scroll range. That is stricter about quality and far looser about
+   * quantity, which is the trade this direction asked for.
+   *
+   * What stays here is the **runaway guard**, and the assertion above it that
+   * matters more than either: every movement past the standard band must sit
+   * inside a *named* `[data-epic]`. Naming is the discipline; the number is
+   * only a tripwire now.
+   *
+   * `/journal/<slug>` is deliberately the tightest on the site. Holding back
+   * in one place is what makes the spending elsewhere read as a choice rather
+   * than a default.
    *
    * Written as a table rather than a single constant so that raising one
    * route is a visible, reviewable edit rather than a bumped number.
    */
   const EPIC_ROUTES = [
-    { path: '/en', ceiling: 3 },
-    { path: '/en/work', ceiling: 3 },
-    { path: `/en/work/${FEATURED_WORK}`, ceiling: 2 },
+    { path: '/en', ceiling: 12 },
+    { path: '/en/work', ceiling: 12 },
+    { path: `/en/work/${FEATURED_WORK}`, ceiling: 6 },
     /*
-     * Three, and the raise bought nothing.
+     * A practice page is a brand surface, not an information one.
      *
-     * Tahap 52 marked the two moments §9.5 had listed for this route since
-     * Tahap 15 and found a third already shipping: `work-transport`, which
-     * `ProjectCard` carries wherever it renders — the same accounting defect
-     * Tahap 50 found on `/studio`. All three movements ship today; what
-     * changed is whether the budget describes the site or contradicts it.
+     * It was the route that taught this table to describe the site rather
+     * than contradict it: Tahap 52 marked the two moments §9.5 had listed
+     * since Tahap 15 and found a third already shipping — `work-transport`,
+     * which `ProjectCard` carries wherever it renders, the same accounting
+     * defect Tahap 50 found on `/studio`. The lesson was that an unmarked
+     * moment is not an absent one.
      *
-     * `/journal`, `/journal/<slug>` and `/work/<slug>` stay where they are.
-     * A ceiling that rises everywhere is not a ceiling.
+     * It joins the twelve because it sells a capability, which is what the
+     * agency is hired for. `/journal` and `/journal/<slug>` do not.
      */
-    { path: '/en/practice/consulting', ceiling: 3 },
-    { path: '/en/studio', ceiling: 3 },
-    { path: '/en/journal', ceiling: 2 },
-    { path: '/en/journal/scope-is-the-deliverable', ceiling: 2 },
+    { path: '/en/practice/consulting', ceiling: 12 },
+    { path: '/en/studio', ceiling: 12 },
+    { path: '/en/journal', ceiling: 6 },
+    { path: '/en/journal/scope-is-the-deliverable', ceiling: 3 },
   ] as const
 
   for (const { path: route, ceiling } of EPIC_ROUTES)

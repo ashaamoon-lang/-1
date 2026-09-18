@@ -478,7 +478,7 @@ export function CommandPalette({
                                 onClick={(event: MouseEvent) =>
                                   navigate(event, entry.href)
                                 }
-                                // oxlint-disable-next-line react/forbid-elements, jsx-a11y/anchor-has-content, jsx-a11y/control-has-associated-label -- `components/ui/link` is the one import this file must not have (the chunk measurement above), and this anchor is a `render` prop: Base UI clones it with the item's children, so the content and label rules are judging an element that never renders empty.
+                                // oxlint-disable-next-line react/forbid-elements, jsx-a11y/control-has-associated-label -- `components/ui/link` is the one import this file must not have (the chunk measurement above), and this anchor is a `render` prop: Base UI clones it with the item's children, so the label rule is judging an element that never renders empty. `jsx-a11y/anchor-has-content` was listed here too until oxlint 1.82 stopped reporting it on a `render` prop, and `--report-unused-disable-directives` caught the leftover.
                                 render={<a href={entry.href} />}
                               >
                                 {/*

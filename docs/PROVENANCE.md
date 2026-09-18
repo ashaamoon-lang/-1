@@ -65,15 +65,51 @@ this makes no practical difference. It matters if Theatre source is ever
 copied or modified: Apache-2.0 requires stating changes and preserving
 `NOTICE`. Do not copy Theatre source into `vault/`.
 
-**GSAP licensing — read before shipping.** GSAP's standard licence is free
-for most uses, but some plugins have historically been Club-GreenSock-only,
-and the terms have changed more than once (including a move to make more of
-the toolset free). This project uses GSAP as a dependency, which is the
-normal path. **Before production launch, confirm the current terms for the
-specific plugins used** (`ScrollTrigger`, `SplitText`, `Draggable`) at
-https://gsap.com/licensing/. This is flagged rather than asserted because it
-depends on the licence version in force at ship time, which I cannot verify
-for a future date.
+**GSAP licensing — checked 2026-09-18, and the open question is closed.**
+
+This entry stood open from 2026-08-29 as _"before production launch, confirm
+the current terms for the specific plugins used (`ScrollTrigger`, `SplitText`,
+`Draggable`)."_ Two things were wrong with it, and both are corrected here
+rather than quietly rewritten.
+
+**The plugin list was wrong.** `Draggable` is not used — it has never been
+imported. What the source actually imports:
+
+```
+11 ×  from 'gsap'
+ 9 ×  from 'gsap/ScrollTrigger'
+ 2 ×  from 'gsap/SplitText'
+```
+
+And the list omitted the one plugin the project made a decision about:
+**`Flip`**, which `vault/motion/flip/index.ts` deliberately does _not_ use —
+it hand-rolls FLIP on the Web Animations API instead. A provenance list that
+names an unused plugin while missing a refused one describes a project nobody
+is working on.
+
+**The terms are settled, and they were verifiable on disk.** From the installed
+package rather than a blog post or a badge:
+
+```
+node_modules/gsap  v3.15.0
+  package.json  "license": "Standard 'no charge' license: https://gsap.com/standard-license"
+  README.md:62  "Thanks to Webflow, GSAP is now 100% FREE including ALL of the
+                 bonus plugins like SplitText, MorphSVG, and all the others
+                 that were exclusively available to Club GSAP members ...
+                 even for commercial use"
+```
+
+And from https://gsap.com/standard-license itself: use on any website or web
+application is granted at no charge, commercial projects included, with the
+former Club plugins — `SplitText` among them — covered. The one restriction
+that bites is using GSAP to build a no-code visual animation builder competing
+with Webflow's, which is not what this project is.
+
+**So: no licensing obstacle to the animation work, including `SplitText`.**
+
+Stated precisely, per §7: what is closed is _"this was never checked"_. The
+evidence above is dated, and a licence can change — so the pre-launch checklist
+keeps a line for re-reading it, not for discovering it.
 
 ---
 
@@ -283,13 +319,14 @@ of it is here.
 Every file in `vault/` must appear here, and must carry a header comment with
 the same information.
 
-| Vault file                                                                | Origin                                                                                     | Licence                                    | Notes                                                                                                                          |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `vault/primitives/icon/index.tsx`                                         | [Phosphor Icons](https://github.com/phosphor-icons/core), `assets/regular/*.svg`           | **MIT**, Copyright (c) 2023 Phosphor Icons | **Code copied**: the `d` attribute of seven glyphs. Everything else original. Tahap 43.                                        |
-| `vault/magic/grid-pattern/index.tsx`                                      | [Magic UI](https://github.com/magicuidesign/magicui), `registry/magicui/grid-pattern.tsx`  | **MIT**, Copyright (c) Magic UI            | **Code copied**: the `<pattern>` structure, the `d` path, the `squares` overlay. Presentation rewritten onto tokens. Tahap 47. |
-| `vault/magic/noise-texture/index.tsx`                                     | [Magic UI](https://github.com/magicuidesign/magicui), `registry/magicui/noise-texture.tsx` | **MIT**, Copyright (c) Magic UI            | **Code copied**: the `feTurbulence`/`feColorMatrix`/`feComponentTransfer` chain and its tuning. Tahap 47.                      |
-| `vault/magic/dot-pattern/index.tsx`                                       | Technique from Magic UI `grid-pattern`; parameters from Magic UI `dot-pattern`             | **MIT**, Copyright (c) Magic UI            | **No code copied** — original. Upstream renders one `<circle>` per dot from JS and imports `motion`. Tahap 47.                 |
-| _(everything else — see `vault/PROVENANCE-NOTE.md` and per-file headers)_ |                                                                                            |                                            |                                                                                                                                |
+| Vault file                                                                | Origin                                                                                     | Licence                                    | Notes                                                                                                                                                        |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vault/primitives/icon/index.tsx`                                         | [Phosphor Icons](https://github.com/phosphor-icons/core), `assets/regular/*.svg`           | **MIT**, Copyright (c) 2023 Phosphor Icons | **Code copied**: the `d` attribute of seven glyphs. Everything else original. Tahap 43.                                                                      |
+| `vault/magic/grid-pattern/index.tsx`                                      | [Magic UI](https://github.com/magicuidesign/magicui), `registry/magicui/grid-pattern.tsx`  | **MIT**, Copyright (c) Magic UI            | **Code copied**: the `<pattern>` structure, the `d` path, the `squares` overlay. Presentation rewritten onto tokens. Tahap 47.                               |
+| `vault/magic/noise-texture/index.tsx`                                     | [Magic UI](https://github.com/magicuidesign/magicui), `registry/magicui/noise-texture.tsx` | **MIT**, Copyright (c) Magic UI            | **Code copied**: the `feTurbulence`/`feColorMatrix`/`feComponentTransfer` chain and its tuning. Tahap 47.                                                    |
+| `vault/magic/dot-pattern/index.tsx`                                       | Technique from Magic UI `grid-pattern`; parameters from Magic UI `dot-pattern`             | **MIT**, Copyright (c) Magic UI            | **No code copied** — original. Upstream renders one `<circle>` per dot from JS and imports `motion`. Tahap 47.                                               |
+| `components/layout/header/header.module.css` (`.header::before` mask)     | Technique from Magic UI `progressive-blur`                                                 | **MIT**, Copyright (c) Magic UI            | **No code copied** — original. Upstream stacks eight `backdrop-filter` layers with rising radii; this is one existing layer plus one `mask-image`. Tahap 53. |
+| _(everything else — see `vault/PROVENANCE-NOTE.md` and per-file headers)_ |                                                                                            |                                            |                                                                                                                                                              |
 
 Current status, corrected in Tahap 43 and extended in Tahap 47: `vault/` is
 **almost entirely original work written for this project**, built against the

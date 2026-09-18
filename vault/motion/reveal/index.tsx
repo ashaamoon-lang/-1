@@ -76,6 +76,38 @@ interface RevealProps {
    * three routes in exactly that state.
    */
   'data-epic'?: string | undefined
+  /**
+   * Each `[data-reveal-item]` arrives on its own instead of the block
+   * arriving as one — `lib/hooks/use-reveal.ts` carries the argument and the
+   * measurement.
+   *
+   * For lists on long pages. A masthead is one thought and should stay one
+   * event.
+   */
+  perItem?: boolean | undefined
+  /**
+   * The observer's `rootMargin`, for a block that is **already on the first
+   * screen** when the page loads.
+   *
+   * The default (`lib/hooks/use-reveal.ts`) insets the root by -25% at the
+   * bottom, which mirrors a ScrollTrigger `start: 'top 75%'`: a block opens
+   * once it is a quarter of the way up the screen. That is right for
+   * everything a reader scrolls to, and **wrong for anything sitting in the
+   * lower quarter of the first screen** — the trigger line is above it, so
+   * the scroll that would cross it never happens and the block stays at
+   * `opacity: 0` on a screen the reader is looking at.
+   *
+   * Measured on `/studio` while Tahap 69 was moving the capability band into
+   * the foot of the hero: band top **764** against a trigger line at **675**
+   * of a 900px screen, `opacity: 0` and `translateY(16px)` still there after
+   * five seconds. `CLAUDE.md` #5 calls stranded content a defect, and this is
+   * how a block becomes stranded without anyone writing a bug.
+   *
+   * Pass `'0px'` to open as soon as any part of the block is in the viewport.
+   * Do not reach for it to make a below-the-fold block arrive early — that is
+   * the default's job and the default is tuned.
+   */
+  rootMargin?: string | undefined
 }
 
 export function Reveal({
@@ -84,6 +116,8 @@ export function Reveal({
   id,
   className,
   'data-epic': epic,
+  perItem = false,
+  rootMargin,
 }: RevealProps) {
   /*
    * `HTMLDivElement` rather than `HTMLElement`, even though `as` widens the
@@ -93,7 +127,15 @@ export function Reveal({
    * while `HTMLElement` is rejected as too wide. The hook only ever reads
    * `dataset` and `querySelectorAll`, which every element has.
    */
-  const ref = useReveal<HTMLDivElement>()
+  /*
+   * `rootMargin` is spread conditionally rather than passed as `undefined`:
+   * the hook defaults it in its own signature, and handing it an explicit
+   * `undefined` would override that default with nothing on some call paths.
+   */
+  const ref = useReveal<HTMLDivElement>({
+    perItem,
+    ...(rootMargin !== undefined && { rootMargin }),
+  })
 
   return (
     <Element

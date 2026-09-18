@@ -15,14 +15,22 @@ updates:
     commit-message:
       prefix: 'ci'
 
-  # npm / bun runtime + dev deps
-  # Each dependency is raised as its own PR so the auto-merge workflow
-  # can parse the "from A to B" version transition from the PR title.
-  # Grouping the updates would defeat the auto-merge title parser.
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-    commit-message:
-      prefix: 'chore(deps)'
-    open-pull-requests-limit: 10
+  # npm / bun deps: DELIBERATELY ABSENT. Measured 2026-09-12 (Tahap 61).
+  #
+  # Dependabot raises ten PRs a week here and every one of them failed CI at
+  # the same step, for the same reason, and none of them was about the
+  # dependency:
+  #
+  #     error: lockfile had changes, but lockfile is frozen
+  #
+  # Dependabot bumps package.json but cannot regenerate `bun.lock`, and CI
+  # installs with `--frozen-lockfile`. `.github/workflows/dependabot-lockfile.yml`
+  # exists to close that gap and stays inert until someone adds a
+  # `DEPENDABOT_PAT` Dependabot secret (its own header explains the one-time
+  # setup). Until then the ecosystem produces nothing but red checks — and a CI
+  # that is always red trains everyone to stop reading it, which is the most
+  # expensive gate to lose.
+  #
+  # So npm updates are done by hand instead: `bun update`, then the full gate
+  # suite, then one commit. Re-enable this block the same day the PAT is set,
+  # not before.

@@ -11,6 +11,7 @@ import { SectionHeader } from '@/components/ui/section-header'
 import {
   PRACTICES,
   type Practice,
+  capabilityItems,
   isPractice,
   practiceTemplate,
 } from '@/lib/content/practices'
@@ -21,6 +22,7 @@ import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { workIndexQuery } from '@/lib/integrations/sanity/queries'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { CapabilitySet } from '@/vault/blocks/capability-set'
 import { NextPractice } from '@/vault/blocks/next-practice'
 import { PracticeHero } from '@/vault/blocks/practice-hero'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
@@ -140,7 +142,7 @@ export default async function PracticePage({ params }: PracticePageProps) {
   const requested = await localeRootParam()
   const locale: Locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const [projects, t, tWork, tNav] = await Promise.all([
+  const [projects, t, tWork, tNav, tStudio] = await Promise.all([
     fetchPractice(locale, value),
     getTranslations('practice'),
     // The practice's name and its one-sentence description are already
@@ -149,6 +151,14 @@ export default async function PracticePage({ params }: PracticePageProps) {
     // keeps this page saying what the rest of the site says.
     getTranslations('workIndex'),
     getTranslations('nav'),
+    /*
+     * The capability lines live under `studio` because `/studio` was the
+     * first page to publish them (Tahap 24) — not because they describe the
+     * studio page. Reaching across the namespace is the smaller wrong than
+     * copying twelve translated strings into a second key, which would make
+     * "what this practice covers" a thing the dictionary answers twice.
+     */
+    getTranslations('studio'),
   ])
 
   const next = nextPractice(value)
@@ -223,6 +233,36 @@ export default async function PracticePage({ params }: PracticePageProps) {
           label={tWork(value)}
           intro={tWork(`${value}Intro`)}
           count={tWork('count', { count: projects.length })}
+          /*
+            The siblings, in the column the nameplate's measure leaves free —
+            Tahap 75. Same source the home hero's index reads, and the same
+            strings: `PRACTICES` and `workIndex.<practice>`. Nothing written
+            for this.
+
+            The *other* practices rather than all three, labelled with the
+            `relatedPractice` string this page's dictionary already carries.
+            Listing all three under "Practice" would print the eyebrow's own
+            word twice in one hero and say nothing the eyebrow does not.
+
+            Reachable from the top of the page instead of only from
+            `NextPractice` at the very bottom, which is what a reader
+            comparing two practices actually needs.
+          */
+          index={{
+            label: tWork('relatedPractice'),
+            items: PRACTICES.filter((practice) => practice !== value).map(
+              (practice) => ({
+                key: practice,
+                node: (
+                  <Link
+                    href={localizedPath(locale, practiceTemplate(practice))}
+                  >
+                    {tWork(practice)}
+                  </Link>
+                ),
+              })
+            ),
+          }}
         />
 
         {/*
@@ -293,6 +333,54 @@ export default async function PracticePage({ params }: PracticePageProps) {
           </ProgressText>
           <p className={cn('caption', s.placeholder)}>{t('placeholderNote')}</p>
         </section>
+
+        {/*
+          `practice-capabilities` — what this practice covers, and the one
+          moment on this route that holds.
+
+          The content is not new. `studio.capabilities.<value>` has carried
+          twelve items across three lines since Tahap 24 and rendered only on
+          `/studio`, as three lines of `caption`. `docs/stages/TAHAP-52.md`
+          §2.1 refused to build this section and was right about the file it
+          read — there is no capability list on this page — and wrong about
+          the repository, where the list had been sitting in the dictionary
+          the whole time. So this ships the shape, not the words.
+
+          It sits below the statement and above the grid on purpose: the
+          statement makes a claim about how the practice works, "what that
+          covers" is the question that claim raises, and the work is the
+          evidence that answers both. Putting it under the grid would answer a
+          question the reader had already stopped asking.
+
+          Splitting happens on the server. `capabilityItems` is pure and the
+          items cross into the client component as props, so the list is in
+          the initial HTML — `e2e/no-javascript.e2e.ts` tests all three of
+          these routes, and a section that assembled itself in an effect would
+          be blank for a reader without JavaScript.
+        */}
+        {/*
+          No `className={s.section}`, and that is not a tidiness choice — it
+          was measured.
+
+          This page's `.section` is `display: flex; flex-direction: column`,
+          and the block's own `.set` turns into a grid inside
+          `@media (--desktop)`. A media query adds no specificity, so the
+          page's declaration won and the block laid out as a flex column. Its
+          held wrapper then shrank to its content, which is exactly the
+          containing-block failure `step-sequence` records: a sticky element
+          whose containing block is its own height has no range at all.
+
+          Measured before the fix: the column's viewport top ran 200 → −1357
+          across the section, held **0px**. `/studio` passes `StepSequence` no
+          class for the same reason — a block that brings its own layout is
+          handed no second opinion about it. The vertical rhythm comes from
+          `.page`'s own `gap`, which every sibling here already relies on.
+        */}
+        <CapabilitySet
+          data-epic="practice-capabilities"
+          label={tStudio('capabilitiesEyebrow')}
+          items={capabilityItems(tStudio(`capabilities.${value}`))}
+        />
 
         {projects.length > 0 ? (
           <section className={s.section}>

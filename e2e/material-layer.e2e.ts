@@ -41,9 +41,36 @@ declare global {
   }
 }
 
-/** Put the home page's work grid on screen and let the canvas draw. */
-async function showWorkGrid(page: Page) {
-  await page.goto('/en', { waitUntil: 'networkidle' })
+/**
+ * Put the home page's work grid on screen and let the canvas draw.
+ *
+ * ## Why the wait is a parameter
+ *
+ * `/en` is the heaviest page on the site — eleven screens, a WebGL canvas,
+ * and every cover in the catalogue — and the leak test below visits it four
+ * times in a single test. Four `networkidle` waits on that page is what blew
+ * a **90-second** budget twice on one CI runner, on a commit that touched
+ * nothing on this route; the identical test had passed at the same budget on
+ * the run before it. Raising the budget again would only move the number the
+ * next slow runner has to beat.
+ *
+ * `networkidle` stays the default, because the three single-visit tests in
+ * this file each navigate once and the wait costs them nothing. It is worth
+ * paying for exactly once *per test*: the first visit fetches the plate's
+ * texture and leaves it warm in the HTTP cache. The repeat visits below then
+ * fetch nothing new, and `load` plus the 2500ms settle is what the mesh
+ * actually needs — a decoded texture and at least one frame advanced.
+ * Playwright's own documentation discourages `networkidle` generally; here it
+ * is kept where it is cheap and dropped where it was not.
+ *
+ * The wait was never the assertion. The assertion is what the WebGL context
+ * reports afterwards, and that is unchanged.
+ */
+async function showWorkGrid(
+  page: Page,
+  wait: 'networkidle' | 'load' = 'networkidle'
+) {
+  await page.goto('/en', { waitUntil: wait })
   await page.evaluate(() => {
     /*
      * Scroll to the first plate, not to `#work` — Tahap 49.
@@ -240,6 +267,15 @@ test.describe('material layer', () => {
 
   test('repeated mounts do not grow GPU memory', async ({ page }) => {
     /*
+     * Eight full navigations of the site's heaviest page, each waiting for
+     * the network to go quiet and then 2.5s for the canvas to draw. The
+     * default 30s covered that only while the runner had no CMS content to
+     * fetch; the first CI run with real images timed out here, inside
+     * `showWorkGrid`, on both the first attempt and the retry.
+     */
+    test.slow()
+
+    /*
      * A growth test, not an absolute one, and stated that way on purpose.
      * Three never frees GPU resources on its own (`CLAUDE.md` #15), and the
      * number of live objects after one visit is not knowable from outside —
@@ -288,8 +324,14 @@ test.describe('material layer', () => {
     const first = await live()
 
     for (let visit = 0; visit < 3; visit++) {
-      await page.goto('/en/ai', { waitUntil: 'networkidle' })
-      await showWorkGrid(page)
+      // The unmount step. `/en/ai` is a text page whose only job here is to
+      // take the canvas off screen, so it has nothing to wait for.
+      await page.goto('/en/ai', { waitUntil: 'domcontentloaded' })
+      // `load`, not `networkidle`: the first visit above already warmed the
+      // cache, so these three fetch nothing new. This is the only test that
+      // visits `/en` more than once, and it is the only one that needs the
+      // cheaper wait.
+      await showWorkGrid(page, 'load')
     }
     const last = await live()
 

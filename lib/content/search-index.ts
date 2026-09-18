@@ -2,7 +2,7 @@ import { localizedPath } from '@/lib/i18n/paths'
 import type { Locale } from '@/lib/i18n/routing'
 import { STATIC_ROUTE_TEMPLATES } from '@/lib/seo/route-catalog'
 
-import type { JournalEntry } from './journal-fallback'
+import { type JournalEntry, resolveJournalEntries } from './journal-fallback'
 import { PRACTICE_SEGMENT } from './practices'
 
 /**
@@ -191,6 +191,67 @@ export function buildSearchIndex(
     ...projectEntries(locale, sources.projects),
     ...journalEntries(locale, sources.journal),
   ]
+}
+
+/**
+ * The index, with the network allowed to fail.
+ *
+ * ## Why this exists
+ *
+ * `app/[locale]/search.json/route.ts` already had a fallback for one of the
+ * two ways Sanity can be absent — `!isConfigured('sanity')`, the project that
+ * never wired a dataset. It had none for the other: **configured, but
+ * unreachable.** One TCP reset from `apicdn.sanity.io` during prerender took
+ * the whole production build down with it:
+ *
+ * ```
+ * Export encountered an error on /[locale]/search.json/route: /en/search.json,
+ * exiting the build.
+ *   [cause] Error: read ECONNRESET   errno: -104   attemptNumber: 5
+ * ```
+ *
+ * `attemptNumber: 5` is the Sanity client's own retry counter, exhausted. So
+ * re-running the job is not a fix — the client already ran it five times. The
+ * fix has to be here, where the caller decides what a missing answer means.
+ *
+ * ## Why it takes a loader rather than doing the fetch
+ *
+ * This module's rule, stated at the top, is that it never fetches: the fetch
+ * belongs to the route handler with its `'use cache'` boundary. That rule is
+ * kept — the loader is injected, so this function is still pure and still
+ * unit-testable, and `buildIndex` cannot be called directly from a test
+ * because `'use cache'` owns it.
+ *
+ * ## What a degraded index contains, and why that is the right trade
+ *
+ * Static page and practice entries only: every route in
+ * `lib/seo/route-catalog.ts`, which needs no network at all. No projects, no
+ * journal. A palette missing its content is worse than a complete one and far
+ * better than a site that does not exist — which is the only other outcome
+ * when a prerender throws.
+ *
+ * It is deliberately **not silent.** A degraded build and a genuinely empty
+ * dataset produce the same palette, and only the warning tells them apart.
+ */
+export async function resolveSearchIndex(
+  locale: Locale,
+  load: () => Promise<{
+    projects: readonly SearchProject[] | null
+    journal: readonly JournalEntry[]
+  }>
+): Promise<SearchEntry[]> {
+  try {
+    return buildSearchIndex(locale, await load())
+  } catch (error) {
+    console.warn(
+      `[search-index] ${locale}: content source unreachable, serving pages only.`,
+      error
+    )
+    return buildSearchIndex(locale, {
+      projects: null,
+      journal: resolveJournalEntries(locale, null),
+    })
+  }
 }
 
 /**

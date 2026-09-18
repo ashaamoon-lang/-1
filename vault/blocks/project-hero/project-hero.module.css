@@ -77,6 +77,33 @@
 }
 
 /*
+ * While a material is drawing, this box is a hole through to the canvas.
+ *
+ * The same rule `vault/blocks/project-card` has carried since Tahap 14, for
+ * the same reason, and its absence here is the whole of the defect Tahap 58
+ * spent five instrumented builds failing to find.
+ *
+ * The WebGL surface is one fixed layer *behind* `<main>`
+ * (`lib/webgl/components/canvas/webgl.module.css`), so a mesh standing in for
+ * this cover is only visible if nothing opaque sits over its box. The
+ * placeholder above is exactly that: measured `oklab(0.23352 …)` on the
+ * production build — which is the `#201d1b` Tahap 58 sampled and wrote down as
+ * "the empty-box colour" without recognising it as *this rule's own output*.
+ *
+ * Tahap 45 brought the material here by copying the opt-in from the card and
+ * not the guard. The placeholder itself stays — reserving the box before the
+ * asset arrives is what keeps this page free of layout shift — and is removed
+ * only while `[data-material]` is present, which is only while a mesh is
+ * actually standing in for the image.
+ *
+ * `e2e/material-occlusion.e2e.ts` holds this for every material route now,
+ * rather than for whichever one someone remembered.
+ */
+.media:has([data-material]) {
+  background-color: transparent;
+}
+
+/*
  * Half the twelve-column grid, matching the gallery's half track exactly, so
  * a portrait cover and a portrait gallery image share a right edge.
  */
@@ -213,5 +240,33 @@
      */
     grid-template-columns: minmax(0, 1fr);
     row-gap: desktop-vw(20px);
+    /*
+     * ## Tahap 66 tried to fill the rest of this column, and put it back
+     *
+     * `align-items: start` on the row above leaves a real hole: measured at
+     * 1440×900, the cover runs 404→1120 and this list 404→633, so **487px of
+     * the column is empty** beside a 715px picture. That is the same species
+     * of defect Tahap 66 removed from the gallery one section down, so it was
+     * worth trying here.
+     *
+     * It was tried — `align-self: stretch` plus `align-content: space-between`
+     * — built, and measured:
+     *
+     * ```
+     * before   rows at 425, 482, 539, 596   list 404→ 633
+     * after    rows at 425, 645, 864, 1083  list 404→1120
+     * ```
+     *
+     * The hole closed and the block got worse. Four one-line facts across
+     * 715px sit ~183px apart, which is further than any of them is tall: they
+     * stop reading as a list and become four unrelated labels, and the column
+     * reads *emptier* than when the void was in one piece at the bottom.
+     *
+     * So the void stays, and it is the honest cost of four short facts beside
+     * a tall portrait. What the gallery needed was a companion with something
+     * to say; this column has nothing left to say, and spacing is not content.
+     * Reverted, with the numbers, rather than shipped because it was already
+     * written.
+     */
   }
 }

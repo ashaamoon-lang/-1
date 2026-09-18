@@ -7,6 +7,7 @@ import {
   matchScore,
   pageEntries,
   projectEntries,
+  resolveSearchIndex,
   searchHaystack,
 } from './search-index'
 
@@ -255,5 +256,52 @@ describe('word order and the query as words', () => {
     if (!entry) return
     expect(matchScore(entry, 'scope is')).toBe(3)
     expect(matchScore(entry, 'deliverable scope')).toBe(2)
+  })
+})
+
+/**
+ * The case that took a production build down.
+ *
+ * `/[locale]/search.json` is prerendered, so a throw inside it is not a failed
+ * request — it is `Export encountered an error … exiting the build`. One
+ * `ECONNRESET` from Sanity did exactly that, after the client's own five
+ * retries had already been spent, which is why a job re-run was never the fix.
+ *
+ * These assert the two halves that matter: the build survives, and the reader
+ * is not handed an empty page list when only the *content* source is gone.
+ */
+describe('an unreachable content source', () => {
+  test('degrades to the page index instead of throwing', async () => {
+    const index = await resolveSearchIndex('en', () => {
+      throw new Error('read ECONNRESET')
+    })
+
+    expect(index.length).toBeGreaterThan(0)
+    expect(index.every((entry) => entry.kind !== 'project')).toBe(true)
+    // Every static route still reaches the palette: those come from
+    // `lib/seo/route-catalog.ts` and need no network at all.
+    expect(index.filter((entry) => entry.kind === 'page').length).toBe(
+      pageEntries('en').filter((entry) => entry.kind === 'page').length
+    )
+  })
+
+  test('a rejected promise degrades the same way as a synchronous throw', async () => {
+    const index = await resolveSearchIndex('id', () =>
+      Promise.reject(new Error('read ECONNRESET'))
+    )
+
+    expect(index.length).toBeGreaterThan(0)
+    expect(index.every((entry) => entry.href.startsWith('/id'))).toBe(true)
+  })
+
+  test('a source that answers is passed straight through', async () => {
+    const index = await resolveSearchIndex('en', () =>
+      Promise.resolve({
+        projects: [{ slug: { current: 'a-project' }, title: 'A Project' }],
+        journal: resolveJournalEntries('en', null),
+      })
+    )
+
+    expect(index.some((entry) => entry.kind === 'project')).toBe(true)
   })
 })

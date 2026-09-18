@@ -18,7 +18,7 @@ import { assertServerEnvironment } from '@/utils/assert-server-environment'
  * ```
  */
 
-const envSchema = z.object({
+const declaredEnv = z.object({
   // Core
   NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
   NEXT_PUBLIC_BASE_URL: z.url().optional(),
@@ -78,6 +78,52 @@ const envSchema = z.object({
   NEXT_PUBLIC_GOOGLE_ANALYTICS: z.string().optional(),
   NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID: z.string().optional(),
   NEXT_PUBLIC_FACEBOOK_APP_ID: z.string().optional(),
+})
+
+/**
+ * A write-capable token may never sit behind a `NEXT_PUBLIC_` name.
+ *
+ * `DEPLOYMENT.md` §0 states the rule as an absolute — *"Never give a token a
+ * `NEXT_PUBLIC_` prefix"* — and until now nothing enforced it. That absolute is
+ * also not quite the rule this codebase follows, and the gap is worth naming
+ * rather than papering over: `NEXT_PUBLIC_SANITY_API_READ_TOKEN` feeds
+ * `browserToken` in `next-sanity`'s `defineLive`, and a browser token that
+ * cannot reach the browser is not a token, it is a typo. That one variable is
+ * *designed* to be inlined, which is exactly why it must be Viewer-only.
+ *
+ * So the enforceable rule is narrower and sharper than the prose one: the
+ * value inlined into every visitor's bundle must never be the same string as a
+ * token that can write or delete. That is mechanical, so it is checked here
+ * instead of trusted to a comment.
+ *
+ * Server-side only. This file already asserts a server environment below, and
+ * the check must stay here rather than in `lib/integrations/sanity/env.ts` —
+ * that module is dual-compiled into the client bundle, so reading the write
+ * token there to compare it would inline the very secret this guard exists to
+ * keep out.
+ */
+export const envSchema = declaredEnv.superRefine((value, ctx) => {
+  const publicToken = value.NEXT_PUBLIC_SANITY_API_READ_TOKEN
+  if (!publicToken) return
+
+  const writeTokens = [
+    ['SANITY_API_WRITE_TOKEN', value.SANITY_API_WRITE_TOKEN],
+    ['SANITY_PRIVATE_TOKEN', value.SANITY_PRIVATE_TOKEN],
+  ] as const
+
+  for (const [name, writeToken] of writeTokens) {
+    if (writeToken && writeToken === publicToken) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['NEXT_PUBLIC_SANITY_API_READ_TOKEN'],
+        message:
+          `NEXT_PUBLIC_SANITY_API_READ_TOKEN has the same value as ${name}. ` +
+          'The NEXT_PUBLIC_ prefix inlines it into the JavaScript sent to ' +
+          'every visitor, so this publishes a write-capable credential. Use a ' +
+          'Viewer token there, or leave it unset — see docs/DEPLOYMENT.md §0.',
+      })
+    }
+  }
 })
 
 type Env = z.infer<typeof envSchema>

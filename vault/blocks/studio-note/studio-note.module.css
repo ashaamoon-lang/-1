@@ -81,3 +81,11 @@
   height: 100%;
   object-fit: cover;
 }
+
+/*
+ * The veil's ground — Tahap 63. `--surface-2`, matching `.media`, so a tile
+ * that has not gone yet is the empty box rather than a tile over it.
+ */
+.pixels {
+  --pixel-ground: var(--surface-2);
+}

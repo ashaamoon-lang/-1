@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test'
+import { join } from 'node:path'
 
 import { Glob } from 'bun'
 
@@ -40,7 +41,16 @@ import { schema } from './index'
  * that actually happened.
  */
 
-const QUERIES = new URL('../queries.ts', import.meta.url).pathname
+/*
+ * `import.meta.dir`, never a file URL's `pathname`.
+ *
+ * `pathname` is a URL component: on Windows it reads `/D:/HELLO%20Project/…`,
+ * with a leading slash and a percent-encoded space, and both reads below fail
+ * `ENOENT`. Both tests in this file were red on every Windows checkout while
+ * being green on CI — the failure mode a path separator bug always has.
+ */
+const HERE = import.meta.dir
+const QUERIES = join(HERE, '..', 'queries.ts')
 
 describe('schema coverage', () => {
   it('every document type is read by at least one query', async () => {
@@ -75,9 +85,7 @@ describe('schema coverage', () => {
     const ignored = new Set(['index', 'schema-coverage.test'])
 
     const orphans: string[] = []
-    for await (const file of new Glob('*.ts').scan({
-      cwd: new URL('.', import.meta.url).pathname,
-    })) {
+    for await (const file of new Glob('*.ts').scan({ cwd: HERE })) {
       const name = file.replace(/\.ts$/, '')
       if (ignored.has(name) || name.endsWith('.test')) continue
       if (!registered.has(name)) orphans.push(file)

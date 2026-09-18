@@ -7,7 +7,6 @@ import { useState } from 'react'
 import { CommandTrigger } from '@/components/ui/command'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { getLinkIntent, Link } from '@/components/ui/link'
-import { useActiveSection } from '@/lib/hooks/use-active-section'
 import { usePathname } from '@/lib/i18n/navigation'
 
 import s from './header.module.css'
@@ -19,19 +18,16 @@ import s from './header.module.css'
  * pathname as a debug readout, and links to darkroom's own repository. Useful
  * while forking; not something to ship on a studio's site.
  *
- * ## The in-page anchors belong to the page, not to the header
+ * ## The in-page anchors belonged to the page, and now nothing links them
  *
- * The home page is one long page (`docs/ROADMAP.md` §1.2), so its primary nav
- * points at sections within it. Which sections exist is not something the
- * header can know: Work renders only when there is published work, and with
- * an empty dataset it is absent entirely. A hardcoded `#work` would then be a
- * link that silently does nothing — and on the 404 page, or a project detail
- * page, *every* section anchor would be.
+ * The home page is one long page (`docs/ROADMAP.md` §1.2), and until Tahap 54
+ * this header rendered its four section anchors alongside the three routes —
+ * seven links, two of them duplicating a route's own name. `ROUTE_LINKS`
+ * below carries the argument and the count.
  *
- * So the page passes the sections it actually rendered, in document order, and
- * a page that passes none gets a header with just the wordmark and the
- * language switcher. That is the correct header for those pages, not a
- * degraded one.
+ * The sections did not disappear; the *shortcut* to them did. They are
+ * reached by reading the page, which is what a page that long is for, and the
+ * header now answers only "what pages does this site have".
  *
  * ## Locale
  *
@@ -42,14 +38,6 @@ import s from './header.module.css'
  * `next/navigation` version compares `/id` against `/`, which is never equal,
  * and every item renders inactive. See `components/ui/link/link.test.ts`.
  */
-
-/** An in-page section the current page rendered, in document order. */
-export interface SectionLink {
-  /** The section element's `id`, without the `#`. */
-  id: string
-  /** Key into the `nav` message namespace. */
-  labelKey: 'work' | 'practice' | 'studio' | 'contact'
-}
 
 // In local dev, link straight to the Storybook dev server. In deployed builds,
 // link to the /storybook proxy (see next.config.ts), shown only when
@@ -64,16 +52,35 @@ const STORYBOOK_ENABLED =
   Boolean(process.env.NEXT_PUBLIC_STORYBOOK_URL)
 
 /**
- * The three destinations every page offers.
+ * The whole of the primary navigation: the site's routes, and nothing else.
  *
  * Locale-free templates: `components/ui/link` adds the prefix itself, and
  * handing it `/en/work` would produce `/en/en/work`.
  *
+ * ## Why the home page's section anchors are no longer here
+ *
+ * Until Tahap 54 this nav rendered the home page's four in-page anchors
+ * (`#work`, `#practice`, `#studio`, `#contact`) *and* these three routes. On
+ * `/en` that shipped **seven** links inside one `<nav aria-label="Primary">`,
+ * of which two pairs carried the same accessible name and different
+ * destinations — `Work` → `#work` beside `Work` → `/en/work`, and the same
+ * for `Studio`. A reader cannot tell those apart, and a screen-reader user
+ * walking the link list gets the ambiguity twice.
+ *
+ * It also broke this file's own rule three lines further down: the row is
+ * capped at one line, and seven is not one line.
+ *
+ * So the nav answers one question — *what pages does this site have* — and
+ * the home page's sections answer a different one, by being scrolled to. The
+ * wordmark to the left is the home link and carries `aria-label="Arth —
+ * home"`; a fourth item spelling "Home" beside it would be the same duplicate
+ * this change removes.
+ *
  * Three and not more. `taste-skill` SKILL.md §4.7 caps the navigation at one
- * line and 80px, and `e2e/taste-preflight.e2e.ts` measures it — a fourth
- * would push the row toward wrapping at the narrow end of desktop. These
- * three are the site's top-level shapes: the work, the practice behind it,
- * and the writing about it.
+ * line and 80px, and `e2e/taste-preflight.e2e.ts` measures it. These three
+ * are the site's top-level shapes: the work, the practice behind it, and the
+ * writing about it — `/practice/<value>` has no index route of its own, and
+ * is reached from the home page's practice list and the catalogue's chips.
  */
 const ROUTE_LINKS = [
   { href: '/work', labelKey: 'work' },
@@ -81,22 +88,10 @@ const ROUTE_LINKS = [
   { href: '/journal', labelKey: 'journal' },
 ] as const
 
-/** Stable empty default — a fresh `[]` per render re-subscribes the observer. */
-const NO_SECTIONS: readonly SectionLink[] = []
-
-export function Header({
-  sections = NO_SECTIONS,
-}: {
-  sections?: readonly SectionLink[]
-}) {
+export function Header() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const t = useTranslations('nav')
-
-  // Highlights where the reader is. Without JavaScript this is simply absent
-  // and the anchors still work — a highlight adds to navigation, it is never
-  // a prerequisite for it.
-  const activeSection = useActiveSection(sections.map((section) => section.id))
 
   return (
     <header className={s.header}>
@@ -121,32 +116,6 @@ export function Header({
         id="header-nav"
       >
         <ul className={s.navList}>
-          {sections.map((section) => (
-            <li key={section.id} className={s.navItem}>
-              {/* oxlint-disable-next-line react/forbid-elements -- deliberate native anchor: a same-page hash must scroll with the browser's own handling so it works with JavaScript disabled (a stated Tahap 3 exit criterion), and so `scroll-padding-top`/`scroll-margin-top` apply. The Link component defaults `scroll` to false, which is right for routes and wrong for anchors. */}
-              <a
-                className={cn('caption', s.navLink)}
-                href={`#${section.id}`}
-                onClick={() => setMenuOpen(false)}
-                // `MOTION-SPEC.md` §9.
-                data-press="nav"
-                data-intent=""
-                /*
-                 * `location`, not `page`. `aria-current="page"` marks the
-                 * current page within a set of links; `location` marks the
-                 * current position *within* a page, which is exactly what an
-                 * in-page anchor set is. The route links below still use
-                 * `page`, correctly.
-                 */
-                {...(activeSection === section.id && {
-                  'aria-current': 'location' as const,
-                })}
-              >
-                {t(section.labelKey)}
-              </a>
-            </li>
-          ))}
-
           {/*
             The routes, on every page — Tahap 38.
             
@@ -161,8 +130,8 @@ export function Header({
             page. This is the same three destinations at the top, where
             someone who has just landed on a project from search will look.
 
-            The anchors above stay home-page-only: that argument was right,
-            and this adds route links rather than replacing them.
+            Tahap 54 removed the home-page anchors that used to sit above
+            these, so this is now the whole list.
           */}
           {ROUTE_LINKS.map(({ href, labelKey }) => (
             <li key={href} className={s.navItem}>

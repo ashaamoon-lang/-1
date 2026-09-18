@@ -23,10 +23,38 @@
    * things `CLAUDE.md` #8 requires to come from tokens. A token for each
    * would be a token with one consumer, which is how a design system fills
    * with names nobody can keep in their head.
+   *
+   * Since Tahap 55 this number means what it says. The layer's mean is the
+   * ground colour by construction (`index.tsx`), so opacity scales the
+   * texture and nothing else; before that it scaled a mid-grey veil and the
+   * texture together, and the veil was the larger half.
    */
   opacity: 0.75;
 
   :where([data-theme='light']) & {
     opacity: 0.5;
   }
+}
+
+/*
+ * The field the grain is added to — Tahap 55.
+ *
+ * `--color-primary` is what makes the layer zero-mean: the filter adds noise
+ * around whatever this rect is filled with, so filling it with the ground
+ * means the layer has the ground's mean. Fill it with anything else and the
+ * layer becomes a wash of that colour again, which is the defect this stage
+ * closed.
+ *
+ * It inherits, so a `[data-theme]` anywhere above resolves it — the same
+ * mechanism `lib/styles/css/global.css` relies on for every derived token.
+ */
+.field {
+  /*
+   * `--noise-base` for the one case the ground colour is the wrong answer: a
+   * grain laid over a wash rather than over the page. `vault/blocks/hero`
+   * sets it, because there the layer sits above `SceneShell` and the ground
+   * is not what is behind it. Anywhere else the default is correct and
+   * nothing needs to say so.
+   */
+  fill: var(--noise-base, var(--color-primary));
 }

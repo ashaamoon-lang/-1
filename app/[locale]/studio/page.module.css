@@ -89,8 +89,57 @@
     grid-template-columns:
       calc((100% - var(--gap) * 11) / 12 * 7 + var(--gap) * 6)
       minmax(0, 1fr);
+    /*
+     * Two rows, and the second one is the whole point — Tahap 69.
+     *
+     * The box holds a screen (see `min-block-size` above), so with one row and
+     * `align-items: start` everything sat at the top and the slack fell out of
+     * the bottom as dead ground: measured 493px, **63% of the box**, at
+     * 1440x900 — and worse as the screen grew, 68% at 1728x1117, because the
+     * height is tied to the viewport and the content was not tied to the
+     * height.
+     *
+     * `minmax(0, 1fr)` gives that slack to a row instead of to nothing, and
+     * `.heroCapabilities` sits at its end. The reserved height does not
+     * change, so `statementSection` does not move and the 80px of margin the
+     * scrub depends on is untouched.
+     *
+     * `minmax(0, 1fr)` and not `1fr` — `CLAUDE.md` #12.
+     */
+    grid-template-rows: auto minmax(0, 1fr);
     column-gap: var(--gap);
     align-items: start;
+  }
+}
+
+/*
+ * The capability band, at the foot of the hero.
+ *
+ * `align-self: end` is what puts it on the box's floor rather than directly
+ * under the columns — the slack row is tall, and a band floating in the middle
+ * of it would read as a third thing adrift rather than as the hero's base.
+ *
+ * On mobile the hero is a flex column, so there is no slack row to end in:
+ * `margin-block-start: auto` does the same job there, pushing the band to the
+ * bottom of whatever height is left.
+ */
+.heroCapabilities {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(16px);
+  margin-block-start: auto;
+  /* The columns above stop short of the band, not against it. */
+  padding-block-start: mobile-vw(32px);
+
+  @media (--desktop) {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    align-self: end;
+    /* A hero band is a footing, not a section: the section rhythm would read
+       as a new part of the page starting inside the hero. */
+    gap: desktop-vw(16px);
+    padding-block-start: desktop-vw(40px);
+    margin-block-start: 0;
   }
 }
 
@@ -174,37 +223,35 @@
 /* ── Ground ───────────────────────────────────────────────────────────── */
 
 /*
- * Surface, not content — Tahap 50.
+ * Surface, not content — Tahap 50, halved in Tahap 53.
  *
- * Both sit inside `.page`, which is already the containing block for `.wash`,
- * and both are behind everything: the wash is the first screen's tone, these
- * are the paper the whole page is printed on.
+ * It sits inside `.page`, which is already the containing block for `.wash`,
+ * and behind everything: the wash is the first screen's tone, this is the
+ * paper the whole page is printed on.
  *
  * `position: fixed` rather than `absolute`, and the difference is the point:
- * the page is 6.34 screens tall, and grain that scrolls with the document
- * reads as a texture *applied to* the content. Grain that stays put reads as
- * the surface the content moves across, which is what paper does. It costs
- * nothing extra — neither layer animates, so neither is a compositing
- * expense that grows with the page.
+ * the page is 6.34 screens tall, and a ground that scrolls with the document
+ * reads as a texture *applied to* the content. One that stays put reads as the
+ * surface the content moves across, which is what paper does. It costs nothing
+ * extra — it never animates, so it is not a compositing expense that grows
+ * with the page.
+ *
+ * A `.grain` used to sit beside it. Tahap 53 moved the grain under `Theme`,
+ * where it is one surface for the whole site instead of a copy per route —
+ * this page shipped the first copy and the home hero the second, and a third
+ * would have been grain over grain on the two routes that matter most.
+ *
+ * Half strength, because `--line` already resolves against a measured pair
+ * here (unlike the home page's, which sits over a WebGL wash whose luminance
+ * is not a token). It only has to stop 6.34 screens of one flat colour
+ * reading as an unpainted buffer.
  */
-.ground,
-.grain {
+.ground {
   position: fixed;
   inset: 0;
   /* Behind the wash, which is behind the content. */
   z-index: -1;
   pointer-events: none;
-}
-
-/*
- * Quieter than the home page's, and deliberately.
- *
- * That one sits over a WebGL wash whose luminance is not a token; this one
- * sits on the page ground, where `--line` already resolves against a measured
- * pair. Half the strength is enough to stop 6.34 screens of one flat colour
- * reading as an unpainted buffer.
- */
-.ground {
   opacity: 0.5;
 }
 
@@ -234,11 +281,19 @@
 
 /* ── Capabilities ─────────────────────────────────────────────────────── */
 
-.capabilities {
-  display: flex;
-  flex-direction: column;
-  gap: var(--section-lead);
-}
+/*
+ * `.capabilities` was here, and it went with the block — Tahap 69.
+ *
+ * It carried `gap: var(--section-lead)`, the rhythm of a standalone section.
+ * The block is a band at the foot of the hero now, so it takes `gap` from
+ * `.heroCapabilities` instead: a section's rhythm inside a hero would read as
+ * a new part of the page beginning before the hero has ended.
+ *
+ * The rule is deleted rather than left behind, because a class nothing renders
+ * reads as a solved problem — the mistake `vault/blocks/project-gallery`
+ * records costing it a stage, where a live-looking `.image` rule had never
+ * applied to anything.
+ */
 
 .capabilityList {
   display: grid;
