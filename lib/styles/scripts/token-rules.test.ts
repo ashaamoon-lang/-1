@@ -104,11 +104,26 @@ function strip(line: string): string {
     .replace(/url\(#[^)]*\)/g, '')
 }
 
+/**
+ * `Bun.Glob` emits `lib\styles\css\global.css` on Windows and
+ * `lib/styles/css/global.css` everywhere else, so every forward-slash rule in
+ * this file — `EXCLUDED`, `TOKEN_LAYER` — silently stopped matching there.
+ *
+ * The cost was not a missed violation but the opposite: both tests in this
+ * file were red on any Windows checkout, reporting the palette's own
+ * definitions and the fixture seeder's swatches as offenders. A gate that
+ * cries wolf on a whole platform gets muted, which is how a real finding gets
+ * lost. `lib/scripts/generate-manifest.ts` documents the same hazard and
+ * takes the same fix.
+ */
+const posix = (file: string) => file.replaceAll('\\', '/')
+
 async function findings(): Promise<Finding[]> {
   const found: Finding[] = []
 
   for (const pattern of SOURCE_GLOBS) {
-    for await (const file of new Glob(pattern).scan('.')) {
+    for await (const scanned of new Glob(pattern).scan('.')) {
+      const file = posix(scanned)
       if (EXCLUDED.some((rule) => rule.test(file))) continue
 
       const source = await readFile(file, 'utf8')
@@ -191,7 +206,8 @@ describe('token rules (CLAUDE.md #9, #11)', () => {
       'lib/**/*.css',
       ...SOURCE_GLOBS,
     ]) {
-      for await (const file of new Glob(pattern).scan('.')) {
+      for await (const scanned of new Glob(pattern).scan('.')) {
+        const file = posix(scanned)
         if (file.startsWith(TOKEN_LAYER)) continue
         if (file.includes('.test.') || file.includes('.stories.')) continue
         const source = await readFile(file, 'utf8')

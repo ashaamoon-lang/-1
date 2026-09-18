@@ -76,11 +76,21 @@ function isExempt(before: string): boolean {
  * reduced-motion rule asks whether a *file* that animates also stands down,
  * and the reveal-knob rule reads custom properties, which are neither.
  */
+/**
+ * `Bun.Glob` emits backslash paths on Windows, which is enough to switch off
+ * every forward-slash boundary in this file: `lib/styles/css/` below, and
+ * `vault/motion/tokens.ts` in the GSAP dialect further down. Both are
+ * exemptions, so losing them turns the gate red on its own token layer rather
+ * than blind — two false failures on every Windows checkout, green on CI.
+ * Same hazard, same fix, as `lib/scripts/generate-manifest.ts`.
+ */
+const posix = (file: string) => file.replaceAll('\\', '/')
+
 async function collectDeclarationFiles(): Promise<[string, string][]> {
   const files: [string, string][] = []
   for (const pattern of CSS_GLOBS) {
-    for await (const file of new Glob(pattern).scan('.')) {
-      files.push([file, await readFile(file, 'utf8')])
+    for await (const scanned of new Glob(pattern).scan('.')) {
+      files.push([posix(scanned), await readFile(scanned, 'utf8')])
     }
   }
   return files
@@ -90,8 +100,11 @@ async function declarations(): Promise<Declaration[]> {
   const found: Declaration[] = []
 
   for (const pattern of CSS_GLOBS) {
-    for await (const file of new Glob(pattern).scan('.')) {
-      const source = await readFile(file, 'utf8')
+    for await (const scanned of new Glob(pattern).scan('.')) {
+      // Normalised so a failure message names the same path on either
+      // platform — which is what makes two machines' gate output comparable.
+      const file = posix(scanned)
+      const source = await readFile(scanned, 'utf8')
 
       for (const match of source.matchAll(
         /(transition(?:-property|-timing-function|-duration)?|animation)\s*:\s*([^;}]*)/g
@@ -315,7 +328,8 @@ describe('CLAUDE.md #1 in the GSAP dialect', () => {
   async function tweens() {
     const found: string[] = []
     for (const pattern of TS_GLOBS) {
-      for await (const file of new Glob(pattern).scan('.')) {
+      for await (const scanned of new Glob(pattern).scan('.')) {
+        const file = posix(scanned)
         if (file.includes('.test.') || file.includes('.stories.')) continue
         /*
          * The token layer is where a curve is allowed to be a curve — the

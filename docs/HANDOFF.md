@@ -13,10 +13,18 @@
 
 ```
 branch    claude/satus-award-website-foundation-r6o5cf
-commit    af1f499
-CI        run 62 — job `ci` dan `e2e` keduanya hijau
+commit    9ee7922
+CI        run 63 — job `ci` dan `e2e` keduanya hijau
 PR        #9, mergeable_state clean, base `main`
 ```
+
+> **Dikoreksi saat serah-terima ke terminal lokal.** Blok ini dulu berbunyi
+> `af1f499` dan `CI run 62`, karena ia ditulis sebelum commit-nya sendiri ada —
+> dokumen yang menyebut posisi selalu punya masalah ini. Angka di atas
+> diverifikasi ke GitHub API, bukan diingat: `gh pr view 9` mengembalikan
+> `headRefOid 9ee7922…` dengan `mergeStateStatus CLEAN`, dan
+> `gh run view 35045507292` mengembalikan run **63** dengan job `ci` dan `e2e`
+> keduanya `success`.
 
 Terverifikasi di commit itu:
 

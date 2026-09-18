@@ -105,12 +105,22 @@ function parseMessageTree(raw: string, origin: string): MessageNode {
   return parse(JSON.parse(raw), '')
 }
 
+/**
+ * `Bun.Glob` emits backslash paths on Windows, so the `lib/dev/` and
+ * `lib/scripts/` carve-outs below stopped matching there and the RAF-loop
+ * rule reported `bench-rerender.ts` — tooling that never ships — as a second
+ * frame loop. Red on every Windows checkout, green on CI; same hazard and
+ * same fix as `lib/scripts/generate-manifest.ts`.
+ */
+const posix = (file: string) => file.replaceAll('\\', '/')
+
 async function collect(globs: string[]): Promise<[string, string][]> {
   const files: [string, string][] = []
   for (const pattern of globs) {
-    for await (const file of new Glob(pattern).scan('.')) {
+    for await (const scanned of new Glob(pattern).scan('.')) {
+      const file = posix(scanned)
       if (file.includes('.test.') || file.includes('.stories.')) continue
-      files.push([file, await readFile(file, 'utf8')])
+      files.push([file, await readFile(scanned, 'utf8')])
     }
   }
   return files

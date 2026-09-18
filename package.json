@@ -33,7 +33,7 @@
     "setup:project": "echo 'This project is already set up — setup:project deletes itself after its first run. Run `git log -- lib/scripts/setup-project.ts` (or check out an earlier commit) to find it again.' && exit 1",
     "test": "bun test",
     "test:e2e": "playwright test",
-    "test:oxlint-plugin": "for f in tools/oxlint/anti-slop/rules/*.ruletest.ts; do node $f || exit 1; done",
+    "test:oxlint-plugin": "bun ./lib/scripts/test-oxlint-plugin.ts",
     "doctor": "bun ./lib/scripts/doctor.ts",
     "contrast:accept": "bun ./lib/styles/scripts/contrast-accept.ts",
     "setup:styles": "bun ./lib/styles/scripts/setup-styles.ts",

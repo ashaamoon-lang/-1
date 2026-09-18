@@ -41,9 +41,19 @@
  */
 
 import { readFileSync } from 'node:fs'
-import { dirname, relative } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 
-const ROOT = new URL('../..', import.meta.url).pathname
+/*
+ * `join(import.meta.dir, …)`, never `new URL(…).pathname`.
+ *
+ * A file URL's `pathname` is a URL component, not a path: on Windows it comes
+ * back as `/D:/HELLO%20Project/arth/` — leading slash, percent-encoded space —
+ * and every read through it fails `ENOENT`. Here that threw at module scope,
+ * so the nine tests in `design-debt.test.ts` were never registered at all and
+ * `bun test` reported one synthetic failure in their place. A gate that does
+ * not run is not a gate, and this one did not run on any Windows checkout.
+ */
+const ROOT = join(import.meta.dir, '..', '..')
 
 /** Normalised to `/` so the regexes below match on Windows too — the same
  *  hazard `generate-manifest.ts` documents for `Bun.Glob`. */
@@ -266,7 +276,7 @@ export function writeDocBlock(source: string, block: string): string {
 // The test names this command when it fails, so a stale number is one command
 // to fix rather than a hand-count.
 if (import.meta.main && process.argv.includes('--write')) {
-  const path = new URL(`../../${DOC}`, import.meta.url).pathname
+  const path = join(ROOT, DOC)
   const source = readFileSync(path, 'utf-8')
   const next = writeDocBlock(source, renderDesignDebt(scanDesignDebt()))
   if (next !== source) {

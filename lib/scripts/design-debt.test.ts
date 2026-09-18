@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 import {
   DOC,
@@ -20,10 +21,9 @@ import {
  */
 
 const debt = scanDesignDebt()
-const source = readFileSync(
-  new URL(`../../${DOC}`, import.meta.url).pathname,
-  'utf-8'
-)
+// `join(import.meta.dir, …)` rather than a file URL's `pathname`, for the
+// reason `design-debt.ts` records beside `ROOT`.
+const source = readFileSync(join(import.meta.dir, '..', '..', DOC), 'utf-8')
 
 describe('the design-debt block in DESIGN-SYSTEM.md', () => {
   it('is still delimited by its markers', () => {
