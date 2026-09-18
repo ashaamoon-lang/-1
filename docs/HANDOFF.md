@@ -13,20 +13,32 @@
 
 ```
 branch    claude/satus-award-website-foundation-r6o5cf
-commit    9ee7922
-CI        run 63 — job `ci` dan `e2e` keduanya hijau
-PR        #9, mergeable_state clean, base `main`
+PR        #9, base `main`
 ```
 
-> **Dikoreksi saat serah-terima ke terminal lokal.** Blok ini dulu berbunyi
-> `af1f499` dan `CI run 62`, karena ia ditulis sebelum commit-nya sendiri ada —
-> dokumen yang menyebut posisi selalu punya masalah ini. Angka di atas
-> diverifikasi ke GitHub API, bukan diingat: `gh pr view 9` mengembalikan
-> `headRefOid 9ee7922…` dengan `mergeStateStatus CLEAN`, dan
-> `gh run view 35045507292` mengembalikan run **63** dengan job `ci` dan `e2e`
-> keduanya `success`.
+**Commit dan nomor run CI sengaja tidak ditulis di sini.** Tanyakan, jangan
+percaya dokumen:
 
-Terverifikasi di commit itu:
+```bash
+git rev-parse --short HEAD
+gh pr view 9 --json headRefOid,state,mergeStateStatus
+gh run list --branch claude/satus-award-website-foundation-r6o5cf --limit 5
+```
+
+> **Kenapa dihapus, bukan diperbarui.** Blok ini pernah berbunyi `af1f499` /
+> `CI run 62` sementara posisi sebenarnya `9ee7922` / run 63, dan itu **bukan
+> kelalaian — itu struktural**: sebuah dokumen yang menuliskan hash commit-nya
+> sendiri ditulis _sebelum_ commit itu ada, jadi ia salah pada saat lahir dan
+> akan salah lagi setiap kali. Fakta yang tidak bisa benar saat ditulis tidak
+> ditulis; yang ditulis adalah perintah yang menjawabnya.
+>
+> Bandingkan dengan dua dokumen di repo ini yang **memverifikasi dirinya
+> sendiri** — blok `rule-coverage` di `CLAUDE.md` dan blok design-debt di
+> `DESIGN-SYSTEM.md` §7 — keduanya di-generate dan diuji agar tidak hanyut.
+> Nomor tahap di bawah kini ikut dijaga begitu, oleh
+> `lib/scripts/stage-position.test.ts`.
+
+Gerbang, sebagaimana terukur di CI (Linux, 4 vCPU / 16 GB):
 
 | gerbang                   | hasil                                |
 | ------------------------- | ------------------------------------ |
@@ -34,6 +46,12 @@ Terverifikasi di commit itu:
 | `bun run test:e2e`        | **716 lulus / 0 gagal**, 14 dilewati |
 | `bun run build`           | hijau                                |
 | `bun run build-storybook` | hijau                                |
+
+**Angka gerbang milik mesin yang menjalankannya.** Diukur di laptop Windows
+4-core / 7,79 GB, suite e2e memakan **41,4 menit** melawan **18,5 menit** di
+CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
+halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
+log CI run yang sama — bukan ke tabel ini.
 
 Tahap terakhir yang dikerjakan: **78**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
