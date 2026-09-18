@@ -445,6 +445,30 @@ describe('a declared prop has a caller', () => {
     ).toEqual([])
   })
 
+  /*
+   * Thirty seconds, not the 5000ms default, and the number is measured.
+   *
+   * This is the only test in the repo that parses the whole consumer tree —
+   * 154 files under `app`, `vault` and `components` — to ask which declared
+   * prop nobody passes. Walking and reading them is cheap (49ms and 47ms
+   * measured); `parseSync` over all of them is not, and the test costs 4-6
+   * seconds of CPU on its own.
+   *
+   * Against Bun's generic 5s that is no margin at all, and the failure mode is
+   * the worst kind: it passes when the machine is idle and fails when it is
+   * busy. It failed three `git push` runs in a row here — git compressing
+   * objects on the same cores was enough — while `bunx lefthook run pre-push`
+   * passed every time, so the gate looked flaky rather than slow.
+   *
+   * The first diagnosis was wrong and is recorded rather than quietly
+   * dropped: sequential file I/O was measured at 33ms/file and blamed, but
+   * that number was a cold-cache artifact. Warm, the reads total 47ms. The
+   * cost is parsing, so parallelising the reads would have fixed nothing.
+   *
+   * `bunfig.toml` cannot carry this: a `timeout` key under `[test]` is
+   * accepted and then ignored — verified by a 6s test that still died at
+   * 5000ms. Per-test is the only form Bun honours.
+   */
   it('has no capability that nothing asks for', () => {
     const source = consumerSource()
     const cache = new Map<string, Set<string>>()
@@ -470,7 +494,7 @@ describe('a declared prop has a caller', () => {
       unpassed,
       `${unpassed.length} prop(s) built and never asked for. Pass it, delete it, or add it to DELIBERATE with the reason:\n  ${unpassed.join('\n  ')}`
     ).toEqual([])
-  })
+  }, 30_000)
 })
 
 describe('the detector itself', () => {

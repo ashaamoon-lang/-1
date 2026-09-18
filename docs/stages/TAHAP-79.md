@@ -240,18 +240,40 @@ menambah momen demi membelanjakan anggaran adalah alasan yang salah.
 
 ## 7. Catatan lingkungan — ditemukan saat setup track ini
 
-**Suite gerbang flaky di Windows, dan sebabnya terukur.** `bun test` penuh
-berjalan **240 detik** saat cache dingin dan **35 detik** saat hangat; satu test
-gagal pada run dingin karena melewati batas 5 detik per-test, lalu lulus 554/554
-pada run hangat. Sebabnya bukan kode tapi I/O berurutan:
+**Satu gerbang tidak punya margin waktu, dan diagnosis pertama saya salah.**
+
+Push pertama ke `origin` gagal tiga kali berturut-turut. Yang gagal selalu satu
+test yang sama:
 
 ```
-340 berkas   scan 592ms   read berurutan 11.221ms (~33ms/berkas)
-                          read paralel      806ms  (14x lebih cepat)
+(fail) a declared prop has a caller > has no capability that nothing asks for [6109.00ms]
+  ^ this test timed out after 5000ms
 ```
 
-Tiga puluh tiga milidetik per berkas adalah tanda Defender memindai tiap open.
-**Belum diperbaiki** — perbaikannya menyentuh 12 tempat di 7 berkas gerbang dan
-pantas jadi tahapnya sendiri dengan pengukurannya sendiri, bukan tempelan di
-langkah setup. Dicatat di sini supaya run merah berikutnya di Windows tidak
-didiagnosis dari nol.
+`vault/vault-api.test.ts` mem-parse seluruh pohon konsumen — 154 berkas di
+`app`, `vault`, `components` — untuk menanyakan prop mana yang dideklarasikan
+tapi tidak pernah dioper. Biayanya 4–6 detik CPU. Terhadap default generik Bun
+5000ms itu **nol margin**, dan bentuk kegagalannya yang paling buruk: lulus saat
+mesin senggang, gagal saat sibuk. `git push` mengompres objek di core yang sama,
+jadi ia gagal di bawah `git push` dan **lulus** di bawah
+`bunx lefthook run pre-push` — sehingga gerbangnya tampak flaky, bukan lambat.
+
+**Diagnosis pertama saya salah, dan dicatat alih-alih dihapus.** Saya mengukur
+I/O berurutan di 33ms/berkas (340 berkas, 11.221ms) dan menyalahkannya. Angka
+itu artefak cache dingin. Diukur ulang saat hangat:
+
+```
+walk + statSync        85ms      walk + withFileTypes   49ms
+readFileSync 154 berkas 47ms
+```
+
+Empat puluh tujuh milidetik. **Biayanya parsing, bukan membaca** — jadi
+memparalelkan read tidak akan memperbaiki apa pun, dan rencana untuk menyentuh
+12 tempat di 7 berkas gerbang dibatalkan sebelum menulis satu baris pun.
+
+**`bunfig.toml` tidak bisa membawanya.** Kunci `timeout` di bawah `[test]`
+diterima lalu diabaikan — diverifikasi dengan test 6 detik yang tetap mati di
+5000ms. Per-test adalah satu-satunya bentuk yang Bun hormati.
+
+Yang dikirim: satu argumen `30_000` pada test itu, dengan alasannya ditulis di
+sebelahnya — termasuk diagnosis yang salah, supaya tidak diulang.
