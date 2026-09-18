@@ -16,6 +16,20 @@ import { join } from 'node:path'
  * Three copies of one fact, kept in step by memory, is a promise nobody can
  * keep across dozens of stages. So it is kept by a test instead.
  *
+ * ## Corrected on its first real firing — the instrument was wrong
+ *
+ * The first version compared both documents against the highest **spec file**
+ * in `docs/stages/`. It went red the moment `TAHAP-79.md` arrived, and it was
+ * wrong to: `ROADMAP.md` §3.0 *requires* the spec before a line of code, so a
+ * spec always runs ahead of execution. Equating "has a spec" with "dieksekusi
+ * sampai" made a mandated workflow look like drift.
+ *
+ * What actually has to agree is narrower: the status line matches the highest
+ * `## Tahap N` **entry** in ROADMAP itself (an entry is written when a stage
+ * ships), `HANDOFF.md` matches that, and the specs never fall **behind** —
+ * which would mean a stage shipped without one, the §3.0 violation worth
+ * catching. Specs running ahead is correct and is no longer reported.
+ *
  * ## What this deliberately does NOT check
  *
  * Commit hash and CI run number. Those were in `HANDOFF.md` and were wrong on
@@ -48,9 +62,19 @@ export function claimedStage(markdown: string, pattern: RegExp): number | null {
   return found === undefined ? null : Number(found)
 }
 
+/** The highest stage ROADMAP has written an entry for — i.e. shipped. */
+export function highestRoadmapEntry(markdown: string): number {
+  const numbers = [...markdown.matchAll(/^## Tahap (\d+)/gm)].map((match) =>
+    Number(match[1])
+  )
+  return numbers.length === 0 ? 0 : Math.max(...numbers)
+}
+
 describe('the stage number agrees with itself', () => {
   const filenames = readdirSync(STAGES_DIR)
   const highest = highestStageSpec(filenames)
+  const roadmap = readFileSync(join(ROOT, 'docs', 'ROADMAP.md'), 'utf8')
+  const shipped = highestRoadmapEntry(roadmap)
 
   it('finds stage specs at all, so a broken parser cannot pass silently', () => {
     // Anti-vacuum. A regex that stops matching would otherwise report
@@ -62,8 +86,7 @@ describe('the stage number agrees with itself', () => {
     expect(highest).toBeGreaterThan(70)
   })
 
-  it('ROADMAP.md names the highest stage that has a spec', () => {
-    const roadmap = readFileSync(join(ROOT, 'docs', 'ROADMAP.md'), 'utf8')
+  it('ROADMAP.md status line matches its own highest stage entry', () => {
     const claimed = claimedStage(
       roadmap,
       /dieksekusi sampai \*\*Tahap (\d+)\*\*/
@@ -75,9 +98,20 @@ describe('the stage number agrees with itself', () => {
     ).not.toBeNull()
     expect(
       claimed,
-      `ROADMAP.md says Tahap ${claimed}, but docs/stages/ goes up to ${highest}. ` +
+      `ROADMAP.md says Tahap ${claimed}, but its own entries go up to ${shipped}. ` +
         'Update the status line in the stage that adds the entry, not later.'
-    ).toBe(highest)
+    ).toBe(shipped)
+  })
+
+  it('no stage shipped without a spec', () => {
+    // Specs may run AHEAD — §3.0 requires spec before code. Falling behind is
+    // the violation: an entry with no spec means a stage was written straight
+    // from the roadmap.
+    expect(
+      highest,
+      `ROADMAP has an entry for Tahap ${shipped} but docs/stages/ only goes ` +
+        `to ${highest} — a stage shipped without the spec §3.0 requires.`
+    ).toBeGreaterThanOrEqual(shipped)
   })
 
   it('HANDOFF.md names the same stage as ROADMAP.md', () => {
@@ -93,8 +127,8 @@ describe('the stage number agrees with itself', () => {
     ).not.toBeNull()
     expect(
       claimed,
-      `HANDOFF.md says Tahap ${claimed}, but docs/stages/ goes up to ${highest}.`
-    ).toBe(highest)
+      `HANDOFF.md says Tahap ${claimed}, but ROADMAP ships up to ${shipped}.`
+    ).toBe(shipped)
   })
 })
 
@@ -113,5 +147,23 @@ describe('the parser itself', () => {
 
   it('returns null when a document has lost its marker', () => {
     expect(claimedStage('no marker here', /Tahap (\d+)/)).toBeNull()
+  })
+
+  it('reads the highest shipped entry, not the first', () => {
+    expect(
+      highestRoadmapEntry('## Tahap 3 — a\n## Tahap 78 — b\n## Tahap 12 — c')
+    ).toBe(78)
+  })
+
+  it('ignores a stage number that is not a heading', () => {
+    // Prose mentions stage numbers constantly — "diperbaiki di Tahap 65" must
+    // not read as an entry, or the status line chases whatever was cited last.
+    expect(
+      highestRoadmapEntry('diperbaiki di Tahap 99, lihat ## Tahap 4')
+    ).toBe(0)
+  })
+
+  it('returns 0 for a document with no entries at all', () => {
+    expect(highestRoadmapEntry('# ROADMAP\n\nno entries yet')).toBe(0)
   })
 })

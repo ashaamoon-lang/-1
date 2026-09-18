@@ -58,7 +58,7 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke tabel ini.
 
-Tahap terakhir yang dikerjakan: **78**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **79**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
 ## 2. Menyalakannya kembali

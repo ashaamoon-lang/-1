@@ -209,8 +209,8 @@ menambah momen demi membelanjakan anggaran adalah alasan yang salah.
 
 | gerbang                            | tuntutan                                                                 |
 | ---------------------------------- | ------------------------------------------------------------------------ |
-| `bun run check`                    | 554+ lulus, 0 gagal                                                      |
-| `CI=true bun run test:e2e`         | 716+ lulus, 0 gagal                                                      |
+| `bun run check`                    | **565+** lulus, 0 gagal — lihat catatan di bawah                         |
+| `CI=true bun run test:e2e`         | **713+** lulus, 0 gagal — lihat catatan di bawah                         |
 | `e2e/project-detail.e2e.ts:100`    | `<dl>` fakta **tetap** memotong fold 800px di 1280x800                   |
 | `e2e/navigation-landing.e2e.ts:95` | `h1` tetap mendarat di layar pertama sesudah navigasi                    |
 | `e2e/epic-sequence.e2e.ts`         | `project-arrival` dan `project-chapters` **tidak** berbagi rentang gulir |
@@ -219,6 +219,21 @@ menambah momen demi membelanjakan anggaran adalah alasan yang salah.
 | reduced motion                     | tiap chapter berakhir **terlihat penuh**, pin mati bukan melambat        |
 | keyboard saja                      | seluruh busur bisa dilewati Tab — bukti ini bukan scroll hijacking       |
 | `bun run build-storybook`          | story untuk tiap komponen yang berubah, termasuk state reduced-motion    |
+
+> **Angka ini dinaikkan saat track gerbang digabung, bukan saat tahap ini
+> dikerjakan.** Spec ini ditulis di `7360e87`, ketika basisnya 554 dan 716.
+> Merge `5663204` membawa sebelas uji baru — penjaga token `NEXT_PUBLIC_`,
+> uji posisi tahap, dan uji parser keduanya — sehingga `check` menjadi **565**,
+> diverifikasi di CI run 64 dan di mesin lokal.
+>
+> `test:e2e` bergerak 716/0/14 → **713 lulus / 0 gagal / 2 flaky / 15 dilewati**
+> pada total yang sama, **730**. Tiga uji pindah kolom, semuanya gerbang kanvas
+> WebGL, dan `HANDOFF.md` §5.1 menguraikan kenapa — ia balapan, bukan regresi.
+>
+> Dibiarkan sebagai "554+" akan membuat gerbang pertama yang dijalankan tahap
+> ini tampak seperti regresi yang bukan regresi. Sebuah spec yang menuntut
+> angka yang sudah ditinggalkan repo-nya sendiri adalah dokumen yang berbohong
+> tentang kodenya — kesalahan yang `ROADMAP.md` catat sudah terjadi tiga kali.
 
 ---
 
@@ -277,3 +292,67 @@ diterima lalu diabaikan — diverifikasi dengan test 6 detik yang tetap mati di
 
 Yang dikirim: satu argumen `30_000` pada test itu, dengan alasannya ditulis di
 sebelahnya — termasuk diagnosis yang salah, supaya tidak diulang.
+
+---
+
+## 8. Hasil — dan yang TIDAK bisa diklaim
+
+### 8.1 Yang terkirim
+
+|           |                                                                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Skema     | `chapters` (array, maks 4) dan `outcome`, **keduanya opsional**                                                                               |
+| Query     | projeksi GROQ dengan `coalesce` per-locale, tipe di-generate ulang                                                                            |
+| Komposisi | busur lewat `StepSequence` yang sudah ada — nol komponen baru                                                                                 |
+| Momen     | `project-chapters`, satu, terdaftar di `MOTION-SPEC.md` §9.5                                                                                  |
+| Gaya      | `.outcome`, `.outcomeLabel`, `.outcomeText` — **nol `font-size`**, skalanya dari utility `caption`/`h3` lewat `cn()`, jadi nol `scale-exempt` |
+
+`StepSequence` juga menerima `id` dan `data-region`, dideklarasikan bukan
+di-spread, karena blok itu memang tidak menerima prop sembarang — dan
+`ProjectSpine` menautkan baris ke `#arc`, sementara baris yang menunjuk id yang
+tidak dibawa siapa pun adalah kebohongan yang Tahap 39 hapus dari chip filter.
+
+### 8.2 Busurnya belum pernah terlihat merender — dan itu bukan detail
+
+Risiko #3 di §6 meramalkan ini, dan ia terjadi. Diverifikasi dari HTML yang
+**benar-benar disajikan**, bukan dari kode:
+
+```bash
+curl -sS http://localhost:3000/en/work/arus-balik | grep -o 'data-epic="[a-z-]*"' | sort -u
+# → data-epic="project-arrival"
+```
+
+Satu nama. `project-chapters` tidak ada, karena keenam fixture tidak punya isi
+`chapters` dan cabang `hasChapters` tidak pernah bernilai true.
+
+**Konsekuensinya lebih tajam daripada "belum terverifikasi".** Kriteria keluar
+di §5 menuntut:
+
+> `e2e/epic-sequence.e2e.ts` — `project-arrival` dan `project-chapters`
+> **tidak** berbagi rentang gulir
+
+Dengan `project-chapters` absen, uji itu **lulus tanpa menguji apa pun**. Itu
+persis pola yang repo ini bayar berulang kali: gerbang yang melaporkan sukses
+dengan cara tidak berjalan — bentuk yang sama dengan lima gerbang kanvas WebGL
+di `HANDOFF.md` §5.1, dan dengan `storybook-a11y` yang melewati ~100
+pemeriksaan axe kalau `storybook-static` tidak ada.
+
+Maka status jujurnya dipisah:
+
+```
+kapabilitas K4        1 -> 2
+yang merender          tetap 1
+busur                  BELUM PERNAH DILIHAT, oleh saya maupun oleh gerbang
+```
+
+### 8.3 Kenapa tidak ditambal di sini
+
+Menyemai `chapters` ke fixture akan membuktikannya — dan itu **pekerjaan
+Tahap 82**, yang memang memiliki `seed-fixtures.ts` dan sudah dijadwalkan
+memperluasnya ke empat plat per proyek. Menyeretnya ke sini berarti menyentuh
+berkas di luar §4.2, dan memperbesar lingkup tahap diam-diam adalah kebiasaan
+yang membuat cacat sulit dilacak.
+
+Dicatat sebagai utang terbuka, bukan dibulatkan hijau — `CLAUDE.md` #21.
+**Tahap 82 tidak boleh dinyatakan selesai sebelum `epic-sequence` benar-benar
+melihat dua momen di rute ini.**

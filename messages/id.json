@@ -79,7 +79,10 @@
     "overview": "Ringkasan",
     "notes": "Catatan",
     "images": "Gambar",
-    "onward": "Berikutnya"
+    "onward": "Berikutnya",
+    "arc": "Jalannya",
+    "arcLabel": "Engagement itu, berurutan",
+    "outcome": "Hasil"
   },
   "notFound": {
     "label": "Galat",

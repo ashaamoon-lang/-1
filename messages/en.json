@@ -79,7 +79,10 @@
     "overview": "Overview",
     "notes": "Notes",
     "images": "Images",
-    "onward": "Next"
+    "onward": "Next",
+    "arc": "How it ran",
+    "arcLabel": "The engagement, in order",
+    "outcome": "Outcome"
   },
   "notFound": {
     "label": "Error",

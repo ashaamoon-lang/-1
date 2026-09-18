@@ -26,6 +26,7 @@ import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
 import { ProjectHero } from '@/vault/blocks/project-hero'
 import { ProjectSpine, type SpineRegion } from '@/vault/blocks/project-spine'
+import { StepSequence } from '@/vault/blocks/step-sequence'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
 
 import s from './page.module.css'
@@ -294,6 +295,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const hasGallery = Boolean(project.gallery && project.gallery.length > 0)
 
   /*
+   * The arc, and why it is filtered rather than trusted.
+   *
+   * `chapters` types as `Array<{_key, heading: string | null, body: string | null}>`
+   * because every localized projection coalesces and can still come back null.
+   * `StepSequence` takes `{key, title, body}` of plain strings, so a half-written
+   * chapter has to be dropped here rather than rendered as an empty step — an
+   * empty step is a numbered row that says nothing, which is worse than one
+   * fewer row.
+   */
+  const chapters = (project.chapters ?? []).flatMap((chapter) =>
+    chapter.heading && chapter.body
+      ? [{ key: chapter._key, title: chapter.heading, body: chapter.body }]
+      : []
+  )
+  const hasChapters = chapters.length > 0
+
+  /*
    * The page's own regions, in document order, and only the ones that render.
    *
    * A row for a gallery that does not exist is a link to nothing — the same
@@ -305,6 +323,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const regions: SpineRegion[] = [
     { id: 'overview', label: t('overview') },
     ...(hasBody ? [{ id: 'notes', label: t('notes') }] : []),
+    ...(hasChapters ? [{ id: 'arc', label: t('arc') }] : []),
+    ...(project.outcome ? [{ id: 'outcome', label: t('outcome') }] : []),
     ...(hasGallery ? [{ id: 'images', label: t('images') }] : []),
     { id: 'onward', label: t('onward') },
   ]
@@ -438,6 +458,57 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <div id="notes" data-region="" className={s.body}>
               <RichText content={body} />
             </div>
+          )}
+
+          {/*
+            The arc — Tahap 79.
+
+            This section is not a new idea. `project-spine` records that the
+            plan named Brief/Approach/Outcome and that the regions shipped as
+            Overview/Notes/Images instead, because "a project has one `body` of
+            Portable Text, so those sections do not exist and writing them
+            would be inventing content". That was right, and it stayed right
+            for thirty-nine stages. What changed is the content model, not the
+            judgement: `chapters` exists now, so the sections can be rendered
+            from what an editor wrote rather than invented.
+
+            It sits between the prose and the pictures because the order comes
+            from `ui-ux-pro-max`'s `scroll-triggered-storytelling` pattern —
+            problem, journey, solution — and because putting it above the hero
+            would push the fact `<dl>` below the 800px fold that
+            `e2e/project-detail.e2e.ts:100` holds.
+
+            `data-epic` takes this route from one named moment to two, against
+            a ceiling of six. Not six: the same pattern's GSAP entry warns
+            against pinning more than one or two sections per page, and this
+            page already carries a latent pinned run in its gallery.
+          */}
+          {hasChapters && (
+            <StepSequence
+              id="arc"
+              data-region=""
+              data-epic="project-chapters"
+              label={t('arcLabel')}
+              steps={chapters}
+            />
+          )}
+
+          {project.outcome && (
+            <section id="outcome" data-region="" className={s.outcome}>
+              {/*
+                `caption` and `h3` come from the type scale in `tailwind.css`,
+                applied here rather than re-declared in the stylesheet —
+                `scale-rules.test.ts` grants a component its own `font-size`
+                only with a written reason, and there is none to give. Same
+                `cn('<utility>', s.<class>)` shape `/journal` uses throughout.
+
+                The label stays an `<h2>`: `ProjectSpine` links a row at
+                `#outcome`, and a region a reader can jump to should have a
+                name in the accessibility tree, not only a look.
+              */}
+              <h2 className={cn('caption', s.outcomeLabel)}>{t('outcome')}</h2>
+              <p className={cn('h3', s.outcomeText)}>{project.outcome}</p>
+            </section>
           )}
 
           {hasGallery && project.gallery && (

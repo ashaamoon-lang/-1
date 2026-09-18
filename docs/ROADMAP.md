@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 78**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 79**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,58 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 79 — Halaman yang paling menjual, membawa satu momen ✅
+
+Spec: `docs/stages/TAHAP-79.md`.
+
+`/work/<slug>` adalah halaman yang dipakai agency untuk menunjukkan karyanya,
+dan ia membawa **satu** momen berkoreografi terhadap plafon enam — belanja
+terendah di seluruh situs, bobot komersial tertinggi. Dihitung ulang dari DOM,
+bukan dikutip dari `HANDOFF.md`: dua belas nama `data-epic` di seluruh repo,
+satu di rute ini (`project-arrival`).
+
+**Sebabnya bukan gerak, melainkan skema.** `project-spine` sudah mencatatnya
+tiga puluh sembilan tahap lalu: rencana menyebut Brief/Approach/Outcome, yang
+terkirim Overview/Notes/Images, karena _"a project has one `body` of Portable
+Text, so those sections do not exist and writing them would be inventing
+content"_. Itu benar saat ditulis. Yang berubah di sini model kontennya, bukan
+penilaiannya — `chapters` dan `outcome` ada sekarang, jadi seksinya dirender
+dari yang ditulis editor, bukan dikarang.
+
+Urutan tiga bagiannya juga tidak diciptakan: pattern
+`scroll-triggered-storytelling` di `ui-ux-pro-max` menetapkannya — problem,
+journey, solution — dan spec-nya menempelkan query yang mengembalikannya.
+
+```
+momen berbeda di /work/<slug>    1 -> 2     plafon 6
+pin di rute ini                  0 -> 1     skill: maks 1-2 per halaman
+```
+
+**Dua, bukan enam.** `DIREKSI.md` §2.1 sudah menulis bentuk kesalahannya:
+menambah momen demi membelanjakan anggaran adalah alasan yang salah. Rute ini
+juga sudah membawa satu pin laten di galerinya, dan `ui-ux-pro-max` memperingatkan
+terhadap lebih dari satu-dua seksi ter-pin per halaman.
+
+Keduanya **opsional**, dan itu menanggung beban: dataset masih enam fixture yang
+tidak punya `chapters`, jadi proyek tanpanya merender persis seperti sebelumnya.
+Dinyatakan apa adanya — **busurnya belum terverifikasi terhadap konten nyata**,
+dan itu bukan hal yang dibulatkan jadi selesai (`CLAUDE.md` #21).
+
+Dikerjakan di cabang `claude/arth-design`, yang di tahap ini juga menyerap track
+gerbang: portabilitas Windows, penjaga token `NEXT_PUBLIC_`, `studioUrl` yang
+menunjuk `/cms`, dan `continuous-motion` yang akhirnya mengukur transform
+scroll-linked alih-alih transform entrance yang sedang meluruh.
+
+**Satu instrumen dikoreksi pada penyalaan nyata pertamanya.**
+`stage-position.test.ts` — yang ditulis di track gerbang untuk memakukan nomor
+tahap — memerah begitu `TAHAP-79.md` mendarat, dan ia salah: ia menyamakan
+"punya spec" dengan "dieksekusi sampai", padahal §3.0 **mewajibkan** spec
+ditulis lebih dulu. Sekarang ia membandingkan baris status dengan entri ROADMAP
+sendiri, dan memerah kalau spec justru **tertinggal** — pelanggaran §3.0 yang
+memang layak ditangkap.
 
 ---
 

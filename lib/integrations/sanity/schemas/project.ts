@@ -183,6 +183,78 @@ export const project = defineType({
       type: 'internationalizedArrayRichText',
     }),
 
+    /*
+     * The arc, and why it is three named parts rather than more prose.
+     *
+     * `body` above is one undifferentiated rich-text block. It can say what
+     * the work was; it cannot say what changed because of it — and on an
+     * agency selling high-ticket engagements that consequence is the thing
+     * being bought. `client`, `year`, `engagement` and `scope` already state
+     * the *shape* of an engagement and already render into the hero's `<dl>`.
+     * Nothing stated its *outcome*.
+     *
+     * The three-part shape is not invented here. `ui-ux-pro-max`'s
+     * `scroll-triggered-storytelling` pattern specifies the section order
+     * outright — problem, journey, solution — and `docs/stages/TAHAP-79.md`
+     * §2.2 pastes the query that returned it. Taking the order from the
+     * database is what makes it traceable rather than taste.
+     *
+     * Both fields are OPTIONAL, and that is load-bearing. The dataset is six
+     * fixture projects, none of which carries chapters; a required field
+     * would empty every page that renders correctly today. A project without
+     * them renders exactly as it does now.
+     */
+    defineField({
+      name: 'chapters',
+      title: 'Chapters',
+      description:
+        'The arc: what the problem was, how it was approached, what shipped. Leave empty and the page reads as it does today.',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'chapter',
+          fields: [
+            defineField({
+              name: 'heading',
+              title: 'Heading',
+              type: 'internationalizedArrayString',
+              validation: (Rule) => Rule.required().custom(requireEveryLocale),
+            }),
+            defineField({
+              name: 'body',
+              title: 'Body',
+              type: 'internationalizedArrayText',
+              validation: (Rule) => Rule.required().custom(requireEveryLocale),
+            }),
+          ],
+          preview: {
+            select: { heading: 'heading' },
+            prepare: ({ heading }) => ({
+              title: localeValue(heading, DEFAULT_LOCALE) ?? 'Chapter',
+            }),
+          },
+        }),
+      ],
+      /*
+       * Four is the ceiling, not a guess. The pattern names three chapters,
+       * and `ui-ux-pro-max`'s GSAP entry warns against pinning more than one
+       * or two sections per page; a sequence long enough to need scrolling
+       * inside its own pin is the scroll-hijacking `DIREKSI.md` §4 refuses.
+       * `vault/blocks/step-sequence` pads its index to two digits on the
+       * stated assumption that "four steps never need three".
+       */
+      validation: (Rule) => Rule.max(4),
+    }),
+
+    defineField({
+      name: 'outcome',
+      title: 'Outcome',
+      type: 'internationalizedArrayString',
+      description:
+        'What changed, in one sentence — not a paragraph. Rendered as the close of the arc.',
+    }),
+
     defineField({
       name: 'order',
       title: 'Order',
