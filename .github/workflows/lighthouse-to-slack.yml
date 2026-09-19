@@ -241,7 +241,7 @@ jobs:
       - name: Format Results
         id: format
         if: steps.vercel_info.outputs.skip != 'true' && steps.bypass_check.outputs.skip == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           DEPLOYMENT_FAILED: ${{ steps.await.outcome != 'success' }}
           PREVIEW_URL: ${{ steps.vercel_url.outputs.preview_url }}

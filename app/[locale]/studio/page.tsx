@@ -8,15 +8,16 @@ import { Link } from '@/components/ui/link'
 import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
+import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { featuredProjectsQuery } from '@/lib/integrations/sanity/queries'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
 import { DotPattern } from '@/vault/magic/dot-pattern'
-import { NoiseTexture } from '@/vault/magic/noise-texture'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
+import { Magnetic } from '@/vault/primitives/magnetic'
 
 import s from './page.module.css'
 
@@ -94,6 +95,24 @@ export async function generateMetadata(_props: StudioPageProps) {
  */
 async function evidence(locale: string) {
   'use cache'
+  /*
+   * Sanity may not be configured, and then this returns nothing rather than
+   * crashing the build — the same guard `app/[locale]/page.tsx` has carried
+   * since it first fetched, and the strip below already renders its own
+   * designed absence when the list is empty.
+   *
+   * It was missing here from Tahap 44 until Tahap 53, and nothing caught it
+   * because nothing ever built this page without credentials: `.env.local`
+   * exists on every machine that has run it, and **CI had never run at all**
+   * — its trigger named a branch this repository does not have. The first CI
+   * run in the project's history failed on this line:
+   *
+   *   TypeError: Cannot read properties of null (reading 'slice')
+   *     at app/[locale]/studio/page.tsx:111
+   *   Error occurred prerendering page "/en/studio"
+   */
+  if (!isConfigured('sanity')) return []
+
   const projects = await sanityFetch({
     query: featuredProjectsQuery,
     // `$locale` picks the reader's language out of each internationalized
@@ -109,7 +128,10 @@ async function evidence(locale: string) {
    * stays the same one the home page reads — two queries that differ only by
    * a limit are two things to keep in step.
    */
-  return projects.data.slice(0, 3)
+  // `?? []` as well as the guard above: `data` is nullable even when Sanity
+  // *is* configured — a query that fails returns null, and a failed query
+  // should cost this page its strip, not its render.
+  return (projects.data ?? []).slice(0, 3)
 }
 
 export default async function StudioPage() {
@@ -163,7 +185,6 @@ export default async function StudioPage() {
 
           Both are `aria-hidden` and inert, and neither carries information.
         */}
-        <NoiseTexture className={s.grain} />
         <DotPattern width={28} height={28} className={s.ground} />
 
         {/*
@@ -225,6 +246,93 @@ export default async function StudioPage() {
             <p data-reveal-item className={cn('caption', s.factsNote)}>
               {t('factsNote')}
             </p>
+          </Reveal>
+
+          {/*
+            The capabilities, at the foot of the hero — Tahap 69.
+
+            They used to sit at `y=4255` of a 5008px page: **160px at 85%
+            depth**, behind a 2232px process sequence. The same twelve items
+            Tahap 65 gave a full pinned screen to on `/practice/<value>` were,
+            on the page that exists to say what this studio does, the least
+            likely thing on it to be read.
+
+            Meanwhile this box held `100svh` for a motion reason that is real
+            and was re-checked (§1.1 of the stage spec) — and left **493px,
+            63% of itself, empty** underneath its two columns. One move
+            answers both: the page's most concrete statement goes where the
+            page is most read, and it costs **no page height at all**, because
+            it fills slack the hero had already reserved.
+
+            Not spread, and not expanded: the block moves as it is. A hero
+            that grew a twelve-item feature list would be the pattern
+            `e2e/taste-preflight.e2e.ts` exists to keep out.
+
+            **Tahap 77 turned the rest of this note into data.** It used to
+            read that the rule "is scoped to `[data-epic="hero-arrival"]` and
+            cannot see this header, which makes it guidance here rather than a
+            gate". That was true, and two other stages wrote the same sentence
+            about other heroes. The scope now lives in `STACK_EXEMPT` in
+            `e2e/hero-stack.ts`, this header is an entry in it carrying the
+            measurement above as its reason, and a sweep fails if any hero on
+            the site is neither governed nor listed. Stack measured 8.
+          */}
+          {/*
+            Capabilities, grouped by the three practices — and the grouping comes
+            from `lib/content/practices.ts`, the same constant the routes and the
+            footer index read. A hand-written fourth grouping here would be a
+            second source of truth for what this studio does.
+          */}
+          <Reveal
+            as="section"
+            className={s.heroCapabilities}
+            /*
+             * Opens on load, not on a scroll that never comes.
+             *
+             * This band sits at the foot of a box that holds the screen, so
+             * its top lands at **764** against the default trigger line at
+             * **675** of a 900px viewport. Measured with the default: the
+             * three practices stayed at `opacity: 0` and `translateY(16px)`
+             * five seconds after load, on the first screen — content moved
+             * here to be read, and invisible once it arrived.
+             */
+            rootMargin="0px"
+          >
+            <p data-reveal-item className={cn('caption', s.eyebrow)}>
+              {t('capabilitiesEyebrow')}
+            </p>
+            <dl className={s.capabilityList}>
+              {PRACTICES.map((practice) => (
+                <div className={s.capability} data-reveal-item key={practice}>
+                  {/*
+                    The name is the link — Tahap 38.
+
+                    This section already says it is "grouped by the three
+                    practices", and each of those three has had a page since
+                    Tahap 15a that nothing on this page pointed at: measured,
+                    `/en/studio` offered **one** onward link in its own content,
+                    the closing "See the work". A reader who got this far is
+                    reading about a practice, and the page about it was one
+                    segment away and invisible.
+                  */}
+                  <dt className={cn('h3', s.capabilityName)}>
+                    <Link
+                      href={practiceTemplate(practice)}
+                      className={s.capabilityLink}
+                      // `MOTION-SPEC.md` §9 — INTENT and COMMIT on a noun the
+                      // reader can press.
+                      data-press="practice"
+                      data-intent=""
+                    >
+                      {tPractice(practice)}
+                    </Link>
+                  </dt>
+                  <dd className={cn('caption', s.capabilityItems)}>
+                    {t(`capabilities.${practice}`)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </Reveal>
         </header>
 
@@ -357,50 +465,6 @@ export default async function StudioPage() {
         />
 
         {/*
-          Capabilities, grouped by the three practices — and the grouping comes
-          from `lib/content/practices.ts`, the same constant the routes and the
-          footer index read. A hand-written fourth grouping here would be a
-          second source of truth for what this studio does.
-        */}
-        <Reveal as="section" className={s.capabilities}>
-          <p data-reveal-item className={cn('caption', s.eyebrow)}>
-            {t('capabilitiesEyebrow')}
-          </p>
-          <dl className={s.capabilityList}>
-            {PRACTICES.map((practice) => (
-              <div className={s.capability} data-reveal-item key={practice}>
-                {/*
-                  The name is the link — Tahap 38.
-
-                  This section already says it is "grouped by the three
-                  practices", and each of those three has had a page since
-                  Tahap 15a that nothing on this page pointed at: measured,
-                  `/en/studio` offered **one** onward link in its own content,
-                  the closing "See the work". A reader who got this far is
-                  reading about a practice, and the page about it was one
-                  segment away and invisible.
-                */}
-                <dt className={cn('h3', s.capabilityName)}>
-                  <Link
-                    href={practiceTemplate(practice)}
-                    className={s.capabilityLink}
-                    // `MOTION-SPEC.md` §9 — INTENT and COMMIT on a noun the
-                    // reader can press.
-                    data-press="practice"
-                    data-intent=""
-                  >
-                    {tPractice(practice)}
-                  </Link>
-                </dt>
-                <dd className={cn('caption', s.capabilityItems)}>
-                  {t(`capabilities.${practice}`)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </Reveal>
-
-        {/*
           The receipt. Unlike everything above it, this is not scaffolding —
           these four facts are true of this site, and they are left true so one
           section survives the rewrite the rest of this page is waiting for.
@@ -431,15 +495,31 @@ export default async function StudioPage() {
             {t('closing')}
           </p>
           <div data-reveal-item>
-            <Link
-              href="/work"
-              className={cn('caption', s.closingAction)}
-              // `MOTION-SPEC.md` §9 — the page's one forward action.
-              data-press="cta"
-              data-intent=""
-            >
-              {t('closingAction')}
-            </Link>
+            {/*
+              Magnetic on the page's one forward action — Tahap 63.
+
+              The rule this follows, so it stays a rule: **one per surface, on
+              the action that surface exists to offer.** Scattering pointer
+              attraction across every link is how it stops meaning anything;
+              putting it on the single thing a reader is being asked to do is
+              what makes it read as considered rather than decorative. The
+              comment below already named this link as that action, which is
+              why it is the one that gets it.
+
+              Costs nothing new here: `<Wrapper gsap>` is already mounted for
+              `TextReveal` on this route, and `Magnetic` is `gsap.quickTo`.
+            */}
+            <Magnetic>
+              <Link
+                href="/work"
+                className={cn('caption', s.closingAction)}
+                // `MOTION-SPEC.md` §9 — the page's one forward action.
+                data-press="cta"
+                data-intent=""
+              >
+                {t('closingAction')}
+              </Link>
+            </Magnetic>
           </div>
         </Reveal>
       </div>

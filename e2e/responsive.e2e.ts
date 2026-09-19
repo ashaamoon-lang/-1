@@ -34,11 +34,34 @@ const CONTAINED = 'h1, h2, h3, p, figcaption, [data-reveal-item]'
 test.describe('no element overflows its container', () => {
   for (const locale of routing.locales) {
     test(`/${locale} fits every phone width`, async ({ page }) => {
+      // Seven full navigations of the site's longest page. The default 30s is
+      // not enough on a cold CI runner, and it was not enough the first time
+      // the runner had real CMS content to load: `page.goto` timed out
+      // waiting for `networkidle` on both locales, desktop and mobile, in the
+      // first run where `/en` had images to fetch at all.
+      test.slow()
+
       const failures: string[] = []
 
       for (const width of WIDTHS) {
         await page.setViewportSize({ width, height: 844 })
-        await page.goto(`/${locale}`, { waitUntil: 'networkidle' })
+        /*
+         * `load`, not `networkidle`, and the change is a correction rather
+         * than a loosening.
+         *
+         * This test measures whether a line of text is wider than the box
+         * around it. That depends on layout and on the real typeface, and on
+         * nothing else — not on the last CMS image finishing, which is what
+         * `networkidle` waits for and what made this the slowest file in the
+         * suite. Playwright's own documentation discourages `networkidle`
+         * for exactly this reason.
+         *
+         * `document.fonts.ready` replaces what was actually needed from it:
+         * measuring against a fallback face would report spill that the
+         * shipped page does not have, or miss spill that it does.
+         */
+        await page.goto(`/${locale}`, { waitUntil: 'load' })
+        await page.evaluate(() => document.fonts.ready)
 
         const overflowing = await page.evaluate(
           ({ selector, vw }) => {

@@ -96,6 +96,18 @@ interface StepSequenceProps {
    * document claimed for it.
    */
   'data-epic'?: string | undefined
+  /**
+   * Anchor id, for a page whose index links to this section.
+   *
+   * Declared rather than spread, for the same reason `data-epic` is: this
+   * block takes no arbitrary props. `/studio` needs neither of these, but
+   * `/work/<slug>` renders inside `vault/blocks/project-spine`, whose rows
+   * are anchors — a row pointing at an id nothing carries is the lie Tahap 39
+   * removed from the filter chips.
+   */
+  id?: string | undefined
+  /** Marks this as one of the spine's regions. Empty string, like its siblings. */
+  'data-region'?: string | undefined
   className?: string | undefined
 }
 
@@ -108,6 +120,8 @@ export function StepSequence({
   label,
   steps,
   'data-epic': epic,
+  id,
+  'data-region': region,
   className,
 }: StepSequenceProps) {
   const rootRef = useRef<HTMLElement>(null)
@@ -124,6 +138,8 @@ export function StepSequence({
   return (
     <section
       ref={rootRef}
+      {...(id && { id })}
+      {...(region !== undefined && { 'data-region': region })}
       // Read by `e2e/motion.e2e.ts`, which measures how long the pin holds.
       data-step-sequence=""
       {...(epic && { 'data-epic': epic })}

@@ -124,7 +124,10 @@ async function coverForPractice(locale: string, practice: string | null) {
   // `workIndexQuery` is ordered `order asc, publishedAt desc`, so the same
   // entry gets the same cover on every render rather than one that moves
   // between builds.
-  return projects.data[0] ?? null
+  // `?? []` before the index: `data` is null when Sanity is unconfigured or
+  // the query failed, and indexing null throws during prerender. The same
+  // defect the first CI run found on `/en/studio` — Tahap 53.
+  return (projects.data ?? [])[0] ?? null
 }
 
 export default async function JournalEntryPage({ params }: EntryPageProps) {

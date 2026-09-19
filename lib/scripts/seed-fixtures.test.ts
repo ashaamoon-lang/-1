@@ -1,0 +1,159 @@
+import { describe, expect, it } from 'bun:test'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+import { isFullWidth, loneHalves } from '@/vault/blocks/project-gallery'
+
+import { PLATES, PLATE_ALT, PREFIX, PROJECTS } from './seed-fixtures'
+
+/**
+ * The fixture tables, checked without seeding anything — Tahap 82.
+ *
+ * ## Why this file could not exist until now
+ *
+ * `seed-fixtures.ts` ran its entry point at module scope, so importing it did
+ * not read the tables — it **seeded the dataset**. A reader without a token
+ * had their process killed by a `process.exit(1)` at load instead, which is
+ * the same problem wearing the other face. Tahap 82 put both behind
+ * `import.meta.main`, and that is what makes the tables readable as data.
+ *
+ * ## What it holds, and why each one is here rather than assumed
+ *
+ * `RUN_MINIMUM` is 4 and the pool held three plates, so the horizontal track
+ * had never rendered once since Tahap 64. Raising the count is easy to do
+ * wrongly in exactly two ways, and both are mechanical enough to test:
+ *
+ * 1. **Repeating a plate inside one project** reaches four while putting the
+ *    same picture on the page twice — and `PLATE_ALT` would then read the same
+ *    sentence twice in a row, which is the defect Tahap 44 closed by giving
+ *    the description to the plate instead of the project.
+ * 2. **Leaving a half-width plate alone in its row.** `loneHalves` exists
+ *    because Tahap 44's first fix corrected the track and left the row: spans
+ *    running `half, full, half` put 572px of empty page beside each picture.
+ *    Four plates give more room for that to happen, not less.
+ *
+ * The flow is not re-implemented here. `loneHalves` is the function the block
+ * itself uses, imported rather than copied, so this cannot pass against a rule
+ * the page no longer follows.
+ */
+
+/** What `vault/blocks/project-gallery` will compute for a plate. */
+const ratioOf = (name: keyof typeof PLATES) =>
+  PLATES[name].width / PLATES[name].height
+
+describe('the fixture gallery feeds the horizontal track', () => {
+  it('reads tables at all, so a broken import cannot pass silently', () => {
+    // Anti-vacuum. Every assertion below iterates; an empty table would
+    // satisfy all of them and report a dataset that does not exist.
+    expect(PROJECTS.length, 'no fixture projects found').toBeGreaterThan(0)
+    expect(Object.keys(PLATES).length).toBeGreaterThan(6)
+  })
+
+  it('gives every project at least the four plates RUN_MINIMUM wants', () => {
+    // 4 is `RUN_MINIMUM` in `vault/blocks/project-gallery`. Below it the
+    // track does not render at all, which is the whole reason for this stage.
+    for (const project of PROJECTS) {
+      expect(
+        project.gallery.length,
+        `${project.slug} carries ${project.gallery.length} gallery plates`
+      ).toBeGreaterThanOrEqual(4)
+    }
+  })
+
+  it('never shows one project the same plate twice', () => {
+    for (const project of PROJECTS) {
+      const unique = new Set(project.gallery)
+      expect(
+        unique.size,
+        `${project.slug} repeats a plate: ${project.gallery.join(', ')}`
+      ).toBe(project.gallery.length)
+    }
+  })
+
+  it('leaves no half-width plate alone in its row', () => {
+    for (const project of PROJECTS) {
+      const spans = project.gallery.map((name) => isFullWidth(ratioOf(name)))
+      const lone = loneHalves(spans)
+      const stranded = project.gallery.filter((_, index) => lone[index])
+
+      expect(
+        stranded,
+        `${project.slug} strands a half-width plate: ${spans
+          .map((full) => (full ? 'full' : 'half'))
+          .join(', ')}`
+      ).toEqual([])
+    }
+  })
+
+  it('describes every plate a project actually shows', () => {
+    // The gallery plates carry their own description; a cover falls back to
+    // the project's. A plate reaching a page without one would be read out
+    // with somebody else's sentence.
+    for (const project of PROJECTS) {
+      for (const name of project.gallery) {
+        expect(PLATE_ALT, `${name} has no description`).toHaveProperty(name)
+      }
+    }
+  })
+
+  it('describes them in both languages', () => {
+    for (const [name, alt] of Object.entries(PLATE_ALT)) {
+      const locales = alt.map((entry) => entry._key).sort()
+      expect(locales, `${name} is not bilingual`).toEqual(['en', 'id'])
+      for (const entry of alt) {
+        expect(
+          entry.value.length,
+          `${name} ${entry._key} is empty`
+        ).toBeGreaterThan(10)
+      }
+    }
+  })
+
+  it('names the prefix its own documentation promises', () => {
+    /*
+     * These disagreed for seventy-eight stages. The constant read `fixture-`
+     * while the module's opening paragraph told the reader `fixture.`, and
+     * that paragraph is the one place somebody checks before trusting
+     * `--clean` with a real dataset. The doc was corrected in Tahap 82; this
+     * is what stops it drifting back.
+     *
+     * `--clean` matches on this prefix rather than a list of names, so every
+     * plate added later is removed without touching that function — which is
+     * only true while the prefix is one value, in one place.
+     */
+    const source = readFileSync(
+      join(import.meta.dir, 'seed-fixtures.ts'),
+      'utf8'
+    )
+    const [doc] = source.split('*/')
+
+    expect(PREFIX, 'the prefix stopped being a prefix').toMatch(/^[a-z]+[-.]$/)
+    expect(
+      doc,
+      `the module doc does not name ${PREFIX}, the prefix --clean matches on`
+    ).toContain(`\`${PREFIX}\``)
+  })
+
+  it('exercises isFullWidth on both sides of its boundary', () => {
+    /*
+     * The point of the ratios, stated as a test rather than only as a comment.
+     *
+     * Before Tahap 82 the dataset held 0.750, 1.000 and 1.778 — nothing had
+     * ever approached the boundary from below on a rendered page, and
+     * `TAHAP-44` records why a passing unit test is a different claim from
+     * that: the gap between the two is where Tahap 11b's defect lived.
+     */
+    const shown = new Set(PROJECTS.flatMap((project) => project.gallery))
+    const ratios = [...shown].map(ratioOf)
+
+    expect(ratios.some((ratio) => ratio < 1)).toBe(true)
+    expect(ratios.some((ratio) => ratio === 1)).toBe(true)
+    expect(ratios.some((ratio) => ratio > 1)).toBe(true)
+
+    const nearBelow = ratios.filter((ratio) => ratio >= 0.95 && ratio < 1)
+    expect(
+      nearBelow.length,
+      'no plate approaches the full-width boundary from below'
+    ).toBeGreaterThan(0)
+  })
+})

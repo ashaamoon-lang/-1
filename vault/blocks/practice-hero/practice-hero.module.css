@@ -3,8 +3,22 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: mobile-vw(16px);
-  /* The measure, not the column: a nameplate that runs the full 12 columns
-     reads as a banner rather than as a subject. */
+  /*
+   * The measure, not the column: a nameplate that runs the full 12 columns
+   * reads as a banner rather than as a subject.
+   *
+   * **Moved off the container in Tahap 75.** It was right about the nameplate
+   * and silent about the rest of the screen: applied here it capped all four
+   * children at 600px and left **824px of a 1440px first screen carrying
+   * nothing**. The measure now belongs to the first column of the desktop
+   * grid below, so the Tahap 15 decision stands and the other half of the
+   * screen stops being empty by accident.
+   *
+   * The figures Tahap 75 attached to this — "42% width used, against 95–97%
+   * on every other route" — were box widths, and Tahap 76 replaced the
+   * instrument that produced them. As ink extent — leftmost to rightmost —
+   * this state is 45% and the other routes 66–97%.
+   */
   max-width: 60ch;
 
   /*
@@ -29,6 +43,158 @@
 
   @media (--desktop) {
     gap: desktop-vw(16px);
+
+    /*
+     * Two columns: the nameplate at its measure, the index in what that
+     * measure leaves free. `align-content: end` keeps the whole composition
+     * bottom-anchored, which is the part Tahap 52 measured and this stage
+     * does not touch.
+     */
+    display: grid;
+    grid-template-columns: minmax(0, 60ch) minmax(0, 1fr);
+    align-content: end;
+    column-gap: var(--gap);
+    max-width: none;
+  }
+}
+
+/*
+ * Every nameplate child stays in column one, so the measure above is what it
+ * always was. Declared once rather than per element: a new child arriving in
+ * this block should land in the nameplate column by default, not beside it.
+ */
+@media (--desktop) {
+  .eyebrow,
+  .name,
+  .intro,
+  .count {
+    grid-column: 1;
+  }
+}
+
+.index {
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(8px);
+  /* A rule under the label, the same hairline weight the rest of the site
+     uses for a quiet division. */
+  border-block-start: 1px solid var(--line);
+  padding-block-start: mobile-vw(12px);
+
+  @media (--desktop) {
+    grid-column: 2;
+    /*
+     * The two columns open together; they do not close together — Tahap 76
+     * measured it, and the declaration that claimed otherwise is gone.
+     *
+     * `align-self: end` stood here with a comment promising the index sat
+     * "level with the foot of the nameplate". It never did, and it could not:
+     * auto-placement lands this nav in the last row beside `.count`, and at
+     * 87px it is the taller of the two, so it *defines* that row and has no
+     * slack to be pushed into. Measured at 1440x900: nameplate ink ends at
+     * y=668, this list at y=737.
+     *
+     * Bottom-aligning for real was tried — explicit rows plus `grid-row:
+     * 1 / -1` — and rejected by measurement, not taste: it lifts the rule to
+     * meet a headline that has descenders in it.
+     *
+     *   shipped          headline ink ends 592, rule at 653   +61px clear
+     *   bottom-aligned   headline ink ends 665, rule at 653   -12px, crossed
+     *
+     * What actually happens is the better composition anyway: the rule lands
+     * at y=653 and `2 engagements` at y=652, so the two columns open the same
+     * band within a pixel, under a headline with room to breathe.
+     */
+
+    /*
+     * Anchored to the right edge of its column — Tahap 76.
+     *
+     * **Composition, not compliance, and the distinction matters here.** At
+     * 53% ink extent this route *passed* the 50% floor in
+     * `e2e/first-screen-void.ts`; nothing was red. The reason is what the
+     * screenshot showed: the rule above this list ran to the page edge while
+     * the words stopped at x=775 of 1440, which reads as a list that lost its
+     * right-hand side. Anchoring it makes the hero hold both margins — the
+     * headline bottom-left, the index bottom-right — the same diagonal
+     * `vault/blocks/hero` composes the home page around.
+     *
+     * The extent went 53% to 97% as a side effect. That is not the argument
+     * for the change, and `EXTENT_MIN_PCT` says why at length: it is a floor
+     * against confinement, not a score to raise.
+     *
+     * `text-align` rather than a flex alignment so the label and the items
+     * agree without either of them needing its own rule.
+     */
+    text-align: end;
+    gap: desktop-vw(8px);
+    padding-block-start: desktop-vw(12px);
+  }
+}
+
+.indexLabel {
+  margin: 0;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.indexList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  /* A row on a phone, where this sits under the count and a column would cost
+     four lines; a column on desktop, where it is the second column. */
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: mobile-vw(16px);
+
+  @media (--desktop) {
+    flex-direction: column;
+    gap: desktop-vw(8px);
+  }
+}
+
+.indexItem {
+  color: var(--text-muted);
+
+  /*
+   * WCAG 2.2 target size, and this repository has paid for it twice already.
+   *
+   * These entries are caption-sized links — about 14px tall — and axe reported
+   * `target-size` on both locales the moment they shipped. `project-spine`
+   * hit exactly this in Tahap 40 and `axe-tags.ts` records the language
+   * switcher doing it at 12.6x14px before that.
+   *
+   * Half the tap target as a minimum block size is what
+   * `lib/styles/css/global.css` says covers this site's small controls, and
+   * what the header nav and the page index already use. The link is the box,
+   * not the glyphs, so the rule sits on the anchor too.
+   */
+  display: flex;
+  align-items: center;
+  min-block-size: calc(var(--tap-target) / 2);
+
+  & a {
+    display: flex;
+    align-items: center;
+    min-block-size: calc(var(--tap-target) / 2);
+  }
+
+  /*
+   * Aligned with the label above them — Tahap 76, and the reason is worth
+   * keeping.
+   *
+   * `text-align: end` on the container moved the label to the right edge and
+   * left these where they were, because the target-size fix above made each
+   * item a flex container and flex children answer to `justify-content`, not
+   * to `text-align`. The measurement went **up** — ink extent 53% to 97% —
+   * while the composition got worse: a label at one edge and its own list at
+   * the other. Optimising the number is exactly what a gate is not for, and
+   * the screenshot is what caught it.
+   */
+  @media (--desktop) {
+    justify-content: flex-end;
   }
 }
 

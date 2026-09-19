@@ -26,6 +26,7 @@ import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
 import { ProjectHero } from '@/vault/blocks/project-hero'
 import { ProjectSpine, type SpineRegion } from '@/vault/blocks/project-spine'
+import { StepSequence } from '@/vault/blocks/step-sequence'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
 
 import s from './page.module.css'
@@ -195,7 +196,39 @@ export const instant = false
 export async function generateStaticParams() {
   if (!isConfigured('sanity')) return [{ slug: EMPTY_DATASET_SENTINEL }]
 
-  const data = await fetchProjectSlugs()
+  /*
+   * An unreachable CMS prerenders nothing; it does not fail the build.
+   *
+   * This function's own note above states the principle: `dynamicParams`
+   * defaults to true, so "prerendering is an optimisation here, not a gate on
+   * content existing". A network error therefore has exactly one honest
+   * meaning — *this build could not learn the list* — and the answer to that
+   * is the same sentinel an empty dataset already gets. Every project page
+   * still renders on demand and still caches; the only cost is a cold first
+   * hit per slug.
+   *
+   * Measured, 2026-09-12: with the project id pointed at a dataset that does
+   * not exist, `bun run build` died here with "Failed to collect page data
+   * for /[locale]/work/[slug]" — before export ever began. So the
+   * `ECONNRESET` that killed CI on `/en/search.json` was not the only place a
+   * blip could take the build down, it was just the first one to get unlucky.
+   *
+   * Content pages deliberately do NOT get this treatment. A params list that
+   * cannot be fetched is missing an optimisation; a *page* whose content
+   * cannot be fetched would ship an empty page that looks finished. There the
+   * build failing is the honest outcome, and it stays that way.
+   */
+  let data: Awaited<ReturnType<typeof fetchProjectSlugs>>
+  try {
+    data = await fetchProjectSlugs()
+  } catch (error) {
+    console.warn(
+      '[work/[slug]] project slugs unreachable, prerendering none.',
+      error
+    )
+    return [{ slug: EMPTY_DATASET_SENTINEL }]
+  }
+
   const slugs = (data ?? []).filter(
     (slug): slug is string => Boolean(slug) && slug !== PRACTICE_SEGMENT
   )
@@ -262,6 +295,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const hasGallery = Boolean(project.gallery && project.gallery.length > 0)
 
   /*
+   * The arc, and why it is filtered rather than trusted.
+   *
+   * `chapters` types as `Array<{_key, heading: string | null, body: string | null}>`
+   * because every localized projection coalesces and can still come back null.
+   * `StepSequence` takes `{key, title, body}` of plain strings, so a half-written
+   * chapter has to be dropped here rather than rendered as an empty step — an
+   * empty step is a numbered row that says nothing, which is worse than one
+   * fewer row.
+   */
+  const chapters = (project.chapters ?? []).flatMap((chapter) =>
+    chapter.heading && chapter.body
+      ? [{ key: chapter._key, title: chapter.heading, body: chapter.body }]
+      : []
+  )
+  const hasChapters = chapters.length > 0
+
+  /*
    * The page's own regions, in document order, and only the ones that render.
    *
    * A row for a gallery that does not exist is a link to nothing — the same
@@ -273,6 +323,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const regions: SpineRegion[] = [
     { id: 'overview', label: t('overview') },
     ...(hasBody ? [{ id: 'notes', label: t('notes') }] : []),
+    ...(hasChapters ? [{ id: 'arc', label: t('arc') }] : []),
+    ...(project.outcome ? [{ id: 'outcome', label: t('outcome') }] : []),
     ...(hasGallery ? [{ id: 'images', label: t('images') }] : []),
     { id: 'onward', label: t('onward') },
   ]
@@ -295,6 +347,25 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       */
       webgl
       simTypes={['flowmap']}
+      /*
+        `gsap`, and it was missing — Tahap 54.
+
+        This page renders two ScrollTrigger consumers: `ProjectSpine`
+        (`vault/motion/use-active-in-sequence` calls `ScrollTrigger.create`)
+        and `ReadingProgress`, whose non-Chromium path is a scrubbed
+        ScrollTrigger. Without this prop `Wrapper` mounts no `GSAPRuntime`, so
+        GSAP never hands its clock to Tempus and **starts a second
+        `requestAnimationFrame` loop of its own** — `CLAUDE.md` #6, the rule
+        whose stated symptom is jitter that "reads as cheap even at 60fps".
+
+        It also left `syncScrollTrigger` false, so those two read the native
+        scroll position while Lenis animates the document underneath them.
+
+        The saving the wrapper's own comment claims for leaving it off is void
+        here: GSAP is in this route's graph either way, because the components
+        above import it. What was saved was the synchronisation.
+      */
+      gsap
     >
       {/*
         How far through this page the reader is — Tahap 52. 4.66 screens here,
@@ -341,9 +412,34 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             title={project.title || humanizeSlug(slug)}
             cover={project.cover}
             coverAlt={project.coverAlt ?? ''}
-            // Opts this cover into the material surface. `e2e/route-budget`
-            // lists `three` for this route with the reason; passing this
-            // without that entry is a red gate.
+            /*
+             * Opts this cover into the material surface. `e2e/route-budget`
+             * lists `three` for this route with the reason; passing this
+             * without that entry is a red gate.
+             *
+             * ## This was off for one stage, and why it is back
+             *
+             * Tahap 58 removed this word. On the production build the cover
+             * rendered as a flat `#201d1b` — the mesh reported correct
+             * position, scale, texture and visibility, and the plate was
+             * still empty. Four hypotheses were built and eliminated, the
+             * root cause was not found, and the honest move was to retreat
+             * rather than ship an invisible cover.
+             *
+             * The cause was found in Tahap 59 and it was never here: the
+             * mesh draws into one fixed layer *behind* `<main>`, and
+             * `project-hero`'s own `.media` placeholder —
+             * `background-color: var(--surface-2)`, computed `oklab(0.23352
+             * …)`, which *is* that `#201d1b` — was painted over it.
+             * `project-card` has dropped that placeholder while a material is
+             * drawing since Tahap 14; Tahap 45 copied the opt-in here and not
+             * the guard. One CSS rule, now held for every material route by
+             * `e2e/material-occlusion.e2e.ts`.
+             *
+             * Measured after the fix, nine samples across the plate:
+             * `#987f5e #8d6f50 #473020 #915836 #7b4528 #6f4229 …` — the same
+             * artwork `/en/work` renders at `#965d39 #7f492a #704329`.
+             */
             material
             // Pairs this cover with the catalogue card the reader came from,
             // so the browser morphs one into the other. Both ends derive the
@@ -364,11 +460,76 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </div>
           )}
 
+          {/*
+            The arc — Tahap 79.
+
+            This section is not a new idea. `project-spine` records that the
+            plan named Brief/Approach/Outcome and that the regions shipped as
+            Overview/Notes/Images instead, because "a project has one `body` of
+            Portable Text, so those sections do not exist and writing them
+            would be inventing content". That was right, and it stayed right
+            for thirty-nine stages. What changed is the content model, not the
+            judgement: `chapters` exists now, so the sections can be rendered
+            from what an editor wrote rather than invented.
+
+            It sits between the prose and the pictures because the order comes
+            from `ui-ux-pro-max`'s `scroll-triggered-storytelling` pattern —
+            problem, journey, solution — and because putting it above the hero
+            would push the fact `<dl>` below the 800px fold that
+            `e2e/project-detail.e2e.ts:100` holds.
+
+            `data-epic` takes this route from one named moment to two, against
+            a ceiling of six. Not six: the same pattern's GSAP entry warns
+            against pinning more than one or two sections per page, and this
+            page already carries a latent pinned run in its gallery.
+          */}
+          {hasChapters && (
+            <StepSequence
+              id="arc"
+              data-region=""
+              data-epic="project-chapters"
+              label={t('arcLabel')}
+              steps={chapters}
+            />
+          )}
+
+          {project.outcome && (
+            <section id="outcome" data-region="" className={s.outcome}>
+              {/*
+                `caption` and `h3` come from the type scale in `tailwind.css`,
+                applied here rather than re-declared in the stylesheet —
+                `scale-rules.test.ts` grants a component its own `font-size`
+                only with a written reason, and there is none to give. Same
+                `cn('<utility>', s.<class>)` shape `/journal` uses throughout.
+
+                The label stays an `<h2>`: `ProjectSpine` links a row at
+                `#outcome`, and a region a reader can jump to should have a
+                name in the accessibility tree, not only a look.
+              */}
+              <h2 className={cn('caption', s.outcomeLabel)}>{t('outcome')}</h2>
+              <p className={cn('h3', s.outcomeText)}>{project.outcome}</p>
+            </section>
+          )}
+
           {hasGallery && project.gallery && (
             <ProjectGallery
               id="images"
               data-region=""
               className={s.gallery}
+              /*
+               * The run — Tahap 64.
+               *
+               * This route, and not `/` or `/work`, because a gate rules both
+               * of those out: `first-screen` needs the catalogue's first
+               * cover open at scroll 0, and replacing the home grid would make
+               * `catalogue-layout`'s span check *skip* rather than fail —
+               * silently switching off a gate, which its own comment names as
+               * the expensive way to break something.
+               *
+               * Here there is no such conflict, the content is already a run
+               * of images, and this page carries one named moment out of six.
+               */
+              run
               images={project.gallery.map((image) => ({
                 ...image,
                 alt: image.alt,

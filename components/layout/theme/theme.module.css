@@ -63,3 +63,71 @@
    */
   isolation: isolate;
 }
+
+/*
+ * The site's paper — Tahap 53.
+ *
+ * `fixed`, not `absolute`, for the reason `/studio` recorded when it shipped
+ * the first copy of this: over several screens a grain that scrolls with the
+ * content reads as a texture stuck onto it, while a grain that stays still
+ * reads as paper. The strength lives in `vault/magic/noise-texture`, which
+ * already carries a per-theme pair and the argument for it.
+ */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /*
+   * Texture strength, and since Tahap 55 that is all it is.
+   *
+   * ## What these numbers used to be
+   *
+   * `vault/magic/noise-texture` ships 0.75 on the dark theme, tuned for the
+   * two places that had grain before Tahap 53: the home hero, over a WebGL
+   * wash, and `/studio`, over a flat ground. Applied to *every* viewport it
+   * stopped being texture and started being light — enough that
+   * `e2e/visual-substance.e2e.ts` reported the accent regions as
+   * **subtracting** tone, the exact defect that gate was written for. The
+   * band with the accent against the band without it, at the shipped 0.75:
+   *
+   *   /en 390x844                  lit 35.4   bare 44.9   RED
+   *   /en/practice/... 1440x900    lit 24.0   bare 36.8   RED
+   *   /en/practice/... 390x844     lit 22.7   bare 36.1   RED
+   *
+   * Swept then: 0.35 still red everywhere (margins 0.6–1.5), 0.25 thin
+   * (1.4–2.5), 0.18 with room (3.5–4.7). That sweep was right about the
+   * symptom and wrong about the cause. `opacity` was scaling a mid-grey
+   * **veil** and the texture together, and the veil was the larger half —
+   * `vault/magic/noise-texture/index.tsx` has the measurement. Turning it
+   * down turned the grain down with it.
+   *
+   * ## What they are now
+   *
+   * The layer's mean is the ground colour by construction, so `opacity` no
+   * longer moves the ground at all and is free to be chosen for how the
+   * surface reads. Both numbers are set by measurement, on a 180x150 patch of
+   * empty ground, as the standard deviation the grain *adds* over the same
+   * patch with the layer switched off:
+   *
+   *              opacity   added sd   mean shift vs the declared token
+   *   light        0.70       2.37             -0.3
+   *   dark         0.45       1.62             -1.0
+   *
+   * Those two `added sd` values are what the site shipped before this stage
+   * (2.44 light, 1.58 dark) — the surface is unchanged; only the palette
+   * underneath it is repaired.
+   *
+   * The pair inverts, and the reason is worth a sentence: the old numbers
+   * were veil weights, where a dark ground needed more before it stopped
+   * looking flat. These are amplitudes in absolute levels, and the same
+   * absolute step reads *harder* on ink than on paper — so ink now takes
+   * less. The component's principle is intact; what changed is which
+   * quantity the number denominates.
+   */
+  opacity: 0.45;
+
+  :where([data-theme='light']) & {
+    opacity: 0.7;
+  }
+}

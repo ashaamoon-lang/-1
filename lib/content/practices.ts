@@ -80,3 +80,50 @@ export const PRACTICE_SEGMENT = 'practice'
 export function practiceTemplate(value: Practice): string {
   return `/${PRACTICE_SEGMENT}/${value}`
 }
+
+/**
+ * The character the capability lines are authored with, between items.
+ *
+ * `messages/{en,id}.json` holds one line per practice —
+ * `"Architecture review · System mapping · Technical due diligence · Decision
+ * records"` — and that line is **twelve pieces of information across three
+ * strings**. The middle dot is the only thing separating them, and it is a
+ * presentation device: no capability's name contains one.
+ */
+export const CAPABILITY_SEPARATOR = '·'
+
+/**
+ * One authored capability line, read back as the items it was written from.
+ *
+ * ## Why the dictionary was not restructured instead
+ *
+ * The obvious alternative was four named keys per practice
+ * (`capabilities.consulting.review`, `.mapping`, …) so `t()` could reach each
+ * item directly. It **does not type-check where it is needed**: the page maps
+ * over `PRACTICES`, so `practice` is the whole union at the call site, and
+ * `t(`capabilities.${practice}.${item}`)` expands to the *product* of three
+ * practices and twelve item names — thirty-six keys, of which twelve exist.
+ * TypeScript cannot correlate the two halves through a `.map()`, so the shape
+ * that looks more typed is the one that needs a cast to compile.
+ *
+ * Uniform slot names (`one`…`four`) would type cleanly and are worse twice
+ * over: they say nothing, and numbering an **unordered** set is the thing
+ * `vault/blocks/step-sequence` already records this project as refusing.
+ *
+ * So the line stays one readable sentence for whoever translates it, and the
+ * guarantee moves to `practices.test.ts`, which asserts every practice splits
+ * into the same number of non-empty items in **both** locales. A test can
+ * promise that; a key name cannot.
+ *
+ * ## What it does with a line that has no separator
+ *
+ * Returns the whole line as one item. A translation that lost its dots
+ * degrades to a one-item list rather than an empty section — and the test
+ * above is what stops that reaching a reader.
+ */
+export function capabilityItems(line: string): readonly string[] {
+  return line
+    .split(CAPABILITY_SEPARATOR)
+    .map((item) => item.trim())
+    .filter((item) => item !== '')
+}

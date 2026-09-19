@@ -22,7 +22,7 @@
 
 import { describe, expect, it } from 'bun:test'
 
-import { isFullWidth } from './index'
+import { isFullWidth, loneHalves } from './index'
 
 describe('gallery widths', () => {
   it('gives landscape and square the full track', () => {
@@ -52,5 +52,57 @@ describe('gallery widths', () => {
     const forward = ratios.map(isFullWidth)
     const reversed = [...ratios].reverse().map(isFullWidth)
     expect(reversed).toEqual([...forward].reverse())
+  })
+})
+
+/**
+ * The row, which the track rule left alone.
+ *
+ * `isFullWidth` made the box agree with its track. It did not make the *row*
+ * agree with itself: on the shipped fixture the spans run `half, full, half`,
+ * so neither half ever meets another and each opens a row it cannot fill.
+ * Measured at 1440×900, that is 572px of empty ground beside two separate
+ * pictures.
+ *
+ * Every case below is a sequence the six seeded projects or a real gallery can
+ * actually produce, and the three-halves case is the one a neighbour test
+ * would get wrong.
+ */
+describe('a half alone in its row', () => {
+  const F = true
+  const H = false
+
+  it('finds nothing to fix when every plate is full width', () => {
+    expect(loneHalves([F, F, F])).toEqual([false, false, false])
+  })
+
+  it('leaves a pair alone, because a pair already fills its row', () => {
+    expect(loneHalves([H, H])).toEqual([false, false])
+  })
+
+  it('catches the shipped fixture, where the full keeps the halves apart', () => {
+    // `half, full, half` — the sequence measured on /en/work/arus-balik.
+    expect(loneHalves([H, F, H])).toEqual([true, false, true])
+  })
+
+  it('catches the third of three halves, which a neighbour rule would miss', () => {
+    // The first two fill a row; the third opens its own and stands alone.
+    // "the next item is also a half" would call index 1 paired and index 2
+    // paired-with-1, and ship the hole.
+    expect(loneHalves([H, H, H])).toEqual([false, false, true])
+  })
+
+  it('reads four halves as two full rows', () => {
+    expect(loneHalves([H, H, H, H])).toEqual([false, false, false, false])
+  })
+
+  it('catches a single half, whichever end of the gallery it sits at', () => {
+    expect(loneHalves([H])).toEqual([true])
+    expect(loneHalves([F, H])).toEqual([false, true])
+    expect(loneHalves([H, F])).toEqual([true, false])
+  })
+
+  it('has an answer for an empty gallery', () => {
+    expect(loneHalves([])).toEqual([])
   })
 })

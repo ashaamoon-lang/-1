@@ -39,10 +39,24 @@
  * ## The frame, and why it is not centred
  *
  * The text elements sit on a diagonal: the index in the top right, the
- * headline and its action at the bottom left. That is a composition. The previous arrangement — everything centred in a
- * column down the left — was not: it was one element's natural width three
- * times over, with the vertical position decided by `align-items: center`.
- * `docs/stages/TAHAP-12.md` §3.1 has the measurement it came from.
+ * headline and its action at the bottom left. That is a composition. The
+ * previous arrangement — everything centred in a column down the left — was
+ * not: it was one element's natural width three times over, with the vertical
+ * position decided by `align-items: center`. `docs/stages/TAHAP-12.md` §3.1
+ * has the measurement it came from.
+ *
+ * **And for fifty-five stages this paragraph described a page that did not
+ * exist.** The `index` prop, its markup and its CSS shipped in Tahap 12d;
+ * `app/[locale]/page.tsx` never passed it, so the home page rendered exactly
+ * the staircase above. Measured at 1440×900 before Tahap 67 wired it: first
+ * screen content **462→836 of 900**, nothing at all in the top 51%.
+ *
+ * The tell was sitting in plain sight in three places — this paragraph,
+ * `lib/content/practices.ts` ("the hero's right-hand column has been labelled
+ * `Practice` / `Praktik` since Tahap 12d"), and `home.heroIndexLabel` idle in
+ * both dictionaries. A doc that describes an unpassed prop is the same defect
+ * class as a `[data-epic]` name with no element, and this project has now
+ * found it in motion (Tahap 50, 52) and in composition.
  *
  * ## Choreography
  *

@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { trackFaults } from './track-contract'
+
 /**
  * A project page has an edge a reader can follow.
  *
@@ -183,6 +185,14 @@ test.describe('media edge', () => {
 
       const artwork = await page.evaluate(() => {
         const nextProject = document.querySelector('[class*="next-project"]')
+        /*
+         * The horizontal run is a different layout with a different contract —
+         * Tahap 71. Its plates share one track whatever their shape, which is
+         * the opposite of the grid's rule, so they are tagged here and judged
+         * separately in `trackFaults`. Tagging rather than excluding: dropping
+         * them would leave nothing asserting their widths at all.
+         */
+        const run = document.querySelector('[data-epic="project-run"]')
         return [...document.querySelectorAll<HTMLImageElement>('main img')]
           .filter((img) => !nextProject?.contains(img) && img.naturalHeight > 0)
           .map((img) => ({
@@ -191,38 +201,24 @@ test.describe('media edge', () => {
             // about — and if a crop ever is requested, this catches that too.
             ratio: img.naturalWidth / img.naturalHeight,
             width: img.getBoundingClientRect().width,
+            inRun: run?.contains(img) ?? false,
           }))
       })
 
       expect(artwork.length, `${path} renders no artwork`).toBeGreaterThan(0)
       everyRatio.push(...artwork.map((item) => item.ratio))
 
-      const fulls = artwork.filter((item) => item.ratio >= 1)
-      const halves = artwork.filter((item) => item.ratio < 1)
-
-      const spread = (items: typeof artwork) =>
-        items.length === 0
-          ? 0
-          : Math.max(...items.map((i) => i.width)) -
-            Math.min(...items.map((i) => i.width))
-
+      /*
+       * The judgement lives in `track-contract.ts` so that the run's branch is
+       * reachable from a unit test. No route draws a run on today's dataset —
+       * every project carries two images against a `RUN_MINIMUM` of four — so
+       * written inline it would be a rule that never executes, which is the
+       * failure Tahap 68, 69 and 70 each recorded once.
+       */
       expect(
-        spread(fulls),
-        `${path}: landscape and square works land on different widths`
-      ).toBeLessThanOrEqual(TOLERANCE)
-      expect(
-        spread(halves),
-        `${path}: portrait works land on different widths`
-      ).toBeLessThanOrEqual(TOLERANCE)
-
-      if (fulls.length > 0 && halves.length > 0) {
-        const full = Math.min(...fulls.map((i) => i.width))
-        const half = Math.max(...halves.map((i) => i.width))
-        expect(
-          half,
-          `${path}: a portrait work is not narrower than a landscape one (${Math.round(half)}px vs ${Math.round(full)}px)`
-        ).toBeLessThan(full - TOLERANCE)
-      }
+        trackFaults(artwork, TOLERANCE),
+        `${path} breaks the contract for the layout it is in`
+      ).toEqual([])
     }
 
     /*

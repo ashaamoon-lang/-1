@@ -2,15 +2,84 @@ name: CI
 permissions:
   contents: read
 
+# Pull requests, and the default branch.
+#
+# ## Two corrections, both measured
+#
+# This read `branches: [main]` on *both* triggers, and **this repository had no
+# `main` branch** — its default was the working branch itself. Neither trigger
+# could ever match, so CI had never run once since the fork. Tahap 53 opened
+# both filters to fix that, and created `main` so the PR flow had a base.
+#
+# Opening both was too much. `push` and `pull_request` both match a PR branch,
+# and their `concurrency` groups differ — `refs/heads/<branch>` against
+# `refs/pull/<n>/merge` — so neither cancels the other and **both run in full**.
+# Observed on PR #9: every push started two complete suites, and each new push
+# cancelled the previous pair before the slower `e2e` job could finish, so the
+# e2e job never completed at all.
+#
+# So: pull requests are covered by `pull_request` (one run per push, whatever
+# the branch is called), and `main` is covered for the post-merge case. A
+# branch with no open PR gets no CI — which is the standard trade and the
+# reason to open the PR early.
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+# ## Why Sanity configuration is in this file, and why only on two steps
+#
+# The first `e2e` job that ever ran to completion (PR #9, head `8f2493f`)
+# reported **424 passed / ~60 failed**, and every single failure was
+# content-dependent: `/en/work` rendered nothing, `/en/work/<slug>` 404'd,
+# `/en/practice/<v>` had no plates, plus `journey`, `first-screen`,
+# `navigation-landing` and `reading-progress`. The runner had no Sanity
+# configuration, so `app/[locale]/work/page.tsx` called `notFound()` and the
+# rest rendered empty. The gates were not wrong; the runner had no site to
+# measure.
+#
+# These three values are **already public**. They carry the `NEXT_PUBLIC_`
+# prefix, which means Next.js inlines them into the client bundle — the
+# shipped HTML of every page already contains
+# `cdn.sanity.io/images/az53j4l1/production/...`. Putting them in a workflow
+# file publishes nothing that visiting the site does not.
+#
+# And the dataset is world-readable: `count(*[_type=="project"])` against
+# `https://az53j4l1.api.sanity.io/.../data/query/production` with **no**
+# Authorization header returns HTTP 200 and `6`. So CI needs no token to read
+# published content, and gets none. `SANITY_API_WRITE_TOKEN` is deliberately
+# absent and must stay absent: it carries developer+editor roles, it lives
+# only in a gitignored `.env.local`, it must never be given a `NEXT_PUBLIC_`
+# prefix, and CI has no business writing anything.
+#
+# ## Only on the steps that render pages — this was learned the hard way
+#
+# The first attempt put these at workflow level, so they reached **every**
+# step, including `bun run check`. That turned one unit test red:
+# `buildMarkdownDocument > returns a recoverable Markdown 404`. The cause is
+# worth writing down, because it is not a flake and not a network problem:
+#
+#   Cross-Origin Request Blocked: The Same Origin Policy disallows reading
+#   the remote resource at "https://az53j4l1.apicdn.sanity.io/..."
+#     at happy-dom/lib/xml-http-request/XMLHttpRequest.js
+#     at @sanity/client/dist/index.browser.js
+#
+# `lib/scripts/test-setup.ts` registers happy-dom globals and restores Bun's
+# native `fetch`, but **not** `XMLHttpRequest` — and `@sanity/client`'s
+# browser build reaches for XHR, which happy-dom refuses cross-origin. Five
+# retries, then a throw, then `fetchCmsRoutesResult` degrades, and a degraded
+# catalogue answers 503 instead of 404.
+#
+# The unit suite is hermetic on a developer machine too, and that is not an
+# accident of configuration: `bun test` does not load `.env.local`, so
+# `isConfigured('sanity')` is `false` there. Measured —
+# `getCmsRoutesResult()` under the real preload returns
+# `degraded=false, routes=0` in 1ms. CI now matches that, so the unit suite
+# reaches no network at all and the two environments agree.
 
 jobs:
   ci:
@@ -44,6 +113,10 @@ jobs:
       # Build first: generates next-env.d.ts + .next/types (gitignored) that
       # tsc needs, and catches RSC/prerender regressions before deploy.
       - name: Build
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: az53j4l1
+          NEXT_PUBLIC_SANITY_DATASET: production
+          NEXT_PUBLIC_SANITY_API_VERSION: '2025-03-01'
         run: bun run build
 
       # Separate from `check` purely for the --format=github annotations, which
@@ -165,8 +238,23 @@ jobs:
 
       # playwright.config.ts boots the prod server itself in CI (webServer),
       # so no separate server step is needed here.
+      # `e2e/storybook-a11y.e2e.ts` reads `storybook-static/` and **skips with a
+      # message** when it is absent — about a hundred story-level axe checks
+      # that report success by not running. Its own doc comment says "CI runs
+      # `bun run build-storybook` first"; this job did not, so that sentence
+      # was false for as long as it existed. It is true now.
+      - name: Build Storybook
+        if: steps.gate.outputs.run == 'true'
+        run: bun run build-storybook
+
+      # `playwright.config.ts` boots its own `next build && next start` here,
+      # so this is the step the site's content has to reach.
       - name: Run e2e tests
         if: steps.gate.outputs.run == 'true'
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: az53j4l1
+          NEXT_PUBLIC_SANITY_DATASET: production
+          NEXT_PUBLIC_SANITY_API_VERSION: '2025-03-01'
         run: bun run test:e2e
 
       - name: Upload Playwright report

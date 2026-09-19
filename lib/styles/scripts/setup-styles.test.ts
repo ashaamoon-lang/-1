@@ -91,9 +91,17 @@ describe('color authoring rules', () => {
      * There were no violations there when this was widened in Tahap 37; the
      * hole was structural, not a bug waiting to be found.
      */
-    for await (const path of new Glob(
+    for await (const scanned of new Glob(
       '{app,components,lib,vault}/**/*.css'
     ).scan(repoRoot)) {
+      /*
+       * `Bun.Glob` emits `lib\dev\grid\grid.module.css` on Windows, so the
+       * carve-out below stopped matching there and this gate reported the
+       * grid overlay's deliberately off-palette magenta as a violation —
+       * red on every Windows checkout, green on CI. Same hazard and same fix
+       * as `lib/scripts/generate-manifest.ts`.
+       */
+      const path = scanned.replaceAll('\\', '/')
       /*
        * `lib/dev/` is tooling, not the site. The grid overlay is a magenta
        * chosen precisely because it belongs to no palette: it has to stay

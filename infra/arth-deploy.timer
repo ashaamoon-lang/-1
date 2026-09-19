@@ -1,0 +1,16 @@
+[Unit]
+Description=Arth — check for new commits every five minutes
+
+[Timer]
+# Not at boot exactly: give the network and the app a moment to settle first.
+OnBootSec=2min
+OnUnitActiveSec=5min
+# A run missed while the machine was off happens on the next start, rather than
+# waiting for the following interval.
+Persistent=true
+# Spread the wake-up so a fleet of these would not all fetch on the same second.
+RandomizedDelaySec=30s
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target

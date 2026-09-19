@@ -73,7 +73,25 @@ export function cancelGuard<T>(
     )
     process.exit(1)
   }
-  return value
+  /*
+   * SAFETY: the cast restores what the guard can no longer express.
+   *
+   * `@clack/core` declares `isCancel(value: unknown): value is typeof
+   * CANCEL_SYMBOL`, and `CANCEL_SYMBOL` is a `unique symbol`. Narrowing
+   * `T | symbol` against a *unique* symbol cannot remove the wider `symbol`
+   * from an unconstrained `T`, so the negative branch still types as
+   * `T | symbol` — `tsc` rejects it with TS2322 even though `process.exit(1)`
+   * above is `never` and this line is unreachable for a cancel.
+   *
+   * The runtime contract is unchanged and is the one this function's doc
+   * states: the only `symbol` a caller ever passes is clack's cancel
+   * sentinel, and that path exits the process. Constraining `T` instead
+   * (`T extends object`, say) would be a lie — callers pass strings.
+   *
+   * Surfaced Tahap 61 by the `@clack/prompts` 1.7 → 1.8 bump, which carried
+   * a new `@clack/core` whose guard is narrower than the old one.
+   */
+  return value as T
 }
 
 // ---------------------------------------------------------------------------

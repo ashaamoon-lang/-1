@@ -7,6 +7,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { PixelImage } from '@/vault/magic/pixel-image'
 import { Reveal } from '@/vault/motion/reveal'
 
 import s from './studio-note.module.css'
@@ -100,6 +101,26 @@ export function StudioNote({
                 maxWidth={704}
                 className={s.image}
               />
+              {/*
+                The portrait assembles rather than fades — Tahap 63.
+
+                One of only two image surfaces with no WebGL material layer
+                (the other is `next-project`), which is the whole reason the
+                veil belongs here: a plate already running `MaterialImage`
+                would be two reveals arguing over one object.
+
+                It is deliberately the *slowest* thing in this section. A
+                studio portrait is the one image on the site a reader is asked
+                to look at rather than click, so the block assembling under
+                the prose gives them a reason to stay in it — and
+                `--pixel-ground` matching `.media` means an undissolved tile
+                reads as the empty box, not as a tile.
+
+                Keyed off the `<figure data-reveal-item>` above, so it runs
+                inside this block's existing entrance rather than as a second,
+                competing one.
+              */}
+              <PixelImage className={s.pixels} />
             </div>
           </figure>
         )}
