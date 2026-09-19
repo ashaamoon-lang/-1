@@ -71,7 +71,10 @@ Diukur di laptop itu pada **19 September 2026**, di worktree `arth-design`:
 `check` **579 lulus / 0 gagal**, e2e **714 lulus / 7 gagal / 14 dilewati**
 dalam 29,4 menit. Ketujuhnya dibongkar di `docs/stages/TAHAP-81.md` §7.2 —
 empat lulus di isolasi, dua adalah pasangan yang §5.1 di bawah sudah namai,
-satu gagal 1 dari 2. **Nol berasal dari tahap itu.**
+satu gagal 1 dari 2. **Nol berasal dari tahap itu**, dan CI membuktikannya:
+run 35439317243 melaporkan **722 lulus / 1 flaky / 14 dilewati** dari 737 tes
+dalam 22,4 menit. Ketujuh merah lokal lulus di sana, dilewatinya identik, dan
+satu-satunya flaky adalah utang §5.1 di bawah.
 
 Suite itu dijalankan **tanpa `CI=1`**, terhadap server produksi yang dibangun
 dan dinyalakan lebih dulu. Sebabnya diukur: `CI=1` memicu `bun run build`

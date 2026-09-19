@@ -2,7 +2,7 @@
  * Temporary fixture content, for verifying pages that need real data.
  *
  * **This is not seed data for a real site.** Every document it writes carries
- * an id prefixed `fixture.`, and `--clean` deletes all of them plus the image
+ * an id prefixed `fixture-`, and `--clean` deletes all of them plus the image
  * assets they reference. It exists because two of Tahap 4's exit criteria —
  * an end-to-end test against a real slug, and a sitemap containing every
  * project — cannot be checked against an empty dataset, and inventing
@@ -43,9 +43,19 @@ const token = process.env.SANITY_API_WRITE_TOKEN
 const PREVIEW = process.argv.includes('--preview')
 const PREVIEW_DIR = '.fixtures-preview'
 
-// Checked at load, before any work, so the failure is "you are missing a
-// credential" rather than "ten plates rendered and then a 401".
-if (!PREVIEW && !(projectId && token)) {
+/*
+ * Checked before any work, so the failure is "you are missing a credential"
+ * rather than "ten plates rendered and then a 401".
+ *
+ * `import.meta.main` is load-bearing and was missing until Tahap 82. Without
+ * it this ran on **import**, and the consequences were not symmetrical: a
+ * reader with no token had their process killed by `process.exit(1)` at module
+ * scope, and a reader with one — which is everyone here, because Bun loads
+ * `.env.local` automatically — had the dataset seeded by the act of importing
+ * the file. That is not a shape a test can be written against, and it is the
+ * reason this file had none.
+ */
+if (import.meta.main && !PREVIEW && !(projectId && token)) {
   console.error(
     'Missing NEXT_PUBLIC_SANITY_PROJECT_ID or SANITY_API_WRITE_TOKEN.'
   )
@@ -126,7 +136,7 @@ async function mutate(mutations: readonly unknown[]): Promise<void> {
  * 404 for a project the Studio showed as published. Nothing errored; the
  * project simply was not there.
  */
-const PREFIX = 'fixture-'
+export const PREFIX = 'fixture-'
 
 /** The asset endpoint's response, parsed rather than asserted — it is I/O. */
 const uploadResponseSchema = z.object({
@@ -375,7 +385,7 @@ async function clean() {
  * this note was written and the name moved in Tahap 13's rename; the note did
  * not, and pointed at a plate that no longer existed until Tahap 45.
  */
-const PLATES = {
+export const PLATES = {
   'arus-balik': {
     width: 1440,
     height: 1800, // 0.80 — portrait, half track
@@ -475,6 +485,63 @@ const PLATES = {
     horizon: 0.6,
     subjectX: 0.56,
   },
+  /*
+   * Three plates added in Tahap 82, and the ratios are the argument.
+   *
+   * `RUN_MINIMUM` is 4 and the pool held 3, so no project could take four
+   * distinct plates and the horizontal track had never rendered. Growing the
+   * pool was the only way to reach four without repeating a picture inside one
+   * project — which would also have read the same `PLATE_ALT` sentence twice
+   * in a row, the defect Tahap 44 closed.
+   *
+   * Since they had to be chosen anyway, they are chosen where `isFullWidth`
+   * has never been exercised on a rendered page. Before this stage the whole
+   * dataset held 0.750, 1.000 and 1.778: one well below the boundary, one on
+   * it, one well above. Nothing had ever approached it **from below**, and
+   * nothing sat just above it either.
+   *
+   *   plate-column  0.560  half — further below than anything before it
+   *   plate-near    0.980  half — the boundary from below, two hundredths off
+   *   plate-broad   1.250  full — the boundary from above
+   *
+   * `plate-near` is the one that matters. `isFullWidth(0.98)` is unit-tested
+   * and passing, and `TAHAP-44` records that a unit test passing is a
+   * different claim from a rendered page being right — the gap between the two
+   * is exactly where Tahap 11b's defect lived.
+   */
+  'plate-column': {
+    width: 1120,
+    height: 2000, // 0.560 — gallery, half track
+    ground: '#1c2430',
+    mass: '#41648c',
+    light: '#d8e4f2',
+    lightX: 0.3,
+    lightY: 0.2,
+    horizon: 0.58,
+    subjectX: 0.38,
+  },
+  'plate-near': {
+    width: 1568,
+    height: 1600, // 0.980 — gallery, the boundary from below
+    ground: '#2a2a20',
+    mass: '#6e6a34',
+    light: '#ece0c0',
+    lightX: 0.52,
+    lightY: 0.42,
+    horizon: 0.68,
+    subjectX: 0.48,
+  },
+  'plate-broad': {
+    width: 2000,
+    height: 1600, // 1.250 — gallery, the boundary from above
+    ground: '#241e26',
+    mass: '#5e4470',
+    light: '#e2d4ee',
+    lightX: 0.44,
+    lightY: 0.3,
+    horizon: 0.74,
+    subjectX: 0.6,
+  },
   portrait: {
     width: 1440,
     height: 1800, // studioSettings.portrait — 4:5
@@ -523,7 +590,7 @@ type PlateName = keyof typeof PLATES
  * only when something starts using it is a description written under
  * deadline.
  */
-const PLATE_ALT = {
+export const PLATE_ALT = {
   'plate-wide': i18n(
     'A low horizon in warm brown, a single mass catching light from the upper right',
     'Cakrawala rendah dalam cokelat hangat, satu massa menangkap cahaya dari kanan atas'
@@ -535,6 +602,28 @@ const PLATE_ALT = {
   'plate-square': i18n(
     'A square plum field, a rose-lit mass low and to the right',
     'Bidang plum persegi, massa bersinar merah muda di bawah kanan'
+  ),
+  /*
+   * Written after looking at the rendered plates, not at the hex values.
+   *
+   * The first draft of all three described the **light** where the mass is:
+   * `plate-column` was called pale when its mass is blue and only the glow is
+   * pale, and `plate-broad` was given a high horizon when `horizon: 0.74` puts
+   * the ground band in the bottom quarter. An alt that names the wrong colour
+   * is the Tahap 44 defect in a new coat — a sentence read out to somebody who
+   * cannot check it against the picture.
+   */
+  'plate-column': i18n(
+    'A tall slate field, a blue mass resting low on the ground line, lit pale from the upper left',
+    'Bidang batu tulis yang jangkung, massa biru bertumpu rendah di garis tanah, disinari pucat dari kiri atas'
+  ),
+  'plate-near': i18n(
+    'A near-square field in dark olive, a rounded mass just left of centre beneath a cream glow',
+    'Bidang nyaris persegi dalam zaitun gelap, massa membulat sedikit di kiri tengah di bawah pendar krem'
+  ),
+  'plate-broad': i18n(
+    'A broad violet field, a deep plum mass right of centre on a low horizon',
+    'Bidang ungu melebar, massa plum pekat di kanan tengah pada cakrawala rendah'
   ),
 } as const satisfies Partial<Record<PlateName, ReturnType<typeof i18n>>>
 
@@ -610,7 +699,7 @@ interface FixtureProject {
  * *structural* here is real: the practices, the engagement shapes and the
  * scopes are the vocabulary the schema and the routes now speak.
  */
-const PROJECTS: readonly FixtureProject[] = [
+export const PROJECTS: readonly FixtureProject[] = [
   {
     slug: 'arus-balik',
     order: 1,
@@ -626,7 +715,7 @@ const PROJECTS: readonly FixtureProject[] = [
     ),
     scope: '2 teams · 6 weeks',
     cover: 'arus-balik',
-    gallery: ['plate-wide', 'plate-tall'],
+    gallery: ['plate-wide', 'plate-tall', 'plate-column', 'plate-square'],
     alt: i18n(
       'Diagram of a system under review, one mass lit from the left',
       'Diagram sistem yang sedang ditinjau, satu massa disinari dari kiri'
@@ -648,7 +737,7 @@ const PROJECTS: readonly FixtureProject[] = [
     engagement: i18n('Retainer, six months', 'Retainer, enam bulan'),
     scope: '3 teams · 6 months',
     cover: 'pusat-beban',
-    gallery: ['plate-tall', 'plate-wide'],
+    gallery: ['plate-tall', 'plate-near', 'plate-wide', 'plate-broad'],
     alt: i18n(
       'A load spread across a wide frame, lit from the upper right',
       'Beban yang tersebar di bingkai lebar, disinari dari kanan atas'
@@ -673,7 +762,7 @@ const PROJECTS: readonly FixtureProject[] = [
     ),
     scope: '1 team · 10 weeks',
     cover: 'bacaan-mesin',
-    gallery: ['plate-square', 'plate-wide'],
+    gallery: ['plate-square', 'plate-broad', 'plate-column', 'plate-near'],
     alt: i18n(
       'A square frame, a pale mass on a threshold of light',
       'Bingkai persegi, massa pucat di ambang cahaya'
@@ -698,7 +787,7 @@ const PROJECTS: readonly FixtureProject[] = [
     ),
     scope: '1 team · 8 weeks',
     cover: 'takar',
-    gallery: ['plate-tall', 'plate-square'],
+    gallery: ['plate-broad', 'plate-column', 'plate-tall', 'plate-wide'],
     alt: i18n(
       'A tall violet frame lit from below',
       'Bingkai tinggi berwarna ungu yang disinari dari bawah'
@@ -720,7 +809,7 @@ const PROJECTS: readonly FixtureProject[] = [
     engagement: i18n('Commissioned build', 'Pengerjaan pesanan'),
     scope: '1 team · 12 weeks',
     cover: 'pelabuhan',
-    gallery: ['plate-wide', 'plate-square'],
+    gallery: ['plate-near', 'plate-column', 'plate-square', 'plate-wide'],
     alt: i18n(
       'A warm red mass under a late light',
       'Massa merah hangat di bawah cahaya senja'
@@ -745,7 +834,7 @@ const PROJECTS: readonly FixtureProject[] = [
     ),
     scope: '2 teams · 5 months',
     cover: 'lantai-dua',
-    gallery: ['plate-wide', 'plate-tall'],
+    gallery: ['plate-wide', 'plate-broad', 'plate-tall', 'plate-near'],
     alt: i18n(
       'A cool blue mass, lit from the left across a wide frame',
       'Massa biru dingin, disinari dari kiri di bingkai lebar'
@@ -880,10 +969,12 @@ async function preview() {
   console.log(`\n${plates.length} plates written to ${PREVIEW_DIR}/`)
 }
 
-if (PREVIEW) {
-  await preview()
-} else if (process.argv.includes('--clean')) {
-  await clean()
-} else {
-  await seed()
+if (import.meta.main) {
+  if (PREVIEW) {
+    await preview()
+  } else if (process.argv.includes('--clean')) {
+    await clean()
+  } else {
+    await seed()
+  }
 }

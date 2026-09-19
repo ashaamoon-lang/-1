@@ -374,6 +374,21 @@ sama, rute yang sama, akuntansi yang berbeda. Itu satu-satunya perilaku yang
 hilang tanpa `CI`, dan sudah diperiksa lebih dulu: **nol** spec e2e bercabang
 pada `process.env.CI`.
 
+**CI menutupnya, dan angkanya rekonsiliasi persis.** Run 35439317243 atas
+commit ini: **722 lulus · 1 flaky · 14 dilewati** dalam 22,4 menit, atas **737**
+tes — dua lebih banyak daripada 735 lokal, yaitu `plane-edge.e2e.ts` yang belum
+ada saat suite lokal dijalankan.
+
+```
+CI     722 lulus + 1 flaky            = 723 yang akhirnya lulus, dari 737
+lokal  714 lulus + 7 gagal            = 721 yang dijalankan, dari 735
+        723 - 714 = 9 = 7 kegagalan lokal + 2 tes baru
+```
+
+Jadi **ketujuh merah lokal lulus di CI**, dilewati yang sama persis (14 = 14),
+dan satu-satunya flaky CI adalah utang `visual-substance` yang §5.1 sudah namai.
+Prediksi §7.2 diperiksa terhadap sumbernya, bukan dibiarkan sebagai argumen.
+
 **Jalur dari tahap ini ke `/work` diperiksa, bukan diandaikan.** Satu-satunya
 berkas bersama adalah `vault/motion/parallax/index.tsx`, dan `git diff` yang
 menyaring komentar mengembalikan **kosong**: 17 baris, seluruhnya doc. Area itu
