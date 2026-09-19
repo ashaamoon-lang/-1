@@ -59,6 +59,22 @@ const SOURCE_GLOBS = [
   'vault/**/*.ts',
   'components/**/*.tsx',
   'components/**/*.ts',
+  /*
+   * Stylesheets, for the sticky hold alone.
+   *
+   * Added because leaving them out made one of the two counts depend on an
+   * accident. `position: sticky` is a CSS declaration, so a block that holds a
+   * section declares it in its `.module.css` — `capability-set` was only found
+   * because it *also* names it in a comment in `index.tsx`, while
+   * `project-spine` declares it in CSS only and went unseen.
+   *
+   * A count that finds a thing when someone happened to mention it elsewhere
+   * is not a count. The moment and parallax scans stay TypeScript-only, which
+   * is where `data-epic` and an import can actually live.
+   */
+  'app/**/*.css',
+  'vault/**/*.css',
+  'components/**/*.css',
 ]
 
 /**
@@ -95,6 +111,8 @@ export interface Scoreboard {
   parallaxConsumers: string[]
   /** Files creating a pinned ScrollTrigger. */
   pinned: string[]
+  /** Files holding a section with `position: sticky` — the other pin. */
+  sticky: string[]
 }
 
 /** Distinct moment names, from the attribute the gates read. */
@@ -114,22 +132,55 @@ export function declaresPin(text: string): boolean {
   return /\bpin:\s*true\b/.test(text)
 }
 
+/**
+ * True when a file holds a section in place with `position: sticky`.
+ *
+ * ## Counted separately, because the first version missed it entirely
+ *
+ * This scan shipped counting only `pin: true` and reported **2**. That was an
+ * undercount, found the day after: `MOTION-SPEC.md` §9.5 calls
+ * `practice-capabilities` "this route's first pin", and
+ * `capability-set.module.css` implements it with `position: sticky` — the
+ * comment directly above that declaration reads "The pin."
+ *
+ * Both mechanisms do the thing the budget is about: hold a section while the
+ * scroll passes it. `ui-ux-pro-max` warns against more than one or two such
+ * sections per page and does not care which API produced them.
+ *
+ * They are reported on **separate lines rather than summed**, because a
+ * scanner cannot tell a held *moment* from sticky chrome — `project-spine` is
+ * a navigation rail, not a choreographed beat. Summing them would produce a
+ * number that reads like a budget and is not one.
+ */
+export function declaresSticky(text: string): boolean {
+  return /position:\s*sticky/.test(text)
+}
+
 export function scan(files = sources()): Scoreboard {
   const moments = new Set<string>()
   const parallaxConsumers: string[] = []
   const pinned: string[] = []
+  const sticky: string[] = []
 
   for (const { path, text } of files) {
     if (isStory(path)) continue
     for (const name of momentNames(text)) moments.add(name)
     if (importsParallax(text)) parallaxConsumers.push(path)
     if (declaresPin(text)) pinned.push(path)
+    /*
+     * Deduped to the directory, because a block declares its hold across two
+     * files — `capability-set/index.tsx` and `capability-set.module.css` are
+     * one held section, not two. Counting files here inflated the number the
+     * moment stylesheets were added to the scan.
+     */
+    if (declaresSticky(text)) sticky.push(path.replace(/\/[^/]+$/, ''))
   }
 
   return {
     moments: [...moments].sort(),
     parallaxConsumers,
     pinned,
+    sticky: [...new Set(sticky)].sort(),
   }
 }
 
@@ -145,14 +196,24 @@ export function renderScoreboard(board: Scoreboard): string {
     `blok mengonsumsi useParallax          ${board.parallaxConsumers.length}`,
     ...board.parallaxConsumers.map((path) => `  ${shorten(path)}`),
     '',
-    `section ter-pin                       ${board.pinned.length}`,
+    `section ter-pin (ScrollTrigger)       ${board.pinned.length}`,
     ...board.pinned.map((path) => `  ${shorten(path)}`),
+    '',
+    `section tertahan (position: sticky)   ${board.sticky.length}`,
+    ...board.sticky.map((path) => `  ${shorten(path)}`),
     '```',
     '',
     '**Yang angka-angka ini TIDAK bisa lihat.** Ia memindai sumber, bukan',
     'halaman yang dirender, jadi ia tidak tahu **berapa momen yang jatuh pada',
     'satu rute** — itu pekerjaan `e2e/epic-sequence.e2e.ts`, yang menuntut dua',
     'momen bernama beda tidak menempati rentang gulir yang sama.',
+    '',
+    'Dua baris terakhir **tidak dijumlahkan**, dan itu disengaja. Keduanya',
+    'menahan section saat gulir lewat, jadi keduanya masuk anggaran yang sama —',
+    'tapi sebuah pemindai tidak bisa membedakan **momen** yang ditahan dari',
+    'kerangka yang kebetulan sticky: `project-spine` adalah rel navigasi, bukan',
+    'ketukan berkoreografi. Menjumlahkannya menghasilkan angka yang terbaca',
+    'seperti anggaran padahal bukan.',
     '',
     'Dan ia sama sekali tidak bisa melihat **kualitas**. Sebuah hitungan tidak',
     'bisa membedakan momen yang halaman ini butuhkan dari momen yang ditambahkan',

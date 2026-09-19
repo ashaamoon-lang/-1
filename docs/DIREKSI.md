@@ -172,15 +172,28 @@ blok mengonsumsi useParallax          2
   vault/blocks/project-card
   vault/blocks/project-gallery
 
-section ter-pin                       2
+section ter-pin (ScrollTrigger)       2
   vault/blocks/passage
   vault/motion/horizontal
+
+section tertahan (position: sticky)   4
+  app/[locale]/studio
+  vault/blocks/capability-set
+  vault/blocks/project-spine
+  vault/blocks/step-sequence
 ```
 
 **Yang angka-angka ini TIDAK bisa lihat.** Ia memindai sumber, bukan
 halaman yang dirender, jadi ia tidak tahu **berapa momen yang jatuh pada
 satu rute** — itu pekerjaan `e2e/epic-sequence.e2e.ts`, yang menuntut dua
 momen bernama beda tidak menempati rentang gulir yang sama.
+
+Dua baris terakhir **tidak dijumlahkan**, dan itu disengaja. Keduanya
+menahan section saat gulir lewat, jadi keduanya masuk anggaran yang sama —
+tapi sebuah pemindai tidak bisa membedakan **momen** yang ditahan dari
+kerangka yang kebetulan sticky: `project-spine` adalah rel navigasi, bukan
+ketukan berkoreografi. Menjumlahkannya menghasilkan angka yang terbaca
+seperti anggaran padahal bukan.
 
 Dan ia sama sekali tidak bisa melihat **kualitas**. Sebuah hitungan tidak
 bisa membedakan momen yang halaman ini butuhkan dari momen yang ditambahkan

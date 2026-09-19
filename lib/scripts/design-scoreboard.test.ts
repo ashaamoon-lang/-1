@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import {
   DOC,
   declaresPin,
+  declaresSticky,
   importsParallax,
   momentNames,
   readDocBlock,
@@ -53,6 +54,16 @@ describe('the design scoreboard', () => {
       `${DOC} §3.2b has drifted from the source. ` +
         'Run `bun lib/scripts/design-scoreboard.ts --write`.'
     ).toBe(renderScoreboard(board).trim())
+  })
+
+  it('names both pinning mechanisms without summing them', () => {
+    // Summed, the number would read like a budget it is not: a scanner cannot
+    // tell a held moment from sticky chrome, and `project-spine` is a
+    // navigation rail rather than a choreographed beat.
+    const body = renderScoreboard(board)
+    expect(body).toContain('ScrollTrigger')
+    expect(body).toContain('position: sticky')
+    expect(body).toContain('tidak dijumlahkan')
   })
 
   it('states what it cannot see, inside the block itself', () => {
@@ -108,6 +119,24 @@ describe('the scanner itself', () => {
         "import { PARALLAX_PRESET, useParallax } from '@/vault/motion/parallax'"
       )
     ).toBe(true)
+  })
+
+  /**
+   * The second pinning mechanism, missed by the first version of this scan.
+   *
+   * It reported **2** held sections, counting only `pin: true`. But
+   * `MOTION-SPEC.md` §9.5 calls `practice-capabilities` "this route's first
+   * pin" and `capability-set.module.css` implements it with `position: sticky`
+   * — the comment above that declaration literally reads "The pin."
+   *
+   * The budget `ui-ux-pro-max` warns about ("don't pin more than 1-2 sections
+   * per page") is about holding a section while scroll passes it, and does not
+   * care which API did the holding.
+   */
+  it('counts a sticky hold, which is the other pin', () => {
+    expect(declaresSticky('position: sticky;')).toBe(true)
+    expect(declaresSticky('position:sticky')).toBe(true)
+    expect(declaresSticky('position: relative;')).toBe(false)
   })
 
   it('counts a pinned ScrollTrigger, and not the word pin', () => {
