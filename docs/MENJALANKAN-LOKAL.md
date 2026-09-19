@@ -163,6 +163,38 @@ Tanpa itu, tesnya berjalan di dev server dan kadang gagal karena kompilasi
 on-demand berlomba dengan validasi prefetch. `CI=true` menjalankannya lewat
 build produksi — itu sinyal yang menentukan.
 
+**Perubahan Anda tidak muncul, atau `bun run start` menolak jalan.** Hampir
+selalu port 3000 masih dipegang proses lama — seringnya `next start` dari sesi
+sebelumnya atau dari worktree lain. Repo ini punya tiga worktree dan satu port,
+jadi ini bukan kejadian langka.
+
+```bash
+bun run doctor     # memeriksanya, dan mencetak perintah untuk menemukan pemegangnya
+```
+
+**Dua perintahnya berbeda sikap, dan yang lebih tenang justru yang berbahaya** —
+diukur, bukan dikira:
+
+| perintah        | saat port 3000 sibuk                                      |
+| --------------- | --------------------------------------------------------- |
+| `bun run start` | **gagal keras**: `EADDRINUSE`, exit 1                     |
+| `bun run dev`   | **diam-diam pindah**: `using available port 3001 instead` |
+
+Jadi `dev` tetap jalan, sementara alamat yang Anda bookmark terus menyajikan
+build lama. Buka `localhost:3000` karena kebiasaan, dan Anda membaca build
+sebelumnya tanpa ada yang memberi tahu.
+
+Ini juga menyentuh gerbang: `playwright.config.ts` memaku `localhost:3000` dan
+memakai `reuseExistingServer` saat `CI` tidak diset, jadi suite lokal akan
+menempel ke server basi itu — laporan tentang pohon yang tidak sedang Anda
+kerjakan.
+
+Menjalankannya di port lain kalau Anda memang butuh dua sekaligus:
+
+```bash
+PORT=3001 bun run start
+```
+
 **Storybook tidak ada di port 3000.** Ia terpisah:
 
 ```bash
