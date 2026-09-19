@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 80**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 81**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,65 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 81 — Lima penolakan dan satu penerapan ✅
+
+Spec: `docs/stages/TAHAP-81.md`.
+
+Tahap 80 membangun kontrak bidang kedalaman dan tidak menerapkannya. Tahap ini
+membelanjakannya — dan yang paling banyak dikerjakan di sini adalah **menolak**.
+
+§4.1 versi pertama menamai lima rute untuk menerima bidang `ground`. Diukur
+dari disk sebelum baris kode pertama, **kelimanya salah karena satu premis**:
+saya memperlakukan "rute punya ornamen ground" sebagai "rute punya lapisan yang
+bisa didalamkan". `/journal` dan `/journal/<slug>` tidak punya ornamen ground
+sama sekali; `/studio` dan `/practice/<v>` punya tapi `position: fixed`.
+
+**`position: fixed` adalah bidang kelima, dan lajunya nol** — lebih lambat
+daripada `ground` bisa. Memasangkan bidang ke sana tidak mendalamkannya, ia
+membuat latar yang diam mulai bergerak, dan `inset: 0` menyeret tepinya masuk
+ke pandangan. Itu sekarang tertulis di kontraknya.
+
+**`/work` — satu-satunya yang benar-benar bergulir — ditolak oleh dokumen yang
+lebih tinggi.** `MOTION-SPEC.md` §0.1 mencatat `grid-pattern` di masthead-nya
+sebagai respons-kontinu dengan alasan yang dinyatakan satu kalimat: _"they are
+surfaces... because they never move, **not that their movement was
+reclassified**"_. Kalimat itu ditulis untuk menolak persis langkah ini. **Tidak
+ada gerbang yang menahannya** — `vendor-rules.test.ts` hanya memindai isi
+`vault/magic/` — jadi ia akan lolos hijau. Itu justru alasannya ditolak:
+keputusan tertulis yang tidak dijaga gerbang hanya sekuat pembacaan berikutnya.
+
+Yang tersisa satu: **sampul baris `/journal`**, satu-satunya lapisan di situs
+ini yang berupa media, ikut bergulir, dan belum punya kedalaman. Ia dapat
+`subject`.
+
+**K5 dikoreksi 7 → 3, dan tabelnya yang diperbaiki.** Target lama menghitung
+satuan yang salah: papan skor menghitung **blok**, dan situs ini menyusun tujuh
+rute dari dua blok bersama yang sudah ber-parallax sejak Tahap 33 dan 56.
+`/studio` merender nol gambar. Tiga adalah angka yang ada di sana.
+
+**Satu cacat ditemukan aritmetika, bukan gerbang.** Kriteria "nol tepi frame
+tersingkap" tidak punya alat ukur, jadi dihitung tangan — dan rumus overshoot
+`project-card` patah di ujung atas ladder: `yPercent` adalah persentase tinggi
+elemen itu sendiri, jadi memperlebar margin ikut memperpanjang perjalanan yang
+harus diserap. Pada `+2` syaratnya berlaku sampai t = 13,2; `foreground` adalah 14. Diperbaiki ke `+4`, turunannya ditulis di `plane.tsx`.
+
+Dan diberi gerbang, karena aritmetika yang tidak dijalankan ulang adalah klaim:
+`e2e/plane-edge.e2e.ts` mengukur tiap frame di tiga belas posisi gulir dan
+menemukan frame lewat sifat yang membuatnya frame, bukan lewat nama kelas.
+Dibuktikan merah lebih dulu — overshoot disempitkan ke nol melaporkan
+`top +1.86px` yang berbalik jadi `bottom +1.86px`, sementara `/en/work` tetap
+lulus di run yang sama.
+
+unit **579 lulus, 0 gagal** · e2e **714 lulus, 7 gagal, 14 dilewati** · papan
+skor bidang 2 → 3, pin dan sticky **tidak naik**.
+
+Tujuh merah itu dibongkar sampai nol tersisa tak terjelaskan (§7.2): empat
+lulus di isolasi, dua adalah pasangan yang `HANDOFF.md` §5.1 sudah namai dari
+CI run 64, satu gagal 1 dari 2. `retries: process.env.CI ? 1 : 0` menjelaskan
+kenapa yang di CI terhitung _flaky_ di sini terhitung _gagal_.
 
 ---
 

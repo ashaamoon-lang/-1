@@ -107,7 +107,10 @@ const isStory = (path: string) =>
 export interface Scoreboard {
   /** Distinct `data-epic` names across the source. */
   moments: string[]
-  /** Files importing `useParallax`, stories excluded. */
+  /**
+   * Files reaching the depth system by import — the hook or `Plane` — with
+   * the primitive's own directory and the stories excluded.
+   */
   parallaxConsumers: string[]
   /** Files creating a pinned ScrollTrigger. */
   pinned: string[]
@@ -122,9 +125,39 @@ export function momentNames(text: string): string[] {
   )
 }
 
-/** True when a file *imports* the hook, rather than merely discussing it. */
+/**
+ * The parallax primitive itself, which is not one of its own consumers.
+ *
+ * `plane.tsx` imports `useParallax` because it *is* the wrapper around it.
+ * Counting it would have made this number read 3 the moment Tahap 81 added
+ * the wrapper and before a single route used it — the right number for the
+ * wrong reason, which is the failure mode this whole file was written
+ * against.
+ */
+const isParallaxPrimitive = (path: string) =>
+  path.startsWith('vault/motion/parallax/')
+
+/**
+ * True when a file *imports* the depth system, rather than discussing it.
+ *
+ * ## Two doors, because Tahap 81 added the second
+ *
+ * This shipped matching `useParallax` alone, which was complete for exactly
+ * one stage. `Plane` is now how a list reaches the system at all — a ref per
+ * item cannot come from a hook inside a loop — and a file using it imports no
+ * hook. Matching only the hook would have counted the primitive and missed
+ * the consumer in the same pass.
+ *
+ * Still imports and never mentions, and now anchored to the module path as
+ * well: `Plane` is a common enough word that matching the bare identifier
+ * would eventually count somebody else’s. `vault/motion/flip/index.ts`
+ * discusses parallax in a comment, and the first version of this scan
+ * returned it.
+ */
 export function importsParallax(text: string): boolean {
-  return /import\s*\{[^}]*\buseParallax\b[^}]*\}\s*from/.test(text)
+  return /import\s*\{[^}]*\b(?:useParallax|Plane)\b[^}]*\}\s*from\s*['"][^'"]*parallax/.test(
+    text
+  )
 }
 
 /** True when a file creates a pinned ScrollTrigger. */
@@ -165,7 +198,9 @@ export function scan(files = sources()): Scoreboard {
   for (const { path, text } of files) {
     if (isStory(path)) continue
     for (const name of momentNames(text)) moments.add(name)
-    if (importsParallax(text)) parallaxConsumers.push(path)
+    if (!isParallaxPrimitive(path) && importsParallax(text)) {
+      parallaxConsumers.push(path)
+    }
     if (declaresPin(text)) pinned.push(path)
     /*
      * Deduped to the directory, because a block declares its hold across two
@@ -193,7 +228,7 @@ export function renderScoreboard(board: Scoreboard): string {
     `momen berkoreografi bernama berbeda   ${board.moments.length}`,
     ...board.moments.map((name) => `  ${name}`),
     '',
-    `blok mengonsumsi useParallax          ${board.parallaxConsumers.length}`,
+    `blok memakai bidang kedalaman         ${board.parallaxConsumers.length}`,
     ...board.parallaxConsumers.map((path) => `  ${shorten(path)}`),
     '',
     `section ter-pin (ScrollTrigger)       ${board.pinned.length}`,

@@ -92,6 +92,30 @@ it sits over the WebGL wash, which is drawn above every negative `z-index` and
 is therefore the one surface the site-wide layer cannot reach. `/studio`'s copy
 was removed.
 
+**Added in Tahap 80–81**, and it is the existing parallax rather than a new
+mechanism — the same relationship `constellation-drift` has to it:
+
+| Mechanism        | Where                                                   | Since    |
+| ---------------- | ------------------------------------------------------- | -------- |
+| Named planes     | `vault/motion/parallax` — `PARALLAX_PLANES`, four rungs | Tahap 80 |
+| `journal-covers` | `app/[locale]/journal` row covers, on `subject`         | Tahap 81 |
+
+Not counted by §9.5, for the reason this whole section exists: parallax has no
+band, no beginning and no end. What Tahap 80 added is a **ladder** — the four
+distances were already on screen, tuned one block at a time, and naming them is
+what keeps two layers on one page related rather than merely both moving.
+
+Tahap 81 spent it once, and refused it five times. `/journal`'s covers were the
+only layer on the site that is media, travels with the page, and had no depth;
+every other route's media is served by `project-card` or `project-gallery`,
+which have carried it since Tahap 33 and 56. The refusals are recorded in
+`docs/stages/TAHAP-81.md` §4.1a, and one of them belongs here rather than only
+there: **the `/work` masthead's `grid-pattern` was proposed for a plane and
+declined on this section's own words.** The sentence below — that these surfaces
+belong to this category because they never move, _not_ because their movement
+was reclassified — was written to refuse exactly that, and no gate enforces it.
+A written decision no gate holds is only as strong as the next reading of it.
+
 **What §0.2 refused in the same stage.** Tahap 43 planned `type-pressure` —
 Syne's variable `wght` axis driven by `--scroll-velocity`. Measured on the
 real header: across the proposed 640-760 range the wordmark grew from 42.61px

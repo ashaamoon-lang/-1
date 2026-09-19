@@ -168,7 +168,8 @@ momen berkoreografi bernama berbeda   13
   studio-statement
   work-transport
 
-blok mengonsumsi useParallax          2
+blok memakai bidang kedalaman         3
+  app/[locale]/journal/index-rows.tsx
   vault/blocks/project-card
   vault/blocks/project-gallery
 

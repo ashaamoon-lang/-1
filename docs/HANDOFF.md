@@ -12,17 +12,23 @@
 ## 1. Posisi
 
 ```
-branch    claude/satus-award-website-foundation-r6o5cf
-PR        #9, base `main`
+branch    claude/arth-design
+PR        #16, base `main`
 ```
+
+Dua track berjalan paralel di repo ini dan keduanya nyata.
+`claude/satus-award-website-foundation-r6o5cf` (PR #9) membawa portabilitas
+gerbang Windows dan penjaga token; ia sudah **digabungkan ke** branch di atas,
+yang kini jadi tempat kerja berjalan. Yang lama tidak dihapus — PR-nya punya
+riwayatnya sendiri.
 
 **Commit dan nomor run CI sengaja tidak ditulis di sini.** Tanyakan, jangan
 percaya dokumen:
 
 ```bash
 git rev-parse --short HEAD
-gh pr view 9 --json headRefOid,state,mergeStateStatus
-gh run list --branch claude/satus-award-website-foundation-r6o5cf --limit 5
+gh pr view 16 --json headRefOid,state,mergeStateStatus
+gh run list --branch claude/arth-design --limit 5
 ```
 
 > **Kenapa dihapus, bukan diperbarui.** Blok ini pernah berbunyi `af1f499` /
@@ -58,8 +64,22 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke tabel ini.
 
-Tahap terakhir yang dikerjakan: **80**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **81**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
+
+Diukur di laptop itu pada **19 September 2026**, di worktree `arth-design`:
+`check` **579 lulus / 0 gagal**, e2e **714 lulus / 7 gagal / 14 dilewati**
+dalam 29,4 menit. Ketujuhnya dibongkar di `docs/stages/TAHAP-81.md` §7.2 —
+empat lulus di isolasi, dua adalah pasangan yang §5.1 di bawah sudah namai,
+satu gagal 1 dari 2. **Nol berasal dari tahap itu.**
+
+Suite itu dijalankan **tanpa `CI=1`**, terhadap server produksi yang dibangun
+dan dinyalakan lebih dulu. Sebabnya diukur: `CI=1` memicu `bun run build`
+kedua di dalam `webServer`, dan build memuncak 3,35 GB RSS di mesin 7,79 GB —
+ia melewati timeout 300 detik dan suite mati sebelum tes pertama. Satu-satunya
+perilaku yang hilang adalah `retries`, yang `playwright.config.ts:9` ikatkan
+ke `CI`; **nol** spec bercabang pada `process.env.CI`, dan itu diperiksa
+sebelum dijalankan. `docs/MENJALANKAN-LOKAL.md` §8 menuliskan urutannya.
 
 ## 2. Menyalakannya kembali
 
@@ -68,10 +88,10 @@ termasuk tiga nilai publiknya. **Nilai rahasia tidak ada di repo ini dan tidak
 boleh masuk** — ambil dari dashboard Sanity.
 
 ```bash
-git checkout claude/satus-award-website-foundation-r6o5cf
+git checkout claude/arth-design
 bun install
 # buat .env.local — lihat MENJALANKAN-LOKAL.md §4
-bun run check        # harus 565 lulus
+bun run check        # harus 579 lulus
 bun dev
 ```
 

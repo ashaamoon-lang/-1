@@ -86,6 +86,23 @@ if (typeof window !== 'undefined') {
  * The preset is explicit: "Layer count beyond 3-4 has diminishing visual return
  * and multiplies scroll-listener cost." Four is the ceiling, so the type is a
  * closed set rather than a number a caller can keep raising.
+ *
+ * ## There is a fifth plane, and it is not in this object
+ *
+ * `position: fixed` is the degenerate case: **rate zero**, slower than any
+ * distance here can be. `/studio` and `/practice/<value>` already reach it that
+ * way — their `DotPattern` is `position: fixed; inset: 0`, so it does not
+ * travel with the page at all.
+ *
+ * This matters because the obvious next move is wrong. Attaching `ground` to
+ * one of those ornaments does not deepen it; it makes a background that is
+ * currently still **start moving**, and since `inset: 0` sizes it to the
+ * viewport exactly, any `yPercent` drags an edge into view.
+ *
+ * So: a fixed ornament is already at the bottom of the ladder. Reach for a
+ * plane when a layer scrolls — `/work`'s `GridPattern` is `position: absolute`
+ * inside the page and does travel, which is what makes it a candidate and the
+ * other two not.
  */
 export const PARALLAX_PLANES = {
   ground: 4,

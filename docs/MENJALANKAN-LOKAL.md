@@ -195,6 +195,39 @@ Menjalankannya di port lain kalau Anda memang butuh dua sekaligus:
 PORT=3001 bun run start
 ```
 
+**`CI=1` membangun ulang, dan di mesin kecil itu yang sebenarnya gagal.**
+Bacalah `playwright.config.ts` baris demi baris — `CI` mengubah tiga hal
+sekaligus, bukan satu:
+
+| dengan `CI`                      | tanpa `CI`    |
+| -------------------------------- | ------------- |
+| `bun run build && bun run start` | `bun run dev` |
+| `reuseExistingServer: false`     | `true`        |
+| timeout 300 detik                | 120 detik     |
+
+Jadi `CI=1` menjalankan **build kedua** — build di repo ini memuncak 3,35 GB
+RSS — dan menolak memakai server yang sudah hidup. Di laptop 7,79 GB, build itu
+melewati 300 detik dan suite mati sebelum tes pertama, dengan pesan yang
+berbunyi seperti masalah port padahal itu masalah memori.
+
+Yang memberi sinyal sama tanpa membangun dua kali:
+
+```bash
+bun run build                  # sekali
+bun run start                  # port 3000, biarkan hidup
+bunx playwright test --workers=2
+```
+
+Tanpa `CI`, `reuseExistingServer` menempel ke server **produksi** yang sudah
+Anda jalankan — yang persis dimaksud komentar config itu ("CI runs against a
+real production build"). Satu syaratnya sudah diperiksa: nol spec e2e bercabang
+pada `process.env.CI`, jadi tak ada tes yang berubah perilaku karenanya. Yang
+hilang hanya `retries` gaya CI, bukan kebenaran sinyalnya.
+
+Peringatan yang mengikat: tanpa `CI`, `reuseExistingServer` juga akan menempel
+ke server **basi** kalau Anda lupa membangun ulang — itu bahaya yang tabel di
+atas sebutkan. Bangun dulu, baru jalankan.
+
 **Storybook tidak ada di port 3000.** Ia terpisah:
 
 ```bash
