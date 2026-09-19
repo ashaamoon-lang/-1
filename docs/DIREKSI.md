@@ -141,6 +141,54 @@ Jadi invariannya pindah ke `e2e/epic-sequence.e2e.ts`:
 tetap ada di `interaction-grammar.e2e.ts`, tapi sekarang cuma kawat pemicu
 untuk kebablasan.
 
+### 3.2b Papan skor — angka yang di-generate, bukan diingat
+
+`HANDOFF.md` §4 pernah menghitung belanja momen dengan tangan, dan angka yang
+tidak bisa dibuat ulang adalah angka yang hanyut. Blok di bawah ditulis oleh
+`lib/scripts/design-scoreboard.ts` dan dijaga `design-scoreboard.test.ts`, pola
+yang sama dengan blok `rule-coverage` di `CLAUDE.md` dan blok utang desain di
+`DESIGN-SYSTEM.md` §7. **Jangan sunting dengan tangan** — jalankan
+`bun lib/scripts/design-scoreboard.ts --write`.
+
+<!-- design-scoreboard:start -->
+
+```
+momen berkoreografi bernama berbeda   13
+  arth-passage
+  catalogue-sift
+  hero-arrival
+  journal-index
+  journal-transport
+  practice-capabilities
+  practice-morph
+  practice-statement
+  project-arrival
+  project-chapters
+  studio-process
+  studio-statement
+  work-transport
+
+blok mengonsumsi useParallax          2
+  vault/blocks/project-card
+  vault/blocks/project-gallery
+
+section ter-pin                       2
+  vault/blocks/passage
+  vault/motion/horizontal
+```
+
+**Yang angka-angka ini TIDAK bisa lihat.** Ia memindai sumber, bukan
+halaman yang dirender, jadi ia tidak tahu **berapa momen yang jatuh pada
+satu rute** — itu pekerjaan `e2e/epic-sequence.e2e.ts`, yang menuntut dua
+momen bernama beda tidak menempati rentang gulir yang sama.
+
+Dan ia sama sekali tidak bisa melihat **kualitas**. Sebuah hitungan tidak
+bisa membedakan momen yang halaman ini butuhkan dari momen yang ditambahkan
+untuk membelanjakan anggaran — dan §2.1 sudah menamai bentuk kesalahan itu.
+Angka naik bukan bukti situsnya membaik.
+
+<!-- design-scoreboard:end -->
+
 ### 3.3 Plafon KB
 
 Dinaikkan **di tahap yang menambah bobotnya**, dengan pengukuran tahap itu —

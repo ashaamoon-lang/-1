@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 79**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 80**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,58 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 80 — Alat ukurnya dulu, baru yang diukur ✅
+
+Spec: `docs/stages/TAHAP-80.md`.
+
+`HANDOFF.md` §4 menghitung belanja momen **dengan tangan**, dan angka yang tidak
+bisa dibuat ulang adalah angka yang hanyut. Repo ini sudah membayar bentuk itu
+tiga kali: baris status ROADMAP salah tiga kali menurut pengakuannya sendiri,
+dan `DESIGN-SYSTEM.md` §7 menggambarkan sistem yang tidak ada selama dua puluh
+enam tahap.
+
+Jadi papan skor dibangun **sebelum** pekerjaan desain besar, bukan sesudahnya —
+instansi ketiga dari pola yang sudah bekerja dua kali di sini, bukan mekanisme
+baru: `rule-coverage.ts` menulis blok ke `CLAUDE.md`, `design-debt.ts` ke
+`DESIGN-SYSTEM.md` §7, dan ini ke `DIREKSI.md` §3.2b.
+
+```
+momen bernama berbeda   13      konsumen parallax   2      section ter-pin   2
+```
+
+**Angka hari pertama ditulis di spec sebelum alatnya ada**, dan alat itu
+melaporkan persis 13 / 2 / 2. Kecocokan terhadap prediksi yang dibuat di muka
+adalah satu-satunya bentuk kecocokan yang berarti — `HANDOFF.md` §3.1.
+
+**Satu positif palsu ditangkap sebelum jadi angka.** Pindaian pertama mencocokkan
+_kata_ `useParallax` dan mengembalikan enam berkas; tiga bukan konsumen, salah
+satunya `vault/motion/flip` yang menyebut parallax **di dalam komentar prosa**.
+Kelas kesalahan yang sama yang `TAHAP-78.md` §1.3 catat dua kali. Definisinya
+sekarang **impor**, dan ada uji yang menjaganya tetap begitu.
+
+**Bloknya wajib menyebut apa yang tidak bisa ia lihat** — momen per rute (butuh
+render; itu `epic-sequence`) dan kualitas — dan sebuah uji menuntut kalimat itu
+ada. Alat yang menyembunyikan batas penglihatannya adalah cacat yang §7 bayar
+dua puluh enam tahap.
+
+**Parallax jadi sistem bidang kedalaman.** `ground → mid → subject → foreground`,
+plafon empat karena preset mengukur nilai visualnya berhenti bertambah di sana.
+Bentuknya dari skill, **angkanya dari situs ini**: preset memberi
+`(i + 1) * -8` = 8/16/24/32, dan default repo ini 6 — ujung bawah band 5–15
+miliknya sendiri. Mengambil angka absolut skill berarti mengambil register yang
+proyek ini tolak dengan sengaja. Tiga dari empat bidang sudah tayang dan sudah
+diukur (4 dari `work-constellation`, 6 dari hook ini, 10 dari `PLATE_DRIFT`);
+hanya `foreground` yang baru.
+
+Rute belum menerima bidangnya — itu satu rute per commit, `DIREKSI.md` §3.3.
+Dan **nol angka performa diklaim**: `chrome-devtools-mcp` belum tersambung, jadi
+K10 tetap disebut anggaran (`CLAUDE.md` #19), dinyatakan di muka bukan ditemukan
+di akhir.
+
+`bun run check` 569 → **577 lulus**, 0 gagal.
 
 ---
 

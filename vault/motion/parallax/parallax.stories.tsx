@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { useRef } from 'react'
 
-import { useParallax } from './index'
+import { PARALLAX_PLANES, type ParallaxPlane, useParallax } from './index'
 
 /**
  * A picture that drifts against the page as it passes.
@@ -31,13 +31,15 @@ import { useParallax } from './index'
  */
 
 interface DemoProps {
+  plane?: ParallaxPlane
   distance?: number
   smoothing?: number
 }
 
-function ParallaxDemo({ distance, smoothing }: DemoProps) {
+function ParallaxDemo({ plane, distance, smoothing }: DemoProps) {
   const media = useRef<HTMLDivElement>(null)
   useParallax(media, {
+    ...(plane !== undefined && { plane }),
     ...(distance !== undefined && { distance }),
     ...(smoothing !== undefined && { smoothing }),
   })
@@ -117,4 +119,65 @@ export const FarTravel: Story = {
  */
 export const Unsmoothed: Story = {
   args: { smoothing: 0 },
+}
+
+/**
+ * The four named planes, and why naming them is the point.
+ *
+ * Tuned one component at a time, parallax numbers drift apart and the effect
+ * degrades into several things moving at several speeds. The preset names the
+ * relationship that has to hold — "background slowest, foreground fastest" —
+ * so the distances come from a plane rather than from each call site.
+ *
+ * Three of the four are already on screen elsewhere: `ground` is
+ * `work-constellation`'s slow column, `mid` is this hook's long-standing
+ * default, and `subject` is `project-gallery`'s plate drift. Only `foreground`
+ * is new, and it sits at the top of the preset's own 5–15 band rather than
+ * anywhere invented.
+ */
+export const Ground: Story = {
+  args: { plane: 'ground' },
+}
+
+/** `mid` is 6 — the same travel every untouched call site already had. */
+export const Mid: Story = {
+  args: { plane: 'mid' },
+}
+
+/** `subject` is 10, the plate drift `TAHAP-56.md` measured for the gallery. */
+export const Subject: Story = {
+  args: { plane: 'subject' },
+}
+
+/**
+ * `foreground` is 14, the only plane nothing on the site uses yet.
+ *
+ * Shown for the same reason `FarTravel` is: a catalogue that only displays the
+ * values already in use cannot show that they were chosen.
+ */
+export const Foreground: Story = {
+  args: { plane: 'foreground' },
+}
+
+/**
+ * Reduced motion, which is a contract rather than a variant.
+ *
+ * The hook creates no ScrollTrigger at all under the preference, so the media
+ * sits exactly where the layout put it — not a slowed drift, not a faded one.
+ * `CLAUDE.md` #5 requires content to end **fully visible**, and a parallax that
+ * merely slowed down would still be moving text-adjacent media under a reader
+ * who asked for stillness.
+ *
+ * The ladder is asserted here too, so a future edit that renumbers a plane has
+ * to change this story and explain itself.
+ */
+export const PlaneLadder: Story = {
+  args: { plane: 'ground' },
+  parameters: {
+    docs: {
+      description: {
+        story: `ground ${PARALLAX_PLANES.ground} · mid ${PARALLAX_PLANES.mid} · subject ${PARALLAX_PLANES.subject} · foreground ${PARALLAX_PLANES.foreground} — four, because the preset measures visual return falling off beyond three or four layers.`,
+      },
+    },
+  },
 }
