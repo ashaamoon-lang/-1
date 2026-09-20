@@ -204,6 +204,25 @@
      */
     grid-row: 2 / 4;
     align-self: end;
+    /*
+     * Anchored to the frame's right edge — Tahap 84.
+     *
+     * Tahap 74 moved this block down to share `.content`'s rows, which closed
+     * a 516px hole through the middle of the first screen. What it left is a
+     * **band**: headline, subline and action along the bottom left, this list
+     * along the bottom right. A band needs both ends held.
+     *
+     * This one was held at neither. Measured at 1600x800: the column runs
+     * `9 / -1`, x 1065-1574, and the words inside it are about 110px wide and
+     * left-aligned — so roughly **400px of nothing** sat between the list and
+     * the frame edge it was supposed to be the far end of. It read as
+     * floating because it was: near the right side without touching it.
+     *
+     * `flex-end` puts its right edge on the frame's, where the header's
+     * EN/ID already sits. The headline holds x=16 and this holds x=1574, and
+     * the band spans the screen instead of trailing off inside it.
+     */
+    align-items: flex-end;
     gap: desktop-vw(12px);
     /*
      * Clearance from the header, measured — Tahap 67.
@@ -350,6 +369,10 @@
 
   @media (--desktop) {
     flex-direction: column;
+    /* Right edges flush with the label above and the frame beside them — the
+       three words differ in length, and ragged-right here would undo the
+       anchor the parent just established. */
+    align-items: flex-end;
     gap: desktop-vw(8px);
   }
 }

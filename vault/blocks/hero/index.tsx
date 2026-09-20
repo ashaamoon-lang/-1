@@ -38,8 +38,16 @@
  *
  * ## The frame, and why it is not centred
  *
- * The text elements sit on a diagonal: the index in the top right, the
- * headline and its action at the bottom left. That is a composition. The
+ * The text elements sat on a diagonal: the index in the top right, the
+ * headline and its action at the bottom left. **They no longer do, and this
+ * paragraph is kept because the reason is worth more than the arrangement.**
+ * Tahap 74 measured what the diagonal cost once the index was finally
+ * rendered — a 516px hole through the middle of the first screen, 57% of it
+ * at 1440x900 — and moved the index down to share the headline's rows. The
+ * composition is now a **band** along the bottom: headline, subline and
+ * action at the left, the index at the right, anchored to the frame's edge in
+ * Tahap 84 so the band has two ends rather than one. That is a composition.
+ * The
  * previous arrangement — everything centred in a column down the left — was
  * not: it was one element's natural width three times over, with the vertical
  * position decided by `align-items: center`. `docs/stages/TAHAP-12.md` §3.1
