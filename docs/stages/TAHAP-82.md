@@ -628,3 +628,41 @@ a half, so `data-spread` renders on no page and its gates skip themselves"_.
 skip yang naik**, bukan oleh kegagalan — dan itu persis kenapa §9 rencana
 menuntut tiap selisih dijelaskan dengan keluaran aslinya, bukan dibulatkan
 sebagai hijau.
+
+---
+
+## 14. Spread itu merender — dan gerbangnya ternyata menyebut nama
+
+Sesudah semai ulang: `arus-balik` 3 · `bacaan-mesin` 3 · empat lainnya 4. Dua
+grid, empat trek. `data-spread` **merender** di `bacaan-mesin`, dengan span
+yang tepat: dua penuh galeri, satu sampul hero, satu separuh terdampar.
+
+Tapi `project-spread.e2e.ts:234` **masih** melewatkan diri, dan sebabnya ada di
+baris pertamanya:
+
+```ts
+await page.goto('/en/work/arus-balik') // hardcoded
+```
+
+Ia menyebut satu slug, dan itu hanya berlaku selama proyek **itu** yang
+kebetulan mendamparkan separuh. `arus-balik` kini memasangkan separuhnya,
+spread-nya pindah satu halaman ke samping, dan gerbang itu melewatkan diri
+sambil `data-spread` dirender di sebelahnya.
+
+`e2e/fixtures.ts` ada persis untuk ini — _"eleven tests across six files broke
+on hardcoded slugs"_ — dan uji baris di atasnya sudah berjalan lewat sitemap.
+Jadi yang diperbaiki bukan susunan platnya untuk ketiga kalinya, melainkan
+gerbangnya: ia kini **mencari** spread di seluruh karya yang diterbitkan.
+Proyek mana yang mendamparkan separuh bukan urusannya; apakah catatan sebuah
+spread bertahan di bawah `prefers-reduced-motion` adalah urusannya.
+
+Skip-nya dipertahankan, tapi dipindahkan lapisannya: portofolio nyata boleh
+saja tidak punya karya yang mendamparkan separuh, dan gerbang ini tidak punya
+pendapat soal itu. Yang tidak boleh adalah **fixture** kehilangannya, dan
+`seed-fixtures.test.ts` yang memegang itu — merah kalau nol.
+
+```
+project-spread   4 lulus + 1 dilewati  ->  5 lulus, 0 dilewati
+set kerja        69 lulus, 0 gagal
+check            588 lulus, 0 gagal
+```

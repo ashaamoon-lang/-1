@@ -231,24 +231,62 @@ test.describe('the gallery leaves no half-empty row', () => {
     ).toBeLessThanOrEqual(WIDTH_TOLERANCE)
   })
 
-  test('reduced motion leaves the note fully visible', async ({ browser }) => {
+  test('reduced motion leaves the note fully visible', async ({
+    browser,
+    request,
+  }) => {
+    /*
+     * It looks for the spread rather than assuming which project has one —
+     * Tahap 82.
+     *
+     * This used to navigate to a hardcoded `/en/work/arus-balik`, and that
+     * held only while that one project happened to strand a half. It stopped:
+     * `arus-balik` now pairs its halves, the spread moved to another work, and
+     * this test skipped itself with "this project has no spread to check"
+     * while `data-spread` was rendering one page over. A gate that names a
+     * slug is a gate that stops measuring the day the fixtures move — which is
+     * the whole reason `e2e/fixtures.ts` exists, and the reason the row test
+     * above already walks the sitemap.
+     *
+     * Which project spreads is not this test's business. Whether a spread's
+     * note survives `prefers-reduced-motion` is.
+     */
+    const sitemap = await (await request.get('/sitemap.xml')).text()
+    const paths = [...sitemap.matchAll(WORK_LOC_ALL)].map(
+      (match) => match[1] ?? ''
+    )
+    test.skip(paths.length === 0, 'no published project to measure')
+
     const context = await browser.newContext({
       viewport: { width: 1440, height: 900 },
       reducedMotion: 'reduce',
     })
     const page = await context.newPage()
-    await page.goto('/en/work/arus-balik')
-    await page.waitForTimeout(2600)
 
-    const notes = await page.evaluate(() =>
-      [...document.querySelectorAll('li[data-spread] p')].map((note) => ({
-        opacity: Number.parseFloat(getComputedStyle(note).opacity),
-        text: (note.textContent ?? '').trim().length,
-      }))
-    )
+    const notes: { opacity: number; text: number }[] = []
+    for (const path of paths) {
+      await page.goto(path)
+      await page.waitForTimeout(2600)
+      notes.push(
+        ...(await page.evaluate(() =>
+          [...document.querySelectorAll('li[data-spread] p')].map((note) => ({
+            opacity: Number.parseFloat(getComputedStyle(note).opacity),
+            text: (note.textContent ?? '').trim().length,
+          }))
+        ))
+      )
+      if (notes.length > 0) break
+    }
     await context.close()
 
-    test.skip(notes.length === 0, 'this project has no spread to check')
+    /*
+     * Still a skip rather than a failure, and the layer matters. A real
+     * portfolio may legitimately hold no work that strands a half, and this
+     * gate has nothing to say about that. What must never happen is the
+     * **fixtures** losing one — `lib/scripts/seed-fixtures.test.ts` holds that,
+     * and fails when no grid project strands anything.
+     */
+    test.skip(notes.length === 0, 'no project in this dataset renders a spread')
 
     for (const note of notes) {
       expect(note.text, 'a spread note rendered empty').toBeGreaterThan(0)
