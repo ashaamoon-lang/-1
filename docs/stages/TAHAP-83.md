@@ -337,3 +337,52 @@ ruang itu ada.
 - **Nol angka performa diklaim.** K10 masih menunggu `CONTEXT7_API_KEY`
   (`CLAUDE.md` #19).
 - **Klaim a11y:** nol — tahap ini tidak menjalankan axe di luar suite yang ada.
+
+---
+
+## 8. CI menangkap yang ketiga, dan ia bukan gerbang baru itu
+
+CI merah pada commit tahap ini — bukan `composition-density`, melainkan
+`palette-integrity.e2e.ts:154`, _"/en/journal (light) still has grain on it"_,
+di **kedua locale** dan **kedua retry**. Bukan flake.
+
+Gerbang itu memotret satu persegi tetap, `{x: 820, y: 260, 420×340}` pada
+`SCROLL = 1600`, lalu mengurangkan dua foto untuk mengisolasi lapisan grain.
+Di `/journal` persegi itu **dulu adalah void yang tahap ini isi**. Terukur
+sesudahnya, pada gulir yang sama:
+
+```
+img.coverImage   x=370  y=374  1045x496   <- menempati persegi itu
+p.caption        x=16   y=270   338x14
+h2               x=370  y=270  1045x43
+```
+
+Doc gerbang itu sudah meramalkannya, dan kalimatnya tepat: _"a gate that
+depends on [which pixels are empty] goes quietly blind the first time a section
+grows... content in the frame costs **sensitivity** and never correctness."_
+Sebuah seksi tumbuh, dan yang gagal memang uji **lantai grain** — sensitivitas,
+bukan kebenaran.
+
+Yang tidak ia antisipasi adalah **apa** yang tumbuh masuk. Isi biasa saling
+meniadakan dalam pengurangan itu. Plat fixture tidak: `seed-fixtures.ts`
+mengomposit noise gaussian sigma 12 ke tiap plat, jadi varians patch itu
+sendiri menenggelamkan lapisan situs dan `sqrt(with² - without²)` runtuh ke nol
+**sementara lapisannya ada dan bekerja**.
+
+Jadi ia bukan gerbang yang buta pada petak kosong. Ia gerbang yang diarahkan ke
+permukaan yang membawa grain-nya sendiri — satu-satunya hal yang tidak bisa ia
+lihat tembus. Kedua rute jurnal diberi potongan di rel, yang masih ground
+telanjang: caption berakhir di y=284 dan nol gambar mencapai kiri x=370.
+
+```
+palette-integrity   10 lulus (5 rute x 2 uji)
+composition-density  2 lulus
+check              589 lulus, 0 gagal
+```
+
+**Dan ini pelajaran ketiga dengan bentuk yang sama di satu tahap**: mengubah
+komposisi memindahkan apa yang gerbang lain potret. `project-spread` menamai
+slug, `continuous-motion` tidak bisa membedakan reveal tertunda, dan sekarang
+`palette-integrity` menunjuk ke piksel yang berpindah isi. Gerbang bukan hanya
+menjaga halaman — ia punya **asumsi tentang halaman**, dan asumsi itu jarang
+ditulis di tempat yang terlihat saat halamannya diubah.

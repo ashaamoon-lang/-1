@@ -53,6 +53,36 @@ import { FEATURED_WORK } from './fixtures'
 const CLIP = { x: 820, y: 260, width: 420, height: 340 }
 
 /**
+ * Where a route needs a different region, and the one route that does.
+ *
+ * The note above is right that emptiness is the wrong thing to chase, and its
+ * prediction held exactly: a section grew. Tahap 83 moved `/journal`'s cover
+ * out of the 338px date rail into the reading column, where it now spans
+ * 1045x496 and sits squarely under `CLIP`.
+ *
+ * What it did not anticipate is **what** grew into the frame. Ordinary content
+ * cancels in the subtraction, and the note's "costs sensitivity, never
+ * correctness" is true for it. A fixture plate does not cancel the same way:
+ * `lib/scripts/seed-fixtures.ts` composites gaussian noise at sigma 12 into
+ * every plate, so the patch's own variance dwarfs the site layer's, and
+ * `sqrt(with² - without²)` — the grain floor — collapses toward zero while the
+ * layer is present and working. CI reported it on both locales, through both
+ * retries, on the commit that moved the cover.
+ *
+ * So this is not the gate going blind on an empty patch. It is the gate being
+ * pointed at a surface that carries its own grain, which is the one thing it
+ * cannot see past. The rail is still bare ground at `SCROLL`: measured at
+ * 1440x900, the caption ends at y=284 and no image reaches left of x=370.
+ */
+const ROUTE_CLIP = {
+  '/en/journal': { x: 20, y: 300, width: 330, height: 340 },
+  '/id/journal': { x: 20, y: 300, width: 330, height: 340 },
+} satisfies Record<string, typeof CLIP>
+
+const clipFor = (path: string) =>
+  path in ROUTE_CLIP ? ROUTE_CLIP[path as keyof typeof ROUTE_CLIP] : CLIP
+
+/**
  * Scrolled clear of the hero on every route, and short enough that no page in
  * the suite runs out of document before reaching it.
  */
@@ -125,10 +155,11 @@ test.describe('the ground renders as the colour the palette declares', () => {
     test(`${path} (${theme}) paints its declared ground`, async ({ page }) => {
       await settle(page, path)
 
+      const clip = clipFor(path)
       await setGrain(page, true)
-      const shipped = await page.screenshot({ clip: CLIP })
+      const shipped = await page.screenshot({ clip })
       await setGrain(page, false)
-      const bare = await page.screenshot({ clip: CLIP })
+      const bare = await page.screenshot({ clip })
 
       // `contribution` downscales before subtracting, which averages the
       // grain away and leaves precisely the part that must not exist: the
@@ -154,10 +185,11 @@ test.describe('the ground renders as the colour the palette declares', () => {
     test(`${path} (${theme}) still has grain on it`, async ({ page }) => {
       await settle(page, path)
 
+      const clip = clipFor(path)
       await setGrain(page, true)
-      const shipped = await page.screenshot({ clip: CLIP })
+      const shipped = await page.screenshot({ clip })
       await setGrain(page, false)
-      const bare = await page.screenshot({ clip: CLIP })
+      const bare = await page.screenshot({ clip })
 
       const patch = { left: 40, top: 40, width: 200, height: 200 }
       const [withGrain, without] = await Promise.all([
