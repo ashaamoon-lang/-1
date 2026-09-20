@@ -50,6 +50,32 @@ import { FEATURED_WORK, RUN_WORK } from './fixtures'
  * approximations by construction — which is why this file reports them beside
  * the hand measurement above rather than instead of it.
  *
+ * ## What it cannot see, and its hit rate so far
+ *
+ * Four blocks came back over the line on the first sweep. **One was a defect.**
+ * The scoreboard is worth keeping in front of anyone reading these numbers:
+ *
+ * ```
+ * /en/journal        59%  real — a 338px cover in a 1045px column, fixed
+ * /en/practice/<v>   81%  argued — `min-block-size: 46svh`, Tahap 24's cadence
+ * /en/studio         72%  argued — the 2232px sticky runway of `step-sequence`
+ * /en (passage)      6–12% argued — a pinned, scrubbed moment whose content is
+ *                          a grid sharpening, and a grid is decoration here
+ * ```
+ *
+ * The last one is the sharpest limit. `isPainted` refuses decoration on
+ * purpose — counting `/studio`'s viewport-covering `DotPattern` would mark
+ * every cell filled and report headlines-in-a-void as dense. But `passage`
+ * **is** its decoration: the twelve-column grid sharpening from `scale(1.5)`
+ * is the narrative, not the backdrop. Measured across all thirteen positions
+ * of its own pin, its fill never leaves 8–12%, and the number is true and
+ * means nothing.
+ *
+ * So: this instrument finds **space that nobody claimed**. It cannot tell that
+ * from space somebody claimed and wrote down, and the only way to tell is to
+ * go and read why the space is there. One in four is the rate to expect, and a
+ * reading that skips the source will be wrong three times out of four.
+ *
  * ## Reports everywhere, enforces where the number was argued
  *
  * Density is not correctness. `/journal/<slug>` is deliberately the calmest
@@ -190,7 +216,22 @@ const pct = (value: number) => `${Math.round(value * 100)}%`
 const px2 = (value: number) => `${Math.round(value / 1000)}k px²`
 
 const REPORTED = [
-  { path: '/en', selector: 'main section', label: 'home sections' },
+  {
+    /*
+     * Leaf sections only, and the `:not(:has(section))` is the whole of it.
+     *
+     * `main section` reported `/en`'s worst hole as 644k px², the largest
+     * number on the site — and it was measured inside a **5959px page
+     * wrapper**. A hole in a six-thousand-pixel box is not the same
+     * quantity as a hole in a 629px journal row, and printing them in one
+     * column invited exactly the comparison this file exists to make
+     * honestly. The `tallest block` column was added in the same pass so a
+     * wrapper is visible as one; this stops it being counted at all.
+     */
+    path: '/en',
+    selector: 'main section:not(:has(section))',
+    label: 'home sections',
+  },
   { path: '/en/work', selector: 'main li', label: 'catalogue cards' },
   {
     path: `/en/work/${FEATURED_WORK}`,
