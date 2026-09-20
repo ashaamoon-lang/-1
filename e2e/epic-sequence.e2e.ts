@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import { PRACTICES } from '../lib/content/practices'
-import { FEATURED_WORK } from './fixtures'
+import { FEATURED_WORK, RUN_WORK } from './fixtures'
 
 /**
  * One thing is epic at a time.
@@ -77,6 +77,10 @@ const ROUTES = [
   '/en',
   '/en/work',
   `/en/work/${FEATURED_WORK}`,
+  // The same route shape in its other layout: `RUN_WORK` clears
+  // `RUN_MINIMUM`, so its gallery is the pinned track and carries a
+  // second moment the grid version does not. Tahap 82.
+  `/en/work/${RUN_WORK}`,
   '/en/studio',
   '/en/journal',
   '/en/journal/scope-is-the-deliverable',

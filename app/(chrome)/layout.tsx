@@ -1,8 +1,47 @@
+import type { Metadata } from 'next'
 import type { PropsWithChildren } from 'react'
 
+import { APP_BASE_URL } from '@/lib/env'
 import { fontsVariable } from '@/lib/styles/fonts'
 
 import '@/lib/styles/css/index.css'
+
+/**
+ * The origin this tree resolves relative URLs against, and nothing else.
+ *
+ * The note below hands *app-specific* metadata to `app/[locale]/layout.tsx` so
+ * Studio does not inherit it, and that division still holds: there is no
+ * title, no description, no OG image and no JSON-LD here. `metadataBase` is a
+ * different kind of thing — it is not what the site says about itself, it is
+ * the origin Next resolves every relative metadata URL against, and a tree
+ * without one resolves them against `http://localhost:3000`.
+ *
+ * It reads `APP_BASE_URL` rather than restating a URL, so the day
+ * `NEXT_PUBLIC_BASE_URL` is set both roots move together.
+ *
+ * ## What this did NOT fix, said plainly
+ *
+ * It was added while chasing Next's `metadataBase ... is not set` warning,
+ * which a production build emits **four times**. It did not silence it, and
+ * two attempts is where this repository's working rules stop guessing.
+ *
+ * Measured instead. In the prerendered HTML, `[locale]` pages resolve their
+ * OG image against `https://localhost:3000` — `APP_BASE_URL`'s fallback, so
+ * that tree is reading a base — while `/cms` resolves against
+ * `http://localhost:3000`, which is Next's own default when it has none. The
+ * image itself is `app/opengraph-image.png`, file-based metadata sitting
+ * **above both root layouts**, and adding `metadataBase` here and again on
+ * `cms/layout.tsx` moved neither the count nor that URL.
+ *
+ * So the warning is understood but open, and its blast radius is small: the
+ * two routes affected are `/cms`, which is `robots: noindex`, and the bare
+ * root, which redirects. Every indexed page already resolves against
+ * `APP_BASE_URL`. The setting that actually matters is
+ * `NEXT_PUBLIC_BASE_URL`, still unset — `docs/DEPLOYMENT.md` §2.1 owns it.
+ */
+export const metadata: Metadata = {
+  metadataBase: new URL(APP_BASE_URL),
+}
 
 /*
   Root layout #1 of two. Bare shell for routes that must NOT be localized:

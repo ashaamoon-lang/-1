@@ -367,3 +367,128 @@ menangkapnya — dan itu persis alasan langkah itu ada di rencana.
   mengizinkannya secara eksplisit. Baris status tetap **81**.
 - **Nol angka performa diklaim.** K10 masih menunggu `CONTEXT7_API_KEY`
   (`CLAUDE.md` #19).
+
+---
+
+## 9. Sesudah dataset disemai — dan satu premis lagi yang gugur
+
+### 9.1 Trek itu merender, dan gerbangnya melihatnya
+
+Diukur dari halaman nyata, bukan dari generator:
+
+```
+/en/work/arus-balik   data-epic="project-arrival"
+                      data-epic="project-run"     <- pertama kali sejak Tahap 64
+epic-sequence         18 lulus, dua viewport
+```
+
+### 9.2 Dan ia mematikan grid di setiap proyek
+
+`project-spread.e2e.ts` langsung merah, tiga tes, pesannya satu:
+**"renders no artwork"**. Bukan cacat baris; gerbang itu mencari plat grid dan
+menemukan nol.
+
+Sebabnya tertulis di komponennya sejak Tahap 64, dan saya melewatinya:
+
+> _"on today's fixtures the run never appears. Every project falls back to the
+> grid, which is the correct, already-measured design."_
+
+`RUN_MINIMUM` bukan ambang yang **menambah** tata letak — ia **mengganti**-nya.
+Menaikkan keenam proyek ke empat plat memindahkan semuanya ke trek dan
+menghapus grid dari situs ini sepenuhnya, termasuk dari `FEATURED_WORK`, rute
+yang **sepuluh** berkas e2e navigasikan lewat nama dan yang semuanya ditulis
+terhadap grid.
+
+### 9.3 Koreksi: dataset berutang satu karya per bentuk
+
+`§4.1` menulis _"tiap proyek mengambil 4 plat berbeda"_. Itu keliru, dan
+argumennya sudah ada di repo — `e2e/fixtures.ts` menulisnya untuk sampul
+persegi: _"a test that needs a particular shape of work cannot pick one at
+random and still mean what it says."_
+
+Situs ini punya **dua** bentuk galeri sejak Tahap 64. Dataset harus membawa
+wakil keduanya:
+
+```
+FEATURED_WORK  arus-balik    3 plat  -> grid   (sepuluh berkas memakukannya)
+RUN_WORK       pusat-beban   4 plat  -> trek   (baru, dinamai di e2e/fixtures.ts)
+empat lainnya                4 plat  -> trek
+```
+
+`epic-sequence` mendapat rute `RUN_WORK`, jadi trek itu punya pemeriksaan
+urutan gulir di rute hidup — bukan hanya di story. Dan trek memang sudah
+bergerbang penuh lewat `e2e/gallery-run.e2e.ts` (5 tes, Storybook), yang
+**tidak pernah** bergantung pada dataset; itu ditemukan saat mencari, bukan
+diasumsikan.
+
+Uji unit dikoreksi bersamaan: ia menuntut "tiap proyek >= 4" dan sekarang
+menuntut **minimal satu dari tiap bentuk**. Uji yang menyatakan hal yang salah
+dengan percaya diri lebih buruk daripada tidak ada uji.
+
+### 9.4 Menyemai ulang diperlukan, dan `--clean` dulu
+
+Generator berubah; dataset belum. `arus-balik` masih membawa empat plat di
+Sanity sampai perintahnya dijalankan lagi.
+
+Dan **`--clean` lebih dulu**, bukan seed langsung: dokumen memakai
+`createOrReplace` sehingga idempoten, tapi plat dikomposit dengan noise
+gaussian ber-seed acak, jadi byte-nya berbeda tiap render dan Sanity
+mengunggahnya sebagai aset **baru** alih-alih men-dedup. Menyemai ulang tanpa
+membersihkan menumpuk aset yatim — semuanya ber-prefiks `fixture-`, jadi bisa
+dihapus, tapi lebih baik tidak dibuat.
+
+---
+
+## 10. Kebisingan build — disorot dan diukur
+
+Ini di luar lingkup tahap ini dan dikerjakan atas permintaan pemilik repo.
+
+### 10.1 Satu setelan yang hilang mencetak empat belas baris
+
+`lib/env.ts` memperingatkan di module scope. `next build` mengumpulkan data
+halaman di **tujuh proses worker**, dan modul itu dievaluasi lebih dari sekali
+di dalam tiap proses — jadi satu nilai yang absen mencetak **14 baris**,
+berselang-seling dengan progress bar, sehingga log-nya terbaca seperti sesuatu
+gagal berulang-ulang.
+
+Itu bukan keluhan kosmetik. `RENCANA` §8.7 sudah membawanya sebagai risiko
+**R2**: sesudah sepuluh baris identik tidak ada yang membaca yang kesebelas,
+dan yang kesebelas itulah tempat peringatan **lain** bersembunyi.
+
+Diperbaiki dengan latch di `globalThis` — bukan `let` tingkat modul, karena
+pengulangannya datang dari modul yang dievaluasi beberapa kali **di dalam satu
+proses**, dan hanya global yang dibagi antar salinan itu.
+
+```
+sebelum   14
+sesudah    7      satu per worker; lintas proses tidak bisa dilatch
+```
+
+Peringatannya sendiri **tetap**, dan nilainya masih hilang. `NEXT_PUBLIC_BASE_URL`
+dipanggang saat build, jadi menyetelnya tanpa membangun ulang tidak mengubah
+apa pun — `docs/DEPLOYMENT.md` §2.1 memilikinya.
+
+### 10.2 Peringatan `metadataBase` — dipahami, TIDAK diperbaiki
+
+Empat baris, dan dua percobaan gagal. Aturan kerja melarang yang ketiga, jadi
+ia ditulis apa adanya.
+
+Terukur dari HTML yang dihasilkan:
+
+```
+/en/*         og:image = https://localhost:3000/...   <- APP_BASE_URL, punya base
+/cms          og:image = http://localhost:3000/...    <- default Next, tanpa base
+```
+
+Gambarnya `app/opengraph-image.png` — metadata berbasis berkas yang duduk **di
+atas kedua root layout**. Menambahkan `metadataBase` di `app/(chrome)/layout.tsx`
+tidak menggeser hitungannya maupun URL itu; menambahkannya lagi di
+`cms/layout.tsx` juga tidak, dan yang kedua dikembalikan karena duplikasi yang
+tidak berefek lebih buruk daripada tidak ada.
+
+**Radius dampaknya kecil, dan itu diukur bukan ditaksir:** dua rute yang
+terpengaruh adalah `/cms`, yang `robots: noindex`, dan root telanjang, yang
+redirect. **Setiap halaman terindeks sudah menyelesaikan OG-nya terhadap
+`APP_BASE_URL`.** Deklarasi di root `(chrome)` dipertahankan karena ia benar
+pada dirinya sendiri, dan komentarnya sekarang menyatakan bahwa ia tidak
+membungkam peringatan itu.

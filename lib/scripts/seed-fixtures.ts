@@ -715,7 +715,16 @@ export const PROJECTS: readonly FixtureProject[] = [
     ),
     scope: '2 teams · 6 weeks',
     cover: 'arus-balik',
-    gallery: ['plate-wide', 'plate-tall', 'plate-column', 'plate-square'],
+    /*
+     * Three, not four, and that is the whole shape of Tahap 82's second
+     * half. At four this project crosses `RUN_MINIMUM` and its gallery
+     * stops being a grid — which took `project-spread.e2e.ts` with it,
+     * reporting "renders no artwork" on the one route ten e2e files pin
+     * by name. The site has two gallery shapes now, so the fixtures owe
+     * the suite one of each; `e2e/fixtures.ts` already argues exactly
+     * that for the square cover. This is the grid one.
+     */
+    gallery: ['plate-wide', 'plate-tall', 'plate-column'],
     alt: i18n(
       'Diagram of a system under review, one mass lit from the left',
       'Diagram sistem yang sedang ditinjau, satu massa disinari dari kiri'

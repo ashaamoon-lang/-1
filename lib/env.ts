@@ -158,10 +158,57 @@ export const env: Env = parsedEnv.data
  */
 export const APP_BASE_URL = env.NEXT_PUBLIC_BASE_URL ?? 'https://localhost:3000'
 
+/**
+ * Warned once per process, and the "once" is the whole of this block.
+ *
+ * ## What it looked like without the latch
+ *
+ * The warning is correct and it stays. What was wrong was its volume: this
+ * module is evaluated once per entry point, and `next build` collects page
+ * data across seven worker processes, so a single missing value printed
+ * **fourteen times** through one build — interleaved with the progress bar,
+ * so the log read as if something were failing repeatedly rather than as one
+ * setting being absent.
+ *
+ * That is not a cosmetic complaint. `RENCANA` §8.7 carries it as risk R2 in
+ * another costume: after ten identical lines nobody reads the eleventh, and
+ * the eleventh is where a different warning hides. A warning repeated past
+ * the point of being read has stopped being a warning.
+ *
+ * ## Why `globalThis` rather than a module-level `let`
+ *
+ * A module-level flag is per module instance, and the repetition comes from
+ * the module being evaluated more than once inside a process — different
+ * entry points, different bundles, same worker. `globalThis` is the only
+ * scope the copies share. Across processes it cannot help, which is correct
+ * and deliberate: seven workers now print once each rather than twice, and a
+ * reader still learns the value is missing wherever they look.
+ *
+ * ## What it is NOT
+ *
+ * It is not a fix for the missing value. `NEXT_PUBLIC_BASE_URL` is baked at
+ * build time, so setting it later without rebuilding changes nothing —
+ * `docs/DEPLOYMENT.md` §2.1 and the domain step in `RENCANA` own that, and
+ * both are still open.
+ */
+declare global {
+  /*
+   * Declared rather than asserted. A `Record<symbol, unknown>` cast would
+   * have satisfied the compiler and failed `anti-slop/no-unsafe-dictionary-type`
+   * for a good reason: it hands every later reader a bag with no value
+   * contract. This says what the property is and what it may hold.
+   */
+  // `var` rather than `let`: it is the only declaration form that augments
+  // `globalThis`, which is the whole point of this block.
+  var arthBaseUrlWarned: boolean | undefined
+}
+
 if (
   process.env.NODE_ENV === 'production' &&
-  !process.env.NEXT_PUBLIC_BASE_URL
+  !process.env.NEXT_PUBLIC_BASE_URL &&
+  !globalThis.arthBaseUrlWarned
 ) {
+  globalThis.arthBaseUrlWarned = true
   console.warn(
     '[env] NEXT_PUBLIC_BASE_URL is not set in production. ' +
       'Canonical URLs, sitemaps, and OG image paths will resolve to localhost, ' +

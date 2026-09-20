@@ -49,14 +49,42 @@ describe('the fixture gallery feeds the horizontal track', () => {
     expect(Object.keys(PLATES).length).toBeGreaterThan(6)
   })
 
-  it('gives every project at least the four plates RUN_MINIMUM wants', () => {
-    // 4 is `RUN_MINIMUM` in `vault/blocks/project-gallery`. Below it the
-    // track does not render at all, which is the whole reason for this stage.
+  it('seeds both gallery shapes, because the suite needs one of each', () => {
+    /*
+     * The first version of this test demanded four plates from **every**
+     * project, and it was wrong in a way only the rendered page could show.
+     *
+     * 4 is `RUN_MINIMUM` in `vault/blocks/project-gallery`: at or above it the
+     * gallery stops being a twelve-column grid and becomes a pinned horizontal
+     * track. Raising all six therefore did not add a layout, it **replaced**
+     * one — and `project-spread.e2e.ts` went red with "renders no artwork" on
+     * `FEATURED_WORK`, the route ten e2e files navigate to by name.
+     *
+     * So the requirement is not "every project runs". It is that the dataset
+     * carries a representative of each shape, which is the same argument
+     * `e2e/fixtures.ts` makes for naming the square cover.
+     */
+    const run = PROJECTS.filter((project) => project.gallery.length >= 4)
+    const grid = PROJECTS.filter((project) => project.gallery.length < 4)
+
+    expect(
+      run.length,
+      'no project clears RUN_MINIMUM, so the horizontal track never renders'
+    ).toBeGreaterThan(0)
+    expect(
+      grid.length,
+      'every project became a track, so the grid has no route left to measure'
+    ).toBeGreaterThan(0)
+  })
+
+  it('gives the grid work enough plates to have rows at all', () => {
+    // Two plates cannot strand a half and cannot fill a row badly; the gate
+    // that measures rows needs something to measure.
     for (const project of PROJECTS) {
       expect(
         project.gallery.length,
         `${project.slug} carries ${project.gallery.length} gallery plates`
-      ).toBeGreaterThanOrEqual(4)
+      ).toBeGreaterThanOrEqual(3)
     }
   })
 
