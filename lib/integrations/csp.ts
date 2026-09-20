@@ -19,15 +19,52 @@
  * additions (dev-only HMR/eval, preview-only Vercel toolbar), and the
  * project-specific escape hatch below.
  *
- * Enforced, not Report-Only — see the CHANGELOG entry and #318: without a
- * nonce pipeline (out of scope here — that's a `proxy.ts` + per-request
- * headers architecture change), `script-src` still needs `'unsafe-inline'`
- * (and, in dev, `'unsafe-eval'` for React Refresh). That's a real, documented
- * gap: an injected `<script>` tag is not blocked by this policy. But
- * `connect-src`/`img-src`/`frame-ancestors` now have real teeth restricted to
- * exactly the origins the kept integrations load — a large upgrade over the
- * previous Report-Only baseline, which allowed `https:`/`wss:` everywhere
- * and enforced nothing.
+ * Enforced, not Report-Only — see the CHANGELOG entry and #318: `script-src`
+ * still needs `'unsafe-inline'` (and, in dev, `'unsafe-eval'` for React
+ * Refresh). That's a real, documented gap: an injected `<script>` tag is not
+ * blocked by this policy. But `connect-src`/`img-src`/`frame-ancestors` now
+ * have real teeth restricted to exactly the origins the kept integrations
+ * load — a large upgrade over the previous Report-Only baseline, which
+ * allowed `https:`/`wss:` everywhere and enforced nothing.
+ *
+ * ## The nonce is not deferred. It is incompatible — measured, Tahap 83
+ *
+ * This note used to call the nonce pipeline "out of scope here — a `proxy.ts`
+ * + per-request headers architecture change", which reads as work somebody
+ * could schedule. It is not. Next's own CSP guide is explicit:
+ *
+ *   "**Partial Prerendering (PPR) is incompatible** with nonce-based CSP
+ *    since static shell scripts won't have access to the nonce"
+ *   "Static optimization and Incremental Static Regeneration (ISR) are
+ *    disabled" · "Pages cannot be cached by CDNs"
+ *
+ * A nonce must be unique per request, and Next injects it during server-side
+ * rendering from the request's own CSP header — so a page prerendered at
+ * build time can never carry one. This site is `◐ Partial Prerender` on
+ * nearly every route, with `cacheComponents` on and a `1y` revalidate. Buying
+ * a nonce means selling all of it.
+ *
+ * ## What is already bought instead
+ *
+ * `experimental.sri` is on (`sha384`, `next.config.ts`), and it is the
+ * alternative that guide names for exactly this case: hash-based integrity at
+ * build time, which keeps static generation. Measured on the built HTML for
+ * `/en`:
+ *
+ * ```
+ *  8  external bundles      integrity="sha384-..."   <- covered
+ * 25  inline <script>
+ *      1  application/ld+json   data, not executed, script-src does not apply
+ *     23  self.__next_f.push()  the RSC payload
+ * ```
+ *
+ * Those 23 are the irreducible remainder, and each property rules out a fix:
+ * **inline**, so SRI cannot reach them; **unique per page**, so a static hash
+ * list cannot enumerate them; **executed**, so `script-src` applies. The one
+ * mechanism that covers them is the nonce, and the nonce costs PPR.
+ *
+ * So `'unsafe-inline'` here is a priced trade, not an unpaid debt. Revisit it
+ * if the rendering model changes — not before, and not by scheduling it.
  */
 
 import { existsSync } from 'node:fs'
