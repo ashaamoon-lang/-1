@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 82**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 83**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,58 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 83 — Ruang yang tidak ada yang isi ✅
+
+Spec: `docs/stages/TAHAP-83.md`. **Menggantikan** T-83 versi rencana ("ekspansi
+material"), yang gugur pada pengukuran di ketiga rutenya.
+
+Tiga tahap berturut-turut gugur pada premis rute, dan pada hari yang sama saya
+salah mengukur `/studio` **dua kali** — sekali dengan mem-`grep` berkas rutenya
+alih-alih halamannya, sekali dengan membaca screenshot full-page dari elemen
+ter-scrub sebagai blok kosong. Empat kekeliruan, satu sebab: **tidak ada yang
+mengukur komposisi.**
+
+`e2e/composition-density.e2e.ts` mengukurnya. Grid 32×32 per blok, hanya **daun
+tercat** yang dihitung — bukan pembungkus (kotaknya menutupi anaknya), bukan
+ornamen `position: fixed` (ia akan menandai tiap sel penuh dan melaporkan
+halaman berisi judul-di-kehampaan sebagai padat).
+
+Pembacaan pertamanya diperiksa ke tangan dan **menangkap cacat selektornya
+sendiri**: `main li` mencocokkan sebelas elemen di `/practice` dan melaporkan
+44% terhadap 10,4% yang diukur tangan.
+
+```
+/en/work               fill 99%   lubang  3%      <- punya gerbang
+/en/work/<grid>        fill 100%  lubang  0%      <- punya gerbang
+/en/journal            fill 30%   lubang 59% = 516k px²
+/en/practice/<v>       fill  8%   lubang 81% = 351k px²
+```
+
+**Dua rute terpadat adalah dua rute yang punya gerbang.** Sisanya hanya pernah
+dibaca.
+
+`/journal`: sampulnya duduk di rel 338px sementara kolom baca 1045px berhenti
+di sepertiga tinggi baris. Dipindah ke kolom itu, rasio `12 / 5`, desktop saja
+— di ponsel letterbox akan jadi strip 83px. **Lubang 59% → 23%, fill 30% →
+69%**, nol konten dan nol KB ditambahkan.
+
+**`/practice` ditegakkan selama satu jam, lalu dicabut**, dan itu temuan
+tahap ini yang lebih penting. Ia angka terkosong di situs, dan saya menahannya
+atas dasar angka itu saja — sampai aturan yang menghasilkannya dibaca:
+`min-block-size: 46svh`, dengan pengukuran Tahap 24 menempel padanya dan
+kalimat _"the extra height is meant to be space **after** an item."_ Ruang itu
+bukan tak bertuan; ia kadens yang dirancang.
+
+Kegagalan itu ditulis di §6.2 spec ini **sebelum** daftar penegakannya ditulis.
+Menuliskan risikonya tidak mencegahnya; membaca CSS-nya yang mencegah. Alatnya
+kini melapor di mana-mana dan menghakimi satu rute — blok yang kosong adalah
+**pertanyaan, bukan vonis**.
+
+unit **588 lulus, 0 gagal** · first-screen, plane-edge, route-budget,
+epic-sequence, no-javascript, continuous-motion **76 lulus, 0 gagal**.
 
 ---
 

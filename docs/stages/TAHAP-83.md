@@ -1,6 +1,7 @@
 # Tahap 83 — Ruang yang tidak ada yang isi, dan alat untuk melihatnya
 
-> **Status: spec. Belum ada kode.** Ditulis lebih dulu sesuai `ROADMAP.md` §3.0.
+> **Status: terkirim.** Spec ditulis lebih dulu sesuai `ROADMAP.md` §3.0; hasil
+> dan gerbangnya di §7.
 >
 > Cabang: `claude/arth-design`. Tahap ini **menggantikan** T-83 versi rencana
 > ("ekspansi material"), yang gugur pada pengukuran di ketiga rutenya — §1.1.
@@ -222,3 +223,117 @@ docs/stages/TAHAP-83.md               berkas ini
    (pemicu **T6**).
 4. **Nol angka performa diklaim.** K10 masih menunggu `CONTEXT7_API_KEY`
    (`CLAUDE.md` #19).
+
+---
+
+## 7. Hasil
+
+### 7.1 Alat ukurnya, dan pembacaan pertamanya diperiksa ke tangan
+
+`e2e/composition-density.e2e.ts` membagi tiap blok jadi grid 32×32, menandai
+sel yang ditutupi **daun tercat** (elemen yang membawa teksnya sendiri, atau
+gambar/kanvas/SVG — bukan pembungkus, bukan ornamen `position: fixed`), lalu
+mencari persegi kosong terbesar lewat metode histogram.
+
+Pembacaan pertamanya dibandingkan ke pengukuran tangan §1.2 (**T6**):
+
+```
+/journal    tangan 485k px²   alat 516k px²   selisih 6%, membulat ke luar — cocok
+/practice   tangan 10,4% (1-D) alat 8% (2-D)    cocok
+```
+
+**Dan pembacaan pertama itu menangkap cacat selektor, bukan cacat halaman.**
+`main li` di `/practice` mencocokkan **sebelas** elemen — baris nav dan daftar
+sub-label ikut — melaporkan fill 44%. Alat yang tidak setuju dengan tangan
+adalah alat yang sedang memberi tahu Anda sesuatu.
+
+### 7.2 Peta kepadatan seluruh situs, dan tesisnya terbaca sebagai data
+
+```
+/en                     6 seksi      fill 36%   lubang 50% =  644k px²
+/en/work               10 kartu      fill 99%   lubang  3% =   21k px²
+/en/work/<grid>         3 plat       fill 100%  lubang  0% =    0k px²
+/en/work/<trek>         4 plat       fill 74%   lubang 53% =  176k px²
+/en/studio              6 seksi      fill 41%   lubang 72% =  147k px²
+/en/journal             3 baris      fill 30%   lubang 59% =  516k px²
+/en/practice/<v>        4 blok       fill  8%   lubang 81% =  351k px²
+```
+
+**Dua rute terpadat adalah dua rute yang punya gerbang.** `/work` dan
+`/work/<slug>` diukur `project-spread` sejak Tahap 44; sisanya hanya pernah
+dibaca. Itu seluruh argumen berkas ini, dan ia muncul sebagai angka.
+
+### 7.3 `/journal` — lubang turun 61%
+
+Strukturnya diukur, bukan ditebak:
+
+```
+p.caption   [16,585   338x14 ]  kolom 1
+h2          [370,585  1045x43]  kolom 2
+p.summary   [370,639  564x38 ]  kolom 2
+div.cover   [16,711   338x422]  kolom 1   <- sampul di rel sempit
+```
+
+Kolom baca yang lebar berhenti di y=677; rel berjalan sampai y=1133. Sampulnya
+duduk di kolom sempit sementara kolom lebar dibiarkan kosong.
+
+Sampul dipindah ke kolom baca dan melebar bersamanya — `grid-column: 2`,
+rasio `12 / 5`, **hanya di desktop**. Di ponsel barisnya satu kolom dan sampul
+tetap potret 200px; letterbox di sana akan jadi strip 83px, yaitu bagaimana
+perbaikan untuk satu lebar jadi cacat di lebar lain.
+
+```
+fill          30%  ->  69%
+lubang       59%  ->  23%
+              516k ->  204k px²
+```
+
+Nol konten ditambahkan, nol KB ditambahkan, dan gambarnya berubah dari
+thumbnail 338px jadi gambar editorial 1045px.
+
+### 7.4 `/practice` — ditegakkan selama satu jam, lalu dicabut
+
+Ia angka terkosong di situs ini (81%, 351k px²) dan saya menahannya atas dasar
+angka itu saja. Lalu aturan yang menghasilkannya dibaca:
+
+```
+capability-set.module.css   min-block-size: 46svh
+```
+
+dengan pengukurannya sendiri menempel: _"long past the ~200px Tahap 24 proved
+no reader perceives as holding — and **exactly two statements share the
+screen**"_, dan tepat di atas padding-nya: _"the extra height is meant to be
+space **after** an item."_
+
+Ruang itu **bukan tak bertuan**. Ia kadens sebuah rangkaian sticky, dibantah
+di Tahap 24 dan diukur ulang di Tahap 25. Gerbang yang menggagalkannya adalah
+metrik yang membatalkan keputusan karena keputusan itu mahal dinyatakan sebagai
+angka.
+
+Kegagalan itu **ditulis di §6.2 spec ini, sebelum daftar penegakannya ditulis**.
+Menuliskan risikonya tidak mencegahnya; membaca CSS-nya yang mencegah.
+
+Jadi alatnya tetap melaporkan `/practice` dan berhenti menghakiminya. Blok yang
+kosong adalah **pertanyaan, bukan vonis** — dan satu-satunya cara membedakan
+ruang yang disengaja dari ruang yang tak bertuan adalah pergi membaca kenapa
+ruang itu ada.
+
+### 7.5 Gerbang
+
+| gerbang                                                                                      | hasil                                        |
+| -------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `bun run check`                                                                              | **588 lulus, 0 gagal**                       |
+| `composition-density` (baru)                                                                 | **terbukti merah** di `/journal`, lalu hijau |
+| first-screen · plane-edge · route-budget · epic-sequence · no-javascript · continuous-motion | **76 lulus, 0 gagal**, dua viewport          |
+
+### 7.6 Yang tidak dikerjakan, dinyatakan eksplisit
+
+- **`/practice/<v>` tidak diubah.** §7.4 — ruangnya sudah dibela.
+- **`/en` dan `/studio` tidak ditegakkan.** Keduanya melewati ambang, dan tak
+  satu tahap pun pernah mengukur apa yang seharusnya blok mereka bawa.
+  Melaporkan, tidak menghakimi, sampai sebuah tahap membantahnya.
+- **Nol konten diciptakan.** `capability-set` hanya menerima nama; tidak ada
+  deskripsi kapabilitas yang ditulis.
+- **Nol angka performa diklaim.** K10 masih menunggu `CONTEXT7_API_KEY`
+  (`CLAUDE.md` #19).
+- **Klaim a11y:** nol — tahap ini tidak menjalankan axe di luar suite yang ada.

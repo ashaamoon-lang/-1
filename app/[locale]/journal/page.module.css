@@ -384,9 +384,30 @@
  *
  * `position: relative` and the ratio moved here from `.coverImage`, which is
  * what lets the picture leave normal flow without the row collapsing: the
- * frame now reserves the box and the layer fills it. The rendered height is
- * unchanged — the image was `inline-size: 100%` inside this same box, so the
- * ratio resolves against the same width it always did.
+ * frame now reserves the box and the layer fills it.
+ *
+ * ## It sits in the reading column, and that is Tahap 83's measurement
+ *
+ * It used to auto-place into the date rail, under the caption, at 338px wide
+ * and 422px tall. The reading column beside it held a heading and two lines
+ * and then stopped — so every row carried an empty rectangle of
+ * **1045 x 456 px, about 485,000 px²**, three rows of it, on a route with no
+ * gate to say so.
+ *
+ * For scale, `vault/blocks/project-gallery` records the defect that earned
+ * `data-spread`: *"a portrait sat with 836px of empty page beside it... roughly
+ * 860 thousand square pixels"*. This route carried more, spread over three
+ * rows, and nobody had looked.
+ *
+ * So the picture moves to where the page is empty rather than the page being
+ * rebuilt around where the picture was. `e2e/composition-density.e2e.ts` is
+ * the instrument, and it went red on this row before this rule changed.
+ *
+ * The ratio widens with the column and only there. On a phone the row is one
+ * column and the cover is a 200px portrait beside nothing — that reads as a
+ * deliberate thumbnail, and the same measurement at 390px found no void worth
+ * the name. A `12 / 5` letterbox at 200px would be an 83px strip, which is
+ * how a fix for one width becomes a defect at another.
  */
 .cover {
   position: relative;
@@ -396,6 +417,8 @@
   max-inline-size: mobile-vw(200px);
 
   @media (--desktop) {
+    grid-column: 2;
+    aspect-ratio: 12 / 5;
     margin-block-start: desktop-vw(24px);
     max-inline-size: none;
   }
