@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 81**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 82**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,66 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 82 — Dataset berutang satu karya per bentuk ✅
+
+Spec: `docs/stages/TAHAP-82.md`.
+
+`RUN_MINIMUM` adalah 4 dan kolam plat fixture berisi 3, jadi **trek horizontal
+belum pernah merender sekali pun sejak Tahap 64**. Kolam dinaikkan ke 6, dan
+rasio plat barunya dipilih di tempat `isFullWidth` belum pernah diuji pada
+halaman nyata: **0.980** — batasnya didekati dari bawah untuk pertama kali —
+dan **1.250** dari atas.
+
+Lalu semuanya berpindah ke trek, dan itu bukan yang diinginkan.
+
+**`RUN_MINIMUM` bukan ambang yang menambah tata letak; ia menggantinya.**
+Komponennya sudah menulis itu di Tahap 64 — _"on today's fixtures the run never
+appears. Every project falls back to the grid"_ — dan saya melewatinya. Memberi
+keenam proyek empat plat menghapus grid dari situs ini sepenuhnya, termasuk
+dari `FEATURED_WORK`, rute yang **sepuluh** berkas e2e pakukan lewat nama dan
+yang semuanya ditulis terhadap grid.
+
+Koreksinya sudah punya argumen di repo, ditulis untuk sampul persegi:
+_"a test that needs a particular shape of work cannot pick one at random and
+still mean what it says."_ Situs ini punya dua bentuk galeri, jadi dataset
+berutang wakil keduanya — `arus-balik` 3 plat (grid), `pusat-beban` 4 dan
+dinamai `RUN_WORK` (trek).
+
+**Tiga premis gugur, ketiganya milik saya.** "Tiap proyek empat plat."
+"Deskripsi alt bisa ditulis dari nilai heks" — ketiganya menukar warna massa
+dengan warna cahaya, dan hanya `--preview` lalu **melihatnya** yang
+menangkapnya. Dan "gerbang yang hijau kemarin mengukur hal yang sama hari ini":
+`project-spread` membaca `plates.length > 0` sebagai "karya ini merender karya"
+padahal ia berarti "karya ini merender grid", dan cabang trek tidak pernah
+menghasilkan satu pun `data-span`.
+
+**Dua hal ditemukan yang bukan pekerjaan tahap ini.** Meng-`import`
+`seed-fixtures.ts` akan **menyemai dataset** — entry point-nya berjalan di
+module scope tanpa `import.meta.main`, dan Bun memuat `.env.local` otomatis.
+Itu sebabnya berkas itu tidak pernah punya uji. Dan prefiks `--clean` yang
+sebenarnya `'fixture-'` sementara komentar pembukanya menulis `fixture.` sejak
+Tahap 4 — paragraf yang orang baca sebelum mempercayakan `--clean` pada dataset
+nyata.
+
+Kebisingan build diperbaiki di tahap yang sama, atas permintaan pemilik repo:
+satu setelan yang hilang mencetak **14 baris** karena `lib/env.ts`
+memperingatkan di module scope dan `next build` mengevaluasinya berkali-kali di
+tujuh worker. Dilatch di `globalThis` — **14 → 7**. Peringatan `metadataBase`
+dipahami dan **tidak** diperbaiki, dan itu dikatakan: dua percobaan gagal,
+aturan kerja melarang yang ketiga, dan radius dampaknya diukur — `/cms`
+(noindex) dan root telanjang (redirect), sementara setiap halaman terindeks
+sudah menyelesaikan OG-nya terhadap `APP_BASE_URL`.
+
+`doctor` juga dikoreksi: ia menyatakan port 3000 bebas satu baris sebelum
+`next start` mati `EADDRINUSE: :::3000`. Ia mengikat `127.0.0.1` dan menyebut
+bind yang berhasil sebagai bukti; kini ia menanyakan apakah ada yang
+**menjawab**, di kedua keluarga loopback.
+
+unit **588 lulus, 0 gagal** · `epic-sequence` melihat dua momen di
+`/work/<slug>` untuk pertama kalinya — kriteria yang `TAHAP-79.md` §8 ikatkan.
 
 ---
 

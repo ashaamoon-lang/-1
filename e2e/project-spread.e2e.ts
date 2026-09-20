@@ -123,6 +123,31 @@ test.describe('the gallery leaves no half-empty row', () => {
 
     for (const path of paths) {
       const plates = await platesOn(page, path)
+
+      /*
+       * A gallery that runs has no rows to fill — Tahap 82.
+       *
+       * `project-gallery` has had two layouts since Tahap 64, and until the
+       * fixtures carried four plates only one of them ever rendered. Above
+       * `RUN_MINIMUM` the grid is **replaced** by a pinned horizontal track,
+       * which hands `Horizontal` the figures alone: no `<ul>`, no `<li>`, and
+       * therefore no `data-span`. Everything below this line asks which plates
+       * share a row, and a track's answer is "there are no rows".
+       *
+       * So a track is skipped rather than measured. The assertion that used to
+       * sit here read `plates.length > 0` as "this work renders artwork", and
+       * it fired on the first work whose gallery became a track — reporting
+       * "renders no artwork" about a page full of it.
+       *
+       * This cannot become a silent pass: the `halvesSeen` check at the end of
+       * this test fails when no work anywhere contributed a half, so a dataset
+       * that turned every project into a track goes red there instead. The
+       * fixtures deliberately keep one work of each shape — `e2e/fixtures.ts`
+       * names both.
+       */
+      const runs = await page.locator('[data-epic="project-run"]').count()
+      if (runs > 0 && plates.length === 0) continue
+
       expect(plates.length, `${path} renders no artwork`).toBeGreaterThan(0)
 
       for (const plate of plates) {

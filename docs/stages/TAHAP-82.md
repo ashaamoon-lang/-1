@@ -492,3 +492,49 @@ redirect. **Setiap halaman terindeks sudah menyelesaikan OG-nya terhadap
 `APP_BASE_URL`.** Deklarasi di root `(chrome)` dipertahankan karena ia benar
 pada dirinya sendiri, dan komentarnya sekarang menyatakan bahwa ia tidak
 membungkam peringatan itu.
+
+---
+
+## 11. Sesudah semai ulang — dan gerbang ketiga yang ikut gugur
+
+### 11.1 Dua bentuk, dua karya, terukur dari halaman
+
+```
+dataset   arus-balik 3 · lima lainnya 4          (GROQ ke production)
+/en/work/arus-balik     project-arrival           <- grid
+/en/work/pusat-beban    project-arrival + project-run   <- trek
+```
+
+### 11.2 Build hijau yang menyajikan konten lama
+
+Pemeriksaan pertama sesudah semai ulang **masih** melaporkan `project-run` di
+`arus-balik`, padahal dataset sudah 3. Bukan seed yang gagal — build yang basi:
+`'use cache'` menyimpan hasil GROQ di `.next/cache`, jadi build kedua
+memprerender ulang dari jawaban build pertama dan log-nya tetap hijau.
+
+`docs/MENJALANKAN-LOKAL.md` §8 sudah menulis bentuk ini sebagai butir
+pertamanya, dan saya tetap menabraknya. `rm -rf .next/cache` lalu build
+menyelesaikannya. Dicatat di sini karena butir dokumen yang dilanggar oleh
+penulisnya sendiri adalah bukti bahwa ia perlu lebih keras daripada prosa.
+
+### 11.3 `project-spread` gugur untuk alasan ketiga, dan kali ini gerbangnya
+
+Sesudah dataset benar, gerbang itu masih merah — pada `bacaan-mesin`, bukan
+`arus-balik`. Ia membaca **seluruh** slug dari sitemap, jadi tiap karya
+ber-trek melaporkan "renders no artwork".
+
+Diukur ke sumbernya: cabang trek meneruskan **hanya `figure`** ke `Horizontal`.
+Tidak ada `<ul>`, tidak ada `<li>`, jadi tidak ada `data-span` — dan seluruh
+isi tes itu menanyakan plat mana berbagi baris. Jawaban sebuah trek adalah
+**tidak ada baris**.
+
+Jadi yang salah bukan datanya dan bukan tata letaknya: asersi
+`plates.length > 0` membaca "karya ini merender grid" sambil mengaku membaca
+"karya ini merender karya". Karya ber-trek kini dilewati, dan itu **tidak bisa**
+jadi lolos-kosong — penjaga `halvesSeen > 0` di ekor tes yang sama gagal kalau
+tidak ada satu pun separuh di seluruh dataset. Kondisi lewatnya sempit
+(`runs > 0 && plates.length === 0`), jadi karya ber-grid tetap diasersi penuh.
+
+**Tiga premis gugur di tahap ini, dan ketiganya milik saya:** "tiap proyek 4
+plat" (§9.3), "deskripsi bisa ditulis dari nilai heks" (§8.4), dan "gerbang
+yang hijau kemarin mengukur hal yang sama hari ini" (di sini).

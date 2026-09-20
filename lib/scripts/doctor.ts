@@ -229,24 +229,47 @@ const checks: Check[] = [
      */
     name: 'Port 3000 is free (dev server, and the e2e suite, both want it)',
     check: async () => {
-      try {
-        const server = Bun.listen({
-          hostname: '127.0.0.1',
-          port: 3000,
-          // The probe never speaks to anyone; it binds, proves the port is
-          // free, and stops. A handler is still required, so it hangs up
-          // rather than being empty.
-          socket: {
-            data(socket) {
-              socket.end()
+      /*
+       * It asks whether anything **answers**, not whether it can bind —
+       * corrected in Tahap 82, and the correction was earned.
+       *
+       * The first version bound `127.0.0.1:3000` and called a successful bind
+       * proof of a free port. Measured on this machine: this check printed
+       * "Port 3000 is free", and `bun run start` on the very next line died
+       * with `EADDRINUSE: :::3000`. `next start` binds the IPv6 wildcard, and
+       * Windows let a bind to the specific IPv4 loopback succeed beside it.
+       *
+       * An instrument that reports green while the thing it measures is red is
+       * worse than no instrument, because it is believed. A connect probe
+       * cannot disagree with the server that way: whatever address a listener
+       * holds, if it accepts a connection on loopback then the port is taken
+       * for everyone who will try to use it.
+       *
+       * Both loopback families are tried, because a listener may hold only
+       * one, and either one is enough to break the reader's `localhost:3000`.
+       */
+      const answers = async (hostname: string) => {
+        try {
+          const socket = await Bun.connect({
+            hostname,
+            port: 3000,
+            socket: {
+              data(client) {
+                client.end()
+              },
             },
-          },
-        })
-        server.stop(true)
-        return true
-      } catch {
-        return false
+          })
+          socket.end()
+          return true
+        } catch {
+          // Refused, unreachable, or no such address family — nothing is
+          // serving there, which is what this check is asking.
+          return false
+        }
       }
+
+      const held = (await answers('127.0.0.1')) || (await answers('::1'))
+      return !held
     },
     fix:
       'Something is already serving :3000 — often a `next start` left running by ' +
