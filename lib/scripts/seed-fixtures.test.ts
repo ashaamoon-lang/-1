@@ -98,18 +98,54 @@ describe('the fixture gallery feeds the horizontal track', () => {
     }
   })
 
-  it('leaves no half-width plate alone in its row', () => {
-    for (const project of PROJECTS) {
-      const spans = project.gallery.map((name) => isFullWidth(ratioOf(name)))
-      const lone = loneHalves(spans)
-      const stranded = project.gallery.filter((_, index) => lone[index])
+  it('strands a half on purpose, so the spread has somewhere to render', () => {
+    /*
+     * The first version of this test demanded **zero** lone halves, and it
+     * had `loneHalves` backwards.
+     *
+     * That function is not a defect detector. It is the mechanism that picks
+     * which plate gets `data-spread` — Tahap 44's fix for the 572px of empty
+     * page that used to sit beside a lone portrait. A half alone in its row is
+     * a **handled** case: it spreads, and its note fills the space.
+     *
+     * Forbidding it emptied the feature of coverage. With every project's
+     * halves paired, `data-spread` rendered nowhere, and
+     * `project-spread.e2e.ts:234` skipped itself on CI with "this project has
+     * no spread to check" — one more skip than the run before, which is how it
+     * was found. The gate was green and holding nothing.
+     */
+    const grid = PROJECTS.filter((project) => project.gallery.length < 4)
+    const spreads = grid.filter((project) =>
+      loneHalves(
+        project.gallery.map((name) => isFullWidth(ratioOf(name)))
+      ).some(Boolean)
+    )
 
-      expect(
-        stranded,
-        `${project.slug} strands a half-width plate: ${spans
-          .map((full) => (full ? 'full' : 'half'))
-          .join(', ')}`
-      ).toEqual([])
+    expect(
+      spreads.length,
+      'no grid project strands a half, so `data-spread` renders on no page ' +
+        'and its gates skip themselves'
+    ).toBeGreaterThan(0)
+  })
+
+  it('gives every stranded half a note to fill its row with', () => {
+    /*
+     * `project-gallery` only spreads a lone half when it has something to put
+     * in the hole: `lone[position] === true && entry.note !== null`, and the
+     * note is the image's own alt. A stranded half without one gets the plain
+     * half it always had — which is the defect, not a smaller version of it.
+     */
+    for (const project of PROJECTS) {
+      const lone = loneHalves(
+        project.gallery.map((name) => isFullWidth(ratioOf(name)))
+      )
+      for (const [index, name] of project.gallery.entries()) {
+        if (lone[index] !== true) continue
+        expect(
+          PLATE_ALT,
+          `${project.slug} strands ${name}, which has no alt to spread with`
+        ).toHaveProperty(name)
+      }
     }
   })
 

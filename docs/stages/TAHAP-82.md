@@ -582,3 +582,49 @@ kembali — `"A checkout that had been rewritten twice"`.
 
 Empat premis gugur di tahap ini. Tiga milik saya sejak awal; yang keempat
 ditemukan CI, yang melakukan persis tugas yang §8.7 R2 tuliskan untuknya.
+
+---
+
+## 13. Premis kelima — satu skip lebih banyak, dan fitur yang tidak dipegang siapa pun
+
+CI hijau: **724 lulus · 0 gagal · 0 flaky · 15 dilewati** (19,9 menit). Tapi
+dilewatinya **15**, bukan 14 seperti run sebelumnya, dan selisih satu itu yang
+menyimpan temuannya.
+
+Keempat belas pertama adalah self-skip kanvas WebGL di rute yang memang tidak
+punya kanvas — benar. Yang kelima belas:
+
+```
+project-spread.e2e.ts:234   test.skip(notes.length === 0, 'this project has no spread to check')
+```
+
+`arus-balik` adalah `full, half, half`. Kedua separuhnya berpasangan dalam satu
+baris, jadi **tak ada plat yang pernah sendirian**, jadi `data-spread` tidak
+pernah dirender — di seluruh dataset.
+
+**Dan uji saya menegakkan keadaan itu.** `seed-fixtures.test.ts` menuntut
+`loneHalves` mengembalikan nol untuk tiap proyek, di bawah judul _"leaves no
+half-width plate alone in its row"_. Saya membaca fungsi itu sebagai pendeteksi
+cacat. Ia bukan: ia **mekanisme yang memilih** plat mana mendapat `data-spread`
+— perbaikan Tahap 44 atas 572 piksel halaman kosong di samping sebuah potret.
+Separuh yang sendirian adalah kasus yang **ditangani**, bukan kasus yang
+dilarang.
+
+Akibatnya fitur yang sudah dikirim tidak dirender di mana pun dan gerbangnya
+melewatkan diri. Gerbang hijau yang tidak memegang apa-apa — bentuk yang
+`DESIGN-SYSTEM.md` §7 bayar dua puluh enam tahap.
+
+Diperbaiki: `bacaan-mesin` menjadi `full, full, half`, mendamparkan satu
+separuh **dengan sengaja**. Dua karya grid kini membawa satu susunan
+masing-masing — `arus-balik` memasangkan separuhnya, `bacaan-mesin`
+mendamparkan satu. Ujinya dibalik: dari melarang menjadi **menuntut** minimal
+satu, ditambah uji kedua bahwa tiap separuh terdampar punya alt untuk mengisi
+barisnya (tanpa itu ia dapat separuh polos, yang justru cacatnya).
+
+Dibuktikan merah: susunan tanpa damparan melaporkan _"no grid project strands
+a half, so `data-spread` renders on no page and its gates skip themselves"_.
+
+**Lima premis gugur di tahap ini.** Yang kelima ditemukan oleh **satu angka
+skip yang naik**, bukan oleh kegagalan — dan itu persis kenapa §9 rencana
+menuntut tiap selisih dijelaskan dengan keluaran aslinya, bukan dibulatkan
+sebagai hijau.

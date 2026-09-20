@@ -771,7 +771,23 @@ export const PROJECTS: readonly FixtureProject[] = [
     ),
     scope: '1 team · 10 weeks',
     cover: 'bacaan-mesin',
-    gallery: ['plate-square', 'plate-broad', 'plate-column', 'plate-near'],
+    /*
+     * Three, and arranged so one half ends up **alone** — full, full,
+     * half. That is not an accident to be tidied away: a lone half is
+     * what turns on `data-spread`, Tahap 44's fix for the 572px of empty
+     * page that used to sit beside a portrait plate.
+     *
+     * Tahap 82 shipped without it and took the feature's coverage with
+     * it. Every project's halves paired, so no plate was ever alone, so
+     * `data-spread` rendered nowhere and `project-spread.e2e.ts:234`
+     * skipped itself with "this project has no spread to check". A
+     * shipped feature that no fixture reaches is a feature no gate is
+     * holding.
+     *
+     * So the two grid works carry one arrangement each: `arus-balik`
+     * pairs its halves, and this one strands one on purpose.
+     */
+    gallery: ['plate-square', 'plate-broad', 'plate-near'],
     alt: i18n(
       'A square frame, a pale mass on a threshold of light',
       'Bingkai persegi, massa pucat di ambang cahaya'
