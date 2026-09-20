@@ -128,10 +128,45 @@ test.describe('the page keeps moving as it is read', () => {
      * constant, so it is still reported — and a stranded reveal is a real
      * defect (`CLAUDE.md` #5) whichever gate names it.
      */
+    /*
+     * A reveal that has not fired yet is constant too — Tahap 82.
+     *
+     * The two-sample rule separates an entrance **in flight** from a scroll
+     * linkage, and it does that correctly. It does not separate a third thing:
+     * an entrance that has not **started**. `useReveal` holds its element at
+     * the lift until the trigger is reached, so a plate still waiting reads as
+     * `translateY(16px)` in both samples and identical between them — the exact
+     * signature this test treats as proof.
+     *
+     * It went red on CI for precisely that, and the page was right. Measured on
+     * `/en/work/pusat-beban`, the horizontal track's fourth plate at eleven
+     * scroll positions:
+     *
+     *   y=0     0 0 0 0
+     *   y=716   1 1 1 0        <- three revealed, the fourth still waiting
+     *   y=1790  1 1 1 0.95     <- the track brings it in
+     *   y=2148  1 1 1 1
+     *
+     * Nothing is stranded. The plate reveals when the reader reaches it, which
+     * is what a reveal is for, and this test samples at one third of the page.
+     *
+     * So pending reveals are excluded, and that narrows nothing this test was
+     * written to catch: a **stranded** reveal is content that never arrives,
+     * and `motion.e2e.ts` already holds that line the only way it can be held
+     * — by scrolling the whole page first and then demanding every
+     * `[data-reveal-item]` be visible. Asking the question here, from one
+     * position, could only ever guess.
+     */
     const moved = await page.evaluate(async () => {
       const nodes = [
         ...document.querySelectorAll('main p:not(nav *), main li:not(nav *)'),
-      ]
+      ].filter((el) => {
+        const pending = el.closest('[data-reveal-item]')
+        return (
+          pending === null ||
+          pending.getAttribute('data-reveal-item') === 'visible'
+        )
+      })
       const read = () =>
         nodes.map((el) => getComputedStyle(el).transform || 'none')
 

@@ -538,3 +538,47 @@ tidak ada satu pun separuh di seluruh dataset. Kondisi lewatnya sempit
 **Tiga premis gugur di tahap ini, dan ketiganya milik saya:** "tiap proyek 4
 plat" (§9.3), "deskripsi bisa ditulis dari nilai heks" (§8.4), dan "gerbang
 yang hijau kemarin mengukur hal yang sama hari ini" (di sini).
+
+---
+
+## 12. Premis keempat — dan ia tertangkap CI, bukan oleh saya
+
+CI merah pada commit koreksi, di `continuous-motion.e2e.ts:74` — _"prose never
+acquires a scroll-linked transform"_ — dua kali, jadi bukan flake. Saat itu
+`arus-balik` masih empat plat, jadi ia masih **trek**.
+
+Dua dugaan pertama saya salah dan diukur sampai gugur: trek men-tween `x` pada
+`<ul>`, bukan tiap `li`; dan stylesheet-nya "geometry only", nol transform.
+
+Yang benar ada di doc gerbang itu sendiri: metode dua-sampel memisahkan
+entrance **yang sedang melayang** dari scroll-linked, dan itu benar — tapi ia
+tidak memisahkan hal ketiga, **entrance yang belum mulai**. `useReveal` menahan
+elemennya di posisi terangkat sampai pemicunya tercapai, jadi plat yang masih
+menunggu terbaca `translateY(16px)` di kedua sampel dan identik di antaranya:
+persis tanda tangan yang tes itu perlakukan sebagai bukti.
+
+Diukur di rute trek hidup, sebelas posisi gulir, plat keempat:
+
+```
+y=0     0 0 0 0
+y=716   1 1 1 0        <- tiga menyala, keempat masih menunggu
+y=1790  1 1 1 0.95     <- trek membawanya masuk
+y=2148  1 1 1 1
+```
+
+**Nol terdampar.** Plat itu menyala ketika pembaca mencapainya, dan itulah guna
+sebuah reveal. Yang keliru instrumennya, dan instrumen itu saya tulis di T-0.
+
+Reveal yang tertunda kini dikecualikan, dan itu tidak mempersempit apa pun yang
+tes ini dibangun untuk menangkap: reveal yang **terdampar** adalah isi yang
+tidak pernah tiba, dan `motion.e2e.ts` sudah memegang garis itu dengan
+satu-satunya cara yang bisa — menggulir seluruh halaman **lebih dulu**, baru
+menuntut tiap `[data-reveal-item]` terlihat. Menanyakannya dari satu posisi
+hanya bisa menebak.
+
+Dibuktikan masih menggigit: sebuah transform turunan-scroll disuntikkan ke
+paragraf yang reveal-nya sudah `visible`, dan gerbang itu melaporkannya
+kembali — `"A checkout that had been rewritten twice"`.
+
+Empat premis gugur di tahap ini. Tiga milik saya sejak awal; yang keempat
+ditemukan CI, yang melakukan persis tugas yang §8.7 R2 tuliskan untuknya.
