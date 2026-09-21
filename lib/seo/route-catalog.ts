@@ -13,10 +13,10 @@ export interface StaticRoute {
   path: string
   /**
    * Both localized, because these strings are read by people and by answer
-   * engines: they are what `/llms.txt`, `/[locale]/ai` and the Markdown
-   * representations print next to each link. Leaving them English-only made
-   * `/id/ai` an Indonesian page listing English descriptions of its own
-   * pages — see `lib/seo/site.ts` for the same split applied to entity copy.
+   * engines: they are what `/llms.txt` and the Markdown representations
+   * print next to each link. Leaving them English-only once made `/id/ai` —
+   * a machine view removed in Tahap 84 — an Indonesian page listing English
+   * descriptions of its own pages — see `lib/seo/site.ts` for the same split applied to entity copy.
    */
   label: Localized<string>
   description: Localized<string>
@@ -85,16 +85,6 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
     description: SITE.description,
     changeFrequency: 'daily',
     priority: 1,
-  },
-  {
-    path: '/ai',
-    label: { en: 'Agent index', id: 'Indeks untuk agen' },
-    description: {
-      en: 'Server-rendered agency facts, every page link, and guidance for agents handling an enquiry.',
-      id: 'Fakta agency yang dirender di server, tautan ke seluruh halaman, dan panduan untuk agen yang menangani permintaan masuk.',
-    },
-    changeFrequency: 'monthly',
-    priority: 0.5,
   },
   {
     path: '/journal',

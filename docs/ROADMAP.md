@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 83**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 84**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,45 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 84 — Menghapus `/ai`, dan memisahkan referensi dari riwayat ✅
+
+Spec: `docs/stages/TAHAP-84.md`. Diminta pemilik repo setelah meninjau
+halaman itu.
+
+`grep` mengembalikan **63 berkas**, dan angka itu menyesatkan kalau dibaca
+sebagai daftar kerja: ia mencampur **referensi hidup**, **daftar rute di
+gerbang**, dan **riwayat**. Kelas ketiga — spec tahap, entri ROADMAP, audit —
+mencatat apa yang pernah diputuskan dan kenapa. Menghapus `/ai` dari sana
+bukan membersihkan, itu memalsukan catatan.
+
+Rute itu tidak pernah ada di navigasi terlihat. Ia diiklankan lewat
+`lib/seo/route-catalog.ts`, sumber tunggal yang memberi makan `sitemap.xml`,
+`/llms.txt`, dan daftar halaman di `/ai` sendiri. **Satu entri dihapus dan
+ketiganya berhenti menyebutnya serentak** — itu memang desain katalog
+tersebut, dan tahap ini pembuktian pertamanya.
+
+Tiga hal nyaris hilang tanpa ada yang tahu: `app/sitemap.ts` menyimpan
+**instruksi aktif** untuk menyunting berkas yang dihapus; `lib/seo/README.md`
+**menganjurkan** mengirim halaman yang situsnya baru saja tolak; dan
+`promises.e2e.ts` menjaga konjungsi Indonesia — invarian yang pernah menangkap
+bug nyata, dengan perbaikan yang masih hidup di `formatList`. Yang ketiga
+dipindah ke `lib/seo/site.test.ts` alih-alih ikut terhapus.
+
+**Satu kriteria keluar saya salah tentang arsitektur situs ini.** §4 menuntut
+`/en/ai` 404; ia mengembalikan 200. Diukur lebih jauh, jalur yang tidak pernah
+ada berperilaku identik — soft-404 di bawah Cache Components, yang
+`e2e/not-found.e2e.ts:44` justru **asersi** sebagai 200 plus `noindex`.
+Kriterianya yang dikoreksi.
+
+`agent-content` (negosiasi markdown untuk rute mana pun) dan
+`agent-readiness.e2e.ts` (yang menjaga beranda, bukan `/ai`) sengaja tidak
+disentuh — nama keduanya mirip, dan itu risiko nomor satu tahap ini.
+
+check **591 lulus, 0 gagal** · e2e **121 lulus, 0 gagal** · sitemap, llms.txt
+dan 404 markdown diverifikasi nol sebutan, `/en.md` tetap 200.
 
 ---
 

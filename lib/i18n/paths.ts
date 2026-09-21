@@ -16,7 +16,7 @@ import { type Locale, isLocale } from './routing'
  * `lib/seo/alternates.ts` depends on.
  */
 
-/** `('en', '/ai')` -> `/en/ai`; `('en', '/')` -> `/en`. */
+/** `('en', '/studio')` -> `/en/studio`; `('en', '/')` -> `/en`. */
 export function localizedPath(locale: Locale, template: string): string {
   if (template === '/') return `/${locale}`
   return `/${locale}${template}`

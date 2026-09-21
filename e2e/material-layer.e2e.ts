@@ -324,9 +324,15 @@ test.describe('material layer', () => {
     const first = await live()
 
     for (let visit = 0; visit < 3; visit++) {
-      // The unmount step. `/en/ai` is a text page whose only job here is to
-      // take the canvas off screen, so it has nothing to wait for.
-      await page.goto('/en/ai', { waitUntil: 'domcontentloaded' })
+      /*
+       * The unmount step: any page without a canvas will do, and its only
+       * job is to take this one off screen.
+       *
+       * It was `/en/ai` until Tahap 84 removed that route. `/en/journal` is
+       * the nearest equivalent that survives — `e2e/route-budget.e2e.ts`
+       * allows it `gsap` and no `three`, so it carries no canvas to wait for.
+       */
+      await page.goto('/en/journal', { waitUntil: 'domcontentloaded' })
       // `load`, not `networkidle`: the first visit above already warmed the
       // cache, so these three fetch nothing new. This is the only test that
       // visits `/en` more than once, and it is the only one that needs the

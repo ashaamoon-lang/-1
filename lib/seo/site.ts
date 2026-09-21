@@ -174,8 +174,9 @@ export const SITE: SiteFacts = {
    * machine to record. It reached `schema.org/Organization.email` on every
    * page, plus `/en/ai` and `/id/ai`.
    *
-   * Both consumers already guard on its absence (`lib/seo/schemas.ts:139`,
-   * `app/[locale]/ai/page.tsx:118`), so leaving it unset omits the field
+   * Its consumer guards on its absence (`lib/seo/schemas.ts:139`; the
+   * `/ai` machine view did too until Tahap 84 removed it), so leaving it
+   * unset omits the field
    * rather than publishing an empty one. Silence is not a claim; a reserved
    * address is.
    *

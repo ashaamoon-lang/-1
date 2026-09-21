@@ -76,7 +76,7 @@ function findPageFiles(dir: string, base = dir): string[] {
 }
 
 /**
- * `/[locale]/ai/page.tsx` -> `['/en/ai', '/id/ai']`; returns `[]` for a route
+ * `/[locale]/studio/page.tsx` -> `['/en/studio', '/id/studio']`; returns `[]` for a route
  * with any other dynamic segment.
  *
  * `[locale]` is expanded rather than skipped. Every page in this app now lives

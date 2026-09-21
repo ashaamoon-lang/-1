@@ -14,8 +14,8 @@ import {
 /**
  * What these assert, and why each one is here.
  *
- * The palette is the fourth consumer of facts the sitemap, `/llms.txt` and
- * `/[locale]/ai` already read. The risk is not that it renders wrong — that is
+ * The palette is another consumer of facts the sitemap and `/llms.txt`
+ * already read (`/[locale]/ai` did too, until Tahap 84 removed it). The risk is not that it renders wrong — that is
  * visible — but that it drifts: a page added to the catalogue and missing from
  * the palette, or an Indonesian palette listing English prose. Both are silent,
  * and both are checked here.

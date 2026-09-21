@@ -12,7 +12,7 @@ import { PRACTICE_SEGMENT } from './practices'
  * ## Nothing here is a new source of truth
  *
  * Every page entry comes from `lib/seo/route-catalog.ts` — the same module
- * that feeds the sitemap, `/llms.txt` and `/[locale]/ai`, and which already
+ * that feeds the sitemap and `/llms.txt`, and which already
  * carries a label and a description in both languages because those strings
  * are read by people and by crawlers alike. Projects come from the catalogue's
  * own GROQ query, journal entries from `resolveJournalEntries`. The palette is

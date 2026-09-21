@@ -11,7 +11,7 @@ import { STATIC_ROUTES } from '@/lib/seo/route-catalog'
  * Next.js merges metadata shallowly: a child segment that declares its own
  * `alternates` replaces the parent's entire object instead of merging into
  * it. So a page that set `alternates: { canonical: '/ai' }` also dropped the
- * `text/plain` link advertising `/llms.txt` — and `/ai` is the machine view,
+ * `text/plain` link advertising `/llms.txt` — and `/ai` was the machine view (removed in Tahap 84),
  * the one route that most needs to point crawlers at the plain-text mirror.
  * Routing every page through this helper keeps the shared entries attached.
  *

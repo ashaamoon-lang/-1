@@ -33,11 +33,10 @@ import { FEATURED_WORK } from './fixtures'
  */
 
 /*
- * `/ai` is excluded, and the exemption is deliberate rather than an oversight:
- * `app/[locale]/ai/layout.tsx` bypasses the app layout on purpose because the
- * route is a plain-HTML index for crawlers and agents. It has no header and no
- * footer by design, and a rule about the site's chrome cannot apply to the one
- * page that has none.
+ * No exemptions. Until Tahap 84 this list left out `/ai` — a plain-HTML index
+ * for crawlers that bypassed the app layout and so had no header or footer to
+ * offer a way onward. The route is gone, and with it the only page this rule
+ * could not apply to.
  */
 const ROUTES = [
   '/en',
@@ -187,7 +186,7 @@ const HUMAN_ROUTES = [
 ] as const
 
 /** Paths a person can act on. `/llms.txt` is not one of them. */
-const MACHINE_ONLY = /^\/(llms\.txt|sitemap\.xml|robots\.txt)|\/ai$/
+const MACHINE_ONLY = /^\/(llms\.txt|sitemap\.xml|robots\.txt)/
 
 test.describe('every page offers a way onward', () => {
   for (const route of HUMAN_ROUTES) {

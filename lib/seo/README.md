@@ -15,9 +15,8 @@ crawlable/citable, or change how a page negotiates HTML vs. Markdown.
 - `route-catalog.ts` — `STATIC_ROUTES`: code-owned pages with no CMS
   backing (label, description, sitemap metadata).
 - `routes.ts` — `ContentRoute` type and CMS-backed route lookup
-  (`getCmsRoutes`), re-exports `STATIC_ROUTES`. Shared by the sitemap,
-  `/llms.txt`, and the `/ai` machine view so none of them can disagree about
-  which URLs exist.
+  (`getCmsRoutes`), re-exports `STATIC_ROUTES`. Shared by the sitemap and
+  `/llms.txt` so neither can disagree about which URLs exist.
 - `agent-content.ts` — Markdown builders (`buildStaticRoutesMarkdown`,
   `buildCmsRoutesMarkdown`, `buildAgentGuidanceMarkdown`,
   `buildDeveloperResourcesMarkdown`) used by `/llms.txt` and the `.md`
@@ -36,8 +35,6 @@ crawlable/citable, or change how a page negotiates HTML vs. Markdown.
 
 - `app/llms.txt/route.ts` — generates `/llms.txt` from `SITE` and
   `getCmsRoutes()`.
-- `app/[locale]/ai/{layout,page}.tsx` — the `/ai` machine view: a plain-HTML
-  page under its own chrome-free layout that lists every route.
 - `app/agent-content/route.ts` — serves the Markdown mirror for a page when
   content negotiation picks `text/markdown`.
 - `proxy.ts` — runs `negotiateDocumentType` (from `content-negotiation.ts`)
@@ -57,6 +54,6 @@ crawlable/citable, or change how a page negotiates HTML vs. Markdown.
 - **`metadataBase` must be set** or OG/Twitter image paths stay relative and fail to resolve for scrapers. It is set in `app/[locale]/layout.tsx`.
 - **Normalize CMS-authored hrefs** before rendering. Editors paste bare domains and mixed-case protocols; unnormalized values produce broken or duplicate-target links that leak crawl budget.
 - **`/llms.txt`** is generated from `lib/seo/site.ts` at `app/llms.txt/route.ts`. Markdown mirrors of content routes (`/page.md`, with a `Link: <…>; rel="alternate"` header) are the next step for content-heavy sites — not shipped here because they need a CMS to be worth it.
-- **Ship a `/ai` machine view.** One plain-HTML route (`app/[locale]/ai/page.tsx`) that names the entity and links every page, under its own layout with no chrome, no canvas and no client components of its own. Visual-first pages give answer engines nothing to cite; this gives them everything in one fetch. Keep it in sync with `app/sitemap.ts` — a route missing from either is invisible. It still inherits the app providers from `app/[locale]/layout.tsx`; moving it out of the `(site)` group would make it runtime-free (the root `app/layout.tsx` is already a bare shell).
-- **Fetch CMS content with the published perspective for machine-readable routes.** Draft/preview perspectives embed stega encoding — invisible Unicode characters interleaved through every string for visual editing. They are invisible to humans and corrupt the text an LLM reads. Anything rendered into `/ai`, `/llms.txt`, or a `.md` mirror must come from a published-perspective fetch or be run through `stegaClean`.
+- **A plain-HTML machine view is optional, and this site does not ship one.** It had one at `/ai` until Tahap 84; the owner reviewed it and removed it (`docs/stages/TAHAP-84.md`). `/llms.txt`, `sitemap.xml`, JSON-LD and the Markdown mirror served by `app/agent-content/route.ts` remain the machine surfaces.
+- **Fetch CMS content with the published perspective for machine-readable routes.** Draft/preview perspectives embed stega encoding — invisible Unicode characters interleaved through every string for visual editing. They are invisible to humans and corrupt the text an LLM reads. Anything rendered into `/llms.txt` or a `.md` mirror must come from a published-perspective fetch or be run through `stegaClean`.
 - **Drive any human/machine view toggle from a server prop, not the pathname.** Reading `usePathname()` to decide which mode is active makes the first paint ambiguous and can flip after hydration. Pass `mode` down from the layout that already knows.

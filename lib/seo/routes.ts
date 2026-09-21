@@ -31,10 +31,8 @@ export interface ContentRoute {
 }
 
 /**
- * Routes with no CMS backing. `/ai` has no link from the design, so
- * `app/sitemap.ts` is the only place crawlers discover it — see
- * `app/[locale]/ai/page.tsx`, which reads the same catalog for the
- * human/agent-facing machine view.
+ * Routes with no CMS backing, read by `app/sitemap.ts` and `/llms.txt`.
+ * (A third reader, the `/ai` machine view, was removed in Tahap 84.)
  *
  * This list is what gets *advertised* — every entry here is emitted into
  * `sitemap.xml`/`llms.txt`. See `RESERVED_PATHS` below for routes that must
@@ -244,7 +242,7 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
  * to whichever locale the visitor's `Accept-Language` picks.
  *
  * `app/sitemap.ts` did this inline and correctly. `/llms.txt` and
- * `app/[locale]/ai/page.tsx` did not, and shipped `https://…/work/rimbun`
+ * `app/[locale]/ai/page.tsx` (removed in Tahap 84) did not, and shipped `https://…/work/rimbun`
  * for every artwork — a URL that appears in no sitemap and is no page's
  * canonical, on the two surfaces whose entire job is handing machines the
  * canonical address. Extracted here so the three cannot drift again.

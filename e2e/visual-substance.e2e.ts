@@ -61,11 +61,10 @@ const GUTTER_ROUTES = [
 ]
 
 /*
- * `/ai` is deliberately excluded, and the exemption is the point rather than
- * an oversight: `app/[locale]/ai/layout.tsx` bypasses the app's normal layout
- * on purpose — it is a plain-HTML index for crawlers and agents, and its own
- * stylesheet says so. A rule about the site's chrome should not be applied to
- * the one page that deliberately has none.
+ * Every route here carries the site's chrome. There used to be one exemption
+ * — `/ai`, a plain-HTML index for crawlers that bypassed the app layout on
+ * purpose — and it ended in Tahap 84 when the route was removed. No page on
+ * the site now opts out of the header and footer, so the list is the rule.
  */
 
 /**
@@ -757,22 +756,6 @@ test.describe('every surface a reader lands on has something to look at', () => 
       expect(images, `${route} renders ${images} images`).toBeGreaterThan(0)
     })
   }
-
-  test('the machine view stays imageless on purpose', async ({ page }) => {
-    await page.goto('/en/ai')
-    await page.waitForLoadState('networkidle')
-
-    const images = await page.evaluate(
-      () => document.querySelectorAll('main img').length
-    )
-    /*
-     * Asserted, not skipped. "This route has no images" and "this route was
-     * forgotten" look identical from the outside, and the difference is the
-     * whole point of the block above — so the one route that is deliberately
-     * imageless says so in a test rather than in a comment.
-     */
-    expect(images, '/en/ai is the machine view and carries no images').toBe(0)
-  })
 })
 
 test.describe('a description describes its own image', () => {

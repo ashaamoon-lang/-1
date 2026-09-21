@@ -5,10 +5,10 @@ import { BASE_URL } from '@/lib/seo/site'
 
 /**
  * Static routes are listed in `lib/seo/routes.ts` (`STATIC_ROUTES`) —
- * shared with `/llms.txt` so the two surfaces can't drift. New static
- * routes must be added there and to `PAGES` in `app/[locale]/ai/page.tsx`;
- * the machine view (`/ai`) has no link from the design, so crawlers only
- * discover it here.
+ * shared with `/llms.txt` so the two surfaces can't drift. A new static
+ * route is added there and nowhere else — the catalog is the single source.
+ * (Until Tahap 84 it also had to be added to `PAGES` in the `/ai` machine
+ * view, a second list that could drift; that route was removed.)
  *
  * Everything past the static catalogue — the journal's entries, and the CMS's
  * pages and projects when Sanity is configured — arrives already expanded

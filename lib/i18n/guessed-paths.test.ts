@@ -47,7 +47,7 @@ describe('guessed paths', () => {
     expect(guessedDestination('/en/work')).toBeNull()
     expect(guessedDestination('/id/work')).toBeNull()
     // The machine view.
-    expect(guessedDestination('/en/ai')).toBeNull()
+    expect(guessedDestination('/en/studio')).toBeNull()
     // Three segments: a real practice page, and a real project page.
     expect(guessedDestination('/en/practice/consulting')).toBeNull()
     expect(guessedDestination('/en/work/arus-balik')).toBeNull()
