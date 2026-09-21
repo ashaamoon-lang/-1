@@ -27,13 +27,23 @@
  *
  * ## Exactly one root canvas — do not add another
  *
- * `<WebGLTunnel>` portals into whichever `<Canvas root>` is mounted. In this
- * project that canvas is **already mounted, site-wide**, by `lib/features`
- * (`OptionalFeatures` renders `<LazyWebGLCanvas root />` unconditionally) from
- * `app/[locale]/layout.tsx`. So this component works with no setup.
+ * `<WebGLTunnel>` portals into whichever `<Canvas root>` is mounted. **A
+ * route that wants a scene mounts that canvas by passing `webgl` to
+ * `<Wrapper>`** — `app/[locale]/page.tsx`, `app/[locale]/work/catalogue.tsx`
+ * and `app/[locale]/work/[slug]/page.tsx` are the three that do.
  *
- * **Do not also pass `webgl` to `<Wrapper>`.** That mounts a second root
- * canvas. The two instances then race to claim "primary" during render —
+ * This paragraph used to say the opposite: that `OptionalFeatures` mounted
+ * the canvas site-wide from `app/[locale]/layout.tsx`, so no route needed to
+ * ask. That was true until `webgl` moved onto `<Wrapper>` so that only the
+ * pages with a scene pay for 859KB of three.js — `app/[locale]/layout.tsx`
+ * records the move, and it now renders `<OptionalFeatures />` with no `webgl`
+ * prop at all. Corrected in Tahap 85, which had to establish where the canvas
+ * really lived in order to explain why navigating away and back left a dead
+ * one behind.
+ *
+ * **Do not mount two.** Passing `webgl` to `<Wrapper>` on a page that already
+ * has a root canvas above it mounts a second one. The two instances then race
+ * to claim "primary" during render —
  * including during a background prefetch render of another route — which
  * produces a setState-during-render error and can break an unrelated page's
  * console-error assertions. Verified the hard way: it turned

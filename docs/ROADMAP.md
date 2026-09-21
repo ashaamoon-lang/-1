@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 84**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 85**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,54 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 85 — Kanvas yang mati diam-diam, dan halaman yang memutih karenanya ✅
+
+Spec: `docs/stages/TAHAP-85.md`. Dilaporkan pemilik repo: halaman kadang
+berubah memutih sesudah navigasi.
+
+Gejalanya terukur dan terulang: `/en` memuat segar di luminansi **34.8**, dan
+sesudah pergi lalu kembali di **143.2** — rute yang sama, posisi gulir yang
+sama, elemen yang sama di tengah layar.
+
+**Empat tersangka yang masuk akal gugur satu per satu dengan angka**: overlay
+transisi (terparkir), tirai masuk (selesai), `data-theme` (benar), dan teori
+saya sendiri bahwa wash jatuh ke palet terang — bentuk cacat Tahap 54 yang
+komentarnya masih di `resolve-color.ts`. Diukur, kedua kaskade memberi
+`rgb(17,15,13)`. Teorinya gugur sebelum satu baris kode ditulis.
+
+**Dump DOM lengkap identik byte per byte** di kedua keadaan. Yang melihat
+cacatnya hanya piksel: menyembunyikan satu root WebGL menurunkan luminansi
+143.2 → 28.9. Root itu `position: fixed`, seukuran viewport, `pointer-events:
+none` — tak terlihat oleh `elementsFromPoint` — dan konteks GL-nya mati.
+
+Sebabnya: `<Wrapper>` merender `<Canvas root>` per halaman. Next 16
+`cachedNavigations` menyimpan pohon sebelumnya tersembunyi; React menjalankan
+cleanup efeknya sambil mempertahankan DOM; r3f membuang renderer dari efek
+ber-deps `[]`, jadi saat pohon ditampilkan kembali tidak ada yang membangunnya
+ulang. `ContextLossHandler` sudah ada, tetapi hidup **di dalam** root yang
+dibongkar.
+
+Perbaikannya: bila efek pemasangan berjalan lagi sesudah pembongkaran dan
+konteksnya memang mati, root r3f dipasang ulang lewat `key`. Kanvas tidak
+dipindah ke layout — `theme.module.css` menulis kenapa urutan cat di `.ground`
+menahan wash di bawah teks, dan itu tahapnya sendiri.
+
+Gerbang baru terbukti merah (`["1270x720"]` kanvas mati terlihat) lalu hijau.
+Sapuan sepuluh hop: setiap kembali ke `/en` dalam 4% dari muat segar. Regresi
+14 spec memberi **11 merah, termasuk gerbang baru** — dipilah, bukan
+dimaafkan: nol loop pemasangan ulang (jumlah kanvas stabil), lima desktop hijau
+sendirian, dan footer mobile hijau begitu screenshot-nya diberi waktu. Yang
+tidak dibandingkan ke build sebelum perbaikan dinyatakan, dan CI yang jadi
+pembandingnya.
+
+Satu komentar dikoreksi di tempat: `scene-shell` menyatakan `OptionalFeatures`
+memasang kanvas site-wide tanpa syarat — benar sebelum `webgl` pindah ke
+`<Wrapper>`, dan instruksi yang salah sejak itu.
+
+check **591 lulus, 0 gagal** · build hijau.
 
 ---
 
