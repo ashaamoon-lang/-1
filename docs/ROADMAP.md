@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 85**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 86**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,45 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 86 — Setengah yang ditinggal sendirian, dan karya yang digambar teregang ✅
+
+Spec: `docs/stages/TAHAP-86.md`. Dilaporkan pemilik repo dengan screenshot
+beranda: _"ada grid yang hilang (tidak proporsional dan tidak estetis)"_.
+
+Grid editorial beranda mengambil lebar kartu langsung dari CMS tanpa simulasi
+baris. Urutan `6, 12, 6, 6` meninggalkan **787 px kosong** di samping kartu
+pertama di 1600 — sejak Tahap 12a. Galeri pernah punya lubang berbentuk
+sama dan menutupnya di Tahap 66 dengan `loneHalves`; perbaikan itu tidak pernah
+sampai ke beranda. Fungsinya dipindah ke modul murni, dan setengah yang
+sendirian dinaikkan ke bentuk penuh milik kartu itu sendiri. Urutan editor
+tidak disentuh.
+
+Mengisi separuh kosong dengan teks, seperti galeri, ditolak dengan alasan:
+kartu hanya membawa judul dan satu baris fakta, dan mengisinya dengan yang lain
+berarti mengarang konten.
+
+**Temuan kedua datang dari melihat hasilnya.** Kubah Arus Balik tampak pipih di
+kartu penuh. `vault/webgl/material-image` memetakan tekstur ke plat tanpa
+koreksi rasio, sementara `<img>` yang ia gantikan memakai `object-fit: cover`.
+Cacat itu **sudah tayang**: di `/en/work` lima dari enam sampul digambar dengan
+bentuk salah, Pusat Beban tergencet ke 45% lebarnya. Tidak ada gerbang yang
+pernah bertanya soal bentuk. Diperbaiki di shader, dengan gerbang yang
+membandingkan render terhadap dua rujukan dari file sumbernya — potongan dan
+regangan — sehingga tidak perlu ambang absolut.
+
+Dua instrumen saya salah lebih dulu, dan keduanya tercatat: pengelompokan
+berdasarkan `top` menandai katalog yang sebenarnya berpasangan, dan ambang
+bentuk 0.25 terlalu tipis untuk satu kartu — dinaikkan, lalu dijalankan ulang
+dengan nilai akhirnya.
+
+Regresi 19 spec memberi 10 merah, dipilah: enam hijau sendirian, 500 dari
+`route-sweep` adalah timeout CDN Sanity yang tercatat di log server, dan empat
+gerbang footer lulus begitu screenshot-nya diberi waktu.
+
+check **597 lulus, 0 gagal** · build hijau.
 
 ---
 

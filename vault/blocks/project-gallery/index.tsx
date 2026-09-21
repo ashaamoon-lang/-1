@@ -13,6 +13,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { loneHalves } from '@/lib/utils/grid-flow'
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
 import { PixelImage } from '@/vault/magic/pixel-image'
 import { Horizontal } from '@/vault/motion/horizontal'
@@ -95,70 +96,14 @@ export function isFullWidth(ratio: number | null): boolean {
   return ratio === null || ratio >= 1
 }
 
-/** The twelve-column desktop grid, in the units the spans are written in. */
-const COLUMNS = 12
-
-/**
- * Which half-width plates end up alone in their row.
- *
- * ## The hole this exists to close, and why the last rule did not close it
- *
- * `isFullWidth` above fixed a real defect in Tahap 44 — the box and its track
- * disagreed, so a picture ignored the column it was given. Its own note
- * records what that looked like: *"A portrait sat with 836px of empty page
- * beside it."*
- *
- * Measured on the production build at 1440×900, `/en/work/arus-balik`,
- * 2026-09-13 — after that fix:
- *
- * ```
- * span=half   x=16  w= 572  top= 404   h=715
- * span=full   x=16  w=1161  top=1234   h=675
- * span=half   x=16  w= 572  top=1957   h=786
- * ```
- *
- * The spans run `half, full, half`, so **neither half ever meets another**:
- * each one opens a row, the full cannot join it, and 572px of ground sits
- * beside each picture. Roughly 860 thousand square pixels of empty page, on
- * the one route that exists to sell a piece of work.
- *
- * So the rule fixed the *track* and left the *row*. 836px became 572px, and
- * stayed.
- *
- * ## Why the flow is simulated rather than guessed from neighbours
- *
- * "A half pairs when the next item is a half" is wrong on three halves in a
- * row: the first two fill a row and the third opens its own. The only answer
- * that is right for every sequence is the one the browser computes — walk the
- * items, fill rows to twelve columns, and report any row that holds exactly
- * one half.
- *
- * @param spans `true` for a full-width plate, `false` for a half.
- * @returns One boolean per plate: `true` where a half stands alone in its row.
+/*
+ * `loneHalves` lives in `lib/utils/grid-flow` since Tahap 86, which needed it
+ * for the home page's project grid. Importing it from here would have made
+ * that grid depend on this module's gallery, lightbox and parallax imports for
+ * the sake of one pure function. Re-exported so the tests and callers written
+ * against this path keep working unchanged.
  */
-export function loneHalves(spans: readonly boolean[]): boolean[] {
-  const lone = spans.map(() => false)
-
-  let row: number[] = []
-  let used = 0
-
-  const close = () => {
-    const only = row.length === 1 ? row[0] : undefined
-    if (only !== undefined && spans[only] === false) lone[only] = true
-    row = []
-    used = 0
-  }
-
-  for (const [index, full] of spans.entries()) {
-    const width = full ? COLUMNS : COLUMNS / 2
-    if (used + width > COLUMNS) close()
-    row.push(index)
-    used += width
-  }
-  close()
-
-  return lone
-}
+export { loneHalves }
 
 interface ProjectGalleryProps {
   /**

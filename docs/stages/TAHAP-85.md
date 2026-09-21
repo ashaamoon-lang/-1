@@ -326,3 +326,29 @@ bun run build    hijau (rm -rf .next/cache lebih dulu)
   regresi ini adalah data tambahan untuk tahap yang kelak memperbaikinya.
 - **Kanvas tetap per halaman** — §2, §6.2.
 - **Nol angka performa diklaim** — `CLAUDE.md` #19.
+
+### 7.8 CI sesudah push — pembandingnya, dibaca
+
+Ditambahkan di commit Tahap 86, karena §7.4 berjanji log CI yang akan jadi
+pembanding, dan janji itu baru bisa ditepati sesudah push.
+
+```
+Tahap 84 (f0c3bdc)   708 lulus · 1 flaky · 14 dilewati   723
+Tahap 85 (22957d4)   708 lulus · 2 flaky · 15 dilewati   725   (+2: gerbang baru, keduanya lulus)
+```
+
+Flaky dan skip masing-masing naik satu — pemicu **T2**, jadi keduanya
+dijelaskan satu per satu, dengan daftar uji kedua run dibandingkan judul demi
+judul:
+
+- **Flaky baru: `visual-substance.e2e.ts:602` `/en` mobile**, _"Test timeout of
+  30000ms exceeded"_, lulus di percobaan ulang. Uji yang sama yang kehabisan
+  waktu di laptop ini (§7.4). Di run Tahap 84 ia lulus dengan durasi tercatat
+  **42.3 s**; di Tahap 85 gagal di 36.6 s dan lulus di 36.7 s. Ia berjalan di
+  tepi anggarannya di kedua run, dan ia memuat halaman segar — jalur yang §7.3
+  ukur tidak disentuh perbaikan ini.
+- **Skip baru: `:602` `/en/work` mobile** — gerbang yang melewati dirinya ketika
+  kanvas terlambat. `HANDOFF.md` §5.1 mencatat rute dan gerbang yang persis
+  sama melakukan hal yang sama di run 64, jauh sebelum tahap ini.
+
+Keduanya milik utang §5.1, bukan perubahan ini. Dicatat, tidak ditutup.

@@ -82,6 +82,14 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | fetchJSON | `(url: string, options?: FetchWithTimeoutOptions) => Promise<JsonValue>` |
 | FetchWithTimeoutOptions |  |
 
+### Grid-flow (`@/utils/grid-flow`)
+
+| Export | Signature |
+|--------|-----------|
+| loneHalves | `(spans: readonly boolean[]) => boolean[]` |
+| settledSpans | `(spans: readonly (6 | 12 | null)[]) => (6 | 12)[]` |
+| GRID_COLUMNS | `12` |
+
 ### Image-sizes (`@/utils/image-sizes`)
 
 | Export | Signature |

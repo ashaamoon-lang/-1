@@ -36,6 +36,13 @@
  * page by deciding which piece runs full width. That is the block's original
  * job and stays the default.
  *
+ * With one exception since Tahap 86: a half the row flow would leave alone
+ * takes the full width (`settledSpans`, `lib/utils/grid-flow`). The catalogue
+ * note below measured exactly that hole on `/en/work` and fixed it by giving
+ * the listing a different layout; the home page kept the hole — `6, 12, 6, 6`
+ * left 787px beside its first card at 1600×900 — until the repo owner
+ * reported it.
+ *
  * `catalogue` ignores `span` and gives every work the same half-width column.
  * This exists because the editorial layout was measured on `/en/work` and
  * does not survive contact with a full listing. With three works spanning
@@ -59,6 +66,7 @@ import cn from 'clsx'
 import { useRef } from 'react'
 
 import { useReveal } from '@/lib/hooks/use-reveal'
+import { settledSpans } from '@/lib/utils/grid-flow'
 import { type Project, ProjectCard } from '@/vault/blocks/project-card'
 import { FLIP_ID, useFlipGrid } from '@/vault/motion/flip'
 
@@ -123,7 +131,8 @@ const OFFSET_CYCLE = 3
  *
  * `editorial` is the one that defers: a work's `span` says how the studio
  * wants that piece to sit among curated neighbours, and that authority is the
- * whole reason the field exists. The other two override it because a listing
+ * whole reason the field exists — up to the point where honouring it would
+ * strand a half in an empty row (`settledSpans`). The other two override it because a listing
  * and a strip want one rhythm, not six opinions.
  */
 const LAYOUT_SPAN = {
@@ -213,6 +222,12 @@ export function ProjectGrid({
   const gridRef = useRef<HTMLUListElement | null>(null)
   useFlipGrid(gridRef, sift ?? '')
 
+  // Only `editorial` reads authored spans; the other layouts fix one width for
+  // every card, so there is no row for a half to be left alone in. Why a lone
+  // half becomes a full, and not a half with copy beside it, is written at
+  // `settledSpans` — Tahap 86.
+  const settled = settledSpans(projects.map((project) => project.span))
+
   return (
     <ul
       ref={(node) => {
@@ -227,7 +242,7 @@ export function ProjectGrid({
       {...(epic && { 'data-epic': epic })}
     >
       {projects.map((project, index) => {
-        const span = LAYOUT_SPAN[layout] ?? project.span ?? 6
+        const span = LAYOUT_SPAN[layout] ?? settled[index] ?? 6
         const constellation = layout === 'catalogue'
         /*
          * The catalogue is two equal columns, so the column a card lands in

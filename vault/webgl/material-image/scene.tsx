@@ -54,6 +54,23 @@ interface MaterialUniforms {
   uShear: IUniform<number>
   uTime: IUniform<number>
   uResolution: IUniform<Vector2>
+  /** How much of the texture each plate axis shows — `object-fit: cover`. */
+  uCover: IUniform<Vector2>
+}
+
+/**
+ * Width ÷ height of whatever a loader put in `texture.image`, or 0 when it is
+ * a kind this cannot read — in which case the plate keeps the old full-texture
+ * mapping rather than cropping by a guess. Tahap 86.
+ */
+function aspectOf(image: Texture['image']): number {
+  if (image instanceof HTMLImageElement && image.naturalHeight > 0) {
+    return image.naturalWidth / image.naturalHeight
+  }
+  if (image instanceof ImageBitmap && image.height > 0) {
+    return image.width / image.height
+  }
+  return 0
 }
 
 interface MaterialImageSceneProps {
@@ -169,6 +186,13 @@ export function MaterialImageScene({
   const materialRef = useRef<ShaderMaterial>(null)
   const size = useThree((state) => state.size)
   const announced = useRef(false)
+  /**
+   * The loaded texture's own width ÷ height, or 0 before one has loaded.
+   *
+   * Read once when the texture arrives rather than every frame: it cannot
+   * change for a given texture, and the frame loop only needs the number.
+   */
+  const textureAspect = useRef(0)
 
   /*
    * The scroll offset the previous drawn frame stood at, and the shear
@@ -217,6 +241,7 @@ export function MaterialImageScene({
       uShear: { value: 0 },
       uTime: { value: 0 },
       uResolution: { value: new Vector2(1, 1) },
+      uCover: { value: new Vector2(1, 1) },
     }),
     // Intentionally built once; the effects below push prop changes into the
     // existing uniform objects.
@@ -252,6 +277,7 @@ export function MaterialImageScene({
   useTexture(src, (texture) => {
     texture.magFilter = texture.minFilter = LinearFilter
     texture.generateMipmaps = false
+    textureAspect.current = aspectOf(texture.image)
     uniformsOf(materialRef.current, uniforms).uTexture.value = texture
   })
 
@@ -262,6 +288,9 @@ export function MaterialImageScene({
     const live = uniformsOf(materialRef.current, uniforms)
     return () => {
       live.uTexture.value = null
+      // The next texture sets its own; a stale ratio must not crop it first.
+      textureAspect.current = 0
+      live.uCover.value.set(1, 1)
     }
   }, [src, uniforms])
 
@@ -380,6 +409,35 @@ export function MaterialImageScene({
       )
       mesh.scale.set(rect.width, rect.height, 1)
       mesh.updateMatrix()
+
+      /*
+       * Crop the texture the way the `<img>` it replaces crops itself —
+       * Tahap 86.
+       *
+       * The DOM image carries `object-fit: cover`; this mesh used to map the
+       * whole texture onto the plate, so a picture whose shape differed from
+       * its box was **stretched** rather than cropped. It never showed while
+       * every cover happened to match its card. It showed everywhere else:
+       * on `/en/work`, where the catalogue gives every card a 4:5 box, five
+       * of six covers were drawn at the wrong shape — Pusat Beban's 16:9
+       * plate squeezed to 45% of its width, its round dome drawn as a tall
+       * narrow ellipse. Readers without WebGL never saw it; the `<img>`
+       * fallback was right all along.
+       *
+       * Computed against the same rect the mesh was just scaled to, and
+       * centred, because that is `object-fit: cover` with the default
+       * `object-position`. Before a texture has loaded the factor stays at
+       * `(1, 1)`, and nothing is drawn yet anyway.
+       */
+      const imageAspect = textureAspect.current
+      if (imageAspect > 0 && rect.height > 0) {
+        const plateAspect = rect.width / rect.height
+        const wider = plateAspect > imageAspect
+        live.uCover.value.set(
+          wider ? 1 : plateAspect / imageAspect,
+          wider ? imageAspect / plateAspect : 1
+        )
+      }
 
       /*
        * Everything this mesh needs in order to be visible now holds: it has a
