@@ -380,10 +380,18 @@
   }
 }
 
-/* The rail: mono, muted, tabular — the facts, not the name. */
+/*
+ * The rail: mono, muted, tabular — the facts, not the name.
+ *
+ * `overflow-wrap: anywhere` since Tahap 88: at 800–810px the practice paths
+ * overran this 2/12 column by 12–14px and printed into the title. The
+ * component breaks paths after each `/`; this is the net under that for a
+ * segment longer than the column itself.
+ */
 .itemMeta {
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 
   @media (--desktop) {
     grid-column: 1;
@@ -461,6 +469,7 @@
 .foot {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: mobile-vw(12px);
   color: var(--text-muted);
   border-block-start: 1px solid var(--line);
@@ -474,12 +483,49 @@
   }
 }
 
+.hint {
+  margin: 0;
+}
+
+/*
+ * The arrows, rendered only for a fine pointer — Tahap 88.
+ *
+ * This used to be shown by width (`display: none` below the desktop
+ * breakpoint), which put ↑↓ on an iPad: 810px wide, the desktop layout, no
+ * arrow keys. The component now renders it only where there are keys to
+ * press, so the stylesheet no longer has to guess from the viewport.
+ */
 .footKeys {
-  display: none;
+  font-family: var(--font-mono);
+}
+
+/*
+ * The close control a finger can see — Tahap 88.
+ *
+ * In the foot, where a thumb is, and away from the search field, so the
+ * palette's original reason for hiding it — a ✕ competing with the field's
+ * own clear affordance — is not broken anywhere. 44px is the WCAG 2.5.5
+ * floor, the same one `.menuToggle` in the header holds.
+ */
+.close {
+  flex-shrink: 0;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+  padding-inline: mobile-vw(16px);
+  border: 1px solid var(--line-strong);
+  background: none;
+  color: var(--color-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
 
   @media (--desktop) {
-    display: block;
-    font-family: var(--font-mono);
+    padding-inline: desktop-vw(16px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-contrast);
+    outline-offset: 4px;
   }
 }
 

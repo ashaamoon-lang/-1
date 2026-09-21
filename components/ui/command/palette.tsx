@@ -8,7 +8,9 @@ import type { Route } from 'next'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import {
+  Fragment,
   type MouseEvent,
+  type ReactNode,
   type RefObject,
   useEffect,
   useId,
@@ -22,6 +24,7 @@ import {
   type SearchEntry,
   type SearchKind,
 } from '@/lib/content/search-index'
+import { usePointerIsFine } from '@/lib/hooks/use-sync-external'
 import { duration, easing, stagger } from '@/vault/motion/tokens'
 
 import s from './command.module.css'
@@ -168,6 +171,38 @@ function pad(value: number): string {
   return String(value).padStart(2, '0')
 }
 
+/**
+ * A path that may wrap at its own segments — Tahap 88.
+ *
+ * The rail is two of twelve columns, about 105px at 800. `/practice/
+ * consulting` had no break opportunity at all and printed 14px into the
+ * title beside it on a tablet; `/practice/ai-data` escaped only because it
+ * has a hyphen. A `<wbr>` after each `/` lets it break as `/practice/` +
+ * `consulting` — where a reader would split it — instead of mid-word.
+ * `overflow-wrap: anywhere` on the rail is the net under this for a segment
+ * longer than the column.
+ */
+function breakAfterSlashes(text: string | null): ReactNode {
+  if (!text) return text
+  const parts: ReactNode[] = []
+  let consumed = ''
+  let rest = text
+  for (let at = rest.indexOf('/'); at !== -1; at = rest.indexOf('/')) {
+    const head = rest.slice(0, at + 1)
+    // The path so far is unique per break, even when a segment repeats.
+    consumed += head
+    parts.push(
+      <Fragment key={consumed}>
+        {head}
+        <wbr />
+      </Fragment>
+    )
+    rest = rest.slice(at + 1)
+  }
+  parts.push(rest)
+  return parts
+}
+
 /** The order groups appear in, which is the site's own order. */
 const KIND_ORDER: readonly SearchKind[] = [
   'page',
@@ -186,6 +221,14 @@ export function CommandPalette({
   const locale = useLocale()
   const router = useRouter()
   const hintId = useId()
+  /*
+   * A mouse or trackpad, or a finger — Tahap 88.
+   *
+   * The foot's hint and the close control both depend on it. Decided by
+   * pointer and not by width, because an iPad measures 810px and gets the
+   * desktop layout while having no Escape key and no arrows.
+   */
+  const pointerIsFine = usePointerIsFine()
   const [fetched, setFetched] = useState<SearchEntry[]>([])
   /*
    * Three states, because they say three different things.
@@ -429,8 +472,17 @@ export function CommandPalette({
                 visually hidden because the palette's own frame already reads
                 as dismissible, and a visible ✕ inside a search field competes
                 with the field's own clear affordance.
+
+                That reasoning holds for a mouse and a keyboard, and only for
+                them — Tahap 88. Opened by a tap on an emulated iPhone and
+                iPad, this 1×1 button was the only way out a sighted reader
+                had, and nothing showed it. Without a fine pointer the close
+                control moves to the foot, visible, where a thumb is; there is
+                exactly one either way.
               */}
-              <Dialog.Close className="sr-only">{t('close')}</Dialog.Close>
+              {pointerIsFine && (
+                <Dialog.Close className="sr-only">{t('close')}</Dialog.Close>
+              )}
 
               <ScrollArea.Root className={s.listArea}>
                 <ScrollArea.Viewport className={s.listViewport}>
@@ -488,7 +540,7 @@ export function CommandPalette({
                                   the fact, then the name, then the promise.
                                 */}
                                 <span className={cn('caption', s.itemMeta)}>
-                                  {entry.meta}
+                                  {breakAfterSlashes(entry.meta)}
                                 </span>
                                 <span className={cn('p-big', s.itemLabel)}>
                                   {entry.label}
@@ -509,12 +561,31 @@ export function CommandPalette({
                 </ScrollArea.Scrollbar>
               </ScrollArea.Root>
 
-              <p id={hintId} className={cn('caption', s.foot)}>
-                <span>{t('hint')}</span>
-                <span className={s.footKeys} aria-hidden="true">
-                  ↑↓
-                </span>
-              </p>
+              {/*
+                The foot speaks to whatever is in the reader's hand — Tahap 88.
+
+                The hint is this field's `aria-describedby`, so it is chosen
+                here rather than hidden with CSS: VoiceOver on a phone read
+                "Escape to close" as the field's description. No scroll
+                buttons in place of the arrows, by the repo owner's request —
+                the list already scrolls under a finger, and a button would be
+                a slower way to do the same thing.
+              */}
+              <div className={cn('caption', s.foot)} data-palette-foot="">
+                <p id={hintId} className={s.hint}>
+                  {pointerIsFine ? t('hint') : t('hintTouch')}
+                </p>
+                {pointerIsFine && (
+                  <span className={s.footKeys} aria-hidden="true">
+                    ↑↓
+                  </span>
+                )}
+                {!pointerIsFine && (
+                  <Dialog.Close className={cn('caption', s.close)}>
+                    {t('close')}
+                  </Dialog.Close>
+                )}
+              </div>
             </Autocomplete.Root>
           </Dialog.Popup>
         </Dialog.Viewport>

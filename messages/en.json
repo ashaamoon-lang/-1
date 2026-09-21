@@ -193,6 +193,7 @@
     "placeholder": "Search work, practices and writing",
     "empty": "Nothing matches that.",
     "hint": "Enter to open, Escape to close.",
+    "hintTouch": "Tap a result to open.",
     "close": "Close search",
     "groups": {
       "page": "Pages",

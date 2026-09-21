@@ -193,6 +193,7 @@
     "placeholder": "Cari karya, praktik, dan tulisan",
     "empty": "Tidak ada yang cocok.",
     "hint": "Enter untuk membuka, Escape untuk menutup.",
+    "hintTouch": "Ketuk hasil untuk membuka.",
     "close": "Tutup pencarian",
     "groups": {
       "page": "Halaman",

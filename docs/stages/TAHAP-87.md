@@ -243,3 +243,15 @@ bun run build    hijau
   Menyempitkan jarak antar-tautan untuk memulihkan pusat akan mengubah irama
   nav hanya demi tautan yang tidak dikirim produksi.
 - **Nol angka performa diklaim** — `CLAUDE.md` #19.
+
+### 7.8 CI sesudah push
+
+Ditambahkan di commit Tahap 88.
+
+```
+Tahap 86 (e366c10)   712 lulus · 1 flaky · 14 dilewati   727
+Tahap 87 (a53cc9b)   716 lulus · 1 flaky · 14 dilewati   731   (+4: header-balance)
+```
+
+Keempat uji `header-balance` berjalan dan lulus di Linux, termasuk dua kasus
+tautan keempat. Flaky dan skip tidak berubah.

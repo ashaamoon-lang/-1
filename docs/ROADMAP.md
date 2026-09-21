@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 87**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 88**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,34 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 88 — Palet pencarian untuk jari, bukan hanya untuk keyboard ✅
+
+Spec: `docs/stages/TAHAP-88.md`. Diminta pemilik repo: navigasi tambahan untuk
+ponsel dan tablet yang tidak punya tombol panah — dan secara eksplisit tanpa
+tombol gulir.
+
+Diukur dengan emulasi iPhone dan iPad, palet dibuka dengan ketukan: satu-satunya
+tombol tutup berukuran **1×1 px**, `sr-only`; kakinya menyebut Enter, Escape,
+dan ↑↓ kepada perangkat yang tidak punya ketiganya, dan VoiceOver ikut
+membacakannya karena itu `aria-describedby` kolom pencarian. iPad 810 px
+memakai tata letak desktop, jadi perangkat sentuh tidak bisa dibaca dari lebar.
+
+Dibedakan dengan `usePointerIsFine()` yang sudah ada. Tanpa pointer halus:
+tombol tutup yang terlihat di kaki, ≥ 44 px, dan petunjuk untuk jari. Dengan
+mouse: tidak ada yang berubah — alasan lama menyembunyikan ✕ tetap berlaku
+di sana. Tidak ada tombol gulir.
+
+**Tangkapan tahap ini sendiri menemukan tabrakan yang sudah ada**: di tablet,
+`/practice/consulting` tercetak 14 px masuk ke judulnya karena tidak punya titik
+putus. Pemeriksaan pertama saya untuk itu lulus terhadap build yang rusak — ia
+mengukur sebelum font mono termuat — dan dicatat; versi yang menunggu font
+merah, lalu hijau.
+
+check **597 lulus, 0 gagal** · build hijau · palette-touch, command-palette,
+header-balance **27/27**.
 
 ---
 
