@@ -51,7 +51,7 @@ Generated: 2026-01-01
 - [ ] Canonical URLs set
 - [ ] \`lib/seo/site.ts\` facts replaced (name, description, logo)
 - [ ] \`SITE.logo\` points at a real, deployed image (not a 404)
-- [ ] \`/llms.txt\` and \`/ai\` reviewed for placeholder copy
+- [ ] \`/llms.txt\` reviewed for placeholder copy
 
 ## Analytics
 

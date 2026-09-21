@@ -141,7 +141,7 @@ describe('buildRoutesFromDocuments', () => {
 
   it('drops a document slugged `agent-content` — the Markdown negotiation handler owns that path', () => {
     // Without RESERVED_PATHS excluding it, a CMS page slugged `agent-content`
-    // would be advertised in the sitemap/`/ai` while proxy.ts's
+    // would be advertised in the sitemap/`/llms.txt` while proxy.ts's
     // MACHINE_PATHS still 404s direct requests to it.
     const docs = [
       {

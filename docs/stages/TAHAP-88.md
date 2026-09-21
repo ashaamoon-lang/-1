@@ -213,3 +213,15 @@ R->E  sebab: diukur sebelum font mono termuat; menunggu fonts.ready; merah lalu 
 - **Bukan uji iOS Safari.** Emulasi Chromium; yang diuji adalah media query
   yang dipakai keputusan ini — R1.
 - **Nol angka performa diklaim** — `CLAUDE.md` #19.
+
+### 7.6 CI sesudah push
+
+Ditambahkan di commit Tahap 89.
+
+```
+Tahap 87 (a53cc9b)   716 lulus · 1 flaky · 14 dilewati   731
+Tahap 88 (d547c53)   723 lulus · 1 flaky · 14 dilewati   738   (+7: palette-touch)
+```
+
+Ketujuh uji baru berjalan dan lulus di Linux: iPhone dan iPad, empat lebar
+rail, dan kasus mouse. Flaky dan skip tidak berubah.

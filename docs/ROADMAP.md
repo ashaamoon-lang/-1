@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 88**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 89**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,27 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 89 — Yang Tahap 84 tinggalkan, dan klaim saya bahwa ia bersih ✅
+
+Spec: `docs/stages/TAHAP-89.md`. Bukan permintaan baru — ditemukan sendiri.
+
+Screenshot palet dari pemilik repo masih menampilkan `/ai` "Agent index".
+Asalnya ternyata build lain: `D:\HELLO Project\arth\.next` (18 September,
+branch lama, tanpa Tahap 79–88) masih berisi `en/ai.html`; palet di
+`arth-design` menampilkan 16 entri, bukan 17.
+
+Tetapi pencarian yang sama menemukan sisa nyata yang Tahap 84 klaim sudah
+bersih: checklist serah-terima yang **terus menghasilkan** butir "review `/ai`",
+panduan menjalankan lokal yang menyuruh membuka `/en/ai`, `PROD-README.md` dan
+`AGENTS.md` yang mendaftarnya sebagai permukaan hidup, dan klaim masa kini di
+komentar sembilan berkas kode — termasuk "ten modules" yang, dihitung,
+delapan. `TAHAP-84.md` dikoreksi di tempat.
+
+29 penggantian lewat skrip yang berhenti bila teks lamanya tidak ditemukan
+tepat sekali. check **597 lulus, 0 gagal**.
 
 ---
 

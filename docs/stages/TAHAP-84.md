@@ -251,3 +251,22 @@ Yang tertangkap karena dibaca satu per satu:
   ulang berarti **merancang gerbang baru**, bukan menghapus, jadi ia dicatat
   terbuka di sini alih-alih dikerjakan diam-diam di tahap penghapusan.
 - **Nol angka performa diklaim** (`CLAUDE.md` #19).
+
+### 7.8 Koreksi: tahap ini tidak sebersih yang ia klaim — Tahap 89
+
+Ditambahkan di Tahap 89, dan ditulis di sini karena klaimnya ada di sini.
+
+§7.1 benar untuk yang ia ukur — sitemap, `/llms.txt`, dan 404 markdown memang
+nol sebutan. Tetapi tahap ini meninggalkan:
+
+- **keluaran hidup**: `lib/scripts/templates/deployment-checklist.ts` terus
+  _menghasilkan_ butir "`/llms.txt` and `/ai` reviewed for placeholder copy";
+- **dua panduan** yang menyuruh orang membuka `/en/ai`
+  (`docs/MENJALANKAN-LOKAL.md`) atau mendaftarnya sebagai permukaan hidup
+  (`PROD-README.md`, `AGENTS.md`);
+- **klaim perilaku saat ini** di komentar sembilan berkas kode.
+
+Sebabnya spesifik: pemilahan 63 berkas di §1 memperlakukan kalimat masa kini
+sebagai riwayat bila kalimat itu kebetulan juga menyebut tahap lama, dan
+dokumen di luar `docs/stages/` tidak pernah diperiksa sebagai kelas sendiri.
+Rinciannya dan perbaikannya di `TAHAP-89.md`.

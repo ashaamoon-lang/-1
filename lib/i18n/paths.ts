@@ -6,10 +6,10 @@ import { type Locale, isLocale } from './routing'
  * Two vocabularies exist in this codebase and conflating them is the easy
  * mistake:
  *
- * - a **template** is locale-free (`/`, `/ai`, `/work/mural`). It is what the
+ * - a **template** is locale-free (`/`, `/studio`, `/work/mural`). It is what the
  *   route catalogue and CMS slugs deal in, and what deduplication compares.
  * - a **localized path** is what a browser actually requests (`/en`,
- *   `/id/ai`). It is what the sitemap emits and what a canonical URL must be.
+ *   `/id/studio`). It is what the sitemap emits and what a canonical URL must be.
  *
  * `localePrefix` is 'always', so every localized path carries a prefix and
  * there is exactly one canonical form per page — the property
@@ -23,7 +23,7 @@ export function localizedPath(locale: Locale, template: string): string {
 }
 
 /**
- * Inverse of {@link localizedPath}: `/en/ai` -> `/ai`, `/en` -> `/`.
+ * Inverse of {@link localizedPath}: `/en/studio` -> `/studio`, `/en` -> `/`.
  *
  * Returns `null` when the path carries no known locale prefix, which is how
  * callers tell a localized page apart from an unlocalized one (`/cms`,

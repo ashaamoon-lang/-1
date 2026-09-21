@@ -71,8 +71,11 @@ export const PRACTICE_SEGMENT = 'practice'
 /**
  * The locale-free path of a practice's page.
  *
- * Ten modules read this — the catalogue's chips, the sitemap, `/llms.txt`,
- * `/ai`, the alternates helper, the page's own metadata. Moving a practice's
+ * Eight modules import this — the practice page, the catalogue's hrefs, the
+ * old `/work/practice` redirect, the footer, the practice list, the studio and
+ * journal pages, and the route catalogue, through which the sitemap,
+ * `/llms.txt` and the alternates helper reach it. (It said "ten", counting
+ * the `/ai` page; recounted in Tahap 89.) Moving a practice's
  * URL is one edit here, which is the whole reason this module exists
  * (`lib/seo/route-catalog.ts` and `app/[locale]/work/hrefs.ts` both compose it
  * rather than writing the string out).

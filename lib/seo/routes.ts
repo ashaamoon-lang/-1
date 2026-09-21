@@ -43,7 +43,7 @@ export interface ContentRoute {
  *   A project slugged `work` would otherwise shadow the page that lists it.
  * - `/agent-content` — the internal Markdown negotiation handler proxy.ts
  *   rewrites to (`app/agent-content/route.ts`); a CMS doc slugged
- *   `agent-content` would otherwise be advertised in the sitemap/`/ai` while
+ *   `agent-content` would otherwise be advertised in the sitemap/`/llms.txt` while
  *   direct requests to it still 404 (see `MACHINE_PATHS` in `proxy.ts`).
  *
  * Without this, a CMS document slugged `cms` or `work` would resolve to
@@ -104,8 +104,9 @@ const routableDocumentSchema = z.object({
  * value at all, and treating those as listed is both the safe default and the
  * reason no migration is needed.
  *
- * This clause is why turning a work off now removes it from the sitemap,
- * `/llms.txt` and `/ai` as well as from the grid. Before it,
+ * This clause is why turning a work off now removes it from the sitemap and
+ * `/llms.txt` (and removed it from the `/ai` machine view, until Tahap 84
+ * removed that page) as well as from the grid. Before it,
  * `docs/PANDUAN-STUDIO.md` §7 told the studio that unfeaturing hid a work
  * while all three surfaces kept advertising it.
  */
@@ -156,7 +157,9 @@ export function buildRoutesFromDocuments(data: unknown): ContentRoute[] {
 
     // `path === '#'` is unresolvable; a `staticPaths` hit means the document's
     // slug collides with an already-listed static route (e.g. a `page` with
-    // slug `ai` resolves to `/ai`, which the static route already serves).
+    // slug `journal` resolves to `/journal`, which the static route already
+    // serves). The example used to be `ai`; since Tahap 84 removed that route,
+    // a document slugged `ai` is legitimate.
     // A `RESERVED_PATHS` hit means it collides with a route outside the
     // catch-all that isn't advertised in the sitemap at all (e.g. `studio`).
     if (path === '#' || staticPaths.has(path) || RESERVED_PATHS.has(path))
@@ -178,7 +181,7 @@ export interface CmsRoutesResult {
    * True when the last fetch attempt failed (Sanity unreachable) rather
    * than the CMS genuinely having zero published `page`/`project`
    * documents. `getCmsRoutes` collapses both cases to `[]` on purpose —
-   * sitemap/llms.txt/`/ai` must always respond, degraded or not — but the
+   * sitemap and llms.txt must always respond, degraded or not — but the
    * Markdown handler needs to tell them apart to avoid 404ing a route that
    * would exist once the outage clears.
    */
@@ -232,7 +235,7 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
   return { routes: buildRoutesFromDocuments(data), degraded: false }
 }
 
-/** Graceful-empty-on-failure accessor for sitemap.xml, llms.txt, and /ai. */
+/** Graceful-empty-on-failure accessor for sitemap.xml and llms.txt. */
 /**
  * Expands locale-free CMS templates into the URLs the site actually serves.
  *
@@ -245,11 +248,12 @@ async function fetchCmsRoutesResult(): Promise<CmsRoutesResult> {
  * `app/[locale]/ai/page.tsx` (removed in Tahap 84) did not, and shipped `https://…/work/rimbun`
  * for every artwork — a URL that appears in no sitemap and is no page's
  * canonical, on the two surfaces whose entire job is handing machines the
- * canonical address. Extracted here so the three cannot drift again.
+ * canonical address. Extracted here so they cannot drift again.
  *
- * Pass `locale` to expand for one locale (the `/ai` page, which is itself
- * locale-scoped); omit it for every locale (`/llms.txt` and the sitemap,
- * which are single documents covering the whole site).
+ * Pass `locale` to expand for one locale; omit it for every locale
+ * (`/llms.txt` and the sitemap, which are single documents covering the whole
+ * site). The one locale-scoped caller was the `/ai` page, removed in Tahap 84,
+ * so nothing passes it today.
  */
 export function localizedContentRoutes(
   routes: readonly ContentRoute[],
@@ -286,8 +290,9 @@ export async function getCmsRoutes(): Promise<ContentRoute[]> {
  * `localizedContentRoutes` expands a path across locales; it cannot translate
  * a label, because a CMS document's title arrives as one string from one
  * projection. These entries carry both languages already, so the label is
- * resolved per locale rather than left English — which is what
- * `/id/ai` needs, and what it still does not get for projects.
+ * resolved per locale rather than left English — which is what a
+ * locale-scoped surface needs (`/id/ai` was one until Tahap 84), and what CMS
+ * projects still do not get.
  *
  * ## The gap this leaves, stated rather than hidden
  *
@@ -320,13 +325,15 @@ export function journalContentRoutes(locale?: Locale): ContentRoute[] {
  * Everything beyond the static catalogue that a machine surface advertises,
  * already expanded to real URLs.
  *
- * The sitemap, `/llms.txt` and `/ai` all call this and nothing else, which is
- * the point: the three used to assemble their own lists and drifted twice —
+ * The sitemap and `/llms.txt` call this and nothing else, which is the
+ * point: they — and the `/ai` machine view, until Tahap 84 removed it — used
+ * to assemble their own lists and drifted twice —
  * once over locale expansion (`localizedContentRoutes`' own doc comment) and
  * once over the journal, which reached all three only when it was added here.
  *
- * Pass `locale` for a surface that is itself locale-scoped (`/ai`); omit it
- * for the two single documents that cover the whole site.
+ * Pass `locale` for a surface that is itself locale-scoped; omit it for the
+ * two single documents that cover the whole site. No caller passes it since
+ * the `/ai` page was removed in Tahap 84.
  */
 export async function getAdvertisedRoutes(
   locale?: Locale

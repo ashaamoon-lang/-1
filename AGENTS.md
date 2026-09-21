@@ -345,37 +345,37 @@ When verifying behavior that depends on env vars being _absent_ (e.g. an integra
 
 ## Documentation Map
 
-| Document                                | Purpose                                                                     |
-| --------------------------------------- | --------------------------------------------------------------------------- |
-| `README.md`                             | Project overview, setup, project structure                                  |
-| `PROD-README.md`                        | Production deployment notes                                                 |
-| `ARCHITECTURE.md`                       | Architectural decisions, patterns, and customization boundaries             |
-| `COMPONENTS.md`                         | Auto-generated component / hook / utility inventory                         |
-| `CHANGELOG.md`                          | Release history and versioning policy                                       |
-| `SECURITY.md`                           | Security policy and vulnerability reporting                                 |
-| `THIRD-PARTY-NOTICES.md`                | Third-party license attributions                                            |
-| `app/README.md`                         | App Router structure, page patterns, Wrapper props                          |
-| `app/api/README.md`                     | API route conventions and inventory                                         |
-| `components/README.md`                  | Component inventory and conventions                                         |
-| `components/layout/README.md`           | Header, footer, and page wrapper architecture                               |
-| `components/effects/README.md`          | Animation component docs                                                    |
-| `components/ui/image/README.md`         | Image component API and WebGL integration                                   |
-| `components/ui/real-viewport/README.md` | Real viewport unit hook and CSS variables                                   |
-| `lib/README.md`                         | Library structure overview                                                  |
-| `lib/seo/README.md`                     | AEO/SEO module: entity facts, JSON-LD, `/llms.txt`, `/ai`, markdown mirrors |
-| `lib/integrations/README.md`            | Integration index, `setup:project` flags, adding a new integration          |
-| `lib/integrations/sanity/README.md`     | Sanity CMS integration docs                                                 |
-| `lib/integrations/shopify/README.md`    | Shopify integration docs                                                    |
-| `lib/integrations/hubspot/README.md`    | HubSpot integration docs                                                    |
-| `lib/integrations/mailchimp/README.md`  | Mailchimp integration docs                                                  |
-| `lib/integrations/turnstile/README.md`  | Turnstile integration docs                                                  |
-| `lib/styles/README.md`                  | Design system and style generation                                          |
-| `lib/styles/scripts/README.md`          | Style generation scripts                                                    |
-| `lib/utils/README.md`                   | Shared utility inventory                                                    |
-| `lib/webgl/README.md`                   | WebGL/R3F architecture, tunnel system, device gating                        |
-| `lib/hooks/README.md`                   | Custom hook inventory                                                       |
-| `lib/dev/README.md`                     | Debug tools suite (Orchestra)                                               |
-| `lib/features/README.md`                | Optional feature loading for the app layout                                 |
+| Document                                | Purpose                                                              |
+| --------------------------------------- | -------------------------------------------------------------------- |
+| `README.md`                             | Project overview, setup, project structure                           |
+| `PROD-README.md`                        | Production deployment notes                                          |
+| `ARCHITECTURE.md`                       | Architectural decisions, patterns, and customization boundaries      |
+| `COMPONENTS.md`                         | Auto-generated component / hook / utility inventory                  |
+| `CHANGELOG.md`                          | Release history and versioning policy                                |
+| `SECURITY.md`                           | Security policy and vulnerability reporting                          |
+| `THIRD-PARTY-NOTICES.md`                | Third-party license attributions                                     |
+| `app/README.md`                         | App Router structure, page patterns, Wrapper props                   |
+| `app/api/README.md`                     | API route conventions and inventory                                  |
+| `components/README.md`                  | Component inventory and conventions                                  |
+| `components/layout/README.md`           | Header, footer, and page wrapper architecture                        |
+| `components/effects/README.md`          | Animation component docs                                             |
+| `components/ui/image/README.md`         | Image component API and WebGL integration                            |
+| `components/ui/real-viewport/README.md` | Real viewport unit hook and CSS variables                            |
+| `lib/README.md`                         | Library structure overview                                           |
+| `lib/seo/README.md`                     | AEO/SEO module: entity facts, JSON-LD, `/llms.txt`, markdown mirrors |
+| `lib/integrations/README.md`            | Integration index, `setup:project` flags, adding a new integration   |
+| `lib/integrations/sanity/README.md`     | Sanity CMS integration docs                                          |
+| `lib/integrations/shopify/README.md`    | Shopify integration docs                                             |
+| `lib/integrations/hubspot/README.md`    | HubSpot integration docs                                             |
+| `lib/integrations/mailchimp/README.md`  | Mailchimp integration docs                                           |
+| `lib/integrations/turnstile/README.md`  | Turnstile integration docs                                           |
+| `lib/styles/README.md`                  | Design system and style generation                                   |
+| `lib/styles/scripts/README.md`          | Style generation scripts                                             |
+| `lib/utils/README.md`                   | Shared utility inventory                                             |
+| `lib/webgl/README.md`                   | WebGL/R3F architecture, tunnel system, device gating                 |
+| `lib/hooks/README.md`                   | Custom hook inventory                                                |
+| `lib/dev/README.md`                     | Debug tools suite (Orchestra)                                        |
+| `lib/features/README.md`                | Optional feature loading for the app layout                          |
 
 ---
 

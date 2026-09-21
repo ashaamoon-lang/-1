@@ -34,7 +34,7 @@ export interface LocalizedStaticRoute extends Omit<
 > {
   label: string
   description: string
-  /** The locale-free path this entry was expanded from (`/`, `/ai`). */
+  /** The locale-free path this entry was expanded from (`/`, `/studio`). */
   template: string
   locale: Locale
 }
@@ -51,7 +51,8 @@ export interface LocalizedStaticRoute extends Omit<
  * Labels and descriptions for the practice views.
  *
  * Deliberately not read from `messages/*.json`. This catalogue feeds
- * `/llms.txt`, `/ai` and the sitemap, all of which are assembled outside any
+ * `/llms.txt`, the Markdown representations and the sitemap, all of which are
+ * assembled outside any
  * request and therefore outside next-intl's locale context; `SITE` in
  * `lib/seo/site.ts` is hardcoded for the same reason and says so. The rendered
  * page's own `<h1>` does come from the message files, which is why these read
@@ -138,11 +139,11 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
 ]
 
 /**
- * Every static route, expanded across every locale — `/en`, `/id`, `/en/ai`,
- * `/id/ai`.
+ * Every static route, expanded across every locale — `/en`, `/id`,
+ * `/en/studio`, `/id/studio`.
  *
- * This is what gets *advertised*: the sitemap, `/llms.txt`, the machine view,
- * and the Markdown-representation lookup in `lib/seo/alternates.ts` all read
+ * This is what gets *advertised*: the sitemap, `/llms.txt`, and the
+ * Markdown-representation lookup in `lib/seo/alternates.ts` all read
  * it. Because `localePrefix` is 'always', each entry is also the page's one
  * canonical URL, which is the invariant `alternates.ts` requires — a canonical
  * that disagrees with the sitemap asks a search engine to crawl one URL and

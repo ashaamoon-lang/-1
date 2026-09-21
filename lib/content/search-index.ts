@@ -23,12 +23,12 @@ import { PRACTICE_SEGMENT } from './practices'
  * its `'use cache'` boundary, and a pure function is the part worth unit
  * testing.
  *
- * ## Why `/ai` is in here
+ * ## The pages it lists are the footer's pages
  *
- * It is a real page with a real description, it is listed in the footer, and
- * a palette that omits pages the footer offers is a second, quieter site map
- * that disagrees with the first. Its description says plainly what it is, so
- * nobody arrives there by accident.
+ * A palette that omits pages the footer offers is a second, quieter site map
+ * that disagrees with the first. That argument is why the `/ai` machine view
+ * was in here — and why, when Tahap 84 removed that page, it left this index
+ * with it rather than lingering as a result that leads nowhere.
  */
 
 export type SearchKind = 'page' | 'practice' | 'project' | 'journal'

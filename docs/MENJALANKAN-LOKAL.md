@@ -102,14 +102,14 @@ periksa yang ini.
 
 ## 6. Yang layak dibuka
 
-| Alamat                      | Kenapa                                                                                                             |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `/en` dan `/id`             | Beranda. Komposisi hero Tahap 12d — index praktik kanan-atas, judul kiri-bawah, isyarat gulir kanan-bawah          |
-| `/en/work`                  | Katalog, dengan chip **All · Consulting · AI & Data · Commission**                                                 |
-| `/en/work/practice/ai-data` | Rute praktik dari Tahap 13 — filternya berjalan di server, bukan di browser                                        |
-| `/en/work/arus-balik`       | Halaman detail. Klik sebuah kartu dari katalog: sampulnya **berpindah** ke halaman ini, tidak sekadar dimuat ulang |
-| `/llms.txt` dan `/en/ai`    | Yang dibaca mesin jawaban tentang Arth                                                                             |
-| `/cms`                      | Sanity Studio. Butuh login akun Sanity Anda; dari sini kontennya bisa disunting                                    |
+| Alamat                   | Kenapa                                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `/en` dan `/id`          | Beranda. Komposisi hero Tahap 12d — index praktik kanan-atas, judul kiri-bawah, isyarat gulir kanan-bawah          |
+| `/en/work`               | Katalog, dengan chip **All · Consulting · AI & Data · Commission**                                                 |
+| `/en/practice/ai-data`   | Halaman praktik. Alamat lamanya, `/en/work/practice/ai-data`, masih dialihkan ke sini (308)                        |
+| `/en/work/arus-balik`    | Halaman detail. Klik sebuah kartu dari katalog: sampulnya **berpindah** ke halaman ini, tidak sekadar dimuat ulang |
+| `/llms.txt` dan `/en.md` | Yang dibaca mesin jawaban tentang Arth. (`/en/ai` dihapus di Tahap 84 dan kini menjawab halaman tidak ditemukan)   |
+| `/cms`                   | Sanity Studio. Butuh login akun Sanity Anda; dari sini kontennya bisa disunting                                    |
 
 ---
 

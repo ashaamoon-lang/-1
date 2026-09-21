@@ -45,7 +45,7 @@ const DEFAULT_HOME_LINK = (
  * offered to the one visitor on the site who is certainly a person and has
  * certainly just got lost. Nothing is lost on the machine side —
  * `app/robots.ts` advertises the sitemap, which is where a crawler looks for
- * it, and `/ai` is in the sitemap itself.
+ * it, and `/ai` was in the sitemap itself (the page was removed in Tahap 84).
  *
  * Unprefixed on purpose: `localePrefix` is 'always', so each of these
  * redirects to the reader's own language rather than pinning them to the
