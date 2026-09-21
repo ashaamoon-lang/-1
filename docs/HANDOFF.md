@@ -64,7 +64,7 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke tabel ini.
 
-Tahap terakhir yang dikerjakan: **86**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **87**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
 Diukur di laptop itu pada **19 September 2026**, di worktree `arth-design`:

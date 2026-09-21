@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 86**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 87**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,40 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 87 — Header yang tidak pernah diletakkan ✅
+
+Spec: `docs/stages/TAHAP-87.md`. Dilaporkan pemilik repo dari `/studio`:
+navbar tidak simetris, cenderung bertabrakan, tidak di posisi yang benar.
+
+Header adalah `space-between` atas empat item — bukan tata letak, melainkan
+pembagian sisa ruang. Pusat nav melenceng **138 px** dari pusat header di 800
+dan **313 px** di 1920, awalnya berpindah antar-kolom, dan label Bahasa
+Indonesia menggesernya lagi. Tidak ada dokumen desain yang pernah memutuskan
+tata letak header.
+
+"Bertabrakan" diukur lebih dulu dan ternyata bukan tumpang-tindih: jarak
+antar-item terkecil 109 px, dan `/studio` pada gulir 0 punya 89 px bersih.
+Screenshot pemilik repo diambil saat konten lewat di bawah latar header —
+dinyatakan, tidak diubah.
+
+Kini tiga zona: merek rata kiri, nav tepat di tengah (pusat grid halaman juga),
+search + bahasa berkelompok rata kanan. Grid 12 kolom diperiksa lebih dulu dan
+ditolak dengan angka: di 800 satu kolom 33 px, pengalih bahasa 88 px. Ponsel
+tidak berubah — kelompok baru `display: contents` di sana.
+
+**Risiko yang spec tulis sendiri terbukti nyata.** Di `next dev` nav membawa
+tautan Storybook, dan bentuk pertama perbaikan saya (`minmax(0, 1fr)`)
+meninggalkan jarak **1 px** antara nav dan search di 800. Lantai lintasan
+diganti `max-content`: celah tidak pernah termakan, dan harganya — nav
+bergeser 14.6 px hanya saat empat tautan tidak muat simetris — dinyatakan.
+Karena CI tidak pernah melihat tautan keempat, gerbangnya menambahkan satu
+sendiri; terbukti merah terhadap bentuk pertama, lalu hijau.
+
+check **597 lulus, 0 gagal** · build hijau · header-balance, responsive,
+keyboard-focus, command-palette **28/28**.
 
 ---
 

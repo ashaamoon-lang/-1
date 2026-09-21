@@ -16,6 +16,49 @@
    */
   height: var(--header-height);
   padding-inline: var(--safe);
+
+  /*
+   * Three zones on desktop, with the nav on the centre — Tahap 87.
+   *
+   * This was `space-between` on four items, which is not a layout but a
+   * division of leftover space: each item sat wherever the others' widths
+   * pushed it. Measured on the production build, the nav's centre ran 138px
+   * left of the header's at 800 and 313px left at 1920, its start wandered
+   * across columns 4 and 5, and the Indonesian labels moved it again. The
+   * repo owner reported it from `/studio` as not symmetric and not placed.
+   *
+   * Two equal outer tracks put the `auto` middle track on the header's centre
+   * at every width and in every language — and the header's centre is the
+   * page grid's, because both are inset by the same `--safe`. The wordmark
+   * holds the left edge and the search + language group the right, mirrored.
+   *
+   * Not the 12-column page grid, which was checked first: at 800px a column
+   * is 33px, the language switcher is 88px and the nav 187px, and columns
+   * 5–8 together are 180px. The content does not fit the columns it would be
+   * asked to sit in; three zones give the symmetry without the squeeze.
+   * `docs/stages/TAHAP-87.md` §2.
+   *
+   * `minmax(max-content, 1fr)` on the outer tracks, and the floor was
+   * measured, not assumed. The first shape was `minmax(0, 1fr)`, and in
+   * `next dev` — where the nav carries a fourth link, Storybook, as it also
+   * does in any build with `NEXT_PUBLIC_STORYBOOK_URL` set — the search and
+   * language group (220.5px) outgrew its 219px track at 800px and spilled
+   * left, leaving the nav and the search trigger **1px apart**. A zero floor
+   * lets a track shrink under content that cannot wrap, and the overflow
+   * lands in the gap. With the content as the floor, the two tracks stay
+   * equal whenever everything fits, and when it does not the short one gives
+   * up only the difference: the nav moves off centre by exactly what the
+   * group needs — 14.6px at `/en` 800 with four links, measured; 0.00px at
+   * 1024 and above, and with the three links production ships — and the
+   * `--gap` between items is never eaten.
+   */
+  @media (--desktop) {
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(
+        max-content,
+        1fr
+      );
+  }
   /*
    * The ground is a pseudo-element now — Tahap 53.
    *
@@ -99,6 +142,13 @@
   @media (--desktop) {
     /* scale-exempt: see the note on the mobile size above. */
     font-size: desktop-vw(20px);
+    /*
+     * Tahap 87: the left track, held at its start. Without `justify-self` a
+     * grid item stretches, and this link's hit area would have grown across
+     * the whole left third of the header.
+     */
+    grid-column: 1;
+    justify-self: start;
   }
 
   &:focus-visible {
@@ -108,6 +158,11 @@
 }
 
 .nav {
+  /* The middle track — the header's centre. Tahap 87. */
+  @media (--desktop) {
+    grid-column: 2;
+  }
+
   @media (--mobile) {
     /*
      * `display: none` removes the list from the tab order and the
@@ -262,4 +317,29 @@
  */
 .search {
   flex-shrink: 0;
+}
+
+/*
+ * Search and language, placed as one group — Tahap 87.
+ *
+ * On desktop it takes the right track and sits against its end, mirroring
+ * the wordmark at the opposite `--safe` edge. The space inside it is the
+ * nav's own rhythm (`.navList`), so the header carries one spacing rather
+ * than two.
+ *
+ * Below the breakpoint it is `display: contents`: its two children stay the
+ * header's flex items exactly as they were before the group existed, which
+ * keeps the language switcher's `order` before the menu button. A `<div>` has
+ * no role for `contents` to strip.
+ */
+.tools {
+  display: contents;
+
+  @media (--desktop) {
+    grid-column: 3;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: desktop-vw(28px);
+  }
 }

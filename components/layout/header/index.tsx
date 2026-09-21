@@ -177,10 +177,16 @@ export function Header() {
         Its own file records why it is a visible button and not only a ⌘K
         shortcut, and why almost nothing of it ships to a page that never
         opens it.
-      */}
-      <CommandTrigger className={s.search} />
 
-      <LanguageSwitcher className={s.language} />
+        The two are one group so the header can place them as one — Tahap 87.
+        As separate children of a `space-between` row, each sat wherever the
+        leftover space fell; together they mirror the wordmark at the other
+        `--safe` edge. `header.module.css` has the measurement.
+      */}
+      <div className={s.tools}>
+        <CommandTrigger className={s.search} />
+        <LanguageSwitcher className={s.language} />
+      </div>
     </header>
   )
 }

@@ -325,3 +325,17 @@ bun run build    hijau
 - **Data fixture tidak diubah** — §6.
 - **Nol angka performa diklaim** — `CLAUDE.md` #19. Faktor _cover_ dihitung per
   frame (dua pembagian); biayanya tidak diukur.
+
+### 7.7 CI sesudah push
+
+Ditambahkan di commit Tahap 87.
+
+```
+Tahap 85 (22957d4)   708 lulus · 2 flaky · 15 dilewati   725
+Tahap 86 (e366c10)   712 lulus · 1 flaky · 14 dilewati   727   (+2: kedua gerbang baru)
+```
+
+Kedua gerbang baru **berjalan** di Linux, bukan melewatkan dirinya:
+`grid-rows` 14.7 s, `material-shape` 1.6 m. Flaky dan skip kembali ke angka
+Tahap 84. Satu-satunya flaky adalah `visual-substance:178` aksen
+`/en/practice/consulting` mobile, yang `HANDOFF.md` §5.1 sudah catat.
