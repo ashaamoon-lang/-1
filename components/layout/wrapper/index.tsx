@@ -180,6 +180,14 @@ export function Wrapper({
            * of the tab order while allowing programmatic and fragment focus.
            */
           tabIndex={-1}
+          /*
+           * This route mounts a WebGL root — said in the server HTML, so a
+           * gate can tell "no canvas here by design" from "the canvas is
+           * late". Before Tahap 90 five gates guessed that from a timeout and
+           * skipped themselves when it ran out, which reported success on a
+           * route whose canvas never arrived. `e2e/webgl-intent.ts` reads it.
+           */
+          data-webgl-root={webgl ? '' : undefined}
           className={cn('relative flex grow flex-col', className)}
           {...props}
         >

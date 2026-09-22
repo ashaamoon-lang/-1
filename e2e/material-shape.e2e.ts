@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test'
 import sharp from 'sharp'
 
+import {
+  plateSkipReason,
+  waitForCanvas,
+  waitForPlate,
+  webglIntent,
+} from './webgl-intent'
+
 /**
  * The material layer draws a cover in the shape the picture has — Tahap 86.
  *
@@ -85,7 +92,8 @@ test.describe('the material layer keeps each picture its own shape', () => {
     page,
     request,
   }) => {
-    test.setTimeout(300_000)
+    // Every published plate, each waited for up to WEBGL_ARRIVAL_MS — Tahap 90.
+    test.setTimeout(600_000)
     await page.setViewportSize({ width: 1600, height: 900 })
 
     const xml = await (await request.get('/sitemap.xml')).text()
@@ -100,26 +108,36 @@ test.describe('the material layer keeps each picture its own shape', () => {
     for (const path of paths) {
       await page.goto(path)
       const count = await page.locator('[data-material-shell]').count()
+      if (count === 0) continue
+
+      // Decided per route, waited for per plate — Tahap 90.
+      const intent = await webglIntent(page)
+      if (!intent.intended) {
+        report.push(`${path}: not asked — ${intent.reason}`)
+        continue
+      }
+      await waitForCanvas(page)
 
       for (let index = 0; index < count; index++) {
         const shell = page.locator('[data-material-shell]').nth(index)
         await shell.evaluate((node) =>
           node.scrollIntoView({ block: 'center', behavior: 'instant' })
         )
-        // The mesh raises `data-material` only after it has drawn a frame.
-        const drawn = await shell.evaluate(
-          (node) =>
-            new Promise<boolean>((resolve) => {
-              const started = performance.now()
-              const tick = () => {
-                if (node.hasAttribute('data-material')) resolve(true)
-                else if (performance.now() - started > 6000) resolve(false)
-                else setTimeout(tick, 100)
-              }
-              tick()
-            })
-        )
-        if (!drawn) continue
+        /*
+         * The mesh raises `data-material` only after it has drawn a frame.
+         *
+         * This waited 6s and skipped the plate silently when it ran out; a cold
+         * desktop needs up to 9.3s, which is how Arus Balik on `/en` was never
+         * asked in Tahap 86. A plate whose picture failed to load is the one
+         * that may correctly not draw — it is named in the report instead.
+         */
+        const plate = await waitForPlate(shell)
+        if (plate !== 'drawn') {
+          report.push(
+            `${path} plate ${index + 1}: not asked — ${plateSkipReason(plate)}`
+          )
+          continue
+        }
         await page.waitForTimeout(700)
 
         const geometry = await shell.evaluate((node) => {
@@ -174,6 +192,27 @@ test.describe('the material layer keeps each picture its own shape', () => {
         const boxRatio = geometry.box.width / geometry.box.height
         const mismatch = boxRatio / geometry.asset
         if (Math.abs(mismatch - 1) < MISMATCH) continue
+
+        /*
+         * The references are built from the cover's own file, so that file
+         * has to arrive — Tahap 90.
+         *
+         * This handed whatever came back to `sharp`, and when the image
+         * optimiser timed out on `cdn.sanity.io` (twelve such timeouts in one
+         * local server log) the whole gate died on "Input buffer contains
+         * unsupported image format". A source that did not download is the
+         * second state in `e2e/webgl-intent.ts`: named, not asked, not a
+         * failure of the shape it was meant to check.
+         */
+        const response = await page.request.get(geometry.src)
+        const type = response.headers()['content-type'] ?? ''
+        if (!response.ok() || !type.startsWith('image/')) {
+          report.push(
+            `${path} "${geometry.label}": not asked — its source did not download (${response.status()} ${type})`
+          )
+          continue
+        }
+        const source = await response.body()
         asked += 1
 
         const region: Region = {
@@ -183,7 +222,6 @@ test.describe('the material layer keeps each picture its own shape', () => {
           height: Math.round(geometry.visible.height),
         }
         const shot = await page.screenshot({ clip: region })
-        const source = await (await page.request.get(geometry.src)).body()
 
         const boxWidth = Math.round(geometry.box.width)
         const boxHeight = Math.round(geometry.box.height)

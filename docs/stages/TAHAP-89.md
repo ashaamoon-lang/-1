@@ -157,3 +157,32 @@ adalah bukti bahwa checklist tidak lagi menyebut `/ai`.
 Tidak ada build atau e2e dijalankan untuk tahap ini, dan itu sengaja: tidak ada
 perubahan yang mencapai apa pun yang dirender. Satu-satunya perubahan non-
 komentar adalah teks di skrip generator checklist, yang diuji unit.
+
+### 6.4 CI sesudah push
+
+Ditambahkan di commit Tahap 90.
+
+```
+Tahap 88 (d547c53)   723 lulus · 1 flaky · 14 dilewati   738
+Tahap 89 (a5e8436)   723 lulus · 1 flaky · 14 dilewati   738
+```
+
+Identik, seperti seharusnya untuk tahap tanpa perubahan perilaku.
+
+Push-nya sendiri sempat ditolak GitHub dengan **403**: Git Credential Manager
+menyerahkan kredensial yang tidak lagi diterima, sementara akun `gh` yang masuk
+punya izin push. Atas keputusan pemilik repo, commit ini dikirim dengan
+kredensial `gh` untuk satu perintah itu saja
+(`git -c credential.helper= -c "credential.helper=!gh auth git-credential" push`);
+konfigurasi git dan Credential Manager tidak diubah.
+
+### 6.5 Koreksi: sapuan ini tidak mencapai `e2e/` — Tahap 90
+
+Kriteria keluar §4.1 berbunyi "`grep` atas kode, panduan, dan dokumen
+non-riwayat". Pencariannya mencakup `app`, `lib`, `components`, `vault` dan
+dokumen — tidak `e2e/`. Di sana Tahap 90 menemukan **satu entri daftar rute
+yang hidup**: `e2e/vocabulary.e2e.ts` masih memeriksa `` `/${locale}/ai` ``.
+Karena rute yang dihapus menjawab soft-404 dengan 200, dua uji itu lulus dengan
+memindai halaman "Page not found" untuk kosakata lama — tampak menjaga halaman
+mesin, sebenarnya menjaga 404. Dihapus di Tahap 90, bersama satu komentar masa
+kini di `visual-substance.e2e.ts`.

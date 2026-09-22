@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 89**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 90**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,38 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 90 — Gerbang kanvas yang memutuskan, bukan menebak dari tenggat ✅
+
+Spec: `docs/stages/TAHAP-90.md`. Menutup utang `HANDOFF.md` §5.1, terbuka
+sejak Tahap 79.
+
+Lima gerbang memutuskan "rute ini punya kanvas" dengan menunggu sebentar dan
+melewatkan dirinya bila tenggat habis — jadi rute tanpa kanvas dan rute yang
+kanvasnya terlambat memberi jawaban yang sama. Diukur: kanvas datang dalam
+0.95–12.3 s dan plat dalam 2.2–14.6 s, sementara gerbang menunggu 6 s.
+
+Kini rute yang memasang WebGL mengumumkannya di HTML server
+(`data-webgl-root`), dan `e2e/webgl-intent.ts` membaca syarat yang sama dengan
+situs. Tiga keadaan — tidak dimaksudkan, gambar gagal atau tertunda, dan
+tidak datang — dan hanya yang terakhir gagal. Bukti merah dengan three.js
+diblokir: gerbang lama melaporkan skip, gerbang baru gagal dengan pesan niat.
+Di build sehat, satu skip tersembunyi (`material-layer` keyboard COMMIT) kini
+berjalan dan lulus.
+
+Run pertama menemukan dua kesalahan rancangan saya — tunggu 30 s di dalam
+anggaran uji 30 s, dan gambar yang masih dimuat dihitung sebagai plat yang tak
+menggambar — dan keduanya diperbaiki sebelum dikirim. Dua temuan di luar
+rancangan: §5.1 salah menyebut flaky `/en/practice/consulting` sebagai kanvas
+(halaman itu tidak memasang WebGL; yang habis adalah anggaran muat halaman), dan
+Tahap 89 tidak menyapu `e2e/`, tempat `vocabulary.e2e.ts` masih "menjaga"
+`/ai` dengan memeriksa halaman 404.
+
+check **597 lulus, 0 gagal** · build hijau · tiga spec kanvas **57 lulus,
+2 gagal, 14 skip beralasan** — kedua yang gagal adalah anggaran muat halaman di
+profil ponsel, bukan kanvas (§7.4), dan dicatat terbuka.
 
 ---
 

@@ -11,6 +11,13 @@ import {
 } from '../lib/styles/scripts/luminance'
 import { material } from '../vault/motion/tokens'
 import { FEATURED_WORK } from './fixtures'
+import {
+  plateSkipReason,
+  waitForCanvas,
+  waitForPlate,
+  WEBGL_TEST_BUDGET_MS,
+  webglIntent,
+} from './webgl-intent'
 /**
  * The bucket the WebGL hook below fills, declared rather than asserted at each
  * use — three chained `as unknown as` casts is how a test starts lying about
@@ -331,16 +338,25 @@ async function readyPlate(page: Page) {
   await page.goto('/en')
   await page.waitForTimeout(2500)
 
+  /*
+   * Decided, then waited for — Tahap 90.
+   *
+   * This counted canvases and live plates after two fixed waits and skipped
+   * when either was zero. A plate that was merely late — 9.3s on a cold
+   * desktop, measured — skipped the gate, and with three.js blocked outright,
+   * so the canvas the route owes never came, the gate reported success.
+   */
+  // The waits below are longer than a default test budget; so is this.
+  test.setTimeout(WEBGL_TEST_BUDGET_MS)
+  const intent = await webglIntent(page)
+  test.skip(!intent.intended, intent.reason)
+  await waitForCanvas(page)
+
   const shell = page.locator('[data-material-shell]').first()
   await shell.scrollIntoViewIfNeeded()
-  await page.waitForTimeout(2200)
-
-  const canvases = await page.locator('canvas').count()
-  const live = await page.locator('[data-material]').count()
-  test.skip(
-    canvases === 0 || live === 0,
-    'no live material mesh on this device profile — WebGL is gated to desktop'
-  )
+  const plate = await waitForPlate(shell)
+  test.skip(plate !== 'drawn', plateSkipReason(plate))
+  await page.waitForTimeout(600)
 
   const hidden = await page.evaluate(() => {
     let n = 0
@@ -602,6 +618,14 @@ test.describe('a footer under a canvas is still readable', () => {
     test(`${route} keeps its footer out from under the canvas`, async ({
       page,
     }) => {
+      /*
+       * Budgeted for a canvas that is late on purpose-built hardware, not for
+       * a fast desktop — Tahap 90. On the phone profile forced to 1280 the
+       * canvas took up to 12.3s, and the two screenshots below are 1280×800
+       * at DPR 2.6. Thirty seconds was the whole test's budget, which is how
+       * this gate became a flake on CI rather than a check.
+       */
+      test.setTimeout(120_000)
       await page.setViewportSize({ width: 1280, height: 800 })
       await page.goto(route)
       await page.waitForTimeout(2600)
@@ -629,13 +653,18 @@ test.describe('a footer under a canvas is still readable', () => {
        * canvas genuinely never arrives, which is the case the skip was
        * written for.
        */
-      const hasCanvas = await page
-        .locator('canvas')
-        .first()
-        .waitFor({ state: 'attached', timeout: 6000 })
-        .then(() => true)
-        .catch(() => false)
-      test.skip(!hasCanvas, 'no canvas on this route, nothing to paint over')
+      /*
+       * Decided, then waited for — Tahap 90.
+       *
+       * Tahap 52 turned a count into a 6s wait, and the note above says why.
+       * It still skipped when the wait ran out, and the phone profile's canvas
+       * on `/en` took 8–12s — so the gate skipped on a route whose canvas was
+       * coming. Now the route says whether it mounts one (`data-webgl-root`),
+       * and a canvas that is owed is waited for or failed, never skipped.
+       */
+      const intent = await webglIntent(page)
+      test.skip(!intent.intended, intent.reason)
+      await waitForCanvas(page)
 
       await page.evaluate(() => window.scrollTo(0, 999999))
       await page.waitForTimeout(2200)
@@ -723,9 +752,11 @@ test.describe('a footer under a canvas is still readable', () => {
  * artwork rendered nothing to look at. Not for want of assets — six project
  * covers were already in the CMS and already used on the other three routes.
  *
- * `/en/ai` is the exception and it is declared rather than skipped: it is the
- * machine-readable view, and an image there would be weight served to
- * something that cannot see it.
+ * There used to be one declared exception, `/en/ai`: the machine-readable
+ * view, where an image would have been weight served to something that
+ * cannot see it. Tahap 84 removed the route; every page listed here now
+ * renders work. (Corrected in Tahap 90 — Tahap 89's sweep did not reach
+ * `e2e/`.)
  */
 const IMAGE_ROUTES = [
   '/en',

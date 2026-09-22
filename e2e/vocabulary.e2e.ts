@@ -23,9 +23,10 @@ import { routing } from '../lib/i18n/routing'
  *   /id/ai      109        /llms.txt   44
  *
  * and `knowsAbout` was five of five: "Commissioned artwork", "Mural painting",
- * "Acrylic painting", "Gouache painting", "Illustration". `/llms.txt` and
- * `/ai` exist to be trusted by machines, so being wrong there is worse than
- * being wrong in a paragraph a person can discount.
+ * "Acrylic painting", "Gouache painting", "Illustration". `/llms.txt` (and
+ * the `/ai` machine view, until Tahap 84 removed it) exists to be trusted by
+ * machines, so being wrong there is worse than being wrong in a paragraph a
+ * person can discount.
  */
 
 /**
@@ -53,14 +54,18 @@ const RETIRED = [
 
 const PATTERN = new RegExp(`\\b(${RETIRED.join('|')})\\b`, 'gi')
 
-/** Every surface a person or an agent reads a claim from. */
+/**
+ * Every surface a person or an agent reads a claim from.
+ *
+ * `/${locale}/ai` stood here after Tahap 84 removed that route — found in
+ * Tahap 90. A removed route answers the site's soft-404 with a 200, so the
+ * entry kept passing by scanning the "Page not found" view for retired words:
+ * two tests that looked like they guarded the machine view and guarded the
+ * 404 instead.
+ */
 const SURFACES = [
   '/llms.txt',
-  ...routing.locales.flatMap((locale) => [
-    `/${locale}`,
-    `/${locale}/ai`,
-    `/${locale}/work`,
-  ]),
+  ...routing.locales.flatMap((locale) => [`/${locale}`, `/${locale}/work`]),
 ]
 
 test.describe('vocabulary', () => {

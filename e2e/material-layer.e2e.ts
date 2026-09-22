@@ -1,6 +1,14 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
+import {
+  plateSkipReason,
+  waitForCanvas,
+  waitForPlate,
+  WEBGL_TEST_BUDGET_MS,
+  webglIntent,
+} from './webgl-intent'
+
 /**
  * The material layer draws, and it gets out of the way before a navigation.
  *
@@ -198,11 +206,15 @@ test.describe('material layer', () => {
      * `vault/webgl/material-image/index.tsx` documents the split.
      */
     const root = page.locator('[data-material-shell]').first()
-    test.skip(
-      (await page.locator('[data-material-shell][data-material]').count()) ===
-        0,
-      'no material mounted; nothing to hand back'
-    )
+    // Decided, then waited for — Tahap 90; `e2e/webgl-intent.ts` has why.
+    // This counted live plates once and skipped on zero, which is the skip
+    // Tahap 49 already caught hiding two assertions behind a green suite.
+    test.setTimeout(WEBGL_TEST_BUDGET_MS)
+    const intent = await webglIntent(page)
+    test.skip(!intent.intended, intent.reason)
+    await waitForCanvas(page)
+    const plate = await waitForPlate(root)
+    test.skip(plate !== 'drawn', plateSkipReason(plate))
 
     await expect(
       root,
@@ -246,11 +258,15 @@ test.describe('material layer', () => {
     await showWorkGrid(page)
 
     const root = page.locator('[data-material-shell]').first()
-    test.skip(
-      (await page.locator('[data-material-shell][data-material]').count()) ===
-        0,
-      'no material mounted'
-    )
+    // Decided, then waited for — Tahap 90; `e2e/webgl-intent.ts` has why.
+    // This counted live plates once and skipped on zero, which is the skip
+    // Tahap 49 already caught hiding two assertions behind a green suite.
+    test.setTimeout(WEBGL_TEST_BUDGET_MS)
+    const intent = await webglIntent(page)
+    test.skip(!intent.intended, intent.reason)
+    await waitForCanvas(page)
+    const plate = await waitForPlate(root)
+    test.skip(plate !== 'drawn', plateSkipReason(plate))
 
     await page.locator('[data-press="card"]').first().focus()
 

@@ -64,7 +64,7 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke tabel ini.
 
-Tahap terakhir yang dikerjakan: **89**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **90**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
 Diukur di laptop itu pada **19 September 2026**, di worktree `arth-design`:
@@ -182,43 +182,27 @@ tertinggi, dan mesin pinned-run dari Tahap 64 sudah ada di galerinya.
 | Plafon aturan #3 (band durasi)          | tidak ditegakkan — lihat `lib/scripts/rule-coverage.ts`, tercatat ber-alasan                              |
 | Typeface berlisensi                     | biaya pemilik repo                                                                                        |
 
-### 5.1 Utang instrumen: gerbang kanvas WebGL yang melewati dirinya sendiri
+### 5.1 Gerbang kanvas yang melewati dirinya sendiri — ditutup di Tahap 90
 
-**Bukan keputusan pemilik repo — pekerjaan yang belum dikerjakan, dicatat di
-sini supaya ia tidak hilang.**
+**Ditutup untuk kanvas.** Lima gerbang memutuskan "rute ini punya kanvas"
+dengan menunggu sebentar lalu melewatkan dirinya. Kini rute yang memasang
+WebGL mengumumkannya di HTML server (`data-webgl-root` pada `<main>`), dan
+`e2e/webgl-intent.ts` membaca syarat yang sama dengan situs. Tiga keadaan:
+tidak dimaksudkan → skip dengan alasan; dimaksudkan tetapi gambarnya gagal atau
+masih dimuat → plat itu dilewati dengan alasan; dimaksudkan dan tidak datang
+→ **gagal**. Dibuktikan dengan three.js diblokir di jaringan: gerbang lama
+melaporkan skip, gerbang baru gagal dengan pesan niat. `TAHAP-90.md` §7.
 
-`e2e/visual-substance.e2e.ts:603` (dan `:421`, `:453`, plus
-`material-layer.e2e.ts:186`) melewati dirinya lewat `test.skip(!hasCanvas)`
-ketika kanvas tidak muncul dalam 6 detik. Komentarnya sendiri sudah menuliskan
-kenapa itu berbahaya:
-
-> _"the same route, the same commit, **passed on the mobile project in one full
-> run and skipped itself in the next**. A test that skips itself when the thing
-> it measures is merely late reports success either way."_
-
-**Yang baru: itu terbukti bukan khas satu mesin.** Diukur di CI, dua run pada
-branch yang sama:
-
-```
-run 63   716 lulus ·  0 flaky · 14 dilewati
-run 64   713 lulus ·  2 flaky · 15 dilewati      total 730 di keduanya
-```
-
-Ketiga selisihnya berada di berkas yang sama dan semuanya rute ber-kanvas —
-dua jadi flaky (`:179` `/en/practice/consulting at mobile`, `:603` `/en`), satu
-jadi skip (`:603` `[mobile] /en/work`). Di laptop Windows 4-core, bentuk yang
-sama muncul lebih keras: **lima** skip tambahan.
-
-Jadi ini balapan, bukan platform. Sebuah gerbang yang melaporkan sukses dengan
-cara tidak berjalan adalah cacat kelas yang sama dengan yang Tahap 79 perbaiki
-di `continuous-motion.e2e.ts` — di sana satu sampel tidak bisa membedakan
-transform entrance dari transform scroll-linked, di sini satu tenggat tidak bisa
-membedakan kanvas yang absen dari kanvas yang terlambat.
-
-**Belum diperbaiki, dan sengaja tidak diperbaiki di commit yang menemukannya** —
-`visual-substance.e2e.ts` ada di luar daftar berkas commit itu, dan memperluas
-lingkup adalah persis kebiasaan yang membuat cacat sulit dilacak. Ia milik tahap
-yang memang menyentuh lapisan material.
+**Yang ternyata salah diatribusikan, dan tetap terbuka.** Catatan ini dulu
+menggolongkan flaky `visual-substance:179` `/en/practice/consulting at mobile`
+sebagai kanvas yang terlambat. Diukur di Tahap 90: halaman praktik **tidak
+memasang WebGL**, dan region aksennya ada di HTML server. Yang habis adalah
+anggaran 30 s uji itu sendiri, di `page.goto` — yang menunggu event `load`,
+artinya semua gambar, di profil ponsel dengan DPR 2.6. `visual-substance:771`
+"/en renders its work" mobile gagal dengan bentuk yang sama lewat
+`networkidle`. Butir terbuka: **anggaran muat halaman di profil ponsel**, bukan
+kanvas. Belum diperbaiki — mengubah apa yang ditunggu gerbang-gerbang itu
+adalah tahapnya sendiri.
 
 ## 6. Kredensial
 
