@@ -1,5 +1,15 @@
 # Tahap 91 — Gerbang yang menunggu gambar yang tidak diukurnya
 
+> **KOREKSI, 23 September 2026 — klaim utama tahap ini gugur.** CI pada
+> `bfc172f` melaporkan **721 lulus / 1 flaky / 14 dilewati**, dan flaky-nya
+> adalah uji yang sama persis yang tahap ini ditulis untuk menutupnya:
+> `[mobile] visual-substance.e2e.ts:187 /en/practice/consulting`, 40,1 detik.
+> Angkanya identik dengan garis dasar Tahap 90. Mekanisme yang diperbaiki di
+> sini nyata dan terukur — gerbangnya memang berhenti menunggu gambar —
+> tetapi ia **bukan** sebab flaky itu, atau bukan satu-satunya. Lanjutannya
+> `docs/stages/TAHAP-93.md`, yang juga menemukan bahwa helper baru tahap ini
+> memasang tunggu 30 detik di dalam anggaran 30 detik.
+>
 > **Status: terkirim.** Spec ditulis lebih dulu sesuai `ROADMAP.md` §3.0;
 > satu temuan ditambahkan saat implementasi (§7.3), hasilnya di §7.
 >
@@ -235,6 +245,12 @@ melemahkan gerbang, melainkan membuat penandanya berkata benar — dan itu
 menyentuh kode produk, di luar daftar berkas awal. Daftar §3 diamandemen.
 
 ### 7.4 Yang tetap terbuka, dan tidak diklaim selesai
+
+**Butir pertama, ditambahkan sesudah CI: flaky-nya tidak tertutup.** Lihat
+kotak koreksi di kepala berkas ini. Yang tahap ini benar-benar hasilkan adalah
+tiga gerbang yang berhenti memutuskan lewat tenggat, satu penanda yang berkata
+benar, dan — seperti `TAHAP-93.md` §1.4 catat — satu cacat baru yang saya
+tulis sendiri di berkas baru tahap ini.
 
 "added no modulation: 0.9" di `/en/practice/consulting` **desktop** muncul dua
 kali, keduanya pada server yang baru dinyalakan dan mesin yang sibuk — sekali

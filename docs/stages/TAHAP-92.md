@@ -283,3 +283,9 @@ RangeError: Array buffer allocation failed
 
 Plafon memori laptop ini, utang yang sudah tercatat di rencana. Dijalankan
 sendirian dengan server berhenti: **12 rule test lulus**.
+
+> **Dikoreksi di Tahap 93 — penjelasan ini terlalu kabur.** "Plafon memori"
+> menyiratkan beban paralel. Yang sebenarnya: RuleTester oxlint meminta satu
+> `ArrayBuffer` sebesar `2 147 483 632 + 4 294 967 296 = 6 442 450 928` byte
+> (≈ 6,0 GiB) di mesin bertotal 7,98 GB. `TAHAP-93.md` §7.5 memuat
+> pengukurannya.

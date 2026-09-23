@@ -64,7 +64,7 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke tabel ini.
 
-Tahap terakhir yang dikerjakan: **92**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **93**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
 Diukur di laptop itu pada **19 September 2026**, di worktree `arth-design`:
@@ -214,6 +214,31 @@ Tahap 91 memperbaikinya, satu tahap sesudah catatan ini dikoreksi.
 `/en/practice/consulting` **desktop**, dua kali, keduanya pada server dingin —
 sekali dengan gerbang lama, jadi ia bukan akibat perubahan itu. Tidak pernah
 berulang saat diisolasi. Belum diatribusikan (`TAHAP-91.md` §7.4).
+
+**`bun run check` satu tarikan tidak andal di laptop ini, dan sebabnya kini
+terukur.** RuleTester plugin JS oxlint meminta satu `ArrayBuffer` sebesar
+`2 147 483 632 + 4 294 967 296 = 6 442 450 928` byte (≈ 6,0 GiB) pada mesin
+bertotal 7,98 GB, jadi `test:oxlint-plugin` gagal `RangeError: Array buffer
+allocation failed` kira-kira separuh waktu — enam run berturut-turut memberi
+tiga lulus, tiga gagal, dengan **nama rule yang berbeda hampir setiap kali**.
+Rule yang rusak tidak berpindah nama; yang gagal alokasinya. Jalankan tahapnya
+satu per satu di sini, dan percayai CI (16 GB) untuk tarikan penuhnya
+(`TAHAP-93.md` §7.5).
+
+**Terbuka sejak 23 September 2026 — flaky `/en/practice/consulting` di mobile
+BELUM tertutup.** Tahap 91 dikirim dengan klaim bahwa ia tertutup; CI pada
+`bfc172f` (run 35828423114) melaporkan **721 lulus / 1 flaky / 14 dilewati**,
+angka yang identik dengan garis dasar Tahap 90, dan flaky-nya uji yang sama —
+40,1 detik terhadap anggaran 30 detik. Bentuk kegagalannya berubah: ia tidak
+lagi mati di `page.goto`, melainkan kehabisan anggaran sebelum sampai ke
+asersinya, lalu asersi 5 detik berikutnya yang tercetak sebagai sebab
+(`/en/practice/consulting declares no accent region`).
+
+Tahap 93 memperbaiki satu aritmetika yang **pasti** salah di jalur itu —
+`waitForEntrance` boleh menunggu 30 detik di dalam anggaran 30 detik, terukur
+30 033 ms dengan tirai ditahan, kini 6 041 ms — tetapi **tidak** mengklaim itu
+sebabnya. Butir ini ditutup hanya oleh beberapa run CI berturut-turut tanpa
+flaky, bukan oleh satu perbaikan yang masuk akal.
 
 ## 6. Kredensial
 

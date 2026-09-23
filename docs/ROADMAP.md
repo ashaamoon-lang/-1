@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 92**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 93**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,35 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 93 — Tunggu yang sebesar anggarannya sendiri ✅
+
+Spec: `docs/stages/TAHAP-93.md`. Mengoreksi Tahap 91, yang saya kirim dengan
+klaim bahwa flaky CI itu tertutup.
+
+**CI mengatakan tidak.** Run `bfc172f`: **721 lulus / 1 flaky / 14 dilewati**,
+identik dengan garis dasar Tahap 90, dan flaky-nya uji yang sama persis —
+`[mobile] visual-substance.e2e.ts:187 /en/practice/consulting`, 40,1 detik.
+Klaim itu dikoreksi di kepala `TAHAP-91.md`, dan butirnya dicatat terbuka di
+`HANDOFF.md` dengan tanggalnya.
+
+Tetapi bentuk kegagalannya berubah, dan itu petunjuknya: ia tidak lagi mati di
+`page.goto`, melainkan kehabisan anggaran **sebelum sampai** ke asersinya,
+sehingga asersi 5 detik berikutnya yang tercetak sebagai sebab. Aritmetiknya
+pasti: `playwright.config.ts` tidak menyetel `timeout` tingkat atas — yang
+300 detik di `:137` milik `webServer` — jadi setiap uji memakai default 30
+detik, sementara `waitForEntrance` yang Tahap 91 tambahkan boleh menunggu
+**30 detik penuh**.
+
+Itu cacat yang saya tangkap sekali di tahap yang sama, dengan kata-kata saya
+sendiri, lalu tulis ulang di berkas baru tahap itu. Plafonnya kini diturunkan
+dari tirainya sendiri — `400 + 200 + 400 = 1000 ms`, kali enam. Terukur
+dengan tirai ditahan terlihat: **30 033 ms → 6 041 ms**.
+
+**Tidak diklaim menutup flaky CI itu.** Hanya beberapa run CI berturut-turut
+yang bisa menyatakannya tertutup.
 
 ---
 

@@ -18,8 +18,29 @@ import type { Page } from '@playwright/test'
  * component renders nothing.
  */
 
-/** Longest the entrance is waited for. Its own ceiling is 1200ms. */
-const ENTRANCE_MS = 30_000
+/**
+ * Longest the entrance is waited for, derived from the entrance — Tahap 93.
+ *
+ * `vault/motion/curtain` holds for `--duration` + `--duration-fast` and then
+ * lifts over `--duration`: 400 + 200 + 400 = **1000ms** after the animation
+ * starts. Six times that is generous on a starved runner and still leaves 24
+ * of the 30 seconds for what the gate actually measures.
+ *
+ * The first version of this file wrote `30_000` here, which is the **whole**
+ * test budget: `playwright.config.ts` sets no top-level `timeout`, so every
+ * test runs on Playwright's 30s default (the 300s at `:137` belongs to
+ * `webServer`, and is the limit for starting the server). A single wait the
+ * size of the budget cannot fail with a useful message — the test's own
+ * timeout fires first, and whatever assertion came next is blamed. CI printed
+ * exactly that on `bfc172f`: 40.1s, and `/en/practice/consulting declares no
+ * accent region` from a 5s assertion that never got its turn.
+ *
+ * `e2e/webgl-intent.ts` records this same mistake being caught one stage
+ * earlier, and `WEBGL_TEST_BUDGET_MS` is the repair there. This file
+ * reproduced it anyway. Measured before the change, with the curtain pinned
+ * visible: `waitForEntrance` returned after **30 033ms**.
+ */
+const ENTRANCE_MS = 6_000
 
 /**
  * Resolves once the entrance curtain is not covering the page.
