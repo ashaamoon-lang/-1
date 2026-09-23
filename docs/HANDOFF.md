@@ -64,7 +64,7 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke tabel ini.
 
-Tahap terakhir yang dikerjakan: **93**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **94**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
 Diukur di laptop itu pada **19 September 2026**, di worktree `arth-design`:
@@ -233,6 +233,12 @@ angka yang identik dengan garis dasar Tahap 90, dan flaky-nya uji yang sama —
 lagi mati di `page.goto`, melainkan kehabisan anggaran sebelum sampai ke
 asersinya, lalu asersi 5 detik berikutnya yang tercetak sebagai sebab
 (`/en/practice/consulting declares no accent region`).
+
+**Sebabnya akhirnya terukur di Tahap 94, dan ia bukan soal tenggat.** Varian
+"at desktop" di dalam proyek `mobile` memakan 46 detik karena proyek itu
+ber-`deviceScaleFactor: 3` sementara ujinya menyetel viewport 1280×720 —
+screenshot 3840×2160, 8,3 megapiksel melawan 0,9 di proyek desktop, dua kali
+per uji. Perbaikannya keputusan cakupan: `docs/stages/TAHAP-95.md`.
 
 Tahap 93 memperbaiki satu aritmetika yang **pasti** salah di jalur itu —
 `waitForEntrance` boleh menunggu 30 detik di dalam anggaran 30 detik, terukur

@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 93**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 94**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,36 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 94 — Anggaran yang diturunkan dari kerjanya ✅
+
+Spec: `docs/stages/TAHAP-94.md`. Mengoreksi Tahap 93, yang plafonnya saya
+turunkan dari aritmetika token alih-alih dari pengukuran.
+
+Tirai yang sebenarnya selesai di **1979 / 1987 / 2561 / 3061 ms** di profil
+`mobile`, bukan 1000 ms seperti hitungan token — animasinya mulai sesudah
+halaman melukis. Jadi plafon 6000 ms yang Tahap 93 kirim hanya ± 2× nilai
+senggang, dan karena `waitForEntrance` tidak pernah melempar, runner sibuk akan
+membuatnya menyerah diam-diam lalu memotret tirainya — cacat yang Tahap 91
+perbaiki, 238,1 dengan aksen dan 238,1 tanpa.
+
+Kini setiap tunggu di rantai itu punya tenggat yang diturunkan dan lebih kecil
+dari anggaran yang melingkupinya: entrance 15 s (5× terukur), region 20 s
+(region ada di HTML dan menempel dalam 17 ms), screenshot 15 s (±35×
+terukur), di dalam anggaran uji 90 s (±19× kerja terukur 4,7 s). Terbukti:
+sebuah screenshot yang ditenggat gagal dalam 7 ms dengan
+`TimeoutError: page.screenshot`, menyebut dirinya sendiri.
+
+**Dan itu membuka sebab biayanya.** Varian "at desktop" **di dalam** proyek
+`mobile` memakan 46 detik: proyek itu ber-`deviceScaleFactor: 3`, ujinya
+menyetel viewport 1280×720, jadi tiap screenshot 3840×2160 — 8,3 megapiksel
+melawan 0,9. Kombinasi yang tidak dimiliki perangkat mana pun, dan duplikat
+dari varian desktop yang sudah ada. Itu keputusan cakupan, jadi ia jadi Tahap
+95 dan tidak ditumpangkan ke sini.
+
+bun test **597 lulus, 0 gagal**. Flaky CI **tidak** diklaim tertutup.
 
 ---
 

@@ -178,6 +178,31 @@ const ACCENT_RANGE_MARGIN = 3
  */
 const ACCENT_ROUTES = ['/en', `/en/practice/${PRACTICES[0]}`]
 
+/**
+ * What the accent gate is allowed, and what each of its waits is allowed.
+ *
+ * The budget is ~19× the 4.7s of work measured on the mobile profile; the
+ * deadline is ~35× the 0.42s a clipped screenshot took there. The gap between
+ * them is the point: a screenshot that stalls fails in 15s with its own name
+ * on it, while a merely slow runner still finishes.
+ */
+const ACCENT_BUDGET_MS = 90_000
+const SHOT_DEADLINE_MS = 15_000
+/**
+ * How long the accent region is waited for.
+ *
+ * It is in the served HTML — `curl` on `/en/practice/consulting` returns it
+ * — so on an idle machine it attaches in **17ms**. The only reason it would
+ * not is a worker so starved that the document has not been parsed, which this
+ * laptop reproduces: under two mobile workers a bare `page.evaluate` reading
+ * `innerWidth` once ran past **120 seconds**.
+ *
+ * `expect`'s inherited 5s default was the last number in this gate that was
+ * not derived from anything, and it was the one CI printed after the budget
+ * stopped being the bottleneck.
+ */
+const REGION_DEADLINE_MS = 20_000
+
 test.describe('a declared accent carries tone, and never subtracts it', () => {
   for (const [width, height, label] of [
     [1280, 800, 'desktop'],
@@ -185,6 +210,25 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
   ] as const) {
     for (const route of ACCENT_ROUTES) {
       test(`${route} at ${label}`, async ({ page }) => {
+        /*
+         * An explicit budget, derived from this gate's own work — Tahap 94.
+         *
+         * Measured on the mobile device profile (390×844, DPR 3) against a
+         * production server, idle machine: `goto` 0.16–0.63s, the entrance
+         * 2.0–3.1s, the region 0.02s, each screenshot 0.30–0.42s, fonts
+         * 0.01s — about **4.7s** of real work. Playwright's default 30s was
+         * never derived for this test; `e2e/webgl-intent.ts` sets
+         * `WEBGL_TEST_BUDGET_MS = 120_000` for exactly this reason.
+         *
+         * CI failed this gate three runs running, and each repair moved the
+         * message rather than the failure: first `declares no accent region`
+         * from a 5s assertion that never got its turn (40.1s), then
+         * `page.screenshot` (31.7s) once the entrance stopped eating the
+         * budget. Ninety seconds is ~19× the measured work, and every wait
+         * inside it now carries a deadline far below it — so a genuinely
+         * stuck operation still names itself instead of spending the budget.
+         */
+        test.setTimeout(ACCENT_BUDGET_MS)
         await page.setViewportSize({ width, height })
         /*
          * The DOM, not every image — Tahap 91.
@@ -209,10 +253,9 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
         await page.waitForTimeout(600)
 
         const region = page.locator('[data-accent-region]').first()
-        await expect(
-          region,
-          `${route} declares no accent region`
-        ).toBeAttached()
+        await expect(region, `${route} declares no accent region`).toBeAttached(
+          { timeout: REGION_DEADLINE_MS }
+        )
 
         /*
          * Which control to remove depends on which accent is showing, and both
@@ -265,7 +308,10 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
           height: Math.round(height * 0.35),
         }
 
-        const withAccent = await page.screenshot({ clip })
+        const withAccent = await page.screenshot({
+          clip,
+          timeout: SHOT_DEADLINE_MS,
+        })
         await page.evaluate((hasMesh: boolean) => {
           const target = hasMesh
             ? document.querySelector('canvas')
@@ -273,7 +319,10 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
           if (target instanceof HTMLElement) target.style.visibility = 'hidden'
         }, live)
         await page.waitForTimeout(600)
-        const withoutAccent = await page.screenshot({ clip })
+        const withoutAccent = await page.screenshot({
+          clip,
+          timeout: SHOT_DEADLINE_MS,
+        })
 
         const lit = await tone(withAccent)
         const bare = await tone(withoutAccent)

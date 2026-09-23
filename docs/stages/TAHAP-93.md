@@ -146,6 +146,14 @@ sebelum   waitForEntrance = 30 033 ms      seluruh anggaran uji
 sesudah   waitForEntrance =  6 041 ms      plafon diturunkan dari tirainya
 ```
 
+> **Dikoreksi di Tahap 94 — plafon 6000 ms itu terlalu ketat, dan
+> derivasinya salah.** Ia dihitung dari token (`400 + 200 + 400 = 1000 ms`),
+> padahal animasi tirai baru mulai sesudah halaman melukis. Diukur di profil
+> `mobile` yang sebenarnya: **1979 / 1987 / 2561 / 3061 ms**. Jadi 6000 hanya
+> ± 2× nilai senggang, dan karena `waitForEntrance` tidak pernah melempar,
+> runner sibuk akan membuatnya menyerah diam-diam lalu memotret tirai.
+> `TAHAP-94.md` §1.3.
+
 Itu yang tahap ini benar-benar perbaiki, dan hanya itu.
 
 ### 7.2 Kriteria §4.3 keliru, dan pengukurannya yang menunjukkannya

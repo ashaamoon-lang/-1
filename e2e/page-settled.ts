@@ -19,12 +19,24 @@ import type { Page } from '@playwright/test'
  */
 
 /**
- * Longest the entrance is waited for, derived from the entrance — Tahap 93.
+ * Longest the entrance is waited for — measured, not derived from the tokens.
  *
- * `vault/motion/curtain` holds for `--duration` + `--duration-fast` and then
- * lifts over `--duration`: 400 + 200 + 400 = **1000ms** after the animation
- * starts. Six times that is generous on a starved runner and still leaves 24
- * of the 30 seconds for what the gate actually measures.
+ * `vault/motion/curtain`
+ * holds for `--duration` + `--duration-fast` and lifts over `--duration`,
+ * which is 400 + 200 + 400 = 1000ms **after the animation starts**, and Tahap
+ * 93 took that for the whole wait. It is not: the animation starts once the
+ * page paints, and on the mobile device profile the curtain settles in
+ * **1979 / 1987 / 2561 / 3061 ms** on an idle machine.
+ *
+ * So the 6000ms Tahap 93 shipped was only about twice the measured value, on
+ * a machine with nothing else running. A busy runner would pass it, and this
+ * helper deliberately never throws — it just stops waiting — so the gate
+ * would then photograph the curtain. That is the defect Tahap 91 fixed, with
+ * the numbers to match: 238.1 with the accent and 238.1 without.
+ *
+ * Five times the worst idle reading, and the gate that calls this now carries
+ * a budget derived from its own work, so a generous ceiling no longer costs
+ * the assertion its turn.
  *
  * The first version of this file wrote `30_000` here, which is the **whole**
  * test budget: `playwright.config.ts` sets no top-level `timeout`, so every
@@ -40,7 +52,7 @@ import type { Page } from '@playwright/test'
  * reproduced it anyway. Measured before the change, with the curtain pinned
  * visible: `waitForEntrance` returned after **30 033ms**.
  */
-const ENTRANCE_MS = 6_000
+const ENTRANCE_MS = 15_000
 
 /**
  * Resolves once the entrance curtain is not covering the page.
