@@ -121,7 +121,7 @@ export const STORY_EXEMPT: readonly { dir: string; because: string }[] = [
   {
     dir: 'vault/webgl/scene-shell',
     because:
-      'paints nothing itself — it portals into the shared canvas the site Wrapper provides, and the catalogue has no such provider. Measured at Tahap 73: the story mounts, takes the WebGL path, sets `data-accent-live`, and the document contains zero canvas elements',
+      'paints nothing itself — it portals into the shared canvas the site Wrapper provides, and the catalogue has no such provider. Measured at Tahap 73: the story mounts, takes the WebGL path, and the document contains zero canvas elements. It raised `data-accent-live` then; since Tahap 91 that marker waits for a drawn frame, so a canvas-less story never raises it at all',
   },
   {
     dir: 'vault/webgl/material-image',

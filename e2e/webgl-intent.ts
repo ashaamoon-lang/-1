@@ -119,7 +119,7 @@ export type PlateState = 'drawn' | 'no-image' | 'image-pending'
 /** The skip message for a plate that is correctly not asked. */
 export function plateSkipReason(state: PlateState): string {
   return state === 'no-image'
-    ? "the plate's picture failed to load, so it correctly keeps its <img>"
+    ? 'the plate has no picture to draw, or its picture failed to load, so it correctly keeps its <img>'
     : `the plate's picture was still loading after ${WEBGL_ARRIVAL_MS / 1000}s — a network state, not the material's`
 }
 
@@ -145,7 +145,8 @@ export async function waitForPlate(shell: Locator): Promise<PlateState> {
             return resolve('no-image')
           }
           if (performance.now() - started > timeout) {
-            return resolve(img && !img.complete ? 'image-pending' : 'late')
+            if (!img) return resolve('no-image')
+            return resolve(img.complete ? 'late' : 'image-pending')
           }
           setTimeout(tick, 100)
         }

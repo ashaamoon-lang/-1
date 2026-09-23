@@ -240,3 +240,24 @@ R->E  sebab: anggaran muat halaman di profil ponsel; dicatat terbuka
 - **Kenapa plat `/en` di profil ponsel tidak menggambar dalam 40 s** di dua
   sampel pengukuran awal — tetap tidak dibuktikan (§6).
 - **Nol angka performa diklaim** — `CLAUDE.md` #19.
+
+### 7.9 CI sesudah push
+
+Ditambahkan di commit Tahap 91.
+
+```
+Tahap 89 (a5e8436)   723 lulus · 1 flaky · 14 dilewati   738
+Tahap 90 (d908fcc)   721 lulus · 1 flaky · 14 dilewati   736   (−2: entri `/ai` di vocabulary)
+```
+
+Selisih −2 persis dua uji yang §7.5 hapus. **Komposisi skip identik** antara
+kedua run — hanya nomor barisnya bergeser — dan keempat belasnya sah: rute
+tanpa WebGL (jurnal ×2, studio, tiga praktik) di kedua proyek, plus dua uji
+material yang memang desktop-only di proyek mobile.
+
+Itu juga menyatakan batas tahap ini dengan jujur: di runner CI yang cepat tidak
+ada skip tersembunyi untuk dihapus. Yang dihapus adalah **kemampuan** gerbang
+untuk melewatkan dirinya diam-diam — yang di laptop ini memang terjadi (§7.2).
+
+Flaky-nya sama di kedua run: `visual-substance` aksen `/en/practice/consulting`
+di mobile — sasaran Tahap 91.

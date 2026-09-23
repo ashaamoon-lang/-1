@@ -11,10 +11,12 @@ import {
 } from '../lib/styles/scripts/luminance'
 import { material } from '../vault/motion/tokens'
 import { FEATURED_WORK } from './fixtures'
+import { waitForEntrance } from './page-settled'
 import {
   plateSkipReason,
   waitForCanvas,
   waitForPlate,
+  WEBGL_ARRIVAL_MS,
   WEBGL_TEST_BUDGET_MS,
   webglIntent,
 } from './webgl-intent'
@@ -184,8 +186,27 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
     for (const route of ACCENT_ROUTES) {
       test(`${route} at ${label}`, async ({ page }) => {
         await page.setViewportSize({ width, height })
-        await page.goto(route)
-        await page.waitForTimeout(2800)
+        /*
+         * The DOM, not every image — Tahap 91.
+         *
+         * `goto` waits for `load` by default: every picture on the page, at
+         * DPR 2.6 on the phone profile. This gate measures a wash in the top
+         * band, which is server-rendered and has no image in it. With every
+         * image held back 35s, all four accent and image runs died in `goto`
+         * before measuring anything — the signature of the one flake CI showed
+         * on nearly every run since Tahap 84 (40.1s against a 30s budget).
+         * The 2.8s that follows is for the entrance curtain, which it waits for.
+         */
+        await page.goto(route, { waitUntil: 'domcontentloaded' })
+        /*
+         * The entrance, waited for rather than timed — Tahap 91.
+         *
+         * A flat 2800ms is comfortable on a quiet machine. Under two workers
+         * this laptop photographed the curtain instead of the page: 238.1
+         * with the accent and 238.1 without, on a band that measures ~24.
+         */
+        await waitForEntrance(page)
+        await page.waitForTimeout(600)
 
         const region = page.locator('[data-accent-region]').first()
         await expect(
@@ -205,7 +226,32 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
          * would compare a page with itself and pass no matter what — a gate that
          * cannot fail.
          */
-        const live = (await page.locator('[data-accent-live]').count()) > 0
+        /*
+         * Decided, not counted — Tahap 91, with Tahap 90's helper.
+         *
+         * This counted `[data-accent-live]` once after the fixed wait. When
+         * the `/en` mesh went live after that count, the gate hid the CSS
+         * region instead of the canvas and compared the page with itself.
+         * Now: if the route means to mount WebGL on this device, the mesh is
+         * waited for — or the gate fails — and only then is it measured.
+         */
+        const intent = await webglIntent(page)
+        let live = false
+        if (intent.intended) {
+          test.setTimeout(WEBGL_TEST_BUDGET_MS)
+          await waitForCanvas(page)
+          live = await page
+            .locator('[data-accent-live]')
+            .first()
+            .waitFor({ state: 'attached', timeout: WEBGL_ARRIVAL_MS })
+            .then(() => true)
+            .catch(() => false)
+          if (!live) {
+            throw new Error(
+              `${route}: WebGL is intended here and the canvas arrived, but the wash never went live in ${WEBGL_ARRIVAL_MS / 1000}s`
+            )
+          }
+        }
 
         /*
          * A band of the region, not the whole of it. The clip has to sit inside
@@ -627,8 +673,17 @@ test.describe('a footer under a canvas is still readable', () => {
        */
       test.setTimeout(120_000)
       await page.setViewportSize({ width: 1280, height: 800 })
-      await page.goto(route)
-      await page.waitForTimeout(2600)
+      /*
+       * The DOM and the entrance, not every image — Tahap 91.
+       *
+       * This waited for `load`. On the phone profile at 1280 that is every
+       * picture at DPR 2.6, and on `/en/journal` — a route with no canvas at
+       * all, which this gate only ever skips — it burned most of the 120s
+       * budget before the skip could even be decided.
+       */
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+      await waitForEntrance(page)
+      await page.waitForTimeout(600)
 
       /*
        * Discovered at runtime rather than pinned to `/en`.
@@ -772,19 +827,30 @@ test.describe('every surface a reader lands on has something to look at', () => 
   for (const route of IMAGE_ROUTES) {
     test(`${route} renders its work`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 })
-      await page.goto(route)
-      await page.waitForLoadState('networkidle')
+      /*
+       * A box, not a download — Tahap 91.
+       *
+       * This waited for `networkidle`, and `goto` before it for `load`. What it
+       * counts is an `<img>` with a real box, which the aspect-ratio CSS gives
+       * before a byte of the picture arrives. With every image held back 35s
+       * it died in `goto` without counting anything. Whether pictures load is
+       * a different question, and not this gate's.
+       */
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
 
-      const images = await page.evaluate(
-        () =>
-          [...document.querySelectorAll('main img')].filter((img) => {
-            const rect = img.getBoundingClientRect()
-            // A rendered image, not a 1px tracking pixel or a hidden preload.
-            return rect.width > 32 && rect.height > 32
-          }).length
-      )
+      const count = () =>
+        page.evaluate(
+          () =>
+            [...document.querySelectorAll('main img')].filter((img) => {
+              const rect = img.getBoundingClientRect()
+              // A rendered image, not a 1px tracking pixel or a hidden preload.
+              return rect.width > 32 && rect.height > 32
+            }).length
+        )
 
-      expect(images, `${route} renders ${images} images`).toBeGreaterThan(0)
+      await expect
+        .poll(count, { message: `${route} renders no images`, timeout: 15_000 })
+        .toBeGreaterThan(0)
     })
   }
 })

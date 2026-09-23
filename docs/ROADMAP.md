@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 90**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 91**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,40 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 91 — Gerbang yang menunggu gambar yang tidak diukurnya ✅
+
+Spec: `docs/stages/TAHAP-91.md`. Menutup butir yang Tahap 90 atribusikan ulang
+di `HANDOFF.md` §5.1.
+
+Satu flaky muncul di run CI hampir setiap tahap sejak Tahap 84: gerbang aksen
+`/en/practice/consulting` di proyek mobile, gagal dalam 40.1 s terhadap
+anggaran 30 s. Sebabnya: `page.goto` menunggu event `load` — **setiap gambar
+di halaman**, pada DPR 2.6 — sementara yang diukur gerbang itu adalah pita
+wash yang tidak memuat satu gambar pun. Gerbang "renders its work" punya bentuk
+yang sama lewat `networkidle`, padahal ia hanya menghitung kotak `<img>`.
+
+Dibuktikan dengan menunda setiap gambar 35 s: gerbang lama mati empat kali di
+`goto`, gerbang baru lulus dalam 19 s.
+
+**Dan satu temuan yang datang dari mempercayai sebuah komentar.** Gerbang yang
+diperbaiki menunggu `[data-accent-live]`, lalu melaporkan "18.6 dengan aksen,
+18.6 tanpa" — penanda itu dinaikkan saat komponen memilih cabang mesh, bukan
+saat mesh menggambar, meski catatannya berkata sebaliknya. Diperbaiki di
+sumbernya dengan pola `onFirstFrame` yang `material-image` pakai sejak Tahap 14.
+
+**Gerbang ketiga, ditemukan saat implementasi.** `material-layer` membaca plat
+2500 ms sesudah menggulir dan sesekali memotretnya di tengah kedipan: transisi
+opacity `running` di `currentTime: 0`, karena bingkai pertama mesh memegang
+thread utama. Perbaikan pertama saya terlalu jauh — ia menuntut penyerahan dari
+plat yang tidak pernah diminta menggambar, dan gagal enam dari enam kali
+terhadap situs yang berfungsi. Yang terkirim menunggu plat yang benar-benar ada
+di layar: merah 1/3, lalu 6/6 gagal, lalu 6/6 lulus.
+
+check **597 lulus, 0 gagal** · build hijau · material-layer + visual-substance
+**32 lulus, 0 gagal, 6 dilewati**.
 
 ---
 

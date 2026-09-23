@@ -66,6 +66,7 @@
 import cn from 'clsx'
 import {
   type ComponentType,
+  useCallback,
   useEffect,
   useState,
   useSyncExternalStore,
@@ -247,6 +248,19 @@ export function SceneShell({
   // this component must render the fallback instead of an empty box.
   const canRenderWebGL = isWebGL && !prefersReducedMotion
   const GradientScene = useGradientScene(canRenderWebGL === true)
+  /*
+   * Whether a frame has actually been drawn — Tahap 91.
+   *
+   * `data-accent-live` used to be raised the moment this component chose the
+   * mesh branch, while its own note beside it said the attribute meant "a mesh
+   * is drawing it right now". Those are different moments, and a gate that
+   * believed the note measured `/en` before the wash painted: it read 18.6
+   * with the accent and 18.6 without, because there was nothing to hide yet.
+   * The same split `material-image` draws between `data-material-shell` and
+   * `data-material`.
+   */
+  const [drew, setDrew] = useState(false)
+  const handleFirstFrame = useCallback(() => setDrew(true), [])
 
   if (!canRenderWebGL || !GradientScene || !resolved) {
     return (
@@ -278,7 +292,7 @@ export function SceneShell({
     <div
       className={cn(s.shell, className)}
       data-accent-region=""
-      data-accent-live=""
+      {...(drew && { 'data-accent-live': '' })}
       aria-hidden="true"
     >
       <WebGLTunnel>
@@ -290,6 +304,7 @@ export function SceneShell({
           colorA={resolved.a}
           colorB={resolved.b}
           grain={grain}
+          onFirstFrame={handleFirstFrame}
           // Belt and braces: the canvas already declines to mount under
           // reduced motion, but a scene must never assume its host checked.
           animate={!prefersReducedMotion}

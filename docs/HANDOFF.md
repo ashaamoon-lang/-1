@@ -64,7 +64,7 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke tabel ini.
 
-Tahap terakhir yang dikerjakan: **90**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **91**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
 Diukur di laptop itu pada **19 September 2026**, di worktree `arth-design`:
@@ -193,16 +193,27 @@ masih dimuat → plat itu dilewati dengan alasan; dimaksudkan dan tidak datang
 → **gagal**. Dibuktikan dengan three.js diblokir di jaringan: gerbang lama
 melaporkan skip, gerbang baru gagal dengan pesan niat. `TAHAP-90.md` §7.
 
-**Yang ternyata salah diatribusikan, dan tetap terbuka.** Catatan ini dulu
+**Butir anggaran muat halaman: ditutup di Tahap 91.** Gerbang aksen dan
+gerbang "renders its work" menunggu event `load` — setiap gambar — padahal yang
+mereka ukur adalah wash dan kotak `<img>`. Dengan gambar ditunda 35 s, keduanya
+mati di `goto`; sesudah diperbaiki, keduanya lulus dalam 19 s. Tahap 91 juga
+menemukan bahwa `data-accent-live` dinaikkan saat komponen memilih mesh, bukan
+saat mesh menggambar, dan memperbaikinya di sumbernya.
+
+**Yang ternyata salah diatribusikan.** Catatan ini dulu
 menggolongkan flaky `visual-substance:179` `/en/practice/consulting at mobile`
 sebagai kanvas yang terlambat. Diukur di Tahap 90: halaman praktik **tidak
 memasang WebGL**, dan region aksennya ada di HTML server. Yang habis adalah
 anggaran 30 s uji itu sendiri, di `page.goto` — yang menunggu event `load`,
 artinya semua gambar, di profil ponsel dengan DPR 2.6. `visual-substance:771`
 "/en renders its work" mobile gagal dengan bentuk yang sama lewat
-`networkidle`. Butir terbuka: **anggaran muat halaman di profil ponsel**, bukan
-kanvas. Belum diperbaiki — mengubah apa yang ditunggu gerbang-gerbang itu
-adalah tahapnya sendiri.
+`networkidle`. Itu **anggaran muat halaman**, bukan kanvas — dan
+Tahap 91 memperbaikinya, satu tahap sesudah catatan ini dikoreksi.
+
+**Sisa yang masih terbuka:** "added no modulation: 0.9" di
+`/en/practice/consulting` **desktop**, dua kali, keduanya pada server dingin —
+sekali dengan gerbang lama, jadi ia bukan akibat perubahan itu. Tidak pernah
+berulang saat diisolasi. Belum diatribusikan (`TAHAP-91.md` §7.4).
 
 ## 6. Kredensial
 
