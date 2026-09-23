@@ -19,25 +19,47 @@ import '@/lib/styles/css/index.css'
  * It reads `APP_BASE_URL` rather than restating a URL, so the day
  * `NEXT_PUBLIC_BASE_URL` is set both roots move together.
  *
- * ## What this did NOT fix, said plainly
+ * ## Why it alone did not silence the warning — Tahap 92
  *
  * It was added while chasing Next's `metadataBase ... is not set` warning,
- * which a production build emits **four times**. It did not silence it, and
- * two attempts is where this repository's working rules stop guessing.
+ * which a production build emits **four times**. It did not silence it, and a
+ * third attempt — the same export on `cms/[[...tool]]/page.tsx` — did not
+ * either. Three failures is well past where this repository's rules stop
+ * guessing, so the artifacts were read instead of the docs.
  *
- * Measured instead. In the prerendered HTML, `[locale]` pages resolve their
- * OG image against `https://localhost:3000` — `APP_BASE_URL`'s fallback, so
- * that tree is reading a base — while `/cms` resolves against
- * `http://localhost:3000`, which is Next's own default when it has none. The
- * image itself is `app/opengraph-image.png`, file-based metadata sitting
- * **above both root layouts**, and adding `metadataBase` here and again on
- * `cms/layout.tsx` moved neither the count nor that URL.
+ * The URL says which mechanism produced it. Every route under `[locale]`
+ * carries `https://localhost:3000/opengraph-image.png` — `APP_BASE_URL`'s
+ * fallback, no query — because `lib/utils/metadata.ts` gives each page an
+ * `openGraph.images` of its own. The two routes in **this** tree carry
+ * `http://localhost:3000/opengraph-image.png?opengraph-image.<hash>.png`, and
+ * that query is the signature of file-based metadata: `app/opengraph-image.png`,
+ * attached to the `app/` segment, which is **above every layout that can set a
+ * base**. No `metadataBase` written below it can reach it, which is why three
+ * attempts to write one lower changed nothing.
  *
- * So the warning is understood but open, and its blast radius is small: the
- * two routes affected are `/cms`, which is `robots: noindex`, and the bare
- * root, which redirects. Every indexed page already resolves against
- * `APP_BASE_URL`. The setting that actually matters is
- * `NEXT_PUBLIC_BASE_URL`, still unset — `docs/DEPLOYMENT.md` §2.1 owns it.
+ * Measured, the affected routes are `/cms` (`robots: noindex`) and
+ * `_not-found`. An earlier draft of this note named the second one as the bare
+ * root, which redirects; that was wrong, and this is the correction.
+ *
+ * ## What was actually changed
+ *
+ * Declaring `openGraph.images` empty here removed the tags but **not** the
+ * warning: measured, `/cms` served zero `og:image` and zero `twitter:image`
+ * and still logged it once per render, because Next resolves the inherited
+ * file's URL before a deeper config discards it. So the file moved instead
+ * — `app/opengraph-image.png` → `public/opengraph-image.png`. Same bytes,
+ * same URL, and `next.config.ts` caches it by **path**, so its
+ * `Cache-Control` is untouched; it is simply no longer metadata that a tree
+ * inherits. `lib/utils/metadata.ts` names it explicitly for every indexed
+ * page, which is how those pages already resolved it — measured, not one
+ * `[locale]` route carried the file convention's `?opengraph-image.<hash>`
+ * query.
+ *
+ * The division stated above therefore holds for the first time: this tree has
+ * no title, no description, no OG image and no JSON-LD.
+ *
+ * `NEXT_PUBLIC_BASE_URL` remains the setting that actually matters, and
+ * remains unset — `docs/DEPLOYMENT.md` §2.1 owns it.
  */
 export const metadata: Metadata = {
   metadataBase: new URL(APP_BASE_URL),

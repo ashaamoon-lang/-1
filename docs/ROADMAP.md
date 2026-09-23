@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 91**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 92**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,39 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 92 — Tiga peringatan build, dan hanya satu yang bisa saya tutup ✅
+
+Spec: `docs/stages/TAHAP-92.md`. Diminta pemilik repo setelah membaca keluaran
+`bun run build`: _"saya melihat ada build yang tidak berhasil"_. Build-nya
+berhasil — `EXIT=0`, nol baris galat, 73/73 halaman — yang terbaca sebagai
+"tidak selesai" adalah tiga kelas peringatan.
+
+**`metadataBase`: nol, sesudah tiga percobaan gagal.** Dua tahap sebelumnya
+menulis `metadataBase` di layout; tahap ini menulisnya di halaman `/cms`. Ketiganya
+gagal, karena gambarnya `app/opengraph-image.png` — metadata berbasis berkas
+yang menempel pada segmen `app/`, **di atas setiap layout yang bisa menyetel
+basis**. Artefaknya yang akhirnya menjawab: query `?opengraph-image.<hash>` di
+HTML `/cms` dan `_not-found` adalah tanda tangan konvensi berkas, dan tidak
+satu pun rute `[locale]` membawanya. Percobaan keempat (`images: []`) menghapus
+tag-nya tetapi bukan peringatannya — Next me-resolve URL itu sebelum config
+yang lebih dalam membuangnya. Berkasnya yang pindah ke `public/`: bita sama,
+URL sama, header cache sama (`next.config.ts` mencocokkan berdasarkan path).
+**0 di build, 0 di runtime**, dan 30 rute terindeks tidak bergeser satu pun.
+
+**`localStorage`: diperbaiki di tempat yang salah, dan itu dikatakan.** Stub
+server-aman di `lib/dev/orchestra.ts` benar pada haknya sendiri, tetapi
+`--trace-warnings` menunjuk paket `debug` lewat `@portabletext/editor`. Node
+menyala sekali per proses — tujuh peringatan, tujuh pid — jadi memperbaiki
+modul kita tidak mungkin menurunkan hitungannya. **Tidak diklaim selesai.**
+
+**`[env]`: sengaja dibiarkan.** Ia satu-satunya yang menyebut domain yang belum
+diset sebelum deploy (JEDA 2).
+
+check **597 lulus, 0 gagal** · build `EXIT=0` · response-headers +
+canonical-sweep **10 lulus** · 14 permukaan diprobe, semuanya 200.
 
 ---
 
