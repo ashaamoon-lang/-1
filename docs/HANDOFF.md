@@ -234,11 +234,25 @@ lagi mati di `page.goto`, melainkan kehabisan anggaran sebelum sampai ke
 asersinya, lalu asersi 5 detik berikutnya yang tercetak sebagai sebab
 (`/en/practice/consulting declares no accent region`).
 
-**Sebabnya akhirnya terukur di Tahap 94, dan ia bukan soal tenggat.** Varian
-"at desktop" di dalam proyek `mobile` memakan 46 detik karena proyek itu
-ber-`deviceScaleFactor: 3` sementara ujinya menyetel viewport 1280×720 —
-screenshot 3840×2160, 8,3 megapiksel melawan 0,9 di proyek desktop, dua kali
-per uji. Perbaikannya keputusan cakupan: `docs/stages/TAHAP-95.md`.
+**Run bersih pertama sesudah empat run flaky: `f45d6d3`, 722 lulus / 14
+dilewati / nol flaky.** Uji yang dulu flaky lulus di 22,5 detik — di bawah
+anggaran 90 detik yang Tahap 94 turunkan dari kerjanya, bukan di bawah default
+30 detik yang nyaris sama besar dengan biayanya. Itu cerita yang cocok dengan
+kedua run: uji berbiaya 22–32 detik dengan anggaran 30 detik adalah flaky
+menurut definisi. **Satu run bersih bukan penutupan**; butir ini tetap terbuka
+sampai beberapa run berturut-turut bersih.
+
+**Sebuah tahap ditarik sebelum ada kodenya, dan itu disengaja.**
+`docs/stages/TAHAP-95.md` hendak melewatkan varian selebar desktop di proyek
+`mobile` dengan alasan biaya piksel. CI menggugurkannya: varian yang gagal
+justru yang **paling murah** di proyek itu (0,99 MP, 22–32 detik) sementara
+varian 9,22 MP memakan 8,5–12,2 detik. Laptop ini memberi urutan terbalik.
+Spec-nya ditinggalkan utuh dengan pengukuran yang membatalkannya.
+
+**Pertanyaan terbuka yang tersisa, dan ia performa bukan flaky:** kenapa
+`/en/practice/consulting` pada 390 px di proyek `mobile` memakan 22–32 detik
+di CI sementara `/en` pada viewport dan proyek yang sama memakan 5,4 detik?
+Tidak bisa dijawab dari laptop ini — di sini urutannya terbalik.
 
 Tahap 93 memperbaiki satu aritmetika yang **pasti** salah di jalur itu —
 `waitForEntrance` boleh menunggu 30 detik di dalam anggaran 30 detik, terukur

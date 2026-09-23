@@ -2102,7 +2102,18 @@ terukur), di dalam anggaran uji 90 s (±19× kerja terukur 4,7 s). Terbukti:
 sebuah screenshot yang ditenggat gagal dalam 7 ms dengan
 `TimeoutError: page.screenshot`, menyebut dirinya sendiri.
 
-**Dan itu membuka sebab biayanya.** Varian "at desktop" **di dalam** proyek
+**CI sesudahnya: `f45d6d3` — 722 lulus / 14 dilewati / nol flaky**, run
+bersih pertama sesudah empat run flaky. Uji yang dulu flaky lulus di 22,5
+detik, di bawah anggaran 90 detik. Satu run bersih bukan penutupan, dan itu
+tidak diklaim.
+
+**Dan Tahap 95 ditarik sebelum ada kodenya.** Ia hendak melewatkan varian
+selebar desktop di proyek `mobile` dengan alasan biaya piksel; CI
+menggugurkannya — varian yang gagal justru yang paling murah di proyek itu
+(0,99 MP, 22–32 detik) sementara varian 9,22 MP memakan 8,5–12,2 detik.
+Spec-nya ditinggalkan utuh beserta pengukuran yang membatalkannya.
+
+**Yang membuka sebab biayanya.** Varian "at desktop" **di dalam** proyek
 `mobile` memakan 46 detik: proyek itu ber-`deviceScaleFactor: 3`, ujinya
 menyetel viewport 1280×720, jadi tiap screenshot 3840×2160 — 8,3 megapiksel
 melawan 0,9. Kombinasi yang tidak dimiliki perangkat mana pun, dan duplikat
