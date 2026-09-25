@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 98**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 99**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,42 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 99 — Konten yang dilewati pembaca, lalu tidak pernah muncul ✅
+
+Spec: `docs/stages/TAHAP-99.md`. **Cacat produk pertama yang ditemukan dengan
+mengikuti bukti yang mekanisme Tahap 98 selamatkan**, pada run pertamanya.
+
+CI `e63b852` mengunggah artefak untuk run yang flaky — sesuatu yang sebelum
+Tahap 98 dibuang — dan isinya memuat kalimat yang selama ini hilang:
+`/en/work left content at opacity 0`, dengan `P.caption` dan intro halaman
+disebut namanya. Uji yang sama merah di laptop ini pada saat yang sama.
+
+Satu pembacaan memisahkan dua sebab: wadah keduanya masih
+`data-reveal="hidden"`, nol animasi, penundaan 0 dan 0,07 detik terhadap
+durasi 0,4 detik. Jadi bukan transisi yang belum selesai — **reveal-nya tidak
+pernah diminta**. Dua dari tiga run.
+
+Sebabnya: callback pertama `IntersectionObserver` bersifat asinkron. Blok yang
+ada di layar saat mount bergantung padanya tiba sebelum pembaca bergerak, dan
+di thread utama yang sibuk ia tidak. Saat callback itu akhirnya jalan, bloknya
+sudah **di atas** viewport — `isIntersecting` salah, dan jaring `unreachable`
+yang sudah ada menanyakan tepi **bawah**, bukan atas. Tidak ada lagi yang
+membersihkan `opacity: 0`.
+
+Yang terkirim satu predikat, disusun dari `entry.rootBounds` milik observer itu
+sendiri: blok yang seluruhnya sudah dilewati **dimunculkan**. Menyembunyikan
+apa yang sudah terlewat tidak membeli apa pun — entrance-nya tidak mungkin
+terjadi lagi, dan `CLAUDE.md` #5 menuntut konten berakhir terlihat.
+
+Merah 2/3 → hijau 3/3; `motion.e2e.ts` dijalankan tiga kali: **96 lulus**.
+build `EXIT=0`.
+
+Dan rantainya layak dicatat: Tahap 94 membuat uji lambat melapor alih-alih
+mati, Tahap 98 membuat buktinya selamat, Tahap 99 membacanya. Tidak satu pun
+dimulai dengan mencari cacat ini.
 
 ---
 

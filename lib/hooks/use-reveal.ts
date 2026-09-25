@@ -167,6 +167,36 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
       return entry.boundingClientRect.top - maxScroll >= root.bottom
     }
 
+    /*
+     * The other half of that net: content the reader has already gone past.
+     *
+     * An observer's first callback is asynchronous. A block that is on screen
+     * at mount depends on it arriving before the reader moves — and on a busy
+     * main thread it does not. The entry then reports `isIntersecting: false`
+     * because the block is now **above** the root, `unreachable` says no
+     * because that asks about the edge below, and nothing else ever clears
+     * `opacity: 0`. `once` never fires, so the observer stays, and only
+     * scrolling back up would bring the content in.
+     *
+     * Measured on `/en/work` against a production build, replicating the
+     * traversal `e2e/motion.e2e.ts` uses: two of three runs left the
+     * catalogue's eyebrow and the page's intro at `opacity: 0` with their
+     * container still `data-reveal="hidden"`, zero animations, a
+     * `transition-delay` of 0s and 0.07s against a 0.4s duration — so not a
+     * transition that had yet to finish, but a reveal that was never asked
+     * for. The same pair is the flake CI reported on `e63b852`.
+     *
+     * Hiding what the reader has already scrolled past buys nothing: the
+     * entrance it was waiting for cannot happen any more. So it is shown,
+     * for the same reason `unreachable` shows what can never arrive —
+     * `CLAUDE.md` #5, content ends fully visible or it is a defect.
+     */
+    const passed = (entry: IntersectionObserverEntry) => {
+      const root = entry.rootBounds
+      if (!root) return false
+      return entry.boundingClientRect.bottom <= root.top
+    }
+
     try {
       observer = new IntersectionObserver(
         (entries) => {
@@ -184,7 +214,7 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
             const target = perItem ? (entry.target as HTMLElement) : element
             const key = perItem ? 'revealItem' : 'reveal'
 
-            if (entry.isIntersecting || unreachable(entry)) {
+            if (entry.isIntersecting || unreachable(entry) || passed(entry)) {
               target.dataset[key] = 'visible'
               if (once) {
                 if (perItem) observer.unobserve(entry.target)
