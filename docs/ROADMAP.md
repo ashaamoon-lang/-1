@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 96**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 97**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,39 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 97 — Dokumen serah-terima yang tidak bisa berbohong lagi ✅
+
+Spec: `docs/stages/TAHAP-97.md`. Diminta pemilik repo, yang melanjutkan
+pekerjaan ini lewat terminal Claude Code: dokumen yang pertama dibaca siapa pun
+yang melanjutkan adalah `HANDOFF.md`, dan **lima angka di dalamnya salah**.
+
+`bun run check` disebut 565 lalu 579 terhadap 597 yang sebenarnya; `test:e2e`
+disebut 713 lulus / 2 flaky / 15 dilewati terhadap run CI yang melaporkan
+722 / 0 / 14; dan §4 masih berjudul _"Yang berikutnya: Tahap 79"_ — tujuh
+belas tahap tertinggal — dengan tabel momen salinan tangan yang menyebut 12 di
+saat papan skor ter-generate menyebut 13.
+
+**Dan dokumen itu sudah memuat aturan yang mencegahnya**, hanya saja
+diterapkan pada satu jenis fakta: _"Fakta yang tidak bisa benar saat ditulis
+tidak ditulis; yang ditulis adalah perintah yang menjawabnya."_ Ia ditulis
+untuk hash commit. Tally uji punya bentuk yang persis sama.
+
+Jadi §1 dan §2 berhenti memuat angka dan memuat perintahnya;
+§4 menunjuk ke tiga sumber yang menjaga dirinya sendiri (`ROADMAP.md`,
+papan skor `DIREKSI.md` §3.2b, dan §5); dan
+`lib/scripts/stage-position.test.ts` — yang memang sudah membaca `HANDOFF.md`
+untuk nomor tahap — kini gagal kalau sebuah tally dipaku ke §1 atau §2.
+Tally yang menyebut run atau tanggalnya tetap boleh di §5, dan itulah yang
+membuatnya tetap benar.
+
+Aturan itu gagal pada dokumennya sendiri di percobaan pertama: ia membaca
+kalimat yang memperkenalkannya, _"§1 dan §2 gagal kalau..."_, sebagai tally
+"2 gagal". Kasus itu kini jadi uji.
+
+stage-position **16 lulus, 0 gagal** (dari 12) · lint bersih.
 
 ---
 

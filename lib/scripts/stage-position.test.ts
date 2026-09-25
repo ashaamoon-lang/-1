@@ -70,6 +70,43 @@ export function highestRoadmapEntry(markdown: string): number {
   return numbers.length === 0 ? 0 : Math.max(...numbers)
 }
 
+/**
+ * The body of a numbered `## N. ...` section, up to the next one.
+ *
+ * Returns `''` when the section is gone, which the caller must treat as a
+ * failure rather than as an empty pass — a renamed heading would otherwise
+ * silence every check below it.
+ */
+export function numberedSection(markdown: string, number: number): string {
+  const heading = new RegExp(`^## ${number}\\..*$`, 'm').exec(markdown)
+  if (heading === null) return ''
+  const rest = markdown.slice(heading.index + heading[0].length)
+  const next = /^## \d+\./m.exec(rest)
+  return next === null ? rest : rest.slice(0, next.index)
+}
+
+/**
+ * Gate tallies pinned into prose — a bare number claiming a test result.
+ *
+ * `565 lulus`, `**579 lulus**`, `2 flaky`. What makes these different from
+ * the tallies `HANDOFF.md` §5 keeps is that those name the run or the date
+ * they came from, so they stay true; these name nothing and are wrong from
+ * the next commit onward.
+ *
+ * The lookbehind is not decoration. Without it this read "§2 gagal kalau…" —
+ * a sentence describing this very rule — as a tally of two failures, and the
+ * first thing the rule did was fail its own document. A section reference is
+ * a number followed by a verb, and so is a tally; only what precedes it tells
+ * them apart.
+ */
+export function pinnedTallies(section: string): string[] {
+  return [
+    ...section.matchAll(
+      /(?<![§\w])\*{0,2}\d[\d.,]*\*{0,2} (lulus|gagal|dilewati|flaky)/g
+    ),
+  ].map((match) => match[0])
+}
+
 describe('the stage number agrees with itself', () => {
   const filenames = readdirSync(STAGES_DIR)
   const highest = highestStageSpec(filenames)
@@ -165,5 +202,83 @@ describe('the parser itself', () => {
 
   it('returns 0 for a document with no entries at all', () => {
     expect(highestRoadmapEntry('# ROADMAP\n\nno entries yet')).toBe(0)
+  })
+})
+
+describe('HANDOFF.md states no gate tally it cannot keep true', () => {
+  /*
+   * Tahap 97.
+   *
+   * `HANDOFF.md` §1 already carries the rule that would have prevented this:
+   * *"Fakta yang tidak bisa benar saat ditulis tidak ditulis; yang ditulis
+   * adalah perintah yang menjawabnya."* It was applied to commit hashes and
+   * CI run numbers, and not to gate tallies — which have exactly the same
+   * shape. Four of them drifted: `check` said 565 and then 579 against an
+   * actual 597, and `test:e2e` said 713 / 2 flaky / 15 skipped against a CI
+   * run reporting 722 / 0 / 14.
+   *
+   * Scoped to §1 and §2, the two sections someone reads to know what to
+   * expect. §5 keeps its numbers on purpose: every one of them names the run
+   * or the date it came from, which is what makes it still true.
+   */
+  const handoff = readFileSync(join(ROOT, 'docs', 'HANDOFF.md'), 'utf8')
+
+  for (const [number, title] of [
+    [1, 'Posisi'],
+    [2, 'Menyalakannya kembali'],
+  ] as const) {
+    it(`§${number} (${title}) pins no tally`, () => {
+      const section = numberedSection(handoff, number)
+
+      // Anti-vacuum: a renamed heading must fail loudly, not pass emptily.
+      expect(
+        section.length,
+        `HANDOFF.md has no §${number} section any more — this check read nothing`
+      ).toBeGreaterThan(0)
+
+      expect(
+        pinnedTallies(section),
+        `HANDOFF.md §${number} pins a gate tally. It is true the day it is ` +
+          'written and wrong from the next commit: write the command that ' +
+          'answers it, as the commit-hash block in §1 already does. A tally ' +
+          'that names its run or date belongs in §5.'
+      ).toEqual([])
+    })
+  }
+
+  it('finds tallies when they are there, so the pattern cannot rot silently', () => {
+    expect(pinnedTallies('`bun run check` **565 lulus**, 55 berkas')).toEqual([
+      '**565 lulus',
+    ])
+    expect(pinnedTallies('713 lulus / 0 gagal, 2 flaky, 15 dilewati')).toEqual([
+      '713 lulus',
+      '0 gagal',
+      '2 flaky',
+      '15 dilewati',
+    ])
+    expect(pinnedTallies('jalankan `bun run check` dan bandingkan')).toEqual([])
+  })
+
+  it('does not read a section reference as a tally', () => {
+    // Measured, not hypothetical: this exact sentence was the rule's first
+    // false positive, in the paragraph that introduces the rule.
+    expect(pinnedTallies('§1 dan §2 gagal kalau sebuah tally dipaku')).toEqual(
+      []
+    )
+    expect(pinnedTallies('lihat §5 dilewati')).toEqual([])
+  })
+
+  it('reads a section without swallowing the next one', () => {
+    const markdown = `## 1. A
+
+first
+
+## 2. B
+
+second
+`
+    expect(numberedSection(markdown, 1)).toContain('first')
+    expect(numberedSection(markdown, 1)).not.toContain('second')
+    expect(numberedSection(markdown, 9)).toBe('')
   })
 })

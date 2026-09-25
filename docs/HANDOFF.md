@@ -44,39 +44,38 @@ gh run list --branch claude/arth-design --limit 5
 > Nomor tahap di bawah kini ikut dijaga begitu, oleh
 > `lib/scripts/stage-position.test.ts`.
 
-Gerbang, sebagaimana terukur di CI (Linux, 4 vCPU / 16 GB):
+**Angka gerbang juga tidak ditulis di sini, dan alasannya sama.** Blok di atas
+menuliskan aturannya untuk hash commit; ia berlaku persis sama untuk tally uji,
+yang benar pada hari ditulis dan salah pada commit berikutnya. Tahap 97
+menemukan **lima** angka di dokumen ini yang sudah tidak benar — dua di tabel
+gerbang yang dulu berdiri di sini, satu di §2, dan dua di §4 — lalu
+menggantinya dengan perintah, bukan dengan angka baru.
 
-| gerbang                   | hasil                                         |
-| ------------------------- | --------------------------------------------- |
-| `bun run check`           | **565 lulus / 0 gagal**, 55 berkas            |
-| `bun run test:e2e`        | **713 lulus / 0 gagal**, 2 flaky, 15 dilewati |
-| `bun run build`           | hijau                                         |
-| `bun run build-storybook` | hijau                                         |
+`lib/scripts/stage-position.test.ts` kini menegakkannya: §1 dan §2 gagal kalau
+sebuah tally dipaku ke dalamnya. Tally yang **menyebut run atau tanggalnya**
+tetap boleh, dan tempatnya §5 — di sana ia tetap benar selamanya.
 
-`check` naik 554 → 565 karena sebelas uji baru, bukan karena uji lama berubah.
-`test:e2e` bergerak 716/0/14 → 713/2/15 pada **total yang sama, 730** — tiga uji
-pindah kolom, semuanya gerbang kanvas WebGL, dan semuanya balapan yang §5.1
-uraikan. Nol kegagalan di keduanya.
+```bash
+bun run check              # unit, lint, tipe, manifest, aset
+bun run build              # produksi
+bun run build-storybook    # SEBELUM suite e2e, bukan sesudah
+bunx playwright test       # terhadap server produksi yang sudah menyala
+gh run list --branch claude/arth-design --limit 5   # angka CI yang mengikat
+```
+
+Angka per tahap ada di entri `ROADMAP.md` masing-masing, **bersama tahapnya**,
+yang membuatnya tetap terbaca sebagai sejarah alih-alih sebagai janji.
 
 **Angka gerbang milik mesin yang menjalankannya.** Diukur di laptop Windows
 4-core / 7,79 GB, suite e2e memakan **41,4 menit** melawan **18,5 menit** di
 CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
-log CI run yang sama — bukan ke tabel ini.
+log CI run yang sama — bukan ke ingatan, dan bukan ke dokumen ini.
 
-Tahap terakhir yang dikerjakan: **96**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **97**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
-Diukur di laptop itu pada **19 September 2026**, di worktree `arth-design`:
-`check` **579 lulus / 0 gagal**, e2e **714 lulus / 7 gagal / 14 dilewati**
-dalam 29,4 menit. Ketujuhnya dibongkar di `docs/stages/TAHAP-81.md` §7.2 —
-empat lulus di isolasi, dua adalah pasangan yang §5.1 di bawah sudah namai,
-satu gagal 1 dari 2. **Nol berasal dari tahap itu**, dan CI membuktikannya:
-run 35439317243 melaporkan **722 lulus / 1 flaky / 14 dilewati** dari 737 tes
-dalam 22,4 menit. Ketujuh merah lokal lulus di sana, dilewatinya identik, dan
-satu-satunya flaky adalah utang §5.1 di bawah.
-
-Suite itu dijalankan **tanpa `CI=1`**, terhadap server produksi yang dibangun
+Suite e2e lokal dijalankan **tanpa `CI=1`**, terhadap server produksi yang dibangun
 dan dinyalakan lebih dulu. Sebabnya diukur: `CI=1` memicu `bun run build`
 kedua di dalam `webServer`, dan build memuncak 3,35 GB RSS di mesin 7,79 GB —
 ia melewati timeout 300 detik dan suite mati sebelum tes pertama. Satu-satunya
@@ -94,9 +93,20 @@ boleh masuk** — ambil dari dashboard Sanity.
 git checkout claude/arth-design
 bun install
 # buat .env.local — lihat MENJALANKAN-LOKAL.md §4
-bun run check        # harus 579 lulus
+bun run check
 bun dev
 ```
+
+**Kalau `bun run check` gagal pada `test:oxlint-plugin` di mesin dengan RAM
+kecil, itu bukan repo ini.** RuleTester plugin JS oxlint meminta satu
+`ArrayBuffer` sebesar `2 147 483 632 + 4 294 967 296 = 6 442 450 928` byte
+(≈ 6,0 GiB); di laptop 8 GB ia gagal kira-kira separuh waktu dengan
+`RangeError: Array buffer allocation failed`, dan **nama rule yang disebut
+berbeda hampir setiap kali** — rule yang rusak tidak berpindah nama.
+Jalankan tahapnya satu per satu di sana (`bun test`, `bun run lint`,
+`bun run lint:types`, `bun run typecheck`, `bun run manifest:check`,
+`bun run check:assets`, `bun run test:oxlint-plugin`) dan percayai CI untuk
+tarikan penuhnya. `docs/stages/TAHAP-93.md` §7.5 memuat pengukurannya.
 
 ## 3. Cara kerja yang berlaku
 
@@ -122,52 +132,28 @@ palsu, dan satu klaim "duplikasi" yang nyaris menghapus cakupan nyata.
 adalah gerbang yang belum diketahui bisa gagal. Kalau ia hijau di hari pertama,
 **katakan begitu** alih-alih membingkainya sebagai cacat yang ditemukan.
 
-## 4. Yang berikutnya: Tahap 79, sudah diukur
+## 4. Yang berikutnya
 
-Diukur di sesi terakhir, **belum pernah ditulis jadi spec**. Ini datanya supaya
-tidak perlu diukur ulang.
+**Bagian ini tidak lagi memuat rencana yang disalin tangan.** Sampai Tahap 97
+ia berjudul _"Yang berikutnya: Tahap 79, sudah diukur"_ — tujuh belas tahap
+tertinggal — dan memuat tabel anggaran momen yang menyebut **12** momen
+berbeda, sementara papan skor yang men-generate angka itu menyebut **13**.
+Seorang pembaca yang mempercayainya akan mengerjakan ulang pekerjaan yang sudah
+ada di repo.
 
-`DIREKSI.md` §2.2 menaikkan plafon momen berkoreografi 3 → 12 di rute merek pada
-Tahap 60. Delapan belas tahap kemudian, kapasitas itu sebagian besar **belum
-dibelanjakan**:
+Yang menggantikannya adalah tiga sumber yang **menjaga dirinya sendiri**:
 
-```
-rute                                  terpakai  plafon  sisa
-/en                                        6       12      6
-/en/work                                   7       12      5
-/en/work/arus-balik                        1        6      5
-/en/practice/consulting                    5       12      7
-/en/studio                                 5       12      7
-/en/journal                                4        6      2
-/en/journal/scope-is-the-deliverable       1        3      2
-TOTAL                                     29       63     34   (46%)
-```
+| pertanyaan                                                | sumber                                | dijaga oleh                               |
+| --------------------------------------------------------- | ------------------------------------- | ----------------------------------------- |
+| Tahap apa yang sudah terkirim, dan apa isinya             | entri per tahap di `ROADMAP.md`       | `stage-position.test.ts`                  |
+| Berapa momen, bidang kedalaman, dan pin yang ada sekarang | blok papan skor di `DIREKSI.md` §3.2b | `design-scoreboard.test.ts`               |
+| Utang mana yang masih terbuka, dan sejak kapan            | §5 di bawah                           | dibaca manusia, ditulis dengan tanggalnya |
 
-**Angka mentah itu menyanjung.** Ia menghitung **elemen**, bukan momen —
-`work-transport` muncul 4× di `/en` dan 6× di `/work` karena menandai tiap
-kartu. Dihitung sebagai **nama momen yang berbeda**:
-
-```
-/en 3   /work 2   /work/<slug> 1   /practice 4   /studio 3   /journal 2   /journal/<slug> 1
-```
-
-**Dua belas momen berbeda di seluruh situs, terhadap plafon berjumlah 63.**
-`/work/<slug>` — halaman yang dipakai agency untuk menunjukkan karyanya —
-membawa **satu**.
-
-### 4.1 Jebakan yang harus dihindari di Tahap 79
-
-`DIREKSI.md` §2.1 sudah memperingatkan bentuk kesalahannya: _"hero lebih tinggi
-dengan isi yang sama bukan lebih memukau, melainkan lebih kosong"_. Logika yang
-sama berlaku untuk momen — **menambah momen demi membelanjakan anggaran adalah
-alasan yang salah.**
-
-§2.3 menyebut idiom yang benar: **informasi yang berubah bentuk** — kapabilitas
-sebagai sekuens ter-pin alih-alih daftar, angka yang membangun dirinya, prose
-yang terungkap mengikuti gulir. Bukan "lebih banyak efek".
-
-Kandidat paling kuat: `/work/<slug>` — belanja terendah, bobot komersial
-tertinggi, dan mesin pinned-run dari Tahap 64 sudah ada di galerinya.
+Urutan kerja satu tahap tetap seperti §3: spec lebih dulu (`ROADMAP.md`
+§3.0), lalu kode, lalu semua gerbang, lalu commit dan push, lalu **baca CI dan
+tunggu selesai sebelum push berikutnya** — `ci.yml` memakai
+`cancel-in-progress`, jadi push kedua membatalkan run yang pertama sebelum
+suite e2e-nya selesai.
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
