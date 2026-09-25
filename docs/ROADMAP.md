@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 97**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 98**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,46 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 98 — Bukti yang dibuang persis pada kasus yang membutuhkannya ✅
+
+Spec: `docs/stages/TAHAP-98.md`.
+
+CI `bcf78b0` mengulang flaky aksen `/en/practice/consulting` untuk kesekian
+kalinya, **tetapi untuk pertama kalinya ia mengatakan sesuatu**: bukan
+"timeout", melainkan `the accent added no modulation: its own contribution
+spans 1.9` terhadap lantai 3, pada uji yang berjalan 52,2 detik sampai tuntas.
+Itu Tahap 94 bekerja — anggaran yang diturunkan dari kerjanya membuat uji
+lambat melapor alih-alih mati.
+
+Diukur di laptop ini, angka itu tidak pernah goyah: `range 8.00` di setiap
+penundaan, pada muat segar, dan di setiap posisi gulir yang masih menutup
+pita. Tiga mekanisme tereliminasi **dengan angkanya**, dan ketiganya gugur
+karena menghasilkan bentuk kegagalan yang berbeda — tirai, gulir, dan
+perkembangan-seiring-waktu semuanya meruntuhkan **coverage**, bukan **range**.
+Dan "fallback rata" mustahil: region itu hanya gradien di atas latar
+transparan, jadi meratakannya menghapus seluruh kontribusinya.
+
+**Lalu sebab sebenarnya muncul, dan ia bukan di produk.**
+`.github/workflows/ci.yml` mengunggah artefak Playwright `if: failure()`. Uji
+flaky **lulus saat retry**, jadi job-nya sukses dan artefaknya dibuang —
+persis pada satu kasus yang membutuhkannya. Tujuh tahap mencari sebab sebuah
+flaky sementara buktinya dihasilkan setiap kali dan dihapus setiap kali.
+
+Ditambah satu lapis lagi: lampiran ber-`body` tidak pernah menyentuh disk di
+bawah reporter `list`, yang konfigurasi repo ini pakai — diukur,
+`test-results/` kosong sesudahnya.
+
+Jadi gerbang aksen kini menulis bukti ke `outputPath` sebagai berkas (kedua
+bingkai, plus JSON berisi `lit`/`bare`/`added` dan bagaimana region itu
+tercat), dengan syarat yang **mencerminkan asersinya persis** — kalibrasi
+pertama memakai "dua kali lantai" dan menulis pada run sehat `/en` yang
+mengukur 4,93. Dan CI menyimpan artefaknya untuk run flaky, bukan hanya gagal.
+
+**Flaky-nya tidak diklaim tertutup.** Yang diperbaiki adalah kemampuan
+mendiagnosisnya.
 
 ---
 

@@ -1,3 +1,5 @@
+import { writeFile } from 'node:fs/promises'
+
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import sharp from 'sharp'
@@ -209,7 +211,7 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
     [390, 844, 'mobile'],
   ] as const) {
     for (const route of ACCENT_ROUTES) {
-      test(`${route} at ${label}`, async ({ page }) => {
+      test(`${route} at ${label}`, async ({ page }, testInfo) => {
         /*
          * An explicit budget, derived from this gate's own work — Tahap 94.
          *
@@ -352,6 +354,90 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
          * copy lands.
          */
         const added = await contribution(withAccent, withoutAccent)
+
+        /*
+         * The evidence a CI failure needs, captured while the frames still
+         * exist — Tahap 98.
+         *
+         * `HANDOFF.md` §5 has carried "added no modulation" as an
+         * unattributed flake since Tahap 91. It finally printed a readable
+         * number in CI — `range 1.9` against a floor of 3, with coverage
+         * above 50% — and that combination is one this project's laptop
+         * could not reproduce in any state tried: the accent measures 8.00
+         * here at every delay, on a fresh load, and at every scroll offset
+         * that keeps the band covered. Three mechanisms were eliminated with
+         * numbers (§`TAHAP-98.md`), and a flat fallback is impossible —
+         * the region is only a gradient, so flattening it drops coverage to
+         * zero rather than range to 1.9.
+         *
+         * So the next occurrence has to carry its own evidence. The condition
+         * mirrors the two assertions below exactly, so nothing is written for
+         * a run that passes and everything is written for one that does not.
+         * A first attempt at "near the floor" used twice the margin and
+         * attached on every healthy run of `/en`, which measures 4.93-5.00
+         * against a floor of 3 while `/en/practice/consulting` measures
+         * 8.0-8.9. Mirroring the assertion needs no threshold of its own.
+         */
+        if (added.range <= ACCENT_RANGE_MARGIN || added.coverage <= 0.5) {
+          const paint = await page.evaluate(() => {
+            const node = document.querySelector('[data-accent-region]')
+            if (!(node instanceof HTMLElement)) return { region: 'absent' }
+            const style = getComputedStyle(node)
+            const box = node.getBoundingClientRect()
+            const curtain = document.querySelector('[data-curtain]')
+            return {
+              backgroundImage: style.backgroundImage,
+              backgroundColor: style.backgroundColor,
+              opacity: style.opacity,
+              transform: style.transform,
+              box: {
+                top: Math.round(box.top),
+                height: Math.round(box.height),
+                width: Math.round(box.width),
+              },
+              scrollY: Math.round(scrollY),
+              devicePixelRatio,
+              curtain:
+                curtain instanceof HTMLElement
+                  ? getComputedStyle(curtain).visibility
+                  : 'absent',
+            }
+          })
+
+          /*
+           * Written to `outputPath`, then attached **by path** — not by
+           * `body`. An attachment given a body is held in memory and reaches
+           * only a reporter that serialises it; `playwright.config.ts` uses
+           * `list`, which does not. Measured: a forced capture left
+           * `test-results/<test>/` completely empty. A file written there
+           * survives, and is what CI uploads.
+           */
+          const write = async (name: string, data: Buffer | string) => {
+            const target = testInfo.outputPath(name)
+            await writeFile(target, data)
+            await testInfo.attach(name, { path: target })
+          }
+
+          await write('accent-with.png', withAccent)
+          await write('accent-without.png', withoutAccent)
+          await write(
+            'accent-reading.json',
+            JSON.stringify(
+              {
+                route,
+                label,
+                live,
+                lit,
+                bare,
+                added,
+                floor: ACCENT_RANGE_MARGIN,
+                paint,
+              },
+              null,
+              2
+            )
+          )
+        }
 
         expect(
           added.coverage,

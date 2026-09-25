@@ -257,14 +257,27 @@ jobs:
           NEXT_PUBLIC_SANITY_API_VERSION: '2025-03-01'
         run: bun run test:e2e
 
+      # Kept for a flaky run too, not only a failed one - Tahap 98.
+      #
+      # A flaky test passes on retry, so the job succeeds and `failure()` is
+      # false; the artifact was discarded in exactly the case that needed it.
+      # One flake - the accent on /en/practice/consulting - stayed
+      # unattributed from Tahap 91 to Tahap 98 for that reason, and the
+      # evidence existed every time.
+      #
+      # `!cancelled()` rather than `always()`: a cancelled run has nothing
+      # worth keeping. Playwright writes into `test-results/` only for a test
+      # that failed, retried, or attached something, so a clean run uploads
+      # nothing and `if-no-files-found: ignore` keeps that quiet.
       - name: Upload Playwright report
-        if: failure() && steps.gate.outputs.run == 'true'
+        if: ${{ !cancelled() && steps.gate.outputs.run == 'true' }}
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: |
             playwright-report/
             test-results/
+          if-no-files-found: ignore
           retention-days: 7
 
       - name: Report gate result

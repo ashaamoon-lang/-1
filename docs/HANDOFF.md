@@ -72,7 +72,7 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke ingatan, dan bukan ke dokumen ini.
 
-Tahap terakhir yang dikerjakan: **97**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **98**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
 Suite e2e lokal dijalankan **tanpa `CI=1`**, terhadap server produksi yang dibangun
@@ -195,6 +195,14 @@ artinya semua gambar, di profil ponsel dengan DPR 2.6. `visual-substance:771`
 "/en renders its work" mobile gagal dengan bentuk yang sama lewat
 `networkidle`. Itu **anggaran muat halaman**, bukan kanvas — dan
 Tahap 91 memperbaikinya, satu tahap sesudah catatan ini dikoreksi.
+
+**Dipersempit di Tahap 98, dan sebab ketidakteratribusiannya ditemukan.**
+Artefak Playwright diunggah CI `if: failure()`, sementara uji flaky **lulus
+saat retry** — jadi buktinya dihasilkan setiap kali dan dibuang setiap kali.
+Itu kini `!cancelled()`. Gerbangnya juga menulis bukti ke disk saat asersinya
+gagal. Tiga mekanisme sudah tereliminasi dengan angka (`TAHAP-98.md` §1.3),
+dan yang tersisa: gradien yang tercat penuh dengan kedua ujungnya nyaris sama.
+**Belum diatribusikan**, dan kejadian berikutnya akan membawa buktinya.
 
 **Sisa yang masih terbuka:** "added no modulation: 0.9" di
 `/en/practice/consulting` **desktop**, dua kali, keduanya pada server dingin —
