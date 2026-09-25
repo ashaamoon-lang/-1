@@ -200,10 +200,23 @@ bertahan** — yang menutup kedua cabang tanpa perlu tahu mana yang mengambilnya
 
 §2. Itu tahapnya sendiri, dengan pengukuran urutan catnya sendiri.
 
+> **DITUTUP di Tahap 96, dan jawabannya tetap "tidak".** Tahap itu mengukur
+> apa yang dibeli pemindahan ini: satu bingkai pada luminans 19,1 alih-alih
+> 27,8, pulih di bawah 100 ms, pada navigasi-kembali. Yang dibayar adalah
+> urutan cat di bawah **seluruh teks situs**, yang
+> `components/layout/theme/theme.module.css` tuliskan panjang alasannya.
+> `TAHAP-96.md` §2 memuat tabelnya dan syarat pembalikannya.
+
 ### 6.3 Nol angka performa diklaim
 
 `CLAUDE.md` #19. Pemasangan ulang membangun `WebGLRenderer` baru dan itu tidak
 gratis; biayanya tidak diukur di tahap ini.
+
+> **DITUTUP di Tahap 96.** Diukur dengan Playwright terhadap build produksi:
+> celah sampai bingkai pertama **268–358 ms**, pita yang terlihat pulih di
+> bawah 100 ms, satu elemen kanvas baru per pemasangan ulang dengan konteks
+> lama dilepas, dan **nol kanvas yang lepas dari dokumen sambil konteksnya
+> hidup** di lima siklus. Dijaga sejak itu oleh `e2e/webgl-lifecycle.e2e.ts`.
 
 ### 6.4 Dua kanvas di DOM tetap dua
 

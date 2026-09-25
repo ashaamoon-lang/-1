@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 94**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 96**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,40 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 96 — Berapa biaya pemasangan ulang kanvas ✅
+
+Spec: `docs/stages/TAHAP-96.md`. Menutup dua butir yang `TAHAP-85.md` §6
+tinggalkan terbuka dengan namanya sendiri.
+
+**§6.3, biayanya.** Diukur dengan Playwright terhadap build produksi, lewat
+navigasi klien (klik tautan lalu `goBack`) karena hanya itu yang melewati
+`cachedNavigations`. Celah sampai bingkai pertama **268–358 ms**; pita yang
+dilihat pemirsa jatuh dari **27,8 ke 19,1 selama satu bingkai** lalu pulih di
+bawah 100 ms. Bukan putih — cadangan CSS-nya yang terlihat sekejap.
+
+**§6.2, kanvas ke layout: tetap tidak.** Yang dibeli satu bingkai; yang
+dibayar urutan cat di bawah seluruh teks situs. Syarat pembalikannya ditulis.
+
+**Dan tiga instrumen, dua di antaranya salah.** Yang pertama membungkus
+`getContext` dan menggelembungkan hitungannya sendiri. Yang kedua menyelisihkan
+hitungan **elemen** dengan hitungan **peristiwa** `webglcontextlost` — bukan
+besaran yang sah, karena satu elemen bisa kehilangan dan memulihkan konteksnya
+berulang kali, dan ia melaporkan kebocoran satu di tempat yang sebenarnya nol.
+Sebelum keduanya, versi pertama gerbangnya memasang `MutationObserver` pada
+`document.documentElement`, yang belum ada saat init-script berjalan: ia
+**lulus dalam 17 detik dengan mengukur nol**, dan yang membongkarnya adalah
+kebocoran yang disuntikkan untuk membuktikan ia bisa merah.
+
+Yang dikirim: `e2e/webgl-lifecycle.e2e.ts`, yang menanyakan satu hal — adakah
+kanvas yang lepas dari dokumen sambil konteksnya masih hidup. Terukur nol di
+lima siklus; dengan cacat disuntikkan, tiga. Peramban membatasi konteks WebGL
+serentak di sekitar enam belas, dan kanvas yang gagal dibuat adalah halaman
+yang kehilangan aksennya.
+
+build `EXIT=0` · 0 baris galat · metadataBase 0 · gerbang baru hijau 25,4 s.
 
 ---
 
