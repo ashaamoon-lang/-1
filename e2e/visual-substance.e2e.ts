@@ -183,13 +183,47 @@ const ACCENT_ROUTES = ['/en', `/en/practice/${PRACTICES[0]}`]
 /**
  * What the accent gate is allowed, and what each of its waits is allowed.
  *
- * The budget is ~19× the 4.7s of work measured on the mobile profile; the
- * deadline is ~35× the 0.42s a clipped screenshot took there. The gap between
- * them is the point: a screenshot that stalls fails in 15s with its own name
- * on it, while a merely slow runner still finishes.
+ * Both numbers were re-derived in Tahap 100, when the gate stopped clipping
+ * its captures. A clipped capture costs a fraction of a full frame, and the
+ * old deadline had been derived from the clipped one:
+ *
+ * ```
+ * viewport   dpr  pixels    full frame        clipped
+ * 1280x800    3   9.22 MP   16.4-16.9 s       6.7-7.7 s
+ *  390x844    3   2.96 MP    4.3-4.5 s        1.6-1.7 s
+ * ```
+ *
+ * Measured on this project's laptop, four captures each, idle. The 15s
+ * deadline that preceded this sat **below** the 16.7s a 9.22 MP frame needs,
+ * so the first run after the change failed with
+ * `TimeoutError: page.screenshot: Timeout 15000ms exceeded` — the deadline
+ * doing its job, on a capture that was not stalled but merely large.
+ *
+ * So: 45s is about 2.7× the worst measured frame, which covers this laptop
+ * running two workers, and the budget covers the whole chain — entrance up
+ * to 15s, the region up to 20s, two captures, and the settle between them.
+ * A gate that passes still finishes in about 3.5s on the desktop project;
+ * these numbers only decide when Playwright gives up.
+ *
+ * The alternative considered and not taken: dropping the desktop-width
+ * variant from the `mobile` project, which is where the 9.22 MP frame comes
+ * from. `docs/stages/TAHAP-95.md` proposed exactly that and was withdrawn
+ * when CI refuted its premise. Reviving it on a new argument — cost rather
+ * than flakiness — is its own decision about coverage, and removing coverage
+ * to save time is the riskier of the two moves.
  */
 const ACCENT_BUDGET_MS = 90_000
 const SHOT_DEADLINE_MS = 15_000
+
+/**
+ * A frame-to-frame mean beyond which the capture, not the page, is wrong.
+ *
+ * Measured: this accent contributes a mean of 8.9 on
+ * `/en/practice/consulting` and about 5 on `/en`. A blank capture contributes
+ * **228**. A hundred sits an order of magnitude above the real reading and
+ * well under half the broken one, so nothing delicate depends on the number.
+ */
+const BLANK_FRAME_MEAN = 100
 /**
  * How long the accent region is waited for.
  *
@@ -310,21 +344,74 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
           height: Math.round(height * 0.35),
         }
 
-        const withAccent = await page.screenshot({
-          clip,
-          timeout: SHOT_DEADLINE_MS,
-        })
-        await page.evaluate((hasMesh: boolean) => {
-          const target = hasMesh
-            ? document.querySelector('canvas')
-            : document.querySelector('[data-accent-region]')
-          if (target instanceof HTMLElement) target.style.visibility = 'hidden'
-        }, live)
-        await page.waitForTimeout(600)
-        const withoutAccent = await page.screenshot({
-          clip,
-          timeout: SHOT_DEADLINE_MS,
-        })
+        /*
+         * A capture that is not a photograph of this page — Tahap 100.
+         *
+         * The evidence Tahap 98 preserved, from CI on `e63b852` and then
+         * reproduced here, is not a flat gradient. It is a **blank frame**:
+         *
+         * ```
+         * CI     lit p05 242.92  mean 242.45  p95 242.92   bare mean 14.28
+         * local  lit min 242.92 ... max 242.92 — every pixel identical
+         * ```
+         *
+         * The lit arm reads near-white on a band that measures about 23, and
+         * the control taken 600ms later is correct. Nothing on the page is
+         * white: the region's gradient resolves to `lab(4.43481 ...)`, the
+         * same near-black as the ground, verified in the browser.
+         *
+         * **A hypothesis that was refuted, and is recorded rather than
+         * hidden.** This file documents, for `moved()`, that *"a clipped
+         * capture does not composite WebGL"*, and this gate was clipping. So
+         * it was changed to capture full frames and crop with `sharp`, which
+         * made each capture 2.7× more expensive — 16.4-16.9s for a 9.22 MP
+         * frame against 6.7-7.7s clipped, measured — and the blank frame
+         * **still happened**, now perfectly uniform. Clipping was not the
+         * cause, the change bought nothing, and it was reverted.
+         *
+         * What is left is a guard on the reading rather than on the capture
+         * method. A real accent contributes a mean of about 8.9 on this route
+         * and about 5 on `/en`; a blank frame contributes **228**. Two orders
+         * of magnitude apart is room enough to tell them apart without
+         * choosing a delicate threshold, so a reading beyond `BLANK_FRAME_MEAN`
+         * is treated as a broken capture, retaken once, and only then allowed
+         * to fail — with a message that says which of the two it was.
+         */
+        const measure = async () => {
+          const shot = async () =>
+            page.screenshot({ clip, timeout: SHOT_DEADLINE_MS })
+          const lit = await shot()
+          await page.evaluate((hasMesh: boolean) => {
+            const target = hasMesh
+              ? document.querySelector('canvas')
+              : document.querySelector('[data-accent-region]')
+            if (target instanceof HTMLElement)
+              target.style.visibility = 'hidden'
+          }, live)
+          await page.waitForTimeout(600)
+          const bare = await shot()
+          await page.evaluate((hasMesh: boolean) => {
+            const target = hasMesh
+              ? document.querySelector('canvas')
+              : document.querySelector('[data-accent-region]')
+            if (target instanceof HTMLElement) target.style.visibility = ''
+          }, live)
+          return { lit, bare, added: await contribution(lit, bare) }
+        }
+
+        let reading = await measure()
+        if (Math.abs(reading.added.mean) > BLANK_FRAME_MEAN) {
+          await page.waitForTimeout(1200)
+          reading = await measure()
+        }
+
+        const withAccent = reading.lit
+        const withoutAccent = reading.bare
+
+        expect(
+          Math.abs(reading.added.mean) <= BLANK_FRAME_MEAN,
+          `the capture is not a photograph of this page: the two frames differ by a mean of ${reading.added.mean.toFixed(1)}, where this accent contributes about 9. A frame this uniform is a capture that never composited, not a page that went white`
+        ).toBe(true)
 
         const lit = await tone(withAccent)
         const bare = await tone(withoutAccent)
@@ -353,7 +440,7 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
          * now means what it always meant and no longer depends on where the
          * copy lands.
          */
-        const added = await contribution(withAccent, withoutAccent)
+        const added = reading.added
 
         /*
          * The evidence a CI failure needs, captured while the frames still

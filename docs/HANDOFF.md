@@ -72,7 +72,7 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke ingatan, dan bukan ke dokumen ini.
 
-Tahap terakhir yang dikerjakan: **99**. Entri per tahap ada di `ROADMAP.md`,
+Tahap terakhir yang dikerjakan: **100**. Entri per tahap ada di `ROADMAP.md`,
 spec-nya di `docs/stages/`.
 
 Suite e2e lokal dijalankan **tanpa `CI=1`**, terhadap server produksi yang dibangun

@@ -1,6 +1,6 @@
 # ROADMAP — Dari Fondasi ke Website Jadi
 
-> **Status:** dieksekusi sampai **Tahap 99**. Entri per tahap ada di bawah,
+> **Status:** dieksekusi sampai **Tahap 100**. Entri per tahap ada di bawah,
 > paling baru lebih dulu; tiap tahap punya spec sendiri di `docs/stages/`.
 >
 > Baris ini berbunyi "belum dieksekusi, Tahap 0 adalah pekerjaan berikutnya"
@@ -2080,6 +2080,46 @@ lulus di plafon barunya · `webgl-budget` reduced motion nol mesin, nol kanvas.
 
 **Angka 1909 KB itu keputusan Anda untuk dibalik kalau terlalu mahal** — ia
 ada di gerbangnya dan di sini, dan membalikkannya satu baris.
+
+---
+
+## Tahap 100 — Bingkai yang tidak pernah dikomposit ✅
+
+Spec: `docs/stages/TAHAP-100.md`. **Rancangannya gugur di tengah jalan, dan
+pengukurannya sendiri yang membantahnya.**
+
+Bukti yang Tahap 98 selamatkan dari CI `6eb786e` bukan gradien yang rata:
+
+```
+lit   p05 242.92  mean 242.45  p95 242.92   bare mean 14.28
+added mean 228.17  range 1.93  coverage 1
+```
+
+Bingkai ber-aksen nyaris **putih** pada pita yang mengukur sekitar 23, dan
+kontrolnya 600 ms kemudian benar. Tidak ada apa pun di halaman itu yang putih
+— gradien region-nya resolusi ke `lab(4.43481 ...)`, warna yang sama dengan
+tanahnya, diverifikasi di peramban.
+
+Berkas gerbang itu mendokumentasikan, untuk helper lain, bahwa _"a clipped
+capture does not composite WebGL"_ — dan gerbang aksen memang memotong. Jadi
+ia diubah ke bingkai penuh. **Bingkai kosongnya tetap muncul**, kini seragam
+sempurna (`min = max = 242.92`), sementara tiap tangkapan jadi 2,7× lebih
+mahal: 16,4–16,9 s untuk 9,22 MP melawan 6,7–7,7 s terpotong. Pemotongan bukan
+sebabnya; perubahannya dikembalikan.
+
+Yang terkirim adalah penjaga atas **pembacaannya**: aksen nyata menyumbang
+`added.mean` sekitar 8,9, bingkai kosong menyumbang 228 — dua orde besaran.
+Pembacaan di atas 100 diambil ulang sekali, dan kalau tetap, gagal dengan pesan
+yang menyebut _tangkapan yang tidak pernah dikomposit_ alih-alih _halaman yang
+memutih_.
+
+Dan satu kesalahan proses yang layak dicatat: bukti kegagalan lokal terhapus
+**tiga kali** karena saya menjalankan ulang sebelum membacanya — Playwright
+membersihkan `test-results` saat run berikutnya mulai. Yang menutupnya:
+menjalankan dan membaca dalam satu perintah.
+
+Gerbang aksen kedua profil, tiga run berturut-turut: **8 lulus, exit 0**.
+Flaky tidak diklaim tertutup.
 
 ---
 
