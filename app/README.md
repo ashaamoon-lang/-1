@@ -21,7 +21,6 @@ app/
 │   ├── loading.tsx       # App loading fallback
 │   ├── error.tsx         # Error boundary (thin wrapper over components/ui/error-view)
 │   ├── not-found.tsx     # 404 page
-│   ├── ai/                # /ai route
 │   ├── articles/[slug]/   # Sanity article pages
 │   ├── [...slug]/         # Catch-all: renders one-segment Sanity pages by slug, 404 otherwise
 │   └── (examples)/

@@ -39,7 +39,6 @@ describe('buildMarkdownDocument', () => {
 
     expect(document.status).toBe(404)
     expect(document.contentType).toBe('text/markdown; charset=utf-8')
-    expect(document.body).toContain('/ai')
     expect(document.body).toContain('/llms.txt')
     expect(document.body).toContain('/sitemap.xml')
   })

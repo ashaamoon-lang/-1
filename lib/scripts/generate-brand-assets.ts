@@ -194,7 +194,16 @@ function iconMark(fonts: readonly InlineFont[], size: number): string {
 }
 
 const TARGETS = [
-  { path: 'app/opengraph-image.png', width: 1200, height: 630, html: ogCard },
+  {
+    // `public/`, not `app/` — Tahap 92. Under `app/` this file is Next's
+    // file-based metadata and is inherited by every route, including the two
+    // with no `metadataBase` above them; in `public/` it is a plain asset at
+    // the same URL, named explicitly by `lib/utils/metadata.ts`.
+    path: 'public/opengraph-image.png',
+    width: 1200,
+    height: 630,
+    html: ogCard,
+  },
   {
     path: 'app/icon.png',
     width: 192,

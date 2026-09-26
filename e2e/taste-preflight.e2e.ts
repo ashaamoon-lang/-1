@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 import { FEATURED_WORK } from './fixtures'
+import { stackFaults, staleExemptions, unclassifiedHeroes } from './hero-stack'
 
 /**
  * The `taste-skill` pre-flight, made mechanical — Tahap 34.
@@ -46,6 +47,51 @@ import { FEATURED_WORK } from './fixtures'
  */
 
 const JOURNAL_ENTRY = 'scope-is-the-deliverable'
+
+/**
+ * The heroes the stack ceiling governs: the arrival hero, in both locales.
+ *
+ * Four is an arrival-hero number — `ui-ux-pro-max` measured it against a
+ * landing page, and `e2e/hero-stack.ts` explains at length why it is not
+ * simply applied to all seven of this site's heroes. Every other hero is
+ * exempt *with its measurement* in `STACK_EXEMPT`, and the sweep below makes
+ * sure that list stays exhaustive in both directions.
+ */
+const GOVERNED_HEROES = ['/en', '/id'] as const
+
+/**
+ * The hero of the current page, read the same way on every route.
+ *
+ * "The hero" is the outermost `section`/`header` inside `<main>` that holds
+ * the `h1`. Checked against its source before it was trusted — Tahap 77 §1.1
+ * lists the seven boxes it picks, 280–900px tall, each at the top of its
+ * page. The old version keyed off `[data-epic="hero-arrival"]`, which exists
+ * on exactly one of them and is the reason the rule only ever saw one.
+ *
+ * Declared at module scope so the same function serialises into every
+ * evaluate call — one definition to keep honest.
+ */
+function readHero() {
+  const headline = document.querySelector('main h1')
+  if (!headline) return null
+
+  let node: Element | null = headline
+  let outermost: Element | null = null
+  while (node && node !== document.body) {
+    if (node.tagName === 'SECTION' || node.tagName === 'HEADER')
+      outermost = node
+    node = node.parentElement
+    if (node?.tagName === 'MAIN') break
+  }
+  if (!outermost) return null
+
+  return {
+    route: '',
+    beats: outermost.querySelectorAll('[data-reveal-item]').length,
+    headlineIsBeat: headline.hasAttribute('data-reveal-item'),
+    hasHeadline: true,
+  }
+}
 
 /** Every route a person reads, in both locales where the content differs. */
 const ROUTES = [
@@ -144,30 +190,57 @@ test.describe('taste pre-flight: hard layout rules', () => {
     ).toBeLessThanOrEqual(band.header)
   })
 
-  for (const path of ['/en', '/id']) {
+  for (const path of GOVERNED_HEROES) {
     test(`${path} hero holds at most four text elements`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 })
       await settle(page, path)
 
-      const count = await page.evaluate(() => {
-        const hero = document.querySelector('[data-epic="hero-arrival"]')
-        if (!hero) return -1
-        // The stack `taste-skill` counts: eyebrow-or-brand-strip, headline,
-        // subtext, CTAs. Everything the hero reveals as its own beat is one
-        // of those, plus the headline, which reveals through SplitText.
-        const beats = hero.querySelectorAll('[data-reveal-item]').length
-        const headline = hero.querySelector('h1') ? 1 : 0
-        return beats + headline
-      })
+      const found = await page.evaluate(readHero)
 
-      // Anti-vacuum: a hero that was not found reports -1, not 0.
-      expect(count).toBeGreaterThan(0)
+      // Anti-vacuum: a hero that was not found reports null, not an empty
+      // stack. Tahap 72 paid for this rule twice in one stage.
+      expect(found, `no hero found on ${path}`).not.toBeNull()
+      const reading = { ...found!, route: path }
+
       expect(
-        count,
+        stackFaults([reading]),
         'hero stack discipline: the hero is a single moment, not a feature list'
-      ).toBeLessThanOrEqual(4)
+      ).toEqual([])
     })
   }
+
+  /**
+   * Every hero on the site is either governed by the ceiling or exempt with a
+   * reason — Tahap 77, and this is the assertion the rule never had.
+   *
+   * The ceiling above ran on two routes for forty-three stages while the site
+   * grew to seven heroes. Three separate stages found that out and each wrote
+   * a comment about it; `e2e/hero-stack.ts` records what they found as data.
+   * This test is what makes a fourth comment unnecessary: a hero on a new
+   * route is red until somebody classifies it.
+   */
+  test('every hero is governed or exempt, and every exemption is live', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+
+    const readings = []
+    for (const path of ROUTES) {
+      await settle(page, path)
+      const found = await page.evaluate(readHero)
+      expect(found, `no hero found on ${path}`).not.toBeNull()
+      readings.push({ ...found!, route: path })
+    }
+
+    expect(
+      unclassifiedHeroes(readings, [...GOVERNED_HEROES]),
+      'a hero nobody classified is the hole this gate exists to close'
+    ).toEqual([])
+
+    // The other direction: an exemption for a route that no longer has a hero
+    // is a reason nobody is paying for any more.
+    expect(staleExemptions(readings)).toEqual([])
+  })
 
   for (const path of ROUTES) {
     test(`${path} shows no scroll cue`, async ({ page }) => {

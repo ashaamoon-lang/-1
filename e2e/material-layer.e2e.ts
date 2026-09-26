@@ -1,5 +1,13 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+
+import {
+  plateSkipReason,
+  waitForCanvas,
+  waitForPlate,
+  WEBGL_TEST_BUDGET_MS,
+  webglIntent,
+} from './webgl-intent'
 
 /**
  * The material layer draws, and it gets out of the way before a navigation.
@@ -41,31 +49,111 @@ declare global {
   }
 }
 
-/** Put the home page's work grid on screen and let the canvas draw. */
-async function showWorkGrid(page: Page) {
-  await page.goto('/en', { waitUntil: 'networkidle' })
-  await page.evaluate(() => {
-    /*
-     * Scroll to the first plate, not to `#work` — Tahap 49.
-     *
-     * This scrolled the section into view, which worked only because the
-     * section began with its grid. It no longer does: `arth-passage` now
-     * opens `#work` with a pinned sequence, so `#work`'s start is two and a
-     * half screens above the first cover. The material never mounted, the
-     * `test.skip` below fired, and **two assertions stopped running while the
-     * suite still reported green** — the quietest way a gate can fail.
-     *
-     * Scrolling to the thing under test rather than to its container is what
-     * this should always have done. The old anchor was an indirection that
-     * happened to hold.
-     */
-    const plate = document.querySelector('[data-material-shell]')
-    const target = plate ?? document.querySelector('#work')
-    target?.scrollIntoView({ block: 'center' })
-  })
+/**
+ * Put the home page's work grid on screen and let the canvas draw.
+ *
+ * ## Why the wait is a parameter
+ *
+ * `/en` is the heaviest page on the site — eleven screens, a WebGL canvas,
+ * and every cover in the catalogue — and the leak test below visits it four
+ * times in a single test. Four `networkidle` waits on that page is what blew
+ * a **90-second** budget twice on one CI runner, on a commit that touched
+ * nothing on this route; the identical test had passed at the same budget on
+ * the run before it. Raising the budget again would only move the number the
+ * next slow runner has to beat.
+ *
+ * `networkidle` stays the default, because the three single-visit tests in
+ * this file each navigate once and the wait costs them nothing. It is worth
+ * paying for exactly once *per test*: the first visit fetches the plate's
+ * texture and leaves it warm in the HTTP cache. The repeat visits below then
+ * fetch nothing new, and `load` plus the 2500ms settle is what the mesh
+ * actually needs — a decoded texture and at least one frame advanced.
+ * Playwright's own documentation discourages `networkidle` generally; here it
+ * is kept where it is cheap and dropped where it was not.
+ *
+ * The wait was never the assertion. The assertion is what the WebGL context
+ * reports afterwards, and that is unchanged.
+ */
+async function showWorkGrid(
+  page: Page,
+  wait: 'networkidle' | 'load' = 'networkidle'
+) {
+  await page.goto('/en', { waitUntil: wait })
+  /*
+   * Scroll to the first plate, not to `#work` — Tahap 49.
+   *
+   * This scrolled the section into view, which worked only because the
+   * section began with its grid. It no longer does: `arth-passage` now opens
+   * `#work` with a pinned sequence, so `#work`'s start is two and a half
+   * screens above the first cover. The material never mounted, the
+   * `test.skip` below fired, and **two assertions stopped running while the
+   * suite still reported green** — the quietest way a gate can fail.
+   *
+   * And scrolled by Playwright rather than by the page — Tahap 91. One
+   * `scrollIntoView` inside the page does not land here, because the pin
+   * makes the document's layout depend on where you are in it: the plate
+   * moves while you scroll to it. Measured, after an in-page scroll, the
+   * plate sat at `top: 1870` in an 800px viewport and stayed there for the
+   * whole 30s budget — never on screen, never drawing. `behavior: 'instant'`
+   * did not change that; only re-checking does.
+   * `scrollIntoViewIfNeeded` retries until the element is really in view:
+   * after it the plate sits at `top: -32, bottom: 721` and hands over in
+   * about 5.8s.
+   */
+  const plate = page.locator('[data-material-shell]').first()
+  if ((await plate.count()) > 0) {
+    await plate.scrollIntoViewIfNeeded()
+  } else {
+    await page.locator('#work').first().scrollIntoViewIfNeeded()
+  }
+
   // The mesh needs its texture decoded and at least one frame advanced. The
   // canvas runs on Tempus, not on Playwright's idea of idle.
   await page.waitForTimeout(2500)
+}
+
+/**
+ * Reads a plate once nothing about it is still moving — Tahap 91.
+ *
+ * The handover is an attribute flip, and `material-image.module.css` gives
+ * `.root` a 150ms opacity transition, so for a moment the plate is marked
+ * handed over and still fully opaque. Measured on this laptop, six replicas of
+ * the sequence below: the attribute lands at 0.3s with a warm HTTP cache and
+ * at 2.3s with a cold one, and one run in six flipped it **218ms before** the
+ * gate read the shell. `getAnimations()` at that instant reported the opacity
+ * transition `running` at `currentTime: 0` — created, and not advanced by a
+ * millisecond, because the mesh's first frame had the main thread. That is
+ * why the failure always read exactly `"1"` and never an intermediate value.
+ *
+ * So this waits for the transition rather than for a duration. Reading the
+ * computed value first is the flush: a transition started by an attribute
+ * does not exist until the next style recalculation, and `getComputedStyle`
+ * forces one.
+ */
+async function readSettled(shell: Locator) {
+  return shell.evaluate(async (node) => {
+    const snapshot = () => ({
+      active: node.hasAttribute('data-material'),
+      // Reading the computed value is also the flush that starts a pending
+      // transition, so the check below sees one that exists but has not run.
+      opacity: getComputedStyle(node).opacity,
+      hasImage: Boolean(node.querySelector('img')),
+    })
+    // Bounded rather than timed, and re-taken each pass: a plate that flips
+    // while this waits is caught by the next snapshot rather than mixed into
+    // the last one.
+    for (let pass = 0; pass < 4; pass++) {
+      const taken = snapshot()
+      const running = node
+        .getAnimations()
+        .filter((animation) => animation.playState === 'running')
+      if (running.length === 0) return taken
+      await Promise.all(
+        running.map((animation) => animation.finished.catch(() => undefined))
+      )
+    }
+    return snapshot()
+  })
 }
 
 test.describe('material layer', () => {
@@ -115,25 +203,53 @@ test.describe('material layer', () => {
      * component contract, not this file. This is the regression guard for the
      * contract; the contract is the fix.
      */
+    test.setTimeout(WEBGL_TEST_BUDGET_MS)
     await showWorkGrid(page)
 
+    const intent = await webglIntent(page)
+    test.skip(!intent.intended, intent.reason)
+
     const shells = page.locator('[data-material-shell]')
+    const count = await shells.count()
     expect(
-      await shells.count(),
+      count,
       'the home grid renders no material shells at all'
     ).toBeGreaterThan(0)
 
-    const state = await page.evaluate(() =>
-      [...document.querySelectorAll('[data-material-shell]')].map((shell) => ({
-        active: shell.hasAttribute('data-material'),
-        opacity: getComputedStyle(shell).opacity,
-        hasImage: Boolean(shell.querySelector('img')),
-      }))
+    /*
+     * The decision is waited for on the plate that was put on screen, and on
+     * that one only — Tahap 91.
+     *
+     * The old gate read every plate 2500ms after the scroll and believed
+     * whatever it saw; with a cold HTTP cache the first plate hands over at
+     * 2.3s, so it was read mid-flip (§`readSettled`). The first repair
+     * overcorrected and demanded a handover from **all four**, which measured
+     * the product against a promise it never made:
+     *
+     * ```
+     * plate 0  top   -2  on screen   hands over   (2.5-10s)
+     * plate 1  top  784  below fold  hands over   (by 10s)
+     * plate 2  top 1549  below fold  never, at 32s, picture loaded
+     * plate 3  top 1549  below fold  never, at 32s, picture loaded
+     * ```
+     *
+     * A plate well below the fold is not asked to draw, and a gate that
+     * demands it anyway fails six times out of six against a working site.
+     * So the wait is on the plate `showWorkGrid` scrolled to — the same
+     * pattern the two tests below this one already use — and the rest are
+     * held to the invariant that survives either answer: marked means hidden,
+     * unmarked means visible.
+     */
+    const onScreen = await waitForPlate(shells.first())
+    test.skip(onScreen !== 'drawn', plateSkipReason(onScreen))
+
+    const plates = await Promise.all(
+      (await shells.all()).map((shell) => readSettled(shell))
     )
 
     const canvases = await page.locator('canvas').count()
 
-    for (const [index, plate] of state.entries()) {
+    for (const [index, plate] of plates.entries()) {
       expect(plate.hasImage, `plate ${index} has no <img> at all`).toBe(true)
 
       if (plate.active) {
@@ -147,7 +263,8 @@ test.describe('material layer', () => {
           `plate ${index} is marked active but is not handed over`
         ).toBe('0')
       } else {
-        // Not hidden — the plain plate, fully visible.
+        // Not hidden — the plain plate, fully visible. Either it was never
+        // asked to draw, or its picture never arrived; both keep the image.
         expect(
           plate.opacity,
           `plate ${index} has no material and is still invisible — a blank box`
@@ -171,11 +288,15 @@ test.describe('material layer', () => {
      * `vault/webgl/material-image/index.tsx` documents the split.
      */
     const root = page.locator('[data-material-shell]').first()
-    test.skip(
-      (await page.locator('[data-material-shell][data-material]').count()) ===
-        0,
-      'no material mounted; nothing to hand back'
-    )
+    // Decided, then waited for — Tahap 90; `e2e/webgl-intent.ts` has why.
+    // This counted live plates once and skipped on zero, which is the skip
+    // Tahap 49 already caught hiding two assertions behind a green suite.
+    test.setTimeout(WEBGL_TEST_BUDGET_MS)
+    const intent = await webglIntent(page)
+    test.skip(!intent.intended, intent.reason)
+    await waitForCanvas(page)
+    const plate = await waitForPlate(root)
+    test.skip(plate !== 'drawn', plateSkipReason(plate))
 
     await expect(
       root,
@@ -219,11 +340,15 @@ test.describe('material layer', () => {
     await showWorkGrid(page)
 
     const root = page.locator('[data-material-shell]').first()
-    test.skip(
-      (await page.locator('[data-material-shell][data-material]').count()) ===
-        0,
-      'no material mounted'
-    )
+    // Decided, then waited for — Tahap 90; `e2e/webgl-intent.ts` has why.
+    // This counted live plates once and skipped on zero, which is the skip
+    // Tahap 49 already caught hiding two assertions behind a green suite.
+    test.setTimeout(WEBGL_TEST_BUDGET_MS)
+    const intent = await webglIntent(page)
+    test.skip(!intent.intended, intent.reason)
+    await waitForCanvas(page)
+    const plate = await waitForPlate(root)
+    test.skip(plate !== 'drawn', plateSkipReason(plate))
 
     await page.locator('[data-press="card"]').first().focus()
 
@@ -239,6 +364,15 @@ test.describe('material layer', () => {
   })
 
   test('repeated mounts do not grow GPU memory', async ({ page }) => {
+    /*
+     * Eight full navigations of the site's heaviest page, each waiting for
+     * the network to go quiet and then 2.5s for the canvas to draw. The
+     * default 30s covered that only while the runner had no CMS content to
+     * fetch; the first CI run with real images timed out here, inside
+     * `showWorkGrid`, on both the first attempt and the retry.
+     */
+    test.slow()
+
     /*
      * A growth test, not an absolute one, and stated that way on purpose.
      * Three never frees GPU resources on its own (`CLAUDE.md` #15), and the
@@ -288,8 +422,20 @@ test.describe('material layer', () => {
     const first = await live()
 
     for (let visit = 0; visit < 3; visit++) {
-      await page.goto('/en/ai', { waitUntil: 'networkidle' })
-      await showWorkGrid(page)
+      /*
+       * The unmount step: any page without a canvas will do, and its only
+       * job is to take this one off screen.
+       *
+       * It was `/en/ai` until Tahap 84 removed that route. `/en/journal` is
+       * the nearest equivalent that survives — `e2e/route-budget.e2e.ts`
+       * allows it `gsap` and no `three`, so it carries no canvas to wait for.
+       */
+      await page.goto('/en/journal', { waitUntil: 'domcontentloaded' })
+      // `load`, not `networkidle`: the first visit above already warmed the
+      // cache, so these three fetch nothing new. This is the only test that
+      // visits `/en` more than once, and it is the only one that needs the
+      // cheaper wait.
+      await showWorkGrid(page, 'load')
     }
     const last = await live()
 

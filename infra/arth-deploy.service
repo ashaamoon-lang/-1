@@ -1,0 +1,16 @@
+[Unit]
+Description=Arth — pull, build, and deploy if the branch moved
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+WorkingDirectory=/srv/arth
+ExecStart=/srv/arth/infra/deploy.sh
+# A build is allowed to be slow; it is not allowed to be infinite. Without this
+# a hung `bun install` would block every later run behind it.
+TimeoutStartSec=1800
+
+[Install]
+WantedBy=multi-user.target

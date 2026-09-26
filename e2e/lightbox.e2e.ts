@@ -116,6 +116,26 @@ test.describe('the gallery lightbox', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await openAt(page, 0)
 
+    /*
+     * Wait for the picture to have a size before measuring its shape.
+     *
+     * `naturalWidth / naturalHeight` is `0 / 0` — **NaN** — on an image that
+     * has not decoded, and `expect(NaN).toBeLessThan(0.02)` fails with a
+     * message that says nothing about the real state of the page. It cost one
+     * CI failure exactly that way: `Expected: < 0.02  Received: NaN`, passing
+     * on retry, on a run where nothing about the lightbox had changed.
+     *
+     * The letterboxing assertion below is about the ratio the browser chose,
+     * so it needs a decoded image. This waits for one instead of assuming the
+     * open animation took long enough.
+     */
+    await page.waitForFunction(() => {
+      const img = document
+        .querySelector('[data-lightbox-frame]')
+        ?.querySelector('img')
+      return !!img && img.complete && img.naturalWidth > 0
+    })
+
     const fit = await page.evaluate(() => {
       const frame = document.querySelector('[data-lightbox-frame]')
       const image = frame?.querySelector('img')

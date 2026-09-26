@@ -139,3 +139,49 @@
     gap: desktop-vw(112px);
   }
 }
+
+/*
+ * The outcome — Tahap 79, the close of the arc.
+ *
+ * Shares `.body`'s measure rather than running the full width. The arc above
+ * it is a pinned sequence that owns the whole track; dropping back to the six
+ * columns the prose and the portraits already occupy is what makes the
+ * sentence read as the page settling rather than as another section starting.
+ * Same calc, deliberately duplicated rather than extracted: `.body` earns its
+ * width from a measure argument and this one from an alignment argument, and
+ * a shared token would hide that they can diverge.
+ */
+.outcome {
+  max-width: calc((100% - var(--gap) * 11) / 12 * 6 + var(--gap) * 5);
+  display: flex;
+  flex-direction: column;
+  gap: mobile-vw(12px);
+
+  @media (--desktop) {
+    gap: desktop-vw(16px);
+  }
+}
+
+/*
+ * No `font-size` here, and that is the point.
+ *
+ * Both children take their scale from the `caption` and `h3` utilities in
+ * `lib/styles/css/tailwind.css`, applied in the JSX through `cn()`. Declaring
+ * a size here would need a `scale-exempt:` comment — `scale-rules.test.ts`
+ * allows a component its own `font-size` only with a written reason — and
+ * there is no reason to give: `step-sequence` already records that `h3` was
+ * added precisely so later authors stop reaching for ad-hoc clamps.
+ */
+.outcomeLabel {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0;
+}
+
+.outcomeText {
+  margin: 0;
+  /* The payoff line is the one sentence a client is buying; it carries the
+     page's full contrast rather than the muted register of its label. */
+  color: var(--color-secondary);
+}

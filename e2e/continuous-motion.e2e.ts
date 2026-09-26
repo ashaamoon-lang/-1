@@ -99,14 +99,93 @@ test.describe('the page keeps moving as it is read', () => {
      * it measured. Every paragraph and every list item that is actually
      * content is still in scope.
      */
-    const moved = await page.evaluate(() =>
-      [...document.querySelectorAll('main p:not(nav *), main li:not(nav *)')]
-        .filter((el) => {
-          const t = getComputedStyle(el).transform
-          return t && t !== 'none' && t !== 'matrix(1, 0, 0, 1, 0, 0)'
-        })
+    /*
+     * Sampled twice at the SAME scroll position, and only a transform that is
+     * non-identity in both samples **and unchanged between them** counts.
+     *
+     * ## Why one sample was the wrong ruler
+     *
+     * The rule is about *scroll-linked* transform. One `getComputedStyle` call
+     * cannot tell that from an **entrance** transform still in flight, and this
+     * test spent its life reporting the second as the first. Measured on
+     * `/en/work/arus-balik` at 1440x900, immediately after the scroll:
+     *
+     *   t+0ms     matrix(1, 0, 0, 1, 0, 32)        opacity 0
+     *   t+300ms   matrix(1, 0, 0, 1, 0, 0.499064)  opacity 0.984
+     *   t+600ms   none
+     *
+     * That is `useReveal`'s 32px lift decaying to nothing in about half a
+     * second — a reveal the gallery plates are supposed to have. The fixed
+     * 600ms wait below lands on the boundary of that decay, so whether this
+     * test passed depended on how fast the machine was: green on CI, red on a
+     * slower box, with nothing wrong with the page either time.
+     *
+     * A scroll-linked transform has the opposite signature. Scroll position is
+     * its only input, and it has not moved between the two samples, so its
+     * value is **identical**. Comparing two samples separates the two cleanly.
+     *
+     * This is stricter, not looser: a reveal *stranded* at 32px is also
+     * constant, so it is still reported — and a stranded reveal is a real
+     * defect (`CLAUDE.md` #5) whichever gate names it.
+     */
+    /*
+     * A reveal that has not fired yet is constant too — Tahap 82.
+     *
+     * The two-sample rule separates an entrance **in flight** from a scroll
+     * linkage, and it does that correctly. It does not separate a third thing:
+     * an entrance that has not **started**. `useReveal` holds its element at
+     * the lift until the trigger is reached, so a plate still waiting reads as
+     * `translateY(16px)` in both samples and identical between them — the exact
+     * signature this test treats as proof.
+     *
+     * It went red on CI for precisely that, and the page was right. Measured on
+     * `/en/work/pusat-beban`, the horizontal track's fourth plate at eleven
+     * scroll positions:
+     *
+     *   y=0     0 0 0 0
+     *   y=716   1 1 1 0        <- three revealed, the fourth still waiting
+     *   y=1790  1 1 1 0.95     <- the track brings it in
+     *   y=2148  1 1 1 1
+     *
+     * Nothing is stranded. The plate reveals when the reader reaches it, which
+     * is what a reveal is for, and this test samples at one third of the page.
+     *
+     * So pending reveals are excluded, and that narrows nothing this test was
+     * written to catch: a **stranded** reveal is content that never arrives,
+     * and `motion.e2e.ts` already holds that line the only way it can be held
+     * — by scrolling the whole page first and then demanding every
+     * `[data-reveal-item]` be visible. Asking the question here, from one
+     * position, could only ever guess.
+     */
+    const moved = await page.evaluate(async () => {
+      const nodes = [
+        ...document.querySelectorAll('main p:not(nav *), main li:not(nav *)'),
+      ].filter((el) => {
+        const pending = el.closest('[data-reveal-item]')
+        return (
+          pending === null ||
+          pending.getAttribute('data-reveal-item') === 'visible'
+        )
+      })
+      const read = () =>
+        nodes.map((el) => getComputedStyle(el).transform || 'none')
+
+      const first = read()
+      await new Promise((resolve) => setTimeout(resolve, 400))
+      const second = read()
+
+      const isMoving = (t: string) =>
+        t !== 'none' && t !== 'matrix(1, 0, 0, 1, 0, 0)'
+
+      return nodes
+        .filter(
+          (_, index) =>
+            isMoving(first[index] ?? 'none') &&
+            isMoving(second[index] ?? 'none') &&
+            first[index] === second[index]
+        )
         .map((el) => el.textContent?.trim().slice(0, 40) ?? '')
-    )
+    })
 
     expect(
       moved,

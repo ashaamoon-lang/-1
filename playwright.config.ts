@@ -40,6 +40,19 @@ export default defineConfig({
       name: 'mobile',
       testMatch: [
         '**/route-sweep.e2e.ts',
+        // The hole this gate was written for is worse on a phone than on a
+        // desktop — 66% of the first screen against 57% — because the hero's
+        // index goes full width at `grid-column: 1 / -1` and the slack below
+        // it grows. A desktop-only run would under-report the one route it
+        // exists to catch (Tahap 74).
+        '**/first-screen-void.e2e.ts',
+        // The defect this gate was written for exists ONLY below 800px.
+        // `project-spine` is sticky with no ground of its own; at `--desktop`
+        // it sits in column 2 and never meets artwork, so 759 desktop runs
+        // across seven full pages came back clean while "Images" measured
+        // 1.48:1 over a photograph at 390px. A desktop-only run would report
+        // this page green forever (Tahap 72).
+        '**/contrast-situ.e2e.ts',
         '**/responsive.e2e.ts',
         '**/project-detail.e2e.ts',
         '**/image-resolution.e2e.ts',
@@ -47,6 +60,20 @@ export default defineConfig({
         '**/promises.e2e.ts',
         '**/no-javascript.e2e.ts',
         '**/route-budget.e2e.ts',
+        // A plate's placeholder is a `background-color`, and a
+        // `background-color` can be declared inside a breakpoint — both
+        // `project-hero` and `project-card` already carry `@media (--desktop)`
+        // blocks. So "nothing opaque is painted over a handed-over plate" is a
+        // claim that has to hold at both widths: a desktop-only run would miss
+        // an occluder that only exists on a phone, which is precisely the
+        // shape of the defect this gate was written for (Tahap 59).
+        '**/material-occlusion.e2e.ts',
+        // Scroll-range overlap is a layout question before it is a motion
+        // one: cards that sit side by side at desktop stack at 390px, and a
+        // pinned sequence reserves a different amount of scroll at each
+        // width. So "two moments never share the same scroll" has to hold at
+        // both widths, not the one it was written at (Tahap 60).
+        '**/epic-sequence.e2e.ts',
         // Where a navigation lands is a viewport question: a destination
         // shorter than the offset the reader carried over clamps to its own
         // maximum, so the same link strands the heading by a different
@@ -76,6 +103,13 @@ export default defineConfig({
         // is where that goes wrong first. The file is deliberately small so
         // adding it here costs three tests, not thirteen.
         '**/first-screen.e2e.ts',
+        // A held box is sized in `svh`, so how much of it the content fills is
+        // a different number at every width — measured on `/studio` before
+        // Tahap 69 fixed it: 35% empty at 390x844, 63% at 1440x900, 68% at
+        // 1728x1117. The defect grows with the screen, so the desktop run
+        // catches the worst case and the phone run is what proves the bound is
+        // not merely a desktop artefact.
+        '**/held-screen.e2e.ts',
         // The hairline is pinned to `--header-height`, which is a clamp that
         // resolves to 58px on a phone and 72 on this desktop — so where it
         // sits, and whether it lands on the header rather than under it, is a

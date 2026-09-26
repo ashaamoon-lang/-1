@@ -16,16 +16,105 @@
    */
   height: var(--header-height);
   padding-inline: var(--safe);
+
   /*
-   * A translucent ground rather than a solid bar. The header sits over
-   * artwork, and a solid strip cuts the top off every image behind it;
-   * a blur keeps the work continuous while the type stays legible.
+   * Three zones on desktop, with the nav on the centre — Tahap 87.
+   *
+   * This was `space-between` on four items, which is not a layout but a
+   * division of leftover space: each item sat wherever the others' widths
+   * pushed it. Measured on the production build, the nav's centre ran 138px
+   * left of the header's at 800 and 313px left at 1920, its start wandered
+   * across columns 4 and 5, and the Indonesian labels moved it again. The
+   * repo owner reported it from `/studio` as not symmetric and not placed.
+   *
+   * Two equal outer tracks put the `auto` middle track on the header's centre
+   * at every width and in every language — and the header's centre is the
+   * page grid's, because both are inset by the same `--safe`. The wordmark
+   * holds the left edge and the search + language group the right, mirrored.
+   *
+   * Not the 12-column page grid, which was checked first: at 800px a column
+   * is 33px, the language switcher is 88px and the nav 187px, and columns
+   * 5–8 together are 180px. The content does not fit the columns it would be
+   * asked to sit in; three zones give the symmetry without the squeeze.
+   * `docs/stages/TAHAP-87.md` §2.
+   *
+   * `minmax(max-content, 1fr)` on the outer tracks, and the floor was
+   * measured, not assumed. The first shape was `minmax(0, 1fr)`, and in
+   * `next dev` — where the nav carries a fourth link, Storybook, as it also
+   * does in any build with `NEXT_PUBLIC_STORYBOOK_URL` set — the search and
+   * language group (220.5px) outgrew its 219px track at 800px and spilled
+   * left, leaving the nav and the search trigger **1px apart**. A zero floor
+   * lets a track shrink under content that cannot wrap, and the overflow
+   * lands in the gap. With the content as the floor, the two tracks stay
+   * equal whenever everything fits, and when it does not the short one gives
+   * up only the difference: the nav moves off centre by exactly what the
+   * group needs — 14.6px at `/en` 800 with four links, measured; 0.00px at
+   * 1024 and above, and with the three links production ships — and the
+   * `--gap` between items is never eaten.
    */
+  @media (--desktop) {
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(
+        max-content,
+        1fr
+      );
+  }
+  /*
+   * The ground is a pseudo-element now — Tahap 53.
+   *
+   * It was `background-color` + `backdrop-filter` + `border-bottom` on this
+   * element. Two of those were right and one was the thing being fixed: a
+   * hairline is a *cut*, and the header sits over artwork, so the bar
+   * announced itself as a strip laid on top of the work.
+   *
+   * Masking has to happen on a layer of its own because a mask applies to the
+   * element's content as well — masking `.header` itself would fade the
+   * wordmark and the nav along with the ground.
+   *
+   * No `isolation` needed to keep that layer in: `position: fixed` with a
+   * `z-index` already makes this element a stacking context, so the ground's
+   * `z-index: -1` lands behind the header's own content and no further.
+   */
+}
+
+/*
+ * The translucent ground, and its edge.
+ *
+ * A blur rather than a solid strip for the reason this bar has always
+ * carried: the header sits over artwork, and a solid band cuts the top off
+ * every image behind it, while a blur keeps the work continuous and the type
+ * legible.
+ *
+ * The mask is what Tahap 53 adds. Magic UI's `progressive-blur` gets this
+ * effect by stacking **eight** `backdrop-filter` layers with rising radii; on
+ * a fixed bar hanging over a scrolling page that is eight composite passes a
+ * frame, and its cost cannot be profiled in this environment — `CLAUDE.md`
+ * #19 forbids shipping "that is cheap" as a claim. The technique is taken and
+ * the code is not: one layer, one mask, one pass. `docs/PROVENANCE.md` records
+ * the distinction.
+ *
+ * It extends past the bar so the fade finishes *below* the header rather than
+ * inside it, which is the difference between a soft edge and a bar with a
+ * blurry bottom.
+ */
+.header::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block: 0 calc(-1 * mobile-vw(16px));
+  z-index: -1;
+  pointer-events: none;
   background-color: color-mix(in oklab, var(--color-primary) 82%, transparent);
   backdrop-filter: blur(mobile-vw(12px));
-  border-bottom: 1px solid var(--line);
+  /*
+   * `black`/`transparent` keywords, not a hex: a mask reads only the alpha
+   * channel, so the colour is structural rather than a design value, and
+   * `lib/styles/scripts/token-rules.test.ts` bans the hex spelling of it.
+   */
+  mask-image: linear-gradient(to bottom, black 62%, transparent);
 
   @media (--desktop) {
+    inset-block: 0 calc(-1 * desktop-vw(24px));
     backdrop-filter: blur(desktop-vw(12px));
   }
 }
@@ -53,6 +142,13 @@
   @media (--desktop) {
     /* scale-exempt: see the note on the mobile size above. */
     font-size: desktop-vw(20px);
+    /*
+     * Tahap 87: the left track, held at its start. Without `justify-self` a
+     * grid item stretches, and this link's hit area would have grown across
+     * the whole left third of the header.
+     */
+    grid-column: 1;
+    justify-self: start;
   }
 
   &:focus-visible {
@@ -62,6 +158,11 @@
 }
 
 .nav {
+  /* The middle track — the header's centre. Tahap 87. */
+  @media (--desktop) {
+    grid-column: 2;
+  }
+
   @media (--mobile) {
     /*
      * `display: none` removes the list from the tab order and the
@@ -216,4 +317,29 @@
  */
 .search {
   flex-shrink: 0;
+}
+
+/*
+ * Search and language, placed as one group — Tahap 87.
+ *
+ * On desktop it takes the right track and sits against its end, mirroring
+ * the wordmark at the opposite `--safe` edge. The space inside it is the
+ * nav's own rhythm (`.navList`), so the header carries one spacing rather
+ * than two.
+ *
+ * Below the breakpoint it is `display: contents`: its two children stay the
+ * header's flex items exactly as they were before the group existed, which
+ * keeps the language switcher's `order` before the menu button. A `<div>` has
+ * no role for `contents` to strip.
+ */
+.tools {
+  display: contents;
+
+  @media (--desktop) {
+    grid-column: 3;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: desktop-vw(28px);
+  }
 }

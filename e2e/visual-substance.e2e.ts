@@ -1,3 +1,5 @@
+import { writeFile } from 'node:fs/promises'
+
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import sharp from 'sharp'
@@ -11,6 +13,15 @@ import {
 } from '../lib/styles/scripts/luminance'
 import { material } from '../vault/motion/tokens'
 import { FEATURED_WORK } from './fixtures'
+import { waitForEntrance } from './page-settled'
+import {
+  plateSkipReason,
+  waitForCanvas,
+  waitForPlate,
+  WEBGL_ARRIVAL_MS,
+  WEBGL_TEST_BUDGET_MS,
+  webglIntent,
+} from './webgl-intent'
 /**
  * The bucket the WebGL hook below fills, declared rather than asserted at each
  * use — three chained `as unknown as` casts is how a test starts lying about
@@ -61,11 +72,10 @@ const GUTTER_ROUTES = [
 ]
 
 /*
- * `/ai` is deliberately excluded, and the exemption is the point rather than
- * an oversight: `app/[locale]/ai/layout.tsx` bypasses the app's normal layout
- * on purpose — it is a plain-HTML index for crawlers and agents, and its own
- * stylesheet says so. A rule about the site's chrome should not be applied to
- * the one page that deliberately has none.
+ * Every route here carries the site's chrome. There used to be one exemption
+ * — `/ai`, a plain-HTML index for crawlers that bypassed the app layout on
+ * purpose — and it ended in Tahap 84 when the route was removed. No page on
+ * the site now opts out of the header and footer, so the list is the rule.
  */
 
 /**
@@ -170,22 +180,118 @@ const ACCENT_RANGE_MARGIN = 3
  */
 const ACCENT_ROUTES = ['/en', `/en/practice/${PRACTICES[0]}`]
 
+/**
+ * What the accent gate is allowed, and what each of its waits is allowed.
+ *
+ * Both numbers were re-derived in Tahap 100, when the gate stopped clipping
+ * its captures. A clipped capture costs a fraction of a full frame, and the
+ * old deadline had been derived from the clipped one:
+ *
+ * ```
+ * viewport   dpr  pixels    full frame        clipped
+ * 1280x800    3   9.22 MP   16.4-16.9 s       6.7-7.7 s
+ *  390x844    3   2.96 MP    4.3-4.5 s        1.6-1.7 s
+ * ```
+ *
+ * Measured on this project's laptop, four captures each, idle. The 15s
+ * deadline that preceded this sat **below** the 16.7s a 9.22 MP frame needs,
+ * so the first run after the change failed with
+ * `TimeoutError: page.screenshot: Timeout 15000ms exceeded` — the deadline
+ * doing its job, on a capture that was not stalled but merely large.
+ *
+ * So: 45s is about 2.7× the worst measured frame, which covers this laptop
+ * running two workers, and the budget covers the whole chain — entrance up
+ * to 15s, the region up to 20s, two captures, and the settle between them.
+ * A gate that passes still finishes in about 3.5s on the desktop project;
+ * these numbers only decide when Playwright gives up.
+ *
+ * The alternative considered and not taken: dropping the desktop-width
+ * variant from the `mobile` project, which is where the 9.22 MP frame comes
+ * from. `docs/stages/TAHAP-95.md` proposed exactly that and was withdrawn
+ * when CI refuted its premise. Reviving it on a new argument — cost rather
+ * than flakiness — is its own decision about coverage, and removing coverage
+ * to save time is the riskier of the two moves.
+ */
+const ACCENT_BUDGET_MS = 90_000
+const SHOT_DEADLINE_MS = 15_000
+
+/**
+ * A frame-to-frame mean beyond which the capture, not the page, is wrong.
+ *
+ * Measured: this accent contributes a mean of 8.9 on
+ * `/en/practice/consulting` and about 5 on `/en`. A blank capture contributes
+ * **228**. A hundred sits an order of magnitude above the real reading and
+ * well under half the broken one, so nothing delicate depends on the number.
+ */
+const BLANK_FRAME_MEAN = 100
+/**
+ * How long the accent region is waited for.
+ *
+ * It is in the served HTML — `curl` on `/en/practice/consulting` returns it
+ * — so on an idle machine it attaches in **17ms**. The only reason it would
+ * not is a worker so starved that the document has not been parsed, which this
+ * laptop reproduces: under two mobile workers a bare `page.evaluate` reading
+ * `innerWidth` once ran past **120 seconds**.
+ *
+ * `expect`'s inherited 5s default was the last number in this gate that was
+ * not derived from anything, and it was the one CI printed after the budget
+ * stopped being the bottleneck.
+ */
+const REGION_DEADLINE_MS = 20_000
+
 test.describe('a declared accent carries tone, and never subtracts it', () => {
   for (const [width, height, label] of [
     [1280, 800, 'desktop'],
     [390, 844, 'mobile'],
   ] as const) {
     for (const route of ACCENT_ROUTES) {
-      test(`${route} at ${label}`, async ({ page }) => {
+      test(`${route} at ${label}`, async ({ page }, testInfo) => {
+        /*
+         * An explicit budget, derived from this gate's own work — Tahap 94.
+         *
+         * Measured on the mobile device profile (390×844, DPR 3) against a
+         * production server, idle machine: `goto` 0.16–0.63s, the entrance
+         * 2.0–3.1s, the region 0.02s, each screenshot 0.30–0.42s, fonts
+         * 0.01s — about **4.7s** of real work. Playwright's default 30s was
+         * never derived for this test; `e2e/webgl-intent.ts` sets
+         * `WEBGL_TEST_BUDGET_MS = 120_000` for exactly this reason.
+         *
+         * CI failed this gate three runs running, and each repair moved the
+         * message rather than the failure: first `declares no accent region`
+         * from a 5s assertion that never got its turn (40.1s), then
+         * `page.screenshot` (31.7s) once the entrance stopped eating the
+         * budget. Ninety seconds is ~19× the measured work, and every wait
+         * inside it now carries a deadline far below it — so a genuinely
+         * stuck operation still names itself instead of spending the budget.
+         */
+        test.setTimeout(ACCENT_BUDGET_MS)
         await page.setViewportSize({ width, height })
-        await page.goto(route)
-        await page.waitForTimeout(2800)
+        /*
+         * The DOM, not every image — Tahap 91.
+         *
+         * `goto` waits for `load` by default: every picture on the page, at
+         * DPR 2.6 on the phone profile. This gate measures a wash in the top
+         * band, which is server-rendered and has no image in it. With every
+         * image held back 35s, all four accent and image runs died in `goto`
+         * before measuring anything — the signature of the one flake CI showed
+         * on nearly every run since Tahap 84 (40.1s against a 30s budget).
+         * The 2.8s that follows is for the entrance curtain, which it waits for.
+         */
+        await page.goto(route, { waitUntil: 'domcontentloaded' })
+        /*
+         * The entrance, waited for rather than timed — Tahap 91.
+         *
+         * A flat 2800ms is comfortable on a quiet machine. Under two workers
+         * this laptop photographed the curtain instead of the page: 238.1
+         * with the accent and 238.1 without, on a band that measures ~24.
+         */
+        await waitForEntrance(page)
+        await page.waitForTimeout(600)
 
         const region = page.locator('[data-accent-region]').first()
-        await expect(
-          region,
-          `${route} declares no accent region`
-        ).toBeAttached()
+        await expect(region, `${route} declares no accent region`).toBeAttached(
+          { timeout: REGION_DEADLINE_MS }
+        )
 
         /*
          * Which control to remove depends on which accent is showing, and both
@@ -199,7 +305,32 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
          * would compare a page with itself and pass no matter what — a gate that
          * cannot fail.
          */
-        const live = (await page.locator('[data-accent-live]').count()) > 0
+        /*
+         * Decided, not counted — Tahap 91, with Tahap 90's helper.
+         *
+         * This counted `[data-accent-live]` once after the fixed wait. When
+         * the `/en` mesh went live after that count, the gate hid the CSS
+         * region instead of the canvas and compared the page with itself.
+         * Now: if the route means to mount WebGL on this device, the mesh is
+         * waited for — or the gate fails — and only then is it measured.
+         */
+        const intent = await webglIntent(page)
+        let live = false
+        if (intent.intended) {
+          test.setTimeout(WEBGL_TEST_BUDGET_MS)
+          await waitForCanvas(page)
+          live = await page
+            .locator('[data-accent-live]')
+            .first()
+            .waitFor({ state: 'attached', timeout: WEBGL_ARRIVAL_MS })
+            .then(() => true)
+            .catch(() => false)
+          if (!live) {
+            throw new Error(
+              `${route}: WebGL is intended here and the canvas arrived, but the wash never went live in ${WEBGL_ARRIVAL_MS / 1000}s`
+            )
+          }
+        }
 
         /*
          * A band of the region, not the whole of it. The clip has to sit inside
@@ -213,15 +344,74 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
           height: Math.round(height * 0.35),
         }
 
-        const withAccent = await page.screenshot({ clip })
-        await page.evaluate((hasMesh: boolean) => {
-          const target = hasMesh
-            ? document.querySelector('canvas')
-            : document.querySelector('[data-accent-region]')
-          if (target instanceof HTMLElement) target.style.visibility = 'hidden'
-        }, live)
-        await page.waitForTimeout(600)
-        const withoutAccent = await page.screenshot({ clip })
+        /*
+         * A capture that is not a photograph of this page — Tahap 100.
+         *
+         * The evidence Tahap 98 preserved, from CI on `e63b852` and then
+         * reproduced here, is not a flat gradient. It is a **blank frame**:
+         *
+         * ```
+         * CI     lit p05 242.92  mean 242.45  p95 242.92   bare mean 14.28
+         * local  lit min 242.92 ... max 242.92 — every pixel identical
+         * ```
+         *
+         * The lit arm reads near-white on a band that measures about 23, and
+         * the control taken 600ms later is correct. Nothing on the page is
+         * white: the region's gradient resolves to `lab(4.43481 ...)`, the
+         * same near-black as the ground, verified in the browser.
+         *
+         * **A hypothesis that was refuted, and is recorded rather than
+         * hidden.** This file documents, for `moved()`, that *"a clipped
+         * capture does not composite WebGL"*, and this gate was clipping. So
+         * it was changed to capture full frames and crop with `sharp`, which
+         * made each capture 2.7× more expensive — 16.4-16.9s for a 9.22 MP
+         * frame against 6.7-7.7s clipped, measured — and the blank frame
+         * **still happened**, now perfectly uniform. Clipping was not the
+         * cause, the change bought nothing, and it was reverted.
+         *
+         * What is left is a guard on the reading rather than on the capture
+         * method. A real accent contributes a mean of about 8.9 on this route
+         * and about 5 on `/en`; a blank frame contributes **228**. Two orders
+         * of magnitude apart is room enough to tell them apart without
+         * choosing a delicate threshold, so a reading beyond `BLANK_FRAME_MEAN`
+         * is treated as a broken capture, retaken once, and only then allowed
+         * to fail — with a message that says which of the two it was.
+         */
+        const measure = async () => {
+          const shot = async () =>
+            page.screenshot({ clip, timeout: SHOT_DEADLINE_MS })
+          const lit = await shot()
+          await page.evaluate((hasMesh: boolean) => {
+            const target = hasMesh
+              ? document.querySelector('canvas')
+              : document.querySelector('[data-accent-region]')
+            if (target instanceof HTMLElement)
+              target.style.visibility = 'hidden'
+          }, live)
+          await page.waitForTimeout(600)
+          const bare = await shot()
+          await page.evaluate((hasMesh: boolean) => {
+            const target = hasMesh
+              ? document.querySelector('canvas')
+              : document.querySelector('[data-accent-region]')
+            if (target instanceof HTMLElement) target.style.visibility = ''
+          }, live)
+          return { lit, bare, added: await contribution(lit, bare) }
+        }
+
+        let reading = await measure()
+        if (Math.abs(reading.added.mean) > BLANK_FRAME_MEAN) {
+          await page.waitForTimeout(1200)
+          reading = await measure()
+        }
+
+        const withAccent = reading.lit
+        const withoutAccent = reading.bare
+
+        expect(
+          Math.abs(reading.added.mean) <= BLANK_FRAME_MEAN,
+          `the capture is not a photograph of this page: the two frames differ by a mean of ${reading.added.mean.toFixed(1)}, where this accent contributes about 9. A frame this uniform is a capture that never composited, not a page that went white`
+        ).toBe(true)
 
         const lit = await tone(withAccent)
         const bare = await tone(withoutAccent)
@@ -250,7 +440,91 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
          * now means what it always meant and no longer depends on where the
          * copy lands.
          */
-        const added = await contribution(withAccent, withoutAccent)
+        const added = reading.added
+
+        /*
+         * The evidence a CI failure needs, captured while the frames still
+         * exist — Tahap 98.
+         *
+         * `HANDOFF.md` §5 has carried "added no modulation" as an
+         * unattributed flake since Tahap 91. It finally printed a readable
+         * number in CI — `range 1.9` against a floor of 3, with coverage
+         * above 50% — and that combination is one this project's laptop
+         * could not reproduce in any state tried: the accent measures 8.00
+         * here at every delay, on a fresh load, and at every scroll offset
+         * that keeps the band covered. Three mechanisms were eliminated with
+         * numbers (§`TAHAP-98.md`), and a flat fallback is impossible —
+         * the region is only a gradient, so flattening it drops coverage to
+         * zero rather than range to 1.9.
+         *
+         * So the next occurrence has to carry its own evidence. The condition
+         * mirrors the two assertions below exactly, so nothing is written for
+         * a run that passes and everything is written for one that does not.
+         * A first attempt at "near the floor" used twice the margin and
+         * attached on every healthy run of `/en`, which measures 4.93-5.00
+         * against a floor of 3 while `/en/practice/consulting` measures
+         * 8.0-8.9. Mirroring the assertion needs no threshold of its own.
+         */
+        if (added.range <= ACCENT_RANGE_MARGIN || added.coverage <= 0.5) {
+          const paint = await page.evaluate(() => {
+            const node = document.querySelector('[data-accent-region]')
+            if (!(node instanceof HTMLElement)) return { region: 'absent' }
+            const style = getComputedStyle(node)
+            const box = node.getBoundingClientRect()
+            const curtain = document.querySelector('[data-curtain]')
+            return {
+              backgroundImage: style.backgroundImage,
+              backgroundColor: style.backgroundColor,
+              opacity: style.opacity,
+              transform: style.transform,
+              box: {
+                top: Math.round(box.top),
+                height: Math.round(box.height),
+                width: Math.round(box.width),
+              },
+              scrollY: Math.round(scrollY),
+              devicePixelRatio,
+              curtain:
+                curtain instanceof HTMLElement
+                  ? getComputedStyle(curtain).visibility
+                  : 'absent',
+            }
+          })
+
+          /*
+           * Written to `outputPath`, then attached **by path** — not by
+           * `body`. An attachment given a body is held in memory and reaches
+           * only a reporter that serialises it; `playwright.config.ts` uses
+           * `list`, which does not. Measured: a forced capture left
+           * `test-results/<test>/` completely empty. A file written there
+           * survives, and is what CI uploads.
+           */
+          const write = async (name: string, data: Buffer | string) => {
+            const target = testInfo.outputPath(name)
+            await writeFile(target, data)
+            await testInfo.attach(name, { path: target })
+          }
+
+          await write('accent-with.png', withAccent)
+          await write('accent-without.png', withoutAccent)
+          await write(
+            'accent-reading.json',
+            JSON.stringify(
+              {
+                route,
+                label,
+                live,
+                lit,
+                bare,
+                added,
+                floor: ACCENT_RANGE_MARGIN,
+                paint,
+              },
+              null,
+              2
+            )
+          )
+        }
 
         expect(
           added.coverage,
@@ -332,16 +606,25 @@ async function readyPlate(page: Page) {
   await page.goto('/en')
   await page.waitForTimeout(2500)
 
+  /*
+   * Decided, then waited for — Tahap 90.
+   *
+   * This counted canvases and live plates after two fixed waits and skipped
+   * when either was zero. A plate that was merely late — 9.3s on a cold
+   * desktop, measured — skipped the gate, and with three.js blocked outright,
+   * so the canvas the route owes never came, the gate reported success.
+   */
+  // The waits below are longer than a default test budget; so is this.
+  test.setTimeout(WEBGL_TEST_BUDGET_MS)
+  const intent = await webglIntent(page)
+  test.skip(!intent.intended, intent.reason)
+  await waitForCanvas(page)
+
   const shell = page.locator('[data-material-shell]').first()
   await shell.scrollIntoViewIfNeeded()
-  await page.waitForTimeout(2200)
-
-  const canvases = await page.locator('canvas').count()
-  const live = await page.locator('[data-material]').count()
-  test.skip(
-    canvases === 0 || live === 0,
-    'no live material mesh on this device profile — WebGL is gated to desktop'
-  )
+  const plate = await waitForPlate(shell)
+  test.skip(plate !== 'drawn', plateSkipReason(plate))
+  await page.waitForTimeout(600)
 
   const hidden = await page.evaluate(() => {
     let n = 0
@@ -603,9 +886,26 @@ test.describe('a footer under a canvas is still readable', () => {
     test(`${route} keeps its footer out from under the canvas`, async ({
       page,
     }) => {
+      /*
+       * Budgeted for a canvas that is late on purpose-built hardware, not for
+       * a fast desktop — Tahap 90. On the phone profile forced to 1280 the
+       * canvas took up to 12.3s, and the two screenshots below are 1280×800
+       * at DPR 2.6. Thirty seconds was the whole test's budget, which is how
+       * this gate became a flake on CI rather than a check.
+       */
+      test.setTimeout(120_000)
       await page.setViewportSize({ width: 1280, height: 800 })
-      await page.goto(route)
-      await page.waitForTimeout(2600)
+      /*
+       * The DOM and the entrance, not every image — Tahap 91.
+       *
+       * This waited for `load`. On the phone profile at 1280 that is every
+       * picture at DPR 2.6, and on `/en/journal` — a route with no canvas at
+       * all, which this gate only ever skips — it burned most of the 120s
+       * budget before the skip could even be decided.
+       */
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+      await waitForEntrance(page)
+      await page.waitForTimeout(600)
 
       /*
        * Discovered at runtime rather than pinned to `/en`.
@@ -630,13 +930,18 @@ test.describe('a footer under a canvas is still readable', () => {
        * canvas genuinely never arrives, which is the case the skip was
        * written for.
        */
-      const hasCanvas = await page
-        .locator('canvas')
-        .first()
-        .waitFor({ state: 'attached', timeout: 6000 })
-        .then(() => true)
-        .catch(() => false)
-      test.skip(!hasCanvas, 'no canvas on this route, nothing to paint over')
+      /*
+       * Decided, then waited for — Tahap 90.
+       *
+       * Tahap 52 turned a count into a 6s wait, and the note above says why.
+       * It still skipped when the wait ran out, and the phone profile's canvas
+       * on `/en` took 8–12s — so the gate skipped on a route whose canvas was
+       * coming. Now the route says whether it mounts one (`data-webgl-root`),
+       * and a canvas that is owed is waited for or failed, never skipped.
+       */
+      const intent = await webglIntent(page)
+      test.skip(!intent.intended, intent.reason)
+      await waitForCanvas(page)
 
       await page.evaluate(() => window.scrollTo(0, 999999))
       await page.waitForTimeout(2200)
@@ -724,9 +1029,11 @@ test.describe('a footer under a canvas is still readable', () => {
  * artwork rendered nothing to look at. Not for want of assets — six project
  * covers were already in the CMS and already used on the other three routes.
  *
- * `/en/ai` is the exception and it is declared rather than skipped: it is the
- * machine-readable view, and an image there would be weight served to
- * something that cannot see it.
+ * There used to be one declared exception, `/en/ai`: the machine-readable
+ * view, where an image would have been weight served to something that
+ * cannot see it. Tahap 84 removed the route; every page listed here now
+ * renders work. (Corrected in Tahap 90 — Tahap 89's sweep did not reach
+ * `e2e/`.)
  */
 const IMAGE_ROUTES = [
   '/en',
@@ -742,37 +1049,32 @@ test.describe('every surface a reader lands on has something to look at', () => 
   for (const route of IMAGE_ROUTES) {
     test(`${route} renders its work`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 })
-      await page.goto(route)
-      await page.waitForLoadState('networkidle')
+      /*
+       * A box, not a download — Tahap 91.
+       *
+       * This waited for `networkidle`, and `goto` before it for `load`. What it
+       * counts is an `<img>` with a real box, which the aspect-ratio CSS gives
+       * before a byte of the picture arrives. With every image held back 35s
+       * it died in `goto` without counting anything. Whether pictures load is
+       * a different question, and not this gate's.
+       */
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
 
-      const images = await page.evaluate(
-        () =>
-          [...document.querySelectorAll('main img')].filter((img) => {
-            const rect = img.getBoundingClientRect()
-            // A rendered image, not a 1px tracking pixel or a hidden preload.
-            return rect.width > 32 && rect.height > 32
-          }).length
-      )
+      const count = () =>
+        page.evaluate(
+          () =>
+            [...document.querySelectorAll('main img')].filter((img) => {
+              const rect = img.getBoundingClientRect()
+              // A rendered image, not a 1px tracking pixel or a hidden preload.
+              return rect.width > 32 && rect.height > 32
+            }).length
+        )
 
-      expect(images, `${route} renders ${images} images`).toBeGreaterThan(0)
+      await expect
+        .poll(count, { message: `${route} renders no images`, timeout: 15_000 })
+        .toBeGreaterThan(0)
     })
   }
-
-  test('the machine view stays imageless on purpose', async ({ page }) => {
-    await page.goto('/en/ai')
-    await page.waitForLoadState('networkidle')
-
-    const images = await page.evaluate(
-      () => document.querySelectorAll('main img').length
-    )
-    /*
-     * Asserted, not skipped. "This route has no images" and "this route was
-     * forgotten" look identical from the outside, and the difference is the
-     * whole point of the block above — so the one route that is deliberately
-     * imageless says so in a test rather than in a comment.
-     */
-    expect(images, '/en/ai is the machine view and carries no images').toBe(0)
-  })
 })
 
 test.describe('a description describes its own image', () => {

@@ -1,5 +1,9 @@
 import { resolveJournalEntries } from '@/lib/content/journal-fallback'
-import { buildSearchIndex, type SearchEntry } from '@/lib/content/search-index'
+import {
+  buildSearchIndex,
+  resolveSearchIndex,
+  type SearchEntry,
+} from '@/lib/content/search-index'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
@@ -48,37 +52,46 @@ async function buildIndex(locale: Locale): Promise<SearchEntry[]> {
     })
   }
 
-  const [projects, journal] = await Promise.all([
-    sanityFetch({
-      query: projectsQuery,
-      params: { locale },
-      perspective: 'published',
-      stega: false,
-    }),
-    sanityFetch({
-      query: journalEntriesQuery,
-      params: { locale },
-      perspective: 'published',
-      stega: false,
-    }),
-  ])
-
   /*
-   * The published perspective only, and never draft mode.
-   *
-   * A palette is a navigation surface: every result must be a page a reader
-   * can actually open. Draft documents have no published route, so offering
-   * one would be offering a 404 with a title.
-   *
-   * No assertion is needed to hand the query result over: `SearchProject`
-   * declares the fields it reads and nothing more, so TypeGen's richer type
-   * satisfies it structurally. Tahap 26's lesson, applied on the way in
-   * rather than after a lint rejection — a cast here would be claiming a
-   * shape instead of naming the one this module actually needs.
+   * `resolveSearchIndex` owns what happens when the fetch throws, and the
+   * reason is written there: this route killed a production build with one
+   * `ECONNRESET`, after the Sanity client had already retried five times.
+   * The branch above covers "no dataset configured"; this covers "configured
+   * and unreachable", which is the case that actually happened.
    */
-  return buildSearchIndex(locale, {
-    projects: projects.data,
-    journal: resolveJournalEntries(locale, journal.data),
+  return resolveSearchIndex(locale, async () => {
+    const [projects, journal] = await Promise.all([
+      sanityFetch({
+        query: projectsQuery,
+        params: { locale },
+        perspective: 'published',
+        stega: false,
+      }),
+      sanityFetch({
+        query: journalEntriesQuery,
+        params: { locale },
+        perspective: 'published',
+        stega: false,
+      }),
+    ])
+
+    /*
+     * The published perspective only, and never draft mode.
+     *
+     * A palette is a navigation surface: every result must be a page a reader
+     * can actually open. Draft documents have no published route, so offering
+     * one would be offering a 404 with a title.
+     *
+     * No assertion is needed to hand the query result over: `SearchProject`
+     * declares the fields it reads and nothing more, so TypeGen's richer type
+     * satisfies it structurally. Tahap 26's lesson, applied on the way in
+     * rather than after a lint rejection — a cast here would be claiming a
+     * shape instead of naming the one this module actually needs.
+     */
+    return {
+      projects: projects.data,
+      journal: resolveJournalEntries(locale, journal.data),
+    }
   })
 }
 

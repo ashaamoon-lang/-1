@@ -202,9 +202,9 @@ export function Cursor({ viewLabel = 'View' }: CursorProps) {
    * The follow runs on the site's single RAF loop, not on GSAP's.
    *
    * This used `gsap.quickTo`, which meant mounting the cursor pulled GSAP into
-   * every route that rendered it — and `e2e/route-budget.e2e.ts` allows GSAP
-   * on `/en` and `/en/practice/*` only, with `/en/work`, `/en/work/[slug]` and
-   * `/en/ai` allowed **nothing**. A site-wide cursor would have turned that
+   * every route that rendered it — and `e2e/route-budget.e2e.ts` then allowed
+   * GSAP on `/en` and `/en/practice/*` only, with `/en/work`, `/en/work/[slug]`
+   * and `/en/ai` (removed in Tahap 84) allowed **nothing**. A site-wide cursor would have turned that
    * gate red on three routes, and raising the budgets to decorate is not a
    * trade worth making.
    *

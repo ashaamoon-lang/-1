@@ -84,41 +84,6 @@ test.describe('the skip link', () => {
 })
 
 test.describe('locale parity', () => {
-  test('the machine view is not the same document in both languages', async ({
-    request,
-  }) => {
-    const strip = (html: string) =>
-      html
-        .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ' ')
-        .replace(/<[^>]+>/g, '\n')
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.length > 3)
-
-    const en = strip(await (await request.get('/en/ai')).text())
-    const id = strip(await (await request.get('/id/ai')).text())
-
-    expect(en.length).toBeGreaterThan(10)
-
-    const shared = new Set(id)
-    const identical = en.filter((line) => shared.has(line)).length
-    const ratio = identical / en.length
-
-    /*
-     * Not zero, and deliberately not.
-     *
-     * Proper nouns, URLs, the studio's email and its entity copy are the same
-     * in both languages and should be. What must differ is the labels — and
-     * when this page shipped with none of them translated the ratio was 1.0
-     * (37 of 37). The threshold catches that class of regression without
-     * demanding that a studio name be translated.
-     */
-    expect(
-      ratio,
-      `${identical} of ${en.length} visible strings are identical across locales`
-    ).toBeLessThan(0.8)
-  })
-
   test('entity copy is stated in the language of the page', async ({
     request,
   }) => {
@@ -197,12 +162,7 @@ test.describe('the site does not assert what it does not know', () => {
    * Human surfaces are deliberately not covered here — see
    * `docs/stages/TAHAP-35.md` §3.1 for why the split runs where it does.
    */
-  const MACHINE_SURFACES = [
-    '/llms.txt',
-    '/sitemap.xml',
-    '/en/ai',
-    '/id/ai',
-  ] as const
+  const MACHINE_SURFACES = ['/llms.txt', '/sitemap.xml'] as const
 
   for (const path of MACHINE_SURFACES) {
     test(`${path} publishes no reserved-TLD address`, async ({ request }) => {
@@ -294,32 +254,5 @@ test.describe('the site does not assert what it does not know', () => {
         `${path} redirects; name the destination instead`
       ).toBeLessThan(300)
     }
-  })
-
-  test('the Indonesian machine view uses an Indonesian conjunction', async ({
-    page,
-  }) => {
-    /*
-     * The site-facts list only, not the page.
-     *
-     * The first shape of this scanned all of `/id/ai` and stayed red after
-     * the fix landed — correctly, but for the wrong reason: the machine view
-     * lists every static route in **both** locales with `hrefLang`, so the
-     * English descriptions are supposed to be there. `formatList` feeds this
-     * one list, and this list is what the rule is about.
-     */
-    await page.goto('/id/ai')
-    const text = await page
-      .locator('[data-site-facts]')
-      .evaluate((el) => el.textContent ?? '')
-
-    // Anti-vacuum: the list must have been found and must hold the services.
-    expect(text.length, 'no site-facts list on /id/ai').toBeGreaterThan(60)
-    expect(text, 'an English conjunction in Indonesian copy').not.toMatch(
-      /,\s+and\s+\S/
-    )
-    expect(text, 'the Indonesian conjunction is missing').toMatch(
-      /,\s+dan\s+\S/
-    )
   })
 })

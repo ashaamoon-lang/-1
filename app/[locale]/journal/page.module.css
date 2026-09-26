@@ -379,25 +379,85 @@
  * capped rather than left to fill: a full-width cover under a three-line
  * summary makes the picture the entry and the entry a caption.
  */
+/*
+ * The frame. It clips, and as of Tahap 81 something inside it moves.
+ *
+ * `position: relative` and the ratio moved here from `.coverImage`, which is
+ * what lets the picture leave normal flow without the row collapsing: the
+ * frame now reserves the box and the layer fills it.
+ *
+ * ## It sits in the reading column, and that is Tahap 83's measurement
+ *
+ * It used to auto-place into the date rail, under the caption, at 338px wide
+ * and 422px tall. The reading column beside it held a heading and two lines
+ * and then stopped — so every row carried an empty rectangle of
+ * **1045 x 456 px, about 485,000 px²**, three rows of it, on a route with no
+ * gate to say so.
+ *
+ * For scale, `vault/blocks/project-gallery` records the defect that earned
+ * `data-spread`: *"a portrait sat with 836px of empty page beside it... roughly
+ * 860 thousand square pixels"*. This route carried more, spread over three
+ * rows, and nobody had looked.
+ *
+ * So the picture moves to where the page is empty rather than the page being
+ * rebuilt around where the picture was. `e2e/composition-density.e2e.ts` is
+ * the instrument, and it went red on this row before this rule changed.
+ *
+ * The ratio widens with the column and only there. On a phone the row is one
+ * column and the cover is a 200px portrait beside nothing — that reads as a
+ * deliberate thumbnail, and the same measurement at 390px found no void worth
+ * the name. A `12 / 5` letterbox at 200px would be an 83px strip, which is
+ * how a fix for one width becomes a defect at another.
+ */
 .cover {
+  position: relative;
   overflow: clip;
+  aspect-ratio: 4 / 5;
   margin-block-start: mobile-vw(16px);
   max-inline-size: mobile-vw(200px);
 
   @media (--desktop) {
+    grid-column: 2;
+    aspect-ratio: 12 / 5;
     margin-block-start: desktop-vw(24px);
     max-inline-size: none;
   }
 }
 
+/*
+ * The layer that carries the depth, sized so it never shows the frame's edge.
+ *
+ * Taller than the frame by its own travel and pulled up by half the excess, so
+ * at rest the picture sits exactly where the layout put it. `--plane-travel`
+ * is published by `Plane` from the same table the hook moves it with, so the
+ * two cannot disagree — `vault/motion/parallax/plane.tsx` records why that
+ * mattered enough to become a property, and derives the `+ 4`.
+ *
+ * `+ 4` and not `project-card`'s `+ 2`: the hook moves this layer by a
+ * percentage of **its own** height, which the overshoot has just made larger,
+ * so the travel grows with the very margin meant to absorb it. At `+ 2` that
+ * catches up at travel 13.2 and the top plane of the ladder is 14.
+ *
+ * The fallback of 10 is `subject`, the plane this frame is given. It is here
+ * so the rule is readable on its own, not because the property is optional:
+ * without `Plane` there is nothing to move and the overshoot is harmless.
+ */
+.coverPlane {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: calc((var(--plane-travel, 10) + 4) * -0.5%);
+  block-size: calc(100% + (var(--plane-travel, 10) + 4) * 1%);
+}
+
 .coverImage {
   /*
-   * The catalogue card's ratio, so a cover reads as the same kind of object
-   * wherever it appears. `object-fit: cover` because the stored assets are
-   * not all this shape and a letterboxed plate looks like a mistake.
+   * `object-fit: cover` because the stored assets are not all this shape and
+   * a letterboxed plate looks like a mistake. The ratio itself now lives on
+   * `.cover` — the catalogue card's, so a cover reads as the same kind of
+   * object wherever it appears — and the image fills the layer instead of
+   * defining its own height, which is what gives the travel somewhere to go.
    */
-  aspect-ratio: 4 / 5;
   object-fit: cover;
   inline-size: 100%;
-  block-size: auto;
+  block-size: 100%;
 }

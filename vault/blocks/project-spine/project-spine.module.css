@@ -53,11 +53,57 @@
    * phone, which is exactly where knowing what is left matters most.
    */
   position: sticky;
-  top: calc(var(--header-height) + mobile-vw(8px));
+  top: var(--header-height);
   z-index: 1;
   display: flex;
   flex-direction: column;
   gap: mobile-vw(8px);
+
+  /*
+   * A sticky element carries its own ground, and this one did not.
+   *
+   * At `--desktop` the index sits in column 2 beside the content, so it never
+   * meets artwork and a transparent ground is free. Below 800px the grid
+   * collapses to one column, the index becomes a row pinned under the header,
+   * and the **gallery scrolls underneath it**. Measured on the production
+   * build at 390x844, `/en/work/arus-balik`:
+   *
+   *   "Images"  2.25:1   "Next"  1.90:1     against a WCAG AA floor of 4.5
+   *
+   * The same links read 9:1 over a dark plate. Nothing about the ink changed
+   * — only what passed behind it, which is exactly the class of defect
+   * `contrast.test.ts` cannot see (it measures token *pairs*, in isolation)
+   * and axe reports as `incomplete` rather than as a violation.
+   *
+   * Two other fixes were considered. Dropping `position: sticky` on mobile
+   * would undo Tahap 40's decision on the evidence of a measuring tool, which
+   * is the wrong way round; `backdrop-filter: blur()` is a new mechanism with
+   * a real compositing cost on a phone and it does not *guarantee* contrast,
+   * it only blurs what is behind. A ground does, and it costs one token.
+   *
+   * `e2e/contrast-situ.e2e.ts` holds it. `docs/stages/TAHAP-72.md`.
+   */
+  @media not (--desktop) {
+    padding-block: mobile-vw(8px);
+
+    &::before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      inset-block: 0;
+      /*
+       * Bled to the viewport without hard-coding the page gutter: chrome that
+       * stops at the text column reads as a chip floating on the artwork
+       * rather than as a band belonging to the header above it. `position:
+       * sticky` with a `z-index` makes this element the containing block, so
+       * `50% - 50vw` resolves against the row itself.
+       */
+      inset-inline: calc(50% - 50vw);
+      background-color: var(--surface);
+      /* The same hairline weight `.rail` uses, from the same token. */
+      border-block-end: 1px solid var(--line);
+    }
+  }
 
   @media (--desktop) {
     top: calc(var(--header-height) + desktop-vw(24px));

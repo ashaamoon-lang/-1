@@ -32,3 +32,24 @@ export const FEATURED_WORK = 'arus-balik'
  * boundary while still passing.
  */
 export const SQUARE_WORK = 'bacaan-mesin'
+
+/**
+ * A work whose gallery clears `RUN_MINIMUM`, so it renders as the pinned
+ * horizontal track rather than the twelve-column grid — Tahap 82.
+ *
+ * ## Why this had to become a third named shape
+ *
+ * `project-gallery` has had two layouts since Tahap 64 and, until the fixtures
+ * carried four plates, only ever rendered one of them: the component's own
+ * note said so — *"on today's fixtures the run never appears."* Raising every
+ * project to four flipped **all six** to the track, and `project-spread.e2e.ts`
+ * went red with "renders no artwork" on `FEATURED_WORK`, which is the route ten
+ * files in this suite navigate to by name and every one of them was written
+ * against the grid.
+ *
+ * So the dataset owes the suite one work of each shape, for the reason the
+ * square cover is named above: a test that needs a particular shape cannot pick
+ * one at random and still mean what it says. `FEATURED_WORK` keeps the grid;
+ * this one takes the track.
+ */
+export const RUN_WORK = 'pusat-beban'

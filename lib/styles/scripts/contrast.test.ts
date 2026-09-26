@@ -54,6 +54,15 @@ describe('WCAG 2.1 AA contrast (blocking)', () => {
       // belongs here rather than being filtered out: the wash is what the hero
       // headline sits on, so brightening it is a contrast decision, and this
       // list exists so a new derived token cannot arrive without one.
+      /*
+       * `--hero-wash-mid` arrived in Tahap 55, and it is a ground for a
+       * *filter*, not for text: `vault/magic/noise-texture` adds grain around
+       * it so the layer's mean matches the surface it sits on. It is measured
+       * here anyway, and deliberately. It names a colour that covers a whole
+       * hero, and a token that no one ever checks is exactly how the wash it
+       * is derived from got two raw hex values in the first place (Tahap 17).
+       */
+      'hero-wash-mid',
       'hero-wash-to',
       'line',
       'line-strong',

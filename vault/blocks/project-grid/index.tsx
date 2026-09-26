@@ -36,6 +36,13 @@
  * page by deciding which piece runs full width. That is the block's original
  * job and stays the default.
  *
+ * With one exception since Tahap 86: a half the row flow would leave alone
+ * takes the full width (`settledSpans`, `lib/utils/grid-flow`). The catalogue
+ * note below measured exactly that hole on `/en/work` and fixed it by giving
+ * the listing a different layout; the home page kept the hole — `6, 12, 6, 6`
+ * left 787px beside its first card at 1600×900 — until the repo owner
+ * reported it.
+ *
  * `catalogue` ignores `span` and gives every work the same half-width column.
  * This exists because the editorial layout was measured on `/en/work` and
  * does not survive contact with a full listing. With three works spanning
@@ -59,6 +66,7 @@ import cn from 'clsx'
 import { useRef } from 'react'
 
 import { useReveal } from '@/lib/hooks/use-reveal'
+import { settledSpans } from '@/lib/utils/grid-flow'
 import { type Project, ProjectCard } from '@/vault/blocks/project-card'
 import { FLIP_ID, useFlipGrid } from '@/vault/motion/flip'
 
@@ -75,13 +83,34 @@ export type { Project }
  * thirteen decimal places. Two columns moving in perfect lockstep are one
  * column drawn twice.
  *
- * The difference is 5, inside the ceiling of 6 that
- * `e2e/exploratory-layer.e2e.ts` holds. Above that the columns stop reading
- * as one grid with depth and start reading as two grids that disagree, which
- * is the "distracting desync" `vault/motion/parallax` records the preset
- * warning about.
+ * The difference is 5, and `e2e/exploratory-layer.e2e.ts` holds it under
+ * 60px of instantaneous offset. Above that the columns stop reading as one
+ * grid with depth and start reading as two grids that disagree, which is the
+ * "distracting desync" `vault/motion/parallax` records the preset warning
+ * about.
+ *
+ * ## Both values moved up by three — Tahap 57
+ *
+ * They were `[4, 9]`, and the left column at 4 sat **below the floor of the
+ * range this project's own parallax hook cites**: `ui-ux-pro-max`'s "Parallax
+ * Scroll (Subtle)" names 5–15, and `vault/motion/parallax` quotes it in its
+ * header. Measured on the production build, 41 samples down `/en/work`, the
+ * left column travelled 30.3 / 36.6 / 36.3px — 3.3% to 4.0% of its own layer
+ * — while the right column travelled 74 to 86px. One column was doing the
+ * work and the other was nearly still.
+ *
+ * The **difference stays 5**, which is the part that must not move:
+ * `work-constellation` exists because both columns once reported an identical
+ * offset to thirteen decimal places, and the fix was never "move more", it
+ * was "move differently". Adding three to each leaves that untouched and
+ * lifts the quiet column into the range it was always supposed to be in.
+ *
+ * The layer's own size needs no edit, and that is Tahap 43's doing:
+ * `--card-drift` is set by `ProjectCard` from this same number, and
+ * `project-card.module.css` derives the overshoot from it. Two numbers that
+ * have to agree now have only one place to disagree from.
  */
-const COLUMN_DRIFT = [4, 9] as const
+const COLUMN_DRIFT = [7, 12] as const
 
 /**
  * The three editorial offsets, in grid steps, cycled by card index.
@@ -102,7 +131,8 @@ const OFFSET_CYCLE = 3
  *
  * `editorial` is the one that defers: a work's `span` says how the studio
  * wants that piece to sit among curated neighbours, and that authority is the
- * whole reason the field exists. The other two override it because a listing
+ * whole reason the field exists — up to the point where honouring it would
+ * strand a half in an empty row (`settledSpans`). The other two override it because a listing
  * and a strip want one rhythm, not six opinions.
  */
 const LAYOUT_SPAN = {
@@ -170,7 +200,18 @@ export function ProjectGrid({
   // Flips [data-reveal] on the container; CSS animates [data-reveal-item]
   // children with a staggered transition-delay. Reduced motion is handled
   // inside the hook — it reveals immediately and never observes.
-  const ref = useReveal<HTMLUListElement>()
+  /*
+   * A catalogue arrives card by card; an editorial selection arrives as one
+   * composition — Tahap 54.
+   *
+   * Both layouts used the container mode, and it was measured: on `/en/work`
+   * **all eight reveal items were already visible at load, and ten scroll
+   * steps down five screens produced zero further events.** The page's whole
+   * animation budget was spent before the reader moved. On `/en` the same
+   * mode is right — the selection is one composed row inside an eleven-screen
+   * page that has seven other blocks. `docs/stages/TAHAP-54.md` §1.
+   */
+  const ref = useReveal<HTMLUListElement>({ perItem: layout === 'catalogue' })
 
   /*
    * A second ref onto the same element, because `useReveal` owns the one it
@@ -180,6 +221,12 @@ export function ProjectGrid({
    */
   const gridRef = useRef<HTMLUListElement | null>(null)
   useFlipGrid(gridRef, sift ?? '')
+
+  // Only `editorial` reads authored spans; the other layouts fix one width for
+  // every card, so there is no row for a half to be left alone in. Why a lone
+  // half becomes a full, and not a half with copy beside it, is written at
+  // `settledSpans` — Tahap 86.
+  const settled = settledSpans(projects.map((project) => project.span))
 
   return (
     <ul
@@ -195,7 +242,7 @@ export function ProjectGrid({
       {...(epic && { 'data-epic': epic })}
     >
       {projects.map((project, index) => {
-        const span = LAYOUT_SPAN[layout] ?? project.span ?? 6
+        const span = LAYOUT_SPAN[layout] ?? settled[index] ?? 6
         const constellation = layout === 'catalogue'
         /*
          * The catalogue is two equal columns, so the column a card lands in

@@ -272,9 +272,9 @@ export default async function AppLayout({ children }: PropsWithChildren) {
             restart the follow on every navigation.
 
             It costs no library on any route. Until Tahap 18c the follow ran
-            on `gsap.quickTo`, and `e2e/route-budget.e2e.ts` allows GSAP on
-            `/en` and `/en/practice/*` only — `/en/work`, `/en/work/[slug]`
-            and `/en/ai` are allowed **nothing**. A site-wide cursor would
+            on `gsap.quickTo`, and `e2e/route-budget.e2e.ts` then allowed GSAP
+            on `/en` and `/en/practice/*` only — `/en/work`, `/en/work/[slug]`
+            and `/en/ai` (removed in Tahap 84) were allowed **nothing**. A site-wide cursor would
             have turned that gate red on three routes. The follow now runs on
             the Tempus loop the site already has, which `CLAUDE.md` #6 wanted
             anyway.
@@ -302,7 +302,7 @@ export default async function AppLayout({ children }: PropsWithChildren) {
 
         `gsap` and `webgl` both moved to `<Wrapper>`, per page. Mounting them
         here put GSAP and three.js into every page's graph: `/en/ai`, a page of
-        plain text, downloaded 859KB of three.js and react-three-fiber it had
+        plain text since removed in Tahap 84, downloaded 859KB of three.js and react-three-fiber it had
         no use for. Only the home hero has a scene, so only the home page pays.
       */}
           <OptionalFeatures />
@@ -312,8 +312,9 @@ export default async function AppLayout({ children }: PropsWithChildren) {
             
             This mounted whenever Sanity was configured, which put
             `@sanity/client` (21.7KB gzipped) into every route — including
-            `/en/ai`, whose own comment says it carries "zero client
-            components ... server-only end to end"
+            `/en/ai`, whose own comment said it carried "zero client
+            components ... server-only end to end" (the route was removed in
+            Tahap 84)
             (`docs/AUDIT-2026-08.md` §Tier 4).
             
             What it buys is a client-side live-query subscription, and the only

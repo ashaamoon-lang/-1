@@ -4,9 +4,9 @@ import { expect, test } from '@playwright/test'
 import { axeTags } from './axe-tags'
 
 /**
- * The `/ai` route's generic smoke (render, console errors, a11y) is now
- * covered by `e2e/route-sweep.e2e.ts` — it's a static page like any other.
- * This file keeps only what the sweep can't generate: the 404 route's
+ * Generic smoke for every static route (render, console errors, a11y) lives
+ * in `e2e/route-sweep.e2e.ts`. This file keeps only what the sweep can't
+ * generate: the 404 route's
  * bespoke soft-404 assertions below, which need real knowledge of Cache
  * Components' status-line behavior, not a copy-pastable smoke.
  */

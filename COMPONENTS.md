@@ -57,7 +57,7 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 |------|--------|-----------|
 | useActiveSection | `@/hooks/use-active-section` | `(ids: readonly string[]) => string | null` |
 | useDeviceDetection | `@/hooks/use-device-detection` | `()` |
-| useReveal | `@/hooks/use-reveal` | `({ threshold = 0, rootMargin = '0px 0px -25% 0px', once = true, }: UseRevealOptions = {})` |
+| useReveal | `@/hooks/use-reveal` | `({ threshold = 0, rootMargin = '0px 0px -25% 0px', once = true, perItem = false, }: UseRevealOptions = {})` |
 | useOnlineStatus | `@/hooks/use-sync-external` | `() => boolean` |
 | usePreferredColorScheme | `@/hooks/use-sync-external` | `() => 'light' | 'dark'` |
 | usePreferredReducedMotion | `@/hooks/use-sync-external` | `() => boolean` |
@@ -81,6 +81,14 @@ Quick-reference for every component, hook, and utility in the Satus starter kit.
 | fetchWithTimeout | `(url: string, options: FetchWithTimeoutOptions = {}) => Promise<Response>` |
 | fetchJSON | `(url: string, options?: FetchWithTimeoutOptions) => Promise<JsonValue>` |
 | FetchWithTimeoutOptions |  |
+
+### Grid-flow (`@/utils/grid-flow`)
+
+| Export | Signature |
+|--------|-----------|
+| loneHalves | `(spans: readonly boolean[]) => boolean[]` |
+| settledSpans | `(spans: readonly (6 | 12 | null)[]) => (6 | 12)[]` |
+| GRID_COLUMNS | `12` |
 
 ### Image-sizes (`@/utils/image-sizes`)
 

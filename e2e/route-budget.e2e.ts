@@ -51,7 +51,9 @@ import { expect, test } from '@playwright/test'
  * | `/en/work`                |  871 KB  |  900   | 29       |
  * | `/en/work/arus-balik`     |  866 KB  |  900   | 34       |
  * | `/en/practice/consulting` |  874 KB  |  900   | **26**   |
- * | `/en/ai`                  |  706 KB  |  850   | 144      |
+ *
+ * `/en/ai` (706 KB against 850) was measured here until Tahap 84 removed
+ * the route; its row and its budget entry went with it.
  *
  * `/en/work` and its project page were 751/746 KB before Tahap 23 added the
  * shared heading entrance; the +120 KB each is GSAP arriving. **No ceiling
@@ -188,8 +190,6 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    */
   { path: '/en/journal', allow: ['gsap'], maxKb: 900 },
   { path: '/en/journal/scope-is-the-deliverable', allow: ['gsap'], maxKb: 900 },
-  // The machine view. Its layout comment promises zero client components.
-  { path: '/en/ai', allow: [], maxKb: 850 },
 ]
 
 /** Identify a library by something only that library contains. */

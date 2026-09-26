@@ -36,6 +36,7 @@ import { type ReactNode, useRef, ViewTransition } from 'react'
 import { Link } from '@/components/ui/link'
 import type { JournalEntry } from '@/lib/content/journal-fallback'
 import { transitionName } from '@/lib/motion/transition-name'
+import { Plane } from '@/vault/motion/parallax/plane'
 import { useActiveInSequence } from '@/vault/motion/use-active-in-sequence'
 
 import s from './page.module.css'
@@ -182,7 +183,34 @@ export function JournalIndexRows({ rows }: { rows: readonly JournalRow[] }) {
               and a second control inside that area would put two targets in
               one place and two names on one row.
             */}
-            {row.cover && <div className={s.cover}>{row.cover}</div>}
+            {row.cover && (
+              <div className={s.cover}>
+                {/*
+                  The one layer on this site that is media, travels with the
+                  page, and had no depth — Tahap 81 §4.1.
+
+                  `subject`, not `mid`: a cover here is the only picture in a
+                  column of type, so it is the subject of its row rather than
+                  something behind it. The named plane is what keeps it related
+                  to the plates on `/work`, which sit on the same rung.
+
+                  `Plane` and not `useParallax` directly, and that is not a
+                  preference: these rows are a `map`, and a ref per item cannot
+                  come from a hook inside a loop. A component is the only shape
+                  that works here — which is the argument `plane.tsx` records
+                  for existing at all.
+
+                  `.cover` clips, so `.coverPlane` has to overshoot it. It
+                  sizes itself from `--plane-travel`, which `Plane` publishes,
+                  rather than restating the number — the Tahap 43 failure was
+                  exactly two numbers that were supposed to agree and had no
+                  way to.
+                */}
+                <Plane plane="subject" className={s.coverPlane}>
+                  {row.cover}
+                </Plane>
+              </div>
+            )}
           </div>
         </article>
       ))}
