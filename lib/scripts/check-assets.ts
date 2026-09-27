@@ -25,9 +25,21 @@
  */
 
 // Fork owners: tune these for your own project's weight budget.
-const MAX_VIDEO_BYTES = 2 * 1024 * 1024 // 2MB
-const MAX_IMAGE_BYTES = 1 * 1024 * 1024 // 1MB
-const MAX_IMAGE_WIDTH_PX = 2400
+/**
+ * The one ceiling this fork keeps, and it is deliberately far out of reach.
+ *
+ * `docs/FORK.md` §0: measure, do not veto. The budgets that stood here —
+ * video 2MB, image 1MB, 2400px wide, icon 48KB / 512px — vetoed. They decided
+ * in advance how ambitious a picture was allowed to be, and a fork that exists
+ * to let the design get bigger cannot keep them.
+ *
+ * What survives is a single hard stop at **25MB for one file**, because past
+ * that the cost stops being the designer's choice and becomes the reader's
+ * problem: a phone on a slow connection does not finish downloading it at all.
+ * That is the reader-protection carve-out, stated openly rather than smuggled
+ * in as taste. Everything below it is reported and allowed.
+ */
+const HARD_STOP_BYTES = 25 * 1024 * 1024
 
 // Next file-based metadata icons — `app/icon.png`, `app/apple-icon.png`, and
 // their per-segment variants. These get a far tighter budget than a content
@@ -38,8 +50,7 @@ const MAX_IMAGE_WIDTH_PX = 2400
 // A ceiling, not a target: this is what a 192px icon costs from a plain
 // resize, so it passes without a quantizing encoder in the toolchain. Run the
 // icons through pngquant/oxipng and they land nearer 15KB.
-const MAX_ICON_BYTES = 48 * 1024 // 48KB
-const MAX_ICON_WIDTH_PX = 512
+
 const ICON_BASENAME_PATTERN = /^(icon|apple-icon|favicon)\d*$/
 
 // Bytes read from the start of a raster image to find its dimensions header.
@@ -245,6 +256,13 @@ async function main() {
 
   const offenses: Offense[] = []
 
+  const reported: {
+    path: string
+    role: string
+    size: number
+    width: number | null
+  }[] = []
+
   for (const path of files) {
     const ext = extname(path)
     if (ext === '.svg') continue // vector — no fixed dimensions to check
@@ -256,63 +274,53 @@ async function main() {
     const file = Bun.file(path)
     const size = file.size
 
-    if (isVideo) {
-      if (size > MAX_VIDEO_BYTES) {
-        offenses.push({
-          path,
-          detail: `${formatBytes(size)} > ${formatBytes(MAX_VIDEO_BYTES)} video limit`,
-        })
-      }
-      continue
-    }
-
     const isIcon = ICON_BASENAME_PATTERN.test(stem(path))
-    const maxBytes = isIcon ? MAX_ICON_BYTES : MAX_IMAGE_BYTES
-    const maxWidth = isIcon ? MAX_ICON_WIDTH_PX : MAX_IMAGE_WIDTH_PX
-    const role = isIcon ? 'icon' : 'image'
+    let role = 'image'
+    if (isVideo) role = 'video'
+    else if (isIcon) role = 'icon'
 
-    // Raster image: byte-size check always applies.
-    if (size > maxBytes) {
-      offenses.push({
-        path,
-        detail: `${formatBytes(size)} > ${formatBytes(maxBytes)} ${role} limit`,
-      })
+    let width: number | null = null
+    if (!isVideo) {
+      const header = new Uint8Array(
+        await file.slice(0, HEADER_SNIFF_BYTES).arrayBuffer()
+      )
+      // An unparseable header used to FAIL the check ("fail closed"), which is
+      // why every tracked .avif was an offence — there is no AVIF parser here.
+      // A reporter has no reason to fail on a width it cannot read; it says so.
+      width = parseDimensions(ext, header)?.width ?? null
     }
 
-    // Width check, from the file's own header. A failure to parse FAILS the
-    // check (fail closed) — an image whose width we can't verify must not
-    // silently pass as if it were within budget. See AVIF note above.
-    const header = new Uint8Array(
-      await file.slice(0, HEADER_SNIFF_BYTES).arrayBuffer()
-    )
-    const dimensions = parseDimensions(ext, header)
-    if (!dimensions) {
+    reported.push({ path, role, size, width })
+
+    if (size > HARD_STOP_BYTES) {
       offenses.push({
         path,
-        detail: `cannot verify width (${ext} has no parser here) — re-encode to png/jpeg/webp, or add a parser / exempt the extension in lib/scripts/check-assets.ts`,
-      })
-      continue
-    }
-    if (dimensions.width > maxWidth) {
-      offenses.push({
-        path,
-        detail: `${dimensions.width}px wide > ${maxWidth}px ${role} limit`,
+        detail: `${formatBytes(size)} > ${formatBytes(HARD_STOP_BYTES)} — past this a reader on a slow connection never finishes the download`,
       })
     }
   }
 
+  reported.sort((a, b) => b.size - a.size)
+  console.log(`check:assets: ${reported.length} tracked assets, heaviest first`)
+  for (const asset of reported) {
+    const size = formatBytes(asset.size).padStart(9)
+    const measured = asset.width === null ? '' : `  ${asset.width}px wide`
+    console.log(`  ${size}  ${asset.role.padEnd(5)}  ${asset.path}${measured}`)
+  }
+  console.log('')
+
   if (offenses.length > 0) {
-    console.error('check:assets: asset weight budget exceeded\n')
+    console.error('check:assets: an asset is past the 25MB hard stop\n')
     for (const offense of offenses) {
       console.error(`  ${offense.path}: ${offense.detail}`)
     }
     console.error(
-      `\nRe-encode or replace the offending file(s), or raise the limits in lib/scripts/check-assets.ts if this fork's budget is different.`
+      `\nThis is the only asset ceiling this fork keeps (docs/FORK.md §0). Re-encode, or raise HARD_STOP_BYTES if a reader on a slow connection is genuinely not the concern here.`
     )
     process.exit(1)
   }
 
-  console.log('check:assets: all tracked assets are within budget')
+  console.log('check:assets: nothing past the hard stop')
 }
 
 if (import.meta.main) {

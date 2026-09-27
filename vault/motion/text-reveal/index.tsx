@@ -60,7 +60,6 @@ import s from './text-reveal.module.css'
 // Registered here rather than only in `components/effects/gsap.tsx` so this
 // component is correct even when it renders before the Lenis↔ScrollTrigger
 // bridge has been dynamically imported. `registerPlugin` is idempotent.
-// oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, SplitText)
 }

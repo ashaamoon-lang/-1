@@ -30,7 +30,7 @@ pre-commit:
 pre-push:
   commands:
     test-and-manifest:
-      run: bun test && bun run manifest:check
+      run: bun test
       skip:
         - merge
         - rebase

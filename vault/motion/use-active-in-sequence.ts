@@ -46,7 +46,6 @@ import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
 // Registered here as well as in `components/effects/gsap.tsx` so a consumer is
 // correct even when it renders before that bridge is dynamically imported.
 // `registerPlugin` is idempotent.
-// oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
 }
