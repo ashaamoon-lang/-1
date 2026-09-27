@@ -220,3 +220,52 @@ peramban-server yang terputus, bukan cacat halaman.
 
 Angka yang mengikat tetap CI: **722 lulus / 1 flaky / 14 dilewati** pada
 `6eb786e`.
+
+### 7.5 Bukti bahwa jalur tangkapannya memang bisa gagal, bukan hanya lambat
+
+Ditambahkan sesudah CI `1e0f743` kembali bersih. Pertanyaan yang tersisa bukan
+lagi _apa_ yang terjadi — §1.2 menjawabnya — melainkan **kenapa**.
+
+Diukur di konfigurasi yang sama dengan proyek `mobile` (DPR 3, `isMobile`),
+terhadap build produksi:
+
+```
+10 tangkapan berturut-turut tanpa jeda, viewport 1280x800
+   -> Protocol error (Page.captureScreenshot): Unable to capture screenshot
+
+12 tangkapan dengan jeda 400 ms, kedua viewport
+   -> ok 12, flat 0, gagal 0   (24 dari 24)
+
+dua worker paralel, hal yang sama
+   -> ok 12 x4, flat 0, gagal 0   (48 dari 48)
+```
+
+Galat protokol itu penting: Chromium **menolak** menangkap, bukan
+mengembalikan gambar yang salah. Jadi jalur tangkapan di konfigurasi ini
+memang fallible, dan bingkai seragam adalah bentuk kegagalan yang lebih
+halus dari keluarga yang sama.
+
+**Yang tetap tidak bisa saya lakukan:** memanggil bingkai kosong itu sesuka
+hati di laptop ini. Ia muncul sekali di dalam gerbang yang sebenarnya, dan nol
+kali dalam 48 tangkapan probe. Jadi sebabnya dipersempit ke **instrumen, bukan
+produk** — dengan galat protokol sebagai buktinya — dan tidak diatribusikan
+lebih jauh dari itu.
+
+Itu juga alasan bentuk perbaikannya benar: sebuah instrumen yang kadang gagal
+diambil ulang, tidak dipercaya.
+
+### 7.6 Riwayat flaky CI, supaya satu run bersih tidak dibaca sebagai penutupan
+
+```
+ci  bfc172f   721 lulus  1 flaky   visual-substance:187   aksen
+ci  188dd3f   721 lulus  1 flaky   visual-substance:187   aksen
+ci  f45d6d3   722 lulus  0 flaky   <- bersih, lalu flaky kembali
+ci  bcf78b0   722 lulus  1 flaky   visual-substance:212   aksen
+ci  e63b852   722 lulus  1 flaky   motion:156             reveal
+ci  6eb786e   722 lulus  1 flaky   visual-substance:214   aksen
+ci  1e0f743   723 lulus  0 flaky   <- bersih
+```
+
+Flaky **motion** absen di dua run berturut-turut sesudah Tahap 99. Flaky
+**aksen** pernah absen sekali di `f45d6d3` lalu kembali — itu sebabnya
+`1e0f743` yang bersih **tidak** dibaca sebagai penutupan.

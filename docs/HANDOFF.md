@@ -196,6 +196,17 @@ artinya semua gambar, di profil ponsel dengan DPR 2.6. `visual-substance:771`
 `networkidle`. Itu **anggaran muat halaman**, bukan kanvas — dan
 Tahap 91 memperbaikinya, satu tahap sesudah catatan ini dikoreksi.
 
+**Dipersempit lagi di Tahap 100, dan bentuknya kini diketahui.** Bingkai
+ber-aksen yang gerbang itu potret kadang **kosong** — seragam di sekitar
+luminans 242 pada pita yang mengukur 23 — sementara kontrolnya 600 ms kemudian
+benar. Itu tangkapan, bukan halaman: gradien region-nya resolusi ke
+`lab(4.43481 ...)`, warna yang sama dengan tanahnya. Ditekan lebih keras,
+Chromium di konfigurasi proyek `mobile` (DPR 3) **menolak** menangkap sama
+sekali — `Protocol error (Page.captureScreenshot)` — jadi jalur itu memang
+fallible. Gerbangnya sekarang mengambil ulang sekali dan, kalau tetap, gagal
+dengan sebab yang benar. **Belum diatribusikan lebih jauh**, dan riwayat CI di
+`TAHAP-100.md` §7.6 menunjukkan kenapa satu run bersih bukan penutupan.
+
 **Dipersempit di Tahap 98, dan sebab ketidakteratribusiannya ditemukan.**
 Artefak Playwright diunggah CI `if: failure()`, sementara uji flaky **lulus
 saat retry** — jadi buktinya dihasilkan setiap kali dan dibuang setiap kali.
