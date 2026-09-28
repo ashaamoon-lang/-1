@@ -366,6 +366,29 @@ tautan "Next entry". Keduanya diperbaiki (baris eksplisit; wadah `.reading`
 sendiri untuk gambar dan esai) dan diukur ulang: tanpa tumpang tindih di tiga
 posisi gulir, dua ukuran layar.
 
+**Satu penutup di setiap rute** (usulan peringkat 4). Setiap halaman berakhir
+dengan dua garis tipis dan ±97px kosong di antaranya (border dan padding atas
+footer menumpuk di atas garis strip wordmark); kini garis wordmark satu-satunya.
+Strip itu sendiri tak pernah penuh — `repeat={4}` meninggalkan 210–480px kosong;
+ia butuh `ceil(strip/salinan) + 1` salinan (7 di 2560px), jadi 8, **terukur penuh
+pada offset terburuk di 390/800/1440/1920/2560px** (probe pertamanya salah baca
+struktur DOM Marquee dan melaporkan "1 salinan" — dikoreksi sebelum dipercaya).
+Tautan lanjut kini berskala display: sampul proyek berikutnya tujuh kolom 3:2
+dengan nama 120px yang dibatasi supaya kata terpanjangnya muat (bukan
+`overflow-wrap: anywhere`, yang akan memotong "Pelabuhan" di tengah kata);
+"next practice" `h1`; journal memakai komponen yang sama pada `h2`, markup
+lokalnya dibuang. Footer di ponsel: dua kolom, target sentuh 44px — email
+sempat terukur 36px dan diperbaiki — dan alamat di-_fit_ satu baris.
+
+**Ditunda, dengan alasan:** morph sampul dari proyek ke proyek berikutnya.
+Memberi sampul "berikutnya: C" nama transisi C berarti halaman proyek ke
+katalog membentuk **dua** pasangan morph (hero B ↔ kartu B, dan C ↔ kartu C),
+padahal satu pasangan per navigasi adalah aturan yang dipertahankan — dan
+gerbangnya hanya menguji arah katalog→proyek, jadi ia tak akan menangkapnya.
+Yang benar adalah mempersenjatai nama itu hanya saat tautan ditekan (seperti
+`released` di kartu), dengan uji navigasi mundur di browser; itu pekerjaan
+tersendiri, bukan tambahan diam-diam di sini.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

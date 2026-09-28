@@ -25,6 +25,7 @@ import { JsonLd } from '@/lib/seo/json-ld'
 import { articleSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { NextPractice } from '@/vault/blocks/next-practice'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
 import { Reveal } from '@/vault/motion/reveal'
 
@@ -362,22 +363,20 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
           </Reveal>
         </div>
 
+        {/*
+          The same onward link the practice pages end on — the fork. It was
+          markup of its own (an `h3` in the left third, the design-critique
+          workflow found), so the site ended three different ways; it is now
+          one component at `h2`, the journal's quieter scale.
+        */}
         {next && next.slug !== entry.slug ? (
-          <Reveal as="aside" className={s.next}>
-            <p data-reveal-item className={cn('caption', s.nextEyebrow)}>
-              {t('nextEyebrow')}
-            </p>
-            <p data-reveal-item className={cn('h3', s.nextTitle)}>
-              <Link
-                href={`/journal/${next.slug}`}
-                className={s.nextLink}
-                data-press="next-entry"
-                data-intent=""
-              >
-                {next.title}
-              </Link>
-            </p>
-          </Reveal>
+          <NextPractice
+            href={`/journal/${next.slug}`}
+            eyebrow={t('nextEyebrow')}
+            label={next.title}
+            press="next-entry"
+            size="h2"
+          />
         ) : null}
       </article>
     </Wrapper>

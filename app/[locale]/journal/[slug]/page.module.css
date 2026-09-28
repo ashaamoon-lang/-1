@@ -197,40 +197,6 @@
   max-width: 65ch;
 }
 
-/* ── Next ─────────────────────────────────────────────────────────────── */
-
-.next {
-  display: flex;
-  flex-direction: column;
-  gap: desktop-vw(12px);
-  border-top: 1px solid var(--line);
-  padding-block-start: var(--section-lead);
-}
-
-.nextEyebrow {
-  margin: 0;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-}
-
-.nextTitle {
-  margin: 0;
-  max-width: 22ch;
-}
-
-.nextLink {
-  text-decoration: none;
-  color: inherit;
-  display: inline-block;
-  transition: opacity var(--duration-fast) var(--ease-out-quart);
-}
-
-.nextLink:hover,
-.nextLink:focus-visible {
-  opacity: 0.7;
-}
-
 /*
  * Stand down — Tahap 37.
  *
@@ -245,10 +211,6 @@
   .body,
   .header,
   .meta,
-  .next,
-  .nextEyebrow,
-  .nextLink,
-  .nextTitle,
   .page,
   .paragraph,
   .practice:hover,

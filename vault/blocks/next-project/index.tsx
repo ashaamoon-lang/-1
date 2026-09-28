@@ -1,5 +1,5 @@
 import cn from 'clsx'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -77,10 +77,10 @@ export function NextProject({
             <SanityImage
               image={toImageSource(cover)}
               alt=""
-              maxWidth={704}
+              maxWidth={840}
               className={s.image}
               data-intent=""
-              sizes="(max-width: 800px) 100vw, 33vw"
+              sizes="(max-width: 799px) 100vw, 58vw"
             />
             {/*
               The next work assembles rather than fades — Tahap 63.
@@ -111,7 +111,18 @@ export function NextProject({
             image description. The cover is `aria-hidden` and its `alt` empty
             for the same reason: it repeats the title, it does not add to it.
           */}
-          <span className={cn('h2', s.title)}>{title}</span>
+          <span
+            className={cn('h1', s.title)}
+            style={
+              {
+                '--fit-word': Math.max(
+                  ...title.split(/\s+/).map((word) => Array.from(word).length)
+                ),
+              } as CSSProperties
+            }
+          >
+            {title}
+          </span>
         </span>
       </Link>
     </Reveal>
