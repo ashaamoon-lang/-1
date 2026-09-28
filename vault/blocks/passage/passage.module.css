@@ -1,62 +1,242 @@
 /*
- * The passage: one screen of content, delivered over two and a half screens
- * of scroll.
+ * The passage: a reel of the work, pinned, then the section's title.
  *
  * Every rule here describes the **resting** state — what a reader sees with
- * JavaScript off, or with reduced motion on. GSAP's tweens are `fromTo`, so
- * the "from" only exists once the timeline has set it, and nothing here can
- * strand content invisible.
+ * JavaScript off. GSAP's tweens are `fromTo`, so the "from" only exists once
+ * the timeline has set it, and nothing here can strand content invisible.
+ * At rest the reel sits on its first plate: the others wait below the frame
+ * (`.plate:not(:first-child)`), which is the stylesheet's doing, not a tween's.
  */
 .passage {
   position: relative;
-  /*
-   * One screen, and `svh` rather than `vh` for the reason
-   * `vault/blocks/hero` records: on mobile browsers `vh` includes the
-   * collapsing address bar, so a `100vh` block is taller than the visible
-   * viewport on first paint.
-   *
-   * The scroll length is **not** here. It comes from the pin's own
-   * `end: '+=250%'`, which means no ScrollTrigger produces no spacer — a
-   * reader under reduced motion gets this element's natural height and not
-   * two and a half screens of empty page.
-   */
-  min-height: 100svh;
   display: grid;
-  align-items: center;
   padding-inline: var(--safe);
   overflow: clip;
 }
 
-.stage {
-  position: relative;
-  display: grid;
-  align-items: center;
-  min-height: 0;
+/*
+ * One screen while a reel is drawn, and `svh` rather than `vh` for the reason
+ * `vault/blocks/hero` records: on mobile browsers `vh` includes the collapsing
+ * address bar, so a `100vh` block is taller than the visible viewport.
+ *
+ * The scroll length is **not** here. It comes from the pin's own `end`, so no
+ * ScrollTrigger means no spacer.
+ */
+.withReel {
+  min-height: 100svh;
 }
 
 /*
- * The ground.
- *
- * `transform-origin: center` so the entry scale opens outward from the middle
- * rather than sliding in from a corner, and `will-change` because this is one
- * of exactly two scrubbed transforms on the page.
+ * The ground, across the whole section rather than behind the title — the
+ * defect the old passage shipped with (see the component's doc comment).
+ * A radial mask so the grid reads as a field the reel sits in, not a sheet
+ * of graph paper cut off at the viewport's edge. The mask is static; only
+ * `transform` and `opacity` are animated.
  */
 .ground {
   transform-origin: center;
   will-change: transform, opacity;
+  mask-image: radial-gradient(
+    ellipse 70% 65% at 50% 55%,
+    black 35%,
+    transparent 100%
+  );
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: end;
+  gap: mobile-vw(24px);
+  min-height: 0;
+
+  @media (--desktop) {
+    gap: desktop-vw(40px);
+  }
+}
+
+.withReel .stage {
+  padding-block: calc(var(--header-height) + mobile-vw(24px)) mobile-vw(24px);
+
+  @media (--desktop) {
+    padding-block: calc(var(--header-height) + desktop-vw(32px))
+      desktop-vw(32px);
+  }
+}
+
+/*
+ * The reel.
+ *
+ * Desktop: index, frame and caption on three columns of the twelve — 3, 6, 3
+ * — with the index and caption sitting on the frame's baseline. Mobile: the
+ * frame takes the width, and the caption and index share the row under it.
+ * `minmax(0, …)` on every track, `CLAUDE.md` #12.
+ */
+.reel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'frame frame'
+    'caption count';
+  align-items: end;
+  column-gap: var(--gap);
+  row-gap: mobile-vw(16px);
+
+  @media (--desktop) {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 3fr);
+    grid-template-areas: 'count frame caption';
+    row-gap: 0;
+  }
+}
+
+.count {
+  grid-area: count;
+  display: flex;
+  align-items: flex-end;
+  gap: mobile-vw(8px);
+  justify-self: end;
+
+  @media (--desktop) {
+    justify-self: start;
+    gap: desktop-vw(12px);
+  }
+}
+
+/* One numeral tall, so the strip behind it shows exactly one index. */
+.countMask {
+  height: 1em;
+  overflow: clip;
+}
+
+.countStrip {
+  display: grid;
+  will-change: transform;
+}
+
+.countValue {
+  display: block;
+  height: 1em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.countTotal {
+  color: var(--text-muted);
+  padding-bottom: 0.2em;
+}
+
+.frame {
+  grid-area: frame;
+  position: relative;
+  overflow: clip;
+  aspect-ratio: 4 / 5;
+  max-height: 52svh;
+  width: 100%;
+  justify-self: center;
+
+  @media (--desktop) {
+    aspect-ratio: auto;
+    height: 58svh;
+    max-height: none;
+  }
+}
+
+.plate {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  will-change: transform;
+}
+
+.plate:not(:first-child) {
+  transform: translateY(101%);
+}
+
+.plateMedia {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+/*
+ * The cover fills the frame whatever its own ratio — the dataset carries
+ * portrait, square and landscape works, and the frame is one shape.
+ */
+.plateMedia img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+/*
+ * Captions roll in step with the index: one row tall, so the strip behind
+ * shows one work's title and facts at a time. A title that would wrap is cut
+ * rather than allowed to change the row's height, because the roll is
+ * computed in whole rows.
+ */
+.captions {
+  grid-area: caption;
+  height: mobile-vw(72px);
+  overflow: clip;
+
+  @media (--desktop) {
+    height: desktop-vw(88px);
+  }
+}
+
+.captionStrip {
+  display: grid;
+  will-change: transform;
+}
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: mobile-vw(4px);
+  /* The same height as `.captions`, which is the row the roll counts in. */
+  height: mobile-vw(72px);
+  min-width: 0;
+
+  @media (--desktop) {
+    gap: desktop-vw(6px);
+    height: desktop-vw(88px);
+  }
+}
+
+.captionTitle {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Facts get two lines: the caption column is three of twelve, and the
+ * engagement, client and year of a real work rarely fit one.
+ */
+.captionMeta {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  color: var(--text-muted);
 }
 
 /*
  * The title's mask.
  *
- * `overflow: clip` and not `hidden`: `hidden` establishes a scroll container,
- * which makes the element a scroll port that can be focused and scrolled by
- * assistive technology even though nothing overflows it in the resting state.
- * `clip` cuts without that side effect.
+ * `overflow: clip` and not `hidden`: `hidden` establishes a scroll container
+ * that assistive technology can focus and scroll even though nothing
+ * overflows it at rest. `clip` cuts without that side effect.
  */
 .mask {
   position: relative;
-  z-index: 1;
   overflow: clip;
 }
 
@@ -66,11 +246,23 @@
 
 @media (--reduced-motion) {
   /*
-   * Nothing to switch off — the component never creates the ScrollTrigger
-   * under this preference, so there is no pin, no spacer, and no tween. This
-   * block exists to say so, and to hold the guarantee if a future change ever
-   * moves a transform into the stylesheet.
+   * No reel and no screen-tall box: the component creates no ScrollTrigger
+   * under this preference, so the passage is only its title, and the work
+   * follows at once. The reel is a preview of the grid below; under reduced
+   * motion the grid is the whole story.
    */
+  .reel {
+    display: none;
+  }
+
+  .withReel {
+    min-height: auto;
+  }
+
+  .withReel .stage {
+    padding-block: 0;
+  }
+
   .ground,
   .title,
   .stage {

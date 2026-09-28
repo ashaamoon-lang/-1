@@ -48,3 +48,50 @@ export const Indonesian: Story = {
     children: <SectionHeader title="Karya" aside="Enam karya" />,
   },
 }
+
+/**
+ * A plate for the reel. The catalogue has no CMS images, so each plate is a
+ * lit gradient — the reel is `aria-hidden` and its media decorative, which
+ * is what the home page passes too (`alt=""`).
+ */
+function plate(id: string, title: string, meta: string, hue: number) {
+  return {
+    id,
+    title,
+    meta,
+    media: (
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: `radial-gradient(circle at 30% 20%, oklch(0.78 0.08 ${hue}), oklch(0.3 0.06 ${hue}) 70%)`,
+        }}
+      />
+    ),
+  }
+}
+
+/**
+ * With a reel — what the home page passes since the fork. At rest, which is
+ * what a story shows: the first plate in the frame, index `01`, its caption,
+ * and the title below. The other plates wait under the frame until the
+ * pinned timeline wipes them up.
+ */
+export const WithReel: Story = {
+  args: {
+    children: (
+      <SectionHeader title="Recent engagements" aside="4 engagements" />
+    ),
+    plates: [
+      plate(
+        'fixture-1',
+        'Panas Sore',
+        'Architecture review, six weeks · 2025',
+        55
+      ),
+      plate('fixture-2', 'Tenun', 'Retainer, six months · 2025', 160),
+      plate('fixture-3', 'Arus', 'Evaluation build, ten weeks · 2024', 285),
+      plate('fixture-4', 'Takar', 'Data pipeline, fixed scope · 2024', 320),
+    ],
+  },
+}
