@@ -52,14 +52,14 @@ export function NextProject({
 }: NextProjectProps) {
   return (
     /*
-     * Revealed by hand, not by the coverage gate.
+     * Revealed by hand.
      *
-     * `e2e/reveal-coverage.e2e.ts` walks headings, and this block has none:
+     * `e2e/reveal-coverage.e2e.ts` (deleted in the fork) walked headings, and
+     * this block has none:
      * its title is a `<span>` inside the link so the link's accessible name is
      * the work's title alone (see the note below). It is still a full-width
      * block that arrives as the reader reaches the end of a project page, so
-     * it gets the same entrance as everything else — and the gate's own doc
-     * comment names it as the one thing it cannot see.
+     * it gets the same entrance as everything else.
      */
     <Reveal as="aside" className={cn(s.next, className)}>
       <Link

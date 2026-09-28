@@ -262,8 +262,8 @@ export default defineConfig({
 
     // --- Consciously disabled during the Biome -> Oxc migration ---------------
     // Under Biome these were nursery/warn, which never failed a build. `lint`
-    // now runs with --max-warnings=0, so leaving them on would turn pre-existing
-    // findings into hard failures. Off preserves today's effective behaviour.
+    // then ran with --max-warnings=0 (the fork removed it), so leaving them on
+    // would have turned pre-existing findings into hard failures.
     // 11 pre-existing sites (regex literals in scripts + tests).
     'eslint/prefer-named-capture-group': 'off',
     // Off on purpose, and it should stay off: the fix this rule asks for is

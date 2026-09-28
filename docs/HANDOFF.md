@@ -12,9 +12,18 @@
 ## 1. Posisi
 
 ```
-branch    claude/arth-design
-PR        #16, base `main`
+branch    claude/arth-unbound      ← fork, bercabang dari claude/arth-design di 22136de
+induk     claude/arth-design       PR #16, base `main`
 ```
+
+**Ini fork.** `docs/FORK.md` adalah dokumen pendiriannya dan dibaca lebih dulu:
+aturan yang membatasi ekspresi desain dilepas — anggaran, dial, kosakata gaya,
+ritual skill, spec-sebelum-kode, gerbang selera e2e — dan yang melindungi
+pembaca dipertahankan: axe, kontras terukur, reduced motion, keyboard, jalur
+tanpa JS, kebocoran GPU, header/CSP, penjaga token, dan kejujuran. Prinsipnya:
+**ukur, jangan veto.** Tidak ada lagi nomor tahap.
+
+Branch induk tidak disentuh dan tetap membawa PR-nya sendiri.
 
 Dua track berjalan paralel di repo ini dan keduanya nyata.
 `claude/satus-award-website-foundation-r6o5cf` (PR #9) membawa portabilitas
@@ -27,8 +36,8 @@ percaya dokumen:
 
 ```bash
 git rev-parse --short HEAD
-gh pr view 16 --json headRefOid,state,mergeStateStatus
-gh run list --branch claude/arth-design --limit 5
+git log --oneline 22136de..HEAD      # apa yang fork lakukan sejauh ini
+gh run list --branch claude/arth-unbound --limit 5
 ```
 
 > **Kenapa dihapus, bukan diperbarui.** Blok ini pernah berbunyi `af1f499` /
@@ -38,11 +47,11 @@ gh run list --branch claude/arth-design --limit 5
 > akan salah lagi setiap kali. Fakta yang tidak bisa benar saat ditulis tidak
 > ditulis; yang ditulis adalah perintah yang menjawabnya.
 >
-> Bandingkan dengan dua dokumen di repo ini yang **memverifikasi dirinya
-> sendiri** — blok `rule-coverage` di `CLAUDE.md` dan blok design-debt di
-> `DESIGN-SYSTEM.md` §7 — keduanya di-generate dan diuji agar tidak hanyut.
-> Nomor tahap di bawah kini ikut dijaga begitu, oleh
-> `lib/scripts/stage-position.test.ts`.
+> Dulu dua dokumen di repo ini **memverifikasi dirinya sendiri** — blok
+> `rule-coverage` di `CLAUDE.md` dan blok design-debt di `DESIGN-SYSTEM.md` §7
+> — dan nomor tahap dijaga `lib/scripts/stage-position.test.ts`. Fork
+> (langkah 1) menghapus ketiga kunci itu: mereka menjaga pembukuan, bukan
+> pembaca. Generatornya tinggal sebagai laporan.
 
 **Angka gerbang juga tidak ditulis di sini, dan alasannya sama.** Blok di atas
 menuliskan aturannya untuk hash commit; ia berlaku persis sama untuk tally uji,
@@ -51,16 +60,16 @@ menemukan **lima** angka di dokumen ini yang sudah tidak benar — dua di tabel
 gerbang yang dulu berdiri di sini, satu di §2, dan dua di §4 — lalu
 menggantinya dengan perintah, bukan dengan angka baru.
 
-`lib/scripts/stage-position.test.ts` kini menegakkannya: §1 dan §2 gagal kalau
-sebuah tally dipaku ke dalamnya. Tally yang **menyebut run atau tanggalnya**
-tetap boleh, dan tempatnya §5 — di sana ia tetap benar selamanya.
+Aturan itu dulu ditegakkan `stage-position.test.ts`; sejak fork ia hanya
+kebiasaan baik. Tally yang **menyebut run atau tanggalnya** tetap boleh, dan
+tempatnya §5 — di sana ia tetap benar selamanya.
 
 ```bash
-bun run check              # unit, lint, tipe, manifest, aset
+bun run check              # unit, lint, tipe, aset
 bun run build              # produksi
 bun run build-storybook    # SEBELUM suite e2e, bukan sesudah
 bunx playwright test       # terhadap server produksi yang sudah menyala
-gh run list --branch claude/arth-design --limit 5   # angka CI yang mengikat
+gh run list --branch claude/arth-unbound --limit 5  # angka CI yang mengikat
 ```
 
 Angka per tahap ada di entri `ROADMAP.md` masing-masing, **bersama tahapnya**,
@@ -72,8 +81,10 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke ingatan, dan bukan ke dokumen ini.
 
-Tahap terakhir yang dikerjakan: **100**. Entri per tahap ada di `ROADMAP.md`,
-spec-nya di `docs/stages/`.
+Tahap terakhir sebelum fork: **100**. Entri per tahap ada di `ROADMAP.md`,
+spec-nya di `docs/stages/` — keduanya kini arsip. Fork tidak menomori tahap;
+riwayatnya adalah `git log 22136de..HEAD` dan status eksekusi di
+`docs/FORK.md`.
 
 Suite e2e lokal dijalankan **tanpa `CI=1`**, terhadap server produksi yang dibangun
 dan dinyalakan lebih dulu. Sebabnya diukur: `CI=1` memicu `bun run build`
@@ -90,7 +101,7 @@ termasuk tiga nilai publiknya. **Nilai rahasia tidak ada di repo ini dan tidak
 boleh masuk** — ambil dari dashboard Sanity.
 
 ```bash
-git checkout claude/arth-design
+git checkout claude/arth-unbound
 bun install
 # buat .env.local — lihat MENJALANKAN-LOKAL.md §4
 bun run check
@@ -104,8 +115,8 @@ kecil, itu bukan repo ini.** RuleTester plugin JS oxlint meminta satu
 `RangeError: Array buffer allocation failed`, dan **nama rule yang disebut
 berbeda hampir setiap kali** — rule yang rusak tidak berpindah nama.
 Jalankan tahapnya satu per satu di sana (`bun test`, `bun run lint`,
-`bun run lint:types`, `bun run typecheck`, `bun run manifest:check`,
-`bun run check:assets`, `bun run test:oxlint-plugin`) dan percayai CI untuk
+`bun run lint:types`, `bun run typecheck`, `bun run check:assets`,
+`bun run test:oxlint-plugin`) dan percayai CI untuk
 tarikan penuhnya. `docs/stages/TAHAP-93.md` §7.5 memuat pengukurannya.
 
 ## 3. Cara kerja yang berlaku
@@ -113,13 +124,13 @@ tarikan penuhnya. `docs/stages/TAHAP-93.md` §7.5 memuat pengukurannya.
 Bukan aturan teknis — itu ada di `CLAUDE.md` dan `AGENTS.md`. Ini **cara
 menjalankan pekerjaannya**, diminta pemilik repo dan masih berlaku:
 
-| aturan                               | maksudnya                                                                                                  |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| **Satu tahap penuh, sampai tuntas**  | Spec dulu (`ROADMAP.md` §3.0), lalu kode, lalu **semua** gerbang, lalu commit dan push                     |
-| **Jangan menunggu persetujuan**      | Lanjut ke tahap berikutnya sendiri. Berhenti hanya kalau ada keputusan yang benar-benar milik pemilik repo |
-| **Nol konten karangan**              | Tidak ada nama klien, entri, atau angka yang tidak berasal dari sumber yang sudah ada                      |
-| **Katakan yang gagal atau dilewati** | `CLAUDE.md` #21. Mempersempit ruang lingkup diam-diam lebih buruk daripada gagal terbuka                   |
-| **Kerjakan sendiri**                 | Pemilik repo meminta pekerjaan dilakukan agen utama, bukan didelegasikan ke sub-agen                       |
+| aturan                                  | maksudnya                                                                                                  |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Satu pekerjaan penuh, sampai tuntas** | Kode, lalu **semua** gerbang, lalu commit dan push. Spec-sebelum-kode dilepas fork                         |
+| **Jangan menunggu persetujuan**         | Lanjut ke tahap berikutnya sendiri. Berhenti hanya kalau ada keputusan yang benar-benar milik pemilik repo |
+| **Nol konten karangan**                 | Tidak ada nama klien, entri, atau angka yang tidak berasal dari sumber yang sudah ada                      |
+| **Katakan yang gagal atau dilewati**    | `CLAUDE.md` #21. Mempersempit ruang lingkup diam-diam lebih buruk daripada gagal terbuka                   |
+| **Kerjakan sendiri**                    | Pemilik repo meminta pekerjaan dilakukan agen utama, bukan didelegasikan ke sub-agen                       |
 
 ### 3.1 Dua aturan yang tahap-tahap terakhir bayar mahal untuk pelajari
 
@@ -145,13 +156,12 @@ Yang menggantikannya adalah tiga sumber yang **menjaga dirinya sendiri**:
 
 | pertanyaan                                                | sumber                                | dijaga oleh                               |
 | --------------------------------------------------------- | ------------------------------------- | ----------------------------------------- |
-| Tahap apa yang sudah terkirim, dan apa isinya             | entri per tahap di `ROADMAP.md`       | `stage-position.test.ts`                  |
-| Berapa momen, bidang kedalaman, dan pin yang ada sekarang | blok papan skor di `DIREKSI.md` §3.2b | `design-scoreboard.test.ts`               |
+| Apa yang sudah terkirim, dan apa isinya                   | `git log`; sebelum fork, `ROADMAP.md` | tidak lagi diuji (fork, langkah 1)        |
+| Berapa momen, bidang kedalaman, dan pin yang ada sekarang | blok papan skor di `DIREKSI.md` §3.2b | tidak lagi diuji — regenerate dulu        |
 | Utang mana yang masih terbuka, dan sejak kapan            | §5 di bawah                           | dibaca manusia, ditulis dengan tanggalnya |
 
-Urutan kerja satu tahap tetap seperti §3: spec lebih dulu (`ROADMAP.md`
-§3.0), lalu kode, lalu semua gerbang, lalu commit dan push, lalu **baca CI dan
-tunggu selesai sebelum push berikutnya** — `ci.yml` memakai
+Urutan kerja tetap seperti §3: kode, lalu semua gerbang, lalu commit dan
+push, lalu **baca CI dan tunggu selesai sebelum push berikutnya** — `ci.yml` memakai
 `cancel-in-progress`, jadi push kedua membatalkan run yang pertama sebelum
 suite e2e-nya selesai.
 
@@ -164,8 +174,8 @@ suite e2e-nya selesai.
 | `/lab` + hosting                        | terblokir menunggu domain                                                                                 |
 | Merge PR #9                             | keputusan pemilik repo                                                                                    |
 | Mayor `three` 0.186, `@sanity/client` 8 | belum dinaikkan                                                                                           |
-| `epic-sequence` untuk halaman run       | tidak bisa diverifikasi tanpa data ter-semai                                                              |
-| Plafon aturan #3 (band durasi)          | tidak ditegakkan — lihat `lib/scripts/rule-coverage.ts`, tercatat ber-alasan                              |
+| Tiga token kontras tak terukur          | `hero-wash-mid`, `line`, `line-strong` — tercatat di `contrast.test.ts`, belum diputuskan                 |
+| Kontradiksi provenance `vault/`         | `vault/PROVENANCE-NOTE.md` vs `vault/magic/README.md` — lisensi, keputusan pemilik (`FORK.md` §1.4)       |
 | Typeface berlisensi                     | biaya pemilik repo                                                                                        |
 
 ### 5.1 Gerbang kanvas yang melewati dirinya sendiri — ditutup di Tahap 90

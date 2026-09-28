@@ -86,9 +86,8 @@ import s from './horizontal.module.css'
 interface HorizontalProps {
   /**
    * The moment's name. Becomes `data-epic`, which
-   * `e2e/interaction-grammar.e2e.ts` requires of any movement over 600ms and
-   * `e2e/epic-sequence.e2e.ts` uses to prove no two named moments share a
-   * scroll range.
+   * `e2e/interaction-grammar.e2e.ts` reads to name the moments it reports on
+   * every run.
    */
   name: string
   /**

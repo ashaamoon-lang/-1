@@ -140,7 +140,7 @@ adalah cara kasar mencapainya. Pada halaman 110svh dengan passage 300vh, itu
 instrumen yang salah: halaman seperti itu bisa memuat banyak momen **berurutan**
 tanpa satu pun bersaing, dan sebuah hitungan tidak bisa membedakannya.
 
-Jadi invariannya pindah ke `e2e/epic-sequence.e2e.ts`:
+Jadi di Tahap 60 invariannya pindah ke `e2e/epic-sequence.e2e.ts`:
 
 > Dua momen dengan **nama berbeda**, yang **tidak bersarang** satu sama lain,
 > tidak boleh menempati rentang gulir yang sama.
@@ -148,8 +148,11 @@ Jadi invariannya pindah ke `e2e/epic-sequence.e2e.ts`:
 **Lebih ketat soal kualitas, jauh lebih longgar soal kuantitas.** Hitungannya
 dulu tetap ada di `interaction-grammar.e2e.ts` sebagai _"kawat pemicu untuk
 kebablasan"_ — dan ternyata masih menegakkan plafon, bertentangan dengan
-kalimat di atas. Fork mengubahnya jadi laporan. Aturan tumpang-tindih di
-`epic-sequence.e2e.ts` ditinjau terpisah (`docs/FORK.md` §2, langkah 5).
+kalimat di atas. Fork mengubahnya jadi laporan, lalu menghapus
+`epic-sequence.e2e.ts` juga (`docs/FORK.md` §2, langkah 5): dua momen yang
+menumpuk di satu rentang gulir adalah pilihan komposisi, bukan cacat yang
+diderita pembaca. Kalimat "satu hal memukau pada satu waktu" tetap nasihat
+yang baik — ia hanya tidak lagi ditegakkan.
 
 ### 3.2b Papan skor — angka yang di-generate, bukan diingat
 
@@ -197,8 +200,8 @@ section tertahan (position: sticky)   4
 
 **Yang angka-angka ini TIDAK bisa lihat.** Ia memindai sumber, bukan
 halaman yang dirender, jadi ia tidak tahu **berapa momen yang jatuh pada
-satu rute** — itu pekerjaan `e2e/epic-sequence.e2e.ts`, yang menuntut dua
-momen bernama beda tidak menempati rentang gulir yang sama.
+satu rute** — angka itu dicetak `e2e/interaction-grammar.e2e.ts` pada
+setiap run, sebagai laporan, bukan plafon.
 
 Dua baris terakhir **tidak dijumlahkan**, dan itu disengaja. Keduanya
 menahan section saat gulir lewat, jadi keduanya masuk anggaran yang sama —

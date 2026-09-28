@@ -60,7 +60,8 @@ interface PracticeHeroProps {
    * counted as 1398px of used width. Measured as ink the other routes reach
    * 66-97% of the width (leftmost to rightmost), and this page's own
    * before-state is 45%, not the 57% claimed above it. The defect was real and the fix was right; only the size of it
-   * was overstated. `e2e/first-screen-void.ts` measures ink now.
+   * was overstated. `e2e/first-screen-void.ts` measured ink until the fork
+   * deleted it.
    */
   index?:
     | {

@@ -361,8 +361,9 @@ the whole rule. Tahap 37 read the histogram before enforcing it:
 36 stages, repeatedly needing the step between 8 and 16 and between 16 and 24,
 which the named ladder cannot express. Forcing 69 of those to move would have
 shifted real pixels on real pages to satisfy a ladder written before the site
-existed. The multiple-of-4 rule still rejects the twenty-nine-arbitrary-values
-problem outright, and `lib/styles/scripts/scale-rules.test.ts` enforces it.
+existed. The multiple-of-4 rule rejected the twenty-nine-arbitrary-values
+problem outright, enforced by `lib/styles/scripts/scale-rules.test.ts` until the
+fork deleted it (`docs/FORK.md`). The ladder is now the default, not a gate.
 
 **Below one step is not spacing.** 1, 2 and 3px are hairline alignment and
 optical inset — a switch's inner padding, a tab's baseline nudge. Rounding a
@@ -512,8 +513,9 @@ Kept here rather than quietly fixed in prose, because a design document that
 describes a system nobody built is worse than no document.
 
 **The counts below are generated, not written.** `lib/scripts/design-debt.ts`
-scans the repository and `design-debt.test.ts` fails `bun run check` if this
-block and the code disagree. Regenerate with:
+scans the repository. `design-debt.test.ts` used to fail `bun run check` when
+this block and the code disagreed; the fork deleted that lock, so the block can
+now fall behind. Regenerate before quoting it:
 
 ```bash
 bun lib/scripts/design-debt.ts --write

@@ -146,21 +146,52 @@ Urutannya bukan selera: langkah 1 membuka kunci yang membuat langkah 6 mungkin.
 
 ### Langkah 5 — gerbang selera e2e
 
-Sepuluh yang murni mempolisikan bentuk **dihapus**:
-`composition-density`, `first-screen-void`, `held-screen`, `grid-rows`,
-`project-spread`, `spatial-rhythm`, `header-balance`, `taste-preflight`
-(termasuk larangan em-dash pada copy), `reveal-coverage` kuota per-rute, dan
-klausa pemaksa varian di `exploratory-layer`.
+**5a — dieksekusi.** Sepuluh spec yang murni mempolisikan bentuk **dihapus**,
+bersama modul dan uji pendampingnya (14 berkas):
+`composition-density`, `first-screen-void` (+ `first-screen-void.ts`,
+`.test.ts`), `held-screen`, `grid-rows`, `project-spread`, `spatial-rhythm`,
+`header-balance`, `taste-preflight` (termasuk larangan em-dash pada copy, +
+`hero-stack.ts`, `.test.ts`), `reveal-coverage`, dan `epic-sequence`. Empat
+entri daftar-izin `mobile` di `playwright.config.ts` ikut keluar.
 
-Tujuh belas yang campuran **disunting klausa-per-klausa**, karena menghapusnya
-utuh akan membuang axe, reduced-motion, jalur tanpa JS dan deteksi kebocoran
-WebGL: `catalogue-layout`, `continuous-motion`, `exploratory-layer`,
+> **Daftar ini dikoreksi dari rencana semula**, yang menyebut
+> `reveal-coverage` sebagai "kuota per-rute" dan tidak menyebut `epic-sequence`
+> sama sekali. Membaca asersinya mengoreksi keduanya. `reveal-coverage`
+> seluruhnya satu mandat — setiap `h1`–`h3` wajib berada di dalam
+> `[data-reveal]` — jadi tidak ada klausa pembaca untuk disisakan.
+> `epic-sequence` menuntut tiap rute punya momen dan melarang dua momen berbagi
+> rentang gulir: aturan komposisi, bukan cacat yang diderita pembaca. Klausa
+> varian `exploratory-layer` pindah ke 5b, karena berkasnya memikul a11y.
+
+**Satu klausa diselamatkan**: _label CTA yang terbungkus ke dua baris adalah
+tombol rusak_ — kini `e2e/controls.e2e.ts`. Ia **tidak pernah bisa gagal** di
+bentuk aslinya: `el.getClientRects()` mengembalikan satu kotak untuk kontrol
+`inline-block`/flex, sebanyak apa pun baris labelnya. Versi baru menghitung
+puncak baris per text node lewat `Range`, dengan toleransi 3 px. Dibuktikan
+merah: CTA beranda dipaksa 48 px → `"See the work" (3 lines)`; sebelum dipaksa 0. Versi pertamanya sendiri keliru — chip filter katalog (label di atas angka,
+44 px) terbaca "3 baris" — dan itu dikoreksi sebelum di-commit. `runs one theme`
+**tidak** diselamatkan: tema yang berganti di tengah gulir adalah teknik, dan
+kontrasnya tetap diukur `contrast-situ`.
+
+Komentar yang masih menyebut gerbang terhapus sebagai penegak aktif dikoreksi
+di tempat (28 berkas kode dan dokumen). Yang berupa **sejarah** — "gerbang X
+merah di Tahap N" — dibiarkan, karena ia tetap benar.
+
+**5b — berikutnya.** Tujuh belas yang campuran **disunting
+klausa-per-klausa**, karena menghapusnya utuh akan membuang axe,
+reduced-motion, jalur tanpa JS dan deteksi kebocoran WebGL: `catalogue-layout`, `continuous-motion`, `exploratory-layer`,
 `first-screen`, `gallery-run`, `interaction-grammar`, `media-edge`, `motion`,
 `practice-capabilities`, `practice-page`, `project-detail`, `route-budget`,
 `scale-continuity`, `site-reach`, `visual-substance`, `vocabulary`,
 `command-palette`.
 
 ### Tidak disentuh sama sekali
+
+> **Koreksi, dicatat terbuka:** judul ini tidak sepenuhnya benar untuk
+> `vault/`. Fork mengubah **komentar** di sana — direktif `oxlint-disable` yang
+> jadi mati ketika rule-nya dimatikan (langkah 3), dan komentar yang menunjuk
+> gerbang terhapus (langkah 5). Kode, props, perilaku, dan header provenance
+> `vault/` tidak disentuh.
 
 `vault/` dan header provenance-nya, `tools/oxlint/anti-slop/` (MIT-vendored),
 `.claude/skills/` (taste-skill, ui-ux-pro-max — wewenangnya dicabut, isinya

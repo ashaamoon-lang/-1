@@ -497,9 +497,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <section id="outcome" data-region="" className={s.outcome}>
               {/*
                 `caption` and `h3` come from the type scale in `tailwind.css`,
-                applied here rather than re-declared in the stylesheet —
-                `scale-rules.test.ts` grants a component its own `font-size`
-                only with a written reason, and there is none to give. Same
+                applied here rather than re-declared in the stylesheet: the
+                scale already has the step, so a local `font-size` would only
+                be a second copy of it. Same
                 `cn('<utility>', s.<class>)` shape `/journal` uses throughout.
 
                 The label stays an `<h2>`: `ProjectSpine` links a row at

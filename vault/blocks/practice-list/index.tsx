@@ -98,8 +98,7 @@ export function PracticeList({
             {/*
               The heading lives inside the summary so the disclosure's
               accessible name is the practice, and the document outline still
-              has an h3 per practice for `e2e/reveal-coverage.e2e.ts` and for
-              anyone navigating by heading.
+              has an h3 per practice for anyone navigating by heading.
             */}
             {/*
               The summary is this block's pressable noun, not the link inside

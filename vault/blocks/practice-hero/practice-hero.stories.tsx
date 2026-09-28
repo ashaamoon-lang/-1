@@ -3,8 +3,8 @@ import type { Meta, StoryObj } from '@storybook/react'
 import { PracticeHero } from './index'
 
 /**
- * The top of a practice's own page: four text elements and nothing else,
- * which is the ceiling `e2e/taste-preflight.e2e.ts` sets for a hero.
+ * The top of a practice's own page: four text elements and nothing else —
+ * a ceiling `e2e/taste-preflight.e2e.ts` set for a hero until the fork.
  *
  * Its `<h1>` sits inside a `<ViewTransition>` so the practice name on the home
  * page morphs into it. That half needs two pages, so it cannot be shown here —

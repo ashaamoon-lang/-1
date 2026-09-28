@@ -369,10 +369,11 @@ test.describe('interaction grammar', () => {
    * entirely: such a page can hold many moments **in sequence** without any
    * of them competing, and a count cannot tell the difference.
    *
-   * So the real invariant moved to `e2e/epic-sequence.e2e.ts` — two moments
-   * with different names, neither nested in the other, may not occupy the
-   * same scroll range. That is stricter about quality and far looser about
-   * quantity, which is the trade this direction asked for.
+   * So Tahap 60 moved the invariant to `e2e/epic-sequence.e2e.ts` — two
+   * moments with different names, neither nested in the other, might not
+   * occupy the same scroll range. The fork deleted that file too: layering
+   * two moments over one stretch of scroll is a composition choice, not a
+   * defect the reader suffers.
    *
    * What stays here is the **runaway guard**, and the assertion above it that
    * matters more than either: every movement past the standard band must sit
@@ -531,8 +532,9 @@ test.describe('interaction grammar', () => {
          * replaced by its overlap rule because "the count was never the thing
          * worth protecting" — and this line went on enforcing it.
          *
-         * The overlap rule it pointed to is kept in `epic-sequence.e2e.ts`.
-         * Here the route's moments are printed, so the number stays visible.
+         * The overlap rule it pointed to went with `epic-sequence.e2e.ts` in
+         * the fork's step 5. Here the route's moments are printed, so the
+         * number stays visible.
          */
         const unnamed = moved.filter((item) => item.epic === null)
         console.log(

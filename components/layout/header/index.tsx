@@ -77,7 +77,7 @@ const STORYBOOK_ENABLED =
  * this change removes.
  *
  * Three and not more. `taste-skill` SKILL.md §4.7 caps the navigation at one
- * line and 80px, and `e2e/taste-preflight.e2e.ts` measures it. These three
+ * line and 80px; since the fork that is advice, not a gate. These three
  * are the site's top-level shapes: the work, the practice behind it, and the
  * writing about it — `/practice/<value>` has no index route of its own, and
  * is reached from the home page's practice list and the catalogue's chips.

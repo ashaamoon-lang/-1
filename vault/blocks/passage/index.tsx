@@ -204,9 +204,9 @@ export function Passage({ children, className }: PassageProps) {
       data-epic="arth-passage"
       /*
        * The heading inside is announced by this moment, not by the reveal
-       * contract — `e2e/reveal-coverage.e2e.ts`.
+       * contract — `e2e/reveal-coverage.e2e.ts`, deleted in the fork.
        *
-       * That gate asks that no heading arrives unannounced, and its escape
+       * That gate asked that no heading arrive unannounced, and its escape
        * hatch is exactly this attribute: an explicit exemption, at the place
        * it applies, rather than a heading quietly slipping through. The
        * header lost its `reveal` prop when it moved in here because a

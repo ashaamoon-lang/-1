@@ -126,9 +126,11 @@ export function Theme({
    * route's markup, already behind the page-transition overlay, so nothing
    * cross-fades and no element animates its own colour.
    *
-   * `<html>` deliberately carries no `data-theme` any more:
-   * `e2e/taste-preflight.e2e.ts` asserts exactly one distinct value per page,
-   * and a stale default on the document element would be a second one.
+   * `<html>` deliberately carries no `data-theme` any more: a stale default
+   * on the document element would be a second, contradicting value beside the
+   * one this ground carries. (`e2e/taste-preflight.e2e.ts` used to assert one
+   * value per page; the fork deleted it, and a page may now turn its theme on
+   * purpose — but a leftover default is a bug either way.)
    */
   if (!global) return provided
 

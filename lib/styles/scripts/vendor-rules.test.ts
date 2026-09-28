@@ -9,8 +9,8 @@ import { Glob } from 'bun'
  * ## Why a gate exists before a single component is used
  *
  * This repo already learned what happens when a category of value arrives
- * with no gate watching it. `lib/styles/scripts/scale-rules.test.ts` records
- * the bill: **192 of 375 spacing occurrences off the ladder, 53 `font-size`
+ * with no gate watching it. `lib/styles/scripts/scale-rules.test.ts`
+ * (deleted in the fork) recorded the bill: **192 of 375 spacing occurrences off the ladder, 53 `font-size`
  * declarations bypassing the scale, two complete parallel type scales**, all
  * of it accumulated across 36 stages of careful work by an author who was
  * trying to follow the system.
@@ -30,7 +30,7 @@ import { Glob } from 'bun'
  *
  * ## Sources, not build output
  *
- * The same boundary `motion-rules.test.ts` and `taste-rules.test.ts` draw,
+ * The same boundary `motion-rules.test.ts` draws,
  * for the same reason: a rule about what we write has to check what we write.
  * A component that ships to no route yet still has to be correct, because
  * "it renders nowhere" is precisely how `vault/motion/page-transition` sat
@@ -56,8 +56,8 @@ interface Finding {
 /**
  * Blank out comments, keeping newlines so line numbers survive.
  *
- * Copied in shape from `taste-rules.test.ts`, and for the reason that file
- * records: splitting a line at `/*` reads the continuation lines of a block
+ * Copied in shape from `taste-rules.test.ts` (deleted in the fork), for the
+ * reason that file recorded: splitting a line at `/*` reads the continuation lines of a block
  * comment as code, so a provenance header explaining *why* a colour was
  * replaced would be reported as the colour.
  *
@@ -74,7 +74,7 @@ function stripComments(source: string): string {
  * Is the line, or the contiguous comment block above it, an exemption?
  *
  * Walks back through the whole comment block rather than one line —
- * `scale-rules.test.ts` records why: for a block comment, `raw[index - 1]` is
+ * `scale-rules.test.ts` recorded why: for a block comment, `raw[index - 1]` is
  * the closing `*\/`, so a one-line lookback can only ever find single-line
  * reasons, and a reason worth writing rarely fits on one line.
  */

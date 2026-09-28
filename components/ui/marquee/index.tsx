@@ -133,8 +133,8 @@ export function Marquee({
        * Names one marquee, so a gate can count instances rather than guess
        * from class names — Tahap 42.
        *
-       * `e2e/taste-preflight.e2e.ts` enforces `taste-skill`'s one-marquee
-       * rule and counted `[class*="marquee"]`. CSS modules put the source
+       * `e2e/taste-preflight.e2e.ts` enforced `taste-skill`'s one-marquee
+       * rule (deleted in the fork) and counted `[class*="marquee"]`. CSS modules put the source
        * filename into every generated class name, so `.inner` matched too and
        * a single strip with four repeats reported as **five** marquees. The
        * gate was measuring the stylesheet, not the page.
