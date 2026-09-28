@@ -277,8 +277,8 @@
   /*
    * Facts, then the notes, beside the cover — the fork. Sticky under the
    * header while the portrait scrolls past, so the argument stays next to
-   * the picture it is about. Layout, not animation: nothing here moves by a
-   * transform (`CLAUDE.md` #4).
+   * the picture it is about. This is layout, and nothing here animates or
+   * moves by a transform (`CLAUDE.md` #4).
    */
   .hero[data-cover='half'] .side {
     grid-column: 2;

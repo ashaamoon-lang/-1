@@ -184,9 +184,18 @@ describe('the reduced-motion contract reaches every stylesheet', () => {
 
     const offenders: string[] = []
     for (const [file, source] of files) {
-      const animates = /(^|\s)(transition|animation)(-[a-z-]+)?:/m.test(source)
+      /*
+       * Read the code, not the prose — the fork. This matched the raw source,
+       * so a comment that merely used the word ("layout, not animation: …")
+       * made a stylesheet with no animation at all an offender; it cost a
+       * rejected push before it was found. Comments are blanked for the two
+       * questions about code. `motion-exempt:` is itself a comment, so that
+       * one is still asked of the source.
+       */
+      const code = source.replace(/\/\*[\s\S]*?\*\//g, '')
+      const animates = /(^|\s)(transition|animation)(-[a-z-]+)?:/m.test(code)
       if (!animates) continue
-      if (/@media\s*\(--reduced-motion\)/.test(source)) continue
+      if (/@media\s*\(--reduced-motion\)/.test(code)) continue
       if (/\/\*\s*motion-exempt:/.test(source)) continue
       offenders.push(file)
     }
