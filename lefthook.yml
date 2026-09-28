@@ -27,12 +27,13 @@ pre-commit:
       run: bun node_modules/typescript/bin/tsc --noEmit
       stage_fixed: false
 
-# Build stays CI-only (too slow for a local pre-push gate). Tests (~4s) and
-# the manifest check (~1s) are cheap enough to run here, so a push can't land
-# with a broken suite or a stale COMPONENTS.md.
+# Build stays CI-only (too slow for a local pre-push gate). The unit suite is
+# cheap enough to run here, so a push can't land with it broken. The manifest
+# check that used to share this job left in the fork (docs/FORK.md, step 1):
+# COMPONENTS.md is a report now, regenerated when wanted.
 pre-push:
   commands:
-    test-and-manifest:
+    unit-tests:
       run: bun test
       skip:
         - merge

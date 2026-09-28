@@ -255,6 +255,44 @@ hilang, dan selama ini tertutup oleh daftar bukan oleh desain:
 Apa yang dibangun ditulis saat gagasannya ada — menjadwalkannya di muka justru
 salah satu tata cara yang fork ini lepas.
 
+### 3.1 Batas yang dipegang saat mendesain
+
+Pekerjaan desain menyunting blok **milik proyek ini sendiri** —
+`vault/blocks/*` dan `vault/motion/*` yang header provenance-nya berbunyi
+_"original work for this project"_. Itulah situsnya; tidak ada cara membangun
+desain yang lebih baik tanpa menyentuhnya. Yang **tetap tidak disentuh** adalah
+aset kurasi pihak ketiga: `vault/magic/*` (Magic UI, MIT), `tools/oxlint/anti-slop/`,
+`.claude/skills/`, font, dan dependencies. Konten tetap tidak dikarang: yang
+ditampilkan berasal dari CMS atau kamus yang sudah ada.
+
+### 3.2 Yang dibangun
+
+**Beranda — Passage menjadi reel karya.** Dilihat frame demi frame di
+1440×900, Passage Tahap 49 adalah 2,5 layar gulir berisi layar gelap dan satu
+pita tick. Grid yang menjadi seluruh narasinya diposisikan `inset: 0` di dalam
+stage setinggi judul, jadi hanya ±100px yang pernah tergambar. Sesudah pin
+lepas, kartu pertama datang 500px kemudian.
+
+Kini: grid studio membentang di seluruh layar ter-pin; sampul keempat karya
+(dari CMS) disapu naik satu per satu ke dalam bingkai sementara gambar di
+dalamnya bergerak berlawanan dan mengendap dari `scale 1.2`; indeks `01–04` dan
+keterangan (judul + fakta) bergulir seirama; lalu judul seksi naik dan pin
+lepas **langsung** ke grid karya yang sama. Reel `aria-hidden` dan tanpa
+target fokus — setiap plat adalah duplikat kartu yang menyusul, yang membawa
+tautan dan alt aslinya. Tanpa JS ia diam di plat pertama; di reduced motion ia
+tidak digambar dan Passage hanya setinggi judulnya.
+
+Dua cacat tertangkap dengan melihat, bukan dengan gerbang: build pertama
+menampilkan sampul pertama di keempat indeks (transform CSS resting dibaca GSAP
+sebagai `y` piksel, dan tween `yPercent` menumpuk di atasnya), dan di ponsel
+sampul landscape dimuat 390px lalu ditarik ke ±630px (`sizes` mengikuti
+viewport, bukan bingkai potret).
+
+**`/studio` dan halaman proyek — `step-sequence` memakai lebarnya.** Tiap
+langkah dulu judul 36px + tiga baris isi dalam satu kolom: sepertiga kanan dan
+sebagian besar 62svh-nya kosong. Kini nomor, judul berskala display, dan isi
+`p-big` di kolom kanan, sebaris dengan judulnya.
+
 ---
 
 ## 4. Cara kerja, satu paragraf

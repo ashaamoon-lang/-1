@@ -154,9 +154,20 @@
   transition: opacity var(--duration) var(--ease-out-expo);
 
   @media (--desktop) {
-    grid-template-columns: desktop-vw(64px) minmax(0, 1fr);
+    /*
+     * Number, title, body — three columns since the fork. The step used to
+     * set a 36px title and three lines of body in one column, which left the
+     * right third of the screen and most of each step's 62svh empty: the
+     * density dial held at 3, which the fork retired (`docs/FORK.md`). The
+     * title now carries the step at display size, and the body sits beside
+     * it on the same row — not at the foot of the block, for the reason
+     * recorded below.
+     */
+    grid-template-columns:
+      desktop-vw(64px) minmax(0, 6fr)
+      minmax(0, 5fr);
     column-gap: var(--gap);
-    align-items: baseline;
+    align-items: start;
     /*
      * The length that makes the pin real.
      *
@@ -221,11 +232,23 @@
   }
 }
 
+/*
+ * The step's title at display size. `text-wrap: balance` because a project's
+ * chapters pass their own titles here, and a long one should break into even
+ * lines rather than leave one word alone under a wide first line.
+ */
 .title {
   margin: 0;
+  font-size: clamp(32px, 8.4vw, 44px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 
   @media (--desktop) {
     grid-column: 2;
+    font-size: clamp(44px, 5.6vw, 104px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
   }
 }
 
@@ -235,6 +258,9 @@
   color: var(--text-muted);
 
   @media (--desktop) {
-    grid-column: 2;
+    grid-column: 3;
+    max-width: 40ch;
+    /* Down to the title's x-height, so the two read as one line of thought. */
+    padding-block-start: 0.6em;
   }
 }

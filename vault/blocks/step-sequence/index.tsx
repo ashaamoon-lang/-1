@@ -186,7 +186,7 @@ export function StepSequence({
               {pad(index + 1)}
             </p>
             <h3 className={cn('h3', s.title)}>{step.title}</h3>
-            <p className={s.body}>{step.body}</p>
+            <p className={cn('p-big', s.body)}>{step.body}</p>
           </li>
         ))}
       </ol>
