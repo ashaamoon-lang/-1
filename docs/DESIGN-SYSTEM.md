@@ -22,63 +22,54 @@ defect, not a shortcut.
 
 ---
 
-## 0. The dials, and the design read
+## 0. The dials are retired — the fork
 
-Added in Tahap 34, from `.claude/skills/taste-skill/` (MIT, provenance in
-`docs/PROVENANCE.md` §3). Everything below §1 is a token contract; this
-section is the _intent_ those tokens serve, and it exists because "make it
-more exploratory" is a feeling until it has a number.
+Tahap 34 took three numbers from `.claude/skills/taste-skill/` (MIT, provenance
+in `docs/PROVENANCE.md` §3) and made them gate every layout, motion and
+density decision: `DESIGN_VARIANCE 7`, `MOTION_INTENSITY 9`,
+`VISUAL_DENSITY 3`. VARIANCE was held below 8 specifically to exclude
+masonry; DENSITY was held at 3.
 
-### The design read
+This section's own text conceded the problem: the numbers were **"intent, not
+measurement. No gate can prove a page 'is at VARIANCE 7'."** A ceiling nobody
+can measure is a ceiling on imagination and nothing else, so under
+`docs/FORK.md` they no longer gate anything. Masonry is not excluded. Density is
+not held at 3. The skill stays vendored and may be consulted; it has no
+authority.
 
-> Reading this as: a commissioned-work studio site for clients and curators,
-> in a monochrome gallery language, leaning on its own system (`vault/` +
-> Base UI) rather than a third-party design system.
+What the dials were reaching for still matters, and it is judged the way the
+fork judges everything: by looking at the page.
 
-### The three dials
+### The design read, corrected
 
-`taste-skill` SKILL.md §1 and §7 gate every layout, motion and density
-decision on three values. Its baseline is `8 / 6 / 4`. Arth runs **`7 / 9 / 3`**.
+The old read described _"a commissioned-work studio site for clients and
+curators, in a monochrome gallery language."_ That is what the site began as.
+It is now **an agency site whose motion is what brings a client in** —
+`CLAUDE.md` says so, and the three practices (consulting, AI and data,
+commissioned work) are the subject. The monochrome palette is still the
+default; it is not a law.
 
-| Dial               | Was |    Is | Why                                                                                                                                                                                                                                                                                                                   |
-| ------------------ | --: | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DESIGN_VARIANCE`  |   3 | **7** | §7 calls 1–3 "predictable: symmetrical CSS Grid, 12-col, equal fr-units", which described `project-grid.module.css` exactly. 7 buys asymmetric offsets and varied ratios. Not 8: §7 puts masonry and `padding-left: 20vw` there, and a grid that stays legible as a grid is how six works get compared to each other. |
-| `MOTION_INTENSITY` |   4 | **9** | §7 defines 8–10 as scroll-triggered reveals, parallax and scroll-driven animation via ScrollTrigger — the architecture this repo already had and barely spent. The preset for a studio portfolio is 7; 9 is deliberate, and the owner asked for it.                                                                   |
-| `VISUAL_DENSITY`   |   2 | **3** | The one dial that barely moves, on purpose. §7 puts 8–10 at "cockpit: tight paddings, no card boxes, mandatory `font-mono` for all numbers", which would bury the subject. A work site is an art gallery, and 3 keeps it one.                                                                                         |
+### A result worth keeping — Tahap 43
 
-The numbers are **intent, not measurement**. No gate can prove a page "is at
-VARIANCE 7". What is gated is the mechanical half of the skill —
-`e2e/taste-preflight.e2e.ts` and `lib/styles/scripts/taste-rules.test.ts` —
-and every stage from 34 on names the dial it is spending in its §Hasil.
+Where `DESIGN_VARIANCE` was actually spent, it was measurable even though the
+dial was not. At 1440x900 the six works sat at **two** distinct `x` values and
+**three** distinct `y` values, every card 691 x 919 to the pixel.
+`work-constellation` gave the catalogue three editorial offsets cycled by index
+and two parallax distances (4 and 9), and the page went to **six** distinct tops
+with the columns drifting against each other.
 
-**Where `DESIGN_VARIANCE` was actually spent — Tahap 43.** The dial was set
-to 7 in Tahap 34 and the catalogue went on running at 3 for nine stages. That
-is measurable even though the dial is not: at 1440x900 the six works sat at
-**two** distinct `x` values and **three** distinct `y` values, with a row
-pitch of 935px three times running and three of three rows sharing an
-identical top. Every card was 691 x 919 to the pixel.
+`e2e/exploratory-layer.e2e.ts` still asserts that no two cards ever overlap at
+any of twelve scroll positions. That one stays: overlapping cards hide the work,
+which is a reader problem, not a taste one. Its clauses that _mandated_ variance
+are a separate matter (`docs/FORK.md` §2, step 5).
 
-`work-constellation` gives the catalogue three editorial offsets cycled by
-index, so no row runs level, and gives the two columns different parallax
-distances (4 and 9) so their relationship changes as the page is read. After:
-**six** distinct tops rather than three, and a per-column drift difference
-where there was none — measured at `1.863183333333333` against
-`1.863183333333333` before, identical to thirteen decimal places.
+### On the skill's own example
 
-The ceiling in the same row of the table still holds: the offsets are three
-fixed values from the grid step, not masonry, and
-`e2e/exploratory-layer.e2e.ts` asserts no two cards ever overlap at any of
-twelve scroll positions. A grid that stays legible as a grid is still how six
-works get compared to each other.
-
-### What was adopted, and what was refused
-
-`docs/stages/TAHAP-34.md` §5 lists the thirteen rules adopted and the defect
-each one closed; §6 lists the five refused. The refusal that matters most
-here: §7's own example of fluid motion is
-`transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1)`, which breaks three of
-this project's hard rules at once — `all`, a 300ms default, and a raw bezier.
-Where the skill and `CLAUDE.md` disagree, `CLAUDE.md` wins.
+Tahap 34 refused the skill's example `transition: all 0.3s cubic-bezier(0.16,
+1, 0.3, 1)` for breaking three rules at once. Two of them — the 300ms default
+and the raw bezier — are retired. The third still holds, for a reader's
+reason rather than a taste one: `transition: all` can animate layout
+properties, and `CLAUDE.md` #4 is about the jank that causes.
 
 ---
 
@@ -151,8 +142,11 @@ theme no page applied, and with no chromatic accent it described nothing.
 | `light` | paper     | ink         | ink        |
 | `dark`  | ink       | paper       | paper      |
 
-Components must reference the semantic role (`var(--color-primary)`), never a
-literal. **There is no longer any literal to reference:** `--color-black`,
+Semantic roles (`var(--color-primary)`) are the default, because they are what
+theming switches — a literal stays the same colour in both themes. That was
+`CLAUDE.md` #9; it is retired as a rule in the fork, and a literal is allowed
+when a design wants one. One fact stands regardless: **there is no longer any
+palette literal to reference by name:** `--color-black`,
 `--color-white`, `--color-red`, `--color-blue` and `--color-green` no longer
 exist, so `bg-black` and friends are dead classes that silently do nothing.
 Tahap 1 §3 lists every component that had to be corrected because of it.
@@ -170,8 +164,10 @@ place without touching every component.
 `lib/styles/colors.ts` uses `oklch()`. darkroom's production site uses `lab()`
 with `color-mix(in oklab, …)`. Perceptual colour space is not theoretical:
 tints and shades derived in sRGB lose chroma and go muddy, while oklch keeps
-them consistent. Derive every variation with `color-mix(in oklab, …)`, never
-by hand-picking a hex. Six tokens in `global.css` are derived this way — `--surface`,
+them consistent. That is why the existing variations are derived with
+`color-mix(in oklab, …)` — it is good advice rather than a requirement since
+the fork retired `CLAUDE.md` #10, and a hand-picked colour is allowed when it is
+the right one. Six tokens in `global.css` are derived this way — `--surface`,
 `--surface-2`, `--line`, `--line-strong`, `--text-muted` and `--hero-wash-to`
 — every one of them a `color-mix(in oklab, …)`. `contrast.test.ts` parses
 those recipes out of the stylesheet and pins the list, so a seventh cannot

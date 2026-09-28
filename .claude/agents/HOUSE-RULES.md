@@ -47,19 +47,27 @@ daripada 30 yang dicampur nit.
 ## 5. Perintah yang dipakai
 
 ```bash
-bun run check              # oxlint, oxfmt, type-aware, tsc, unit, manifest, aset
+bun run check              # oxlint, oxfmt, type-aware, tsc, unit, aset
 bun run build              # build produksi
-CI=true bun run test:e2e   # Playwright + axe — sinyal yang menentukan
+bun run start              # server produksi — biarkan menyala
+bunx playwright test --workers=2   # Playwright + axe, terhadap server itu
 bun run build-storybook
 bun run brand:assets       # render ulang kartu OG + ikon dari token
 ```
 
-`CI=true` wajib untuk e2e. Tanpa itu Playwright memakai dev server dan
-`not-found.e2e.ts` flake karena kompilasi on-demand berlomba dengan validasi
-prefetch Next.
+**Jalankan e2e terhadap server produksi, bukan dev server.** Dev server
+membuat `not-found.e2e.ts` flake karena kompilasi on-demand berlomba dengan
+validasi prefetch Next.
 
-## 6. Dokumentasi ikut, bukan menyusul
+Baris ini dulu berbunyi _"`CI=true` wajib untuk e2e"_. Itu bertentangan dengan
+yang terukur: `CI=1` memicu `bun run build` kedua di dalam `webServer`, build
+memuncak 3,35 GB RSS, dan di laptop 8 GB suite mati sebelum tes pertama
+(`docs/HANDOFF.md`, `docs/MENJALANKAN-LOKAL.md` §8). Bangun, nyalakan, lalu
+jalankan Playwright — `reuseExistingServer` memakai server yang sudah ada.
 
-Tiap tahap menghasilkan `docs/stages/TAHAP-<n>.md` **sebelum** kodenya ditulis
-(roadmap §3.0), lalu dikoreksi di tempat kalau ternyata salah — bukan ditulis
-ulang seolah tidak pernah keliru.
+## 6. Kalau salah, koreksi di tempat
+
+Fork melepas kewajiban menulis stage-spec sebelum kode (`docs/FORK.md`); tidak
+ada lagi nomor tahap. Yang tetap: kalau sebuah klaim ternyata salah, ia
+dikoreksi **di tempat** dengan menyebut apa yang keliru — bukan ditulis ulang
+seolah tidak pernah keliru.
