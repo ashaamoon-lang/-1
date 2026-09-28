@@ -109,9 +109,14 @@
   overflow: clip;
 }
 
+/*
+ * No `will-change` on the strips and plates: GSAP promotes an element while
+ * it tweens and lets it go after, and a permanent hint here kept 2n + 4
+ * layers alive for the life of the page — under reduced motion too, where
+ * nothing here moves.
+ */
 .countStrip {
   display: grid;
-  will-change: transform;
 }
 
 .countValue {
@@ -137,7 +142,13 @@
 
   @media (--desktop) {
     aspect-ratio: auto;
-    height: 58svh;
+    /*
+     * 58svh, or less on a short, wide screen: the stage also holds the
+     * header's clearance, the title under the reel and their gaps (about
+     * 200px at the 1440 design width), and all of it has to fit the pinned
+     * screen or the title rises below the fold while the reel holds.
+     */
+    height: min(58svh, calc(100svh - var(--header-height) - desktop-vw(200px)));
     max-height: none;
   }
 }
@@ -146,7 +157,6 @@
   position: absolute;
   inset: 0;
   overflow: clip;
-  will-change: transform;
 }
 
 .plate:not(:first-child) {
@@ -156,7 +166,6 @@
 .plateMedia {
   position: absolute;
   inset: 0;
-  will-change: transform;
 }
 
 /*
@@ -190,7 +199,6 @@
 
 .captionStrip {
   display: grid;
-  will-change: transform;
 }
 
 .caption {

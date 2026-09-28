@@ -159,7 +159,7 @@ export default async function Home() {
                 image={toImageSource(project.cover)}
                 alt=""
                 maxWidth={1100}
-                sizes="(max-width: 800px) 170vw, 60vw"
+                sizes="(max-width: 799px) 170vw, 60vw"
               />
             ),
           },

@@ -98,12 +98,6 @@ const SCREENS_PER_PLATE = 0.7
 /** Screens of scroll the passage spends before and after the plates. */
 const SCREENS_AROUND = 1.2
 
-/**
- * Screens of scroll when there is no reel — the Tahap 49 figure, kept for a
- * page that passes no plates.
- */
-const SCREENS_WITHOUT_REEL = 2.5
-
 /** How much coarser the grid starts than it ends. */
 const GROUND_ENTRY_SCALE = 1.5
 
@@ -119,6 +113,14 @@ const NO_PLATES: readonly PassagePlate[] = []
 
 /** A reel of one is a still, not a reel. */
 const REEL_MINIMUM = 2
+
+/**
+ * The most plates the reel runs through. The pin grows by
+ * `SCREENS_PER_PLATE` for each, and the grid right after shows every featured
+ * work anyway; past six the reel stops previewing and starts withholding the
+ * page. Measured: six plates pin for 5.4 screens.
+ */
+const REEL_MAXIMUM = 6
 
 /** Index as the reel prints it: `01`, `02` … */
 function index(value: number) {
@@ -146,7 +148,8 @@ export function Passage({
 }: PassageProps) {
   const root = useRef<HTMLElement | null>(null)
   const prefersReducedMotion = usePreferredReducedMotion()
-  const reel = plates.length >= REEL_MINIMUM ? plates : []
+  const reel =
+    plates.length >= REEL_MINIMUM ? plates.slice(0, REEL_MAXIMUM) : []
   const count = reel.length
 
   useGSAP(
@@ -164,7 +167,14 @@ export function Passage({
         prefersReducedMotion ||
         window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-      if (reduced) return
+      /*
+       * No reel, no pin. A passage with nothing to run through used to pin
+       * for the Tahap 49 two and a half screens — and since the fork it is
+       * only as tall as its title, so that would hold a title-high strip
+       * under the fixed header while the reader scrolled past nothing. Found
+       * by review, not on screen: every seeded dataset has four covers.
+       */
+      if (reduced || count === 0) return
 
       gsap.registerPlugin(ScrollTrigger)
 
@@ -173,10 +183,7 @@ export function Passage({
       const stage = element.querySelector(`.${s.stage}`)
       if (!ground || !title || !stage) return
 
-      const screens =
-        count > 0
-          ? SCREENS_AROUND + SCREENS_PER_PLATE * count
-          : SCREENS_WITHOUT_REEL
+      const screens = SCREENS_AROUND + SCREENS_PER_PLATE * count
 
       const timeline = gsap.timeline({
         defaults: { ease: 'none' },
@@ -209,13 +216,29 @@ export function Passage({
       const countStrip = element.querySelector(`.${s.countStrip}`)
       const captionStrip = element.querySelector(`.${s.captionStrip}`)
 
-      if (count > 0 && frame && countStrip && captionStrip) {
-        timeline.fromTo(
-          frame,
-          { yPercent: 8, scale: 0.94, opacity: 0 },
-          { yPercent: 0, scale: 1, opacity: 1, duration: 0.15 },
-          0
-        )
+      const indexNode = element.querySelector(`.${s.count}`)
+      const captions = element.querySelector(`.${s.captions}`)
+
+      if (frame && countStrip && captionStrip && indexNode && captions) {
+        timeline
+          .fromTo(
+            frame,
+            { yPercent: 8, scale: 0.94, opacity: 0 },
+            { yPercent: 0, scale: 1, opacity: 1, duration: 0.15 },
+            0
+          )
+          /*
+           * The index and the caption arrive with the frame they describe.
+           * They used to sit at full opacity from the first frame, so a
+           * reader approaching the passage saw "01 / 04" and a title beside
+           * an empty screen.
+           */
+          .fromTo(
+            [indexNode, captions],
+            { opacity: 0 },
+            { opacity: 1, duration: 0.15 },
+            0
+          )
 
         /*
          * The plates. The first rests in the frame already; each one after
@@ -265,7 +288,7 @@ export function Passage({
           title,
           { yPercent: TITLE_RISE, opacity: 0 },
           { yPercent: 0, opacity: 1, duration: 0.16 },
-          count > 0 ? 0.72 : 0.35
+          0.72
         )
         /*
          * The release. The stage drifts up as the pin lets go, so the passage
@@ -279,7 +302,17 @@ export function Passage({
         timeline.kill()
       }
     },
-    { dependencies: [prefersReducedMotion, count], scope: root }
+    /*
+     * `revertOnUpdate`, so a dependency change tears down what the last run
+     * built before the next one runs. Without it, turning reduced motion on
+     * mid-visit left the pin alive, and a change in the number of plates
+     * would have stacked a second pin over the first.
+     */
+    {
+      dependencies: [prefersReducedMotion, count],
+      scope: root,
+      revertOnUpdate: true,
+    }
   )
 
   return (

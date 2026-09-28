@@ -293,6 +293,67 @@ langkah dulu judul 36px + tiga baris isi dalam satu kolom: sepertiga kanan dan
 sebagian besar 62svh-nya kosong. Kini nomor, judul berskala display, dan isi
 `p-big` di kolom kanan, sebaris dengan judulnya.
 
+**`/practice/<v>` — pernyataan kapabilitas berskala display.** Dua atau tiga
+kata dalam 46svh; kini lead/recede-nya adalah gerak tipografi selebar layar.
+
+### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
+
+Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
+dipaku ke tinta terang dan chip aktif berisi terang — **1,00:1**. Tidak ada
+gerbang yang melihatnya, karena `contrast-situ` melewati semua teks
+`aria-hidden` tanpa alasan tertulis. Pengecualian itu juga menyembunyikan
+**setiap h1 yang di-split per baris** (SplitText menaruh glyph yang terlihat
+dalam mask `aria-hidden`). Fork mencabutnya — gerbang pelindung pembaca yang
+diperkuat, bukan dilonggarkan — dan dibuktikan merah pada angka chip itu.
+
+Mencabutnya langsung membuka dua celah lain, dan keduanya ditutup:
+
+- **Clip.** Keterangan reel yang sudah bergulir keluar mask terukur 4,28:1
+  terhadap sampul di belakangnya — teks yang tak terlihat siapa pun. Kotak teks
+  kini dipotong oleh setiap ancestor yang memotong overflow. Run yang terpotong
+  habis **dihitung** dan dilaporkan, dan rute yang memotong lebih banyak
+  daripada yang diukur dinyatakan rusak — supaya `overflow` di `body` kelak
+  tidak menjadi cara teks lolos dari pengukuran. Hitungan pertamanya salah:
+  irisan baris di tepi bawah viewport ikut terhitung "terpotong"; dipisahkan.
+- **Opasitas.** Gerbang hanya membaca opasitas elemen itu sendiri, dan hanya
+  untuk melewatinya. Kata ProgressText di 0,55 terukur ±15:1 padahal pembaca
+  mendapat ±5:1; langkah yang meredup lewat induknya tidak pernah diredupkan.
+  Kini opasitas efektif (hasil kali sampai akar) masuk ke rasio.
+
+Penilaian keduanya dipindah ke fungsi murni di `e2e/contrast-situ.ts`
+(`paintedBoxes`, `inkAlpha`) dengan uji unit bernilai hitung-tangan —
+dibuktikan merah (7 gagal) dengan clip dan opasitas diabaikan.
+
+### 3.4 Review adversarial — yang diperbaiki, dan yang sengaja tidak
+
+Tiga peninjau baca-saja dan satu verifikator (workflow `fork-design-review`)
+menemukan 25 hal; verifikator mengonfirmasi 2 cacat, menolak 2, sisanya risiko
+atau nit. Diperbaiki:
+
+- **Chip aktif di bawah fokus keyboard** jadi pil kosong (`:focus-visible`
+  memberi tinta sewarna isian) — cacat lama, bukan dari fork. Juga transisi
+  warna chip yang sempat terang-di-atas-terang.
+- **Passage tanpa reel** masih mem-pin strip setinggi judul 2,5 layar — cacat
+  saya. Kini tanpa reel, tanpa pin.
+- `revertOnUpdate` pada pin; reel dibatasi 6 plat; bingkai pas di layar pendek;
+  indeks dan keterangan tiba bersama bingkainya; `will-change` permanen dibuang;
+  breakpoint `sizes` disamakan dengan tata letak; judul display tidak meluap.
+
+Sengaja **tidak** diperbaiki, dengan alasannya:
+
+- Clip dihitung lewat rantai induk DOM, bukan rantai containing block
+  (`position: fixed` di dalam kotak ber-`overflow`) — tidak ada kasusnya di
+  situs hari ini; dicatat di sini supaya yang pertama menulisnya tahu.
+- Hanya `overflow` yang dimodelkan (bukan `clip-path`, `mask`, `contain`) —
+  tidak ada teks di situs yang dipotong dengan cara itu hari ini.
+- Logotip "Arth" (salinan marquee) kini ikut diukur AA meski WCAG
+  membebaskan logotip — ia lulus, jadi pengecualian belum dibutuhkan.
+- Lambat-muat sampul reel dan sedikit over-fetch di ponsel — tidak bisa
+  diverifikasi tanpa jaringan nyata; bukan cacat yang teramati.
+- Opasitas 0,7 langkah yang meredup belum pernah dipakai di tema terang;
+  kalau kelak dipakai, gerbang kontras yang kini membaca opasitas akan
+  menangkapnya.
+
 ---
 
 ## 4. Cara kerja, satu paragraf
