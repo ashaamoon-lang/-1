@@ -16,6 +16,22 @@
 export const GRID_COLUMNS = 12
 
 /**
+ * Whether a picture of this ratio takes the full track: a landscape (or
+ * square) does, a portrait takes the half it fits, and a missing ratio takes
+ * the full track as the safe default for artwork.
+ *
+ * The reasoning is recorded where it was made, in
+ * `vault/blocks/project-gallery` (Tahap 11b). It lives here since the fork
+ * for the reason `loneHalves` does: the project page, a server component,
+ * needs the same decision (`vault/blocks/project-hero/cover-span.ts`), and
+ * the gallery is a client module whose exports a server component cannot
+ * call.
+ */
+export function isFullWidth(ratio: number | null): boolean {
+  return ratio === null || ratio >= 1
+}
+
+/**
  * Which half-width plates end up alone in their row.
  *
  * ## The hole this exists to close, and why the last rule did not close it

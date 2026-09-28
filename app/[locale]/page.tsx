@@ -354,7 +354,10 @@ export default async function Home() {
               // it also accepts the fallback shape; the query types it as
               // `RichText`, and `RichText` renders nothing for a block it does
               // not know.
-              <RichText content={content.statement as never} />
+              <RichText
+                content={content.statement as never}
+                paragraphClassName="p-big"
+              />
             ) : (
               content.statementFallback.map((paragraph) => (
                 <p key={paragraph.slice(0, 32)} className="p-big">

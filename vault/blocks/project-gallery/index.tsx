@@ -13,7 +13,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
-import { loneHalves } from '@/lib/utils/grid-flow'
+import { isFullWidth, loneHalves } from '@/lib/utils/grid-flow'
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
 import { PixelImage } from '@/vault/magic/pixel-image'
 import { Horizontal } from '@/vault/motion/horizontal'
@@ -92,9 +92,7 @@ export interface GalleryImage extends ImageSource {
  * A missing ratio (`null`) takes the full track: without dimensions there is
  * nothing to reason about, and full width is the safe default for artwork.
  */
-export function isFullWidth(ratio: number | null): boolean {
-  return ratio === null || ratio >= 1
-}
+export { isFullWidth }
 
 /*
  * `loneHalves` lives in `lib/utils/grid-flow` since Tahap 86, which needed it

@@ -347,6 +347,25 @@ h3 hanya di ponsel ditolak karena menciptakan tebing turun di 800px; dan eyebrow
 "Catalogue", satu-satunya yang bertinta penuh, kini bersuara sama dengan yang
 lain.
 
+**Prosa di ukuran baca** (usulan peringkat 3). Token `p` 12/14px → 16/18px
+dengan line-height 150/145% (tetap ≤ `p-big`, jadi urutan keduanya bertahan);
+`RichText` mendapat `paragraphClassName`, dan catatan studi kasus serta
+pernyataan beranda memakai `p-big`; kelas `h4`–`h6` yang ternyata tidak ada
+di skala dipetakan ke `h3`. Di halaman proyek bersampul potret, **catatan
+mengisi kolom yang dikosongkan fakta** — rongga 487px yang Tahap 66 tolak isi
+dengan spasi kini diisi isi — dan satu fungsi `coverSpanOf` (modul murni,
+karena hero `'use client'` sementara halaman server) memutuskan untuk keduanya,
+jadi catatan dirender tepat sekali. Di artikel journal, paragraf pertama naik
+dari ±2300px ke 605px: esai enam kolom, gambar pembuka di sampingnya.
+
+Dua cacat saya sendiri, tertangkap dengan melihat, bukan oleh gerbang: grid
+artikel pertama hanya menempatkan empat dari lima anaknya — breadcrumbs
+terjepit di satu kolom dan judul terdorong ke bawah esai; dan gambar _sticky_,
+dibatasi seluruh artikel (bukan area grid-nya seperti yang saya kira), menutupi
+tautan "Next entry". Keduanya diperbaiki (baris eksplisit; wadah `.reading`
+sendiri untuk gambar dan esai) dan diukur ulang: tanpa tumpang tindih di tiga
+posisi gulir, dua ukuran layar.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

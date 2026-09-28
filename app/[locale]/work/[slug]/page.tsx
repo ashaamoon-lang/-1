@@ -25,6 +25,7 @@ import { generateSanityMetadata } from '@/lib/utils/metadata'
 import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
 import { ProjectHero } from '@/vault/blocks/project-hero'
+import { coverSpanOf } from '@/vault/blocks/project-hero/cover-span'
 import { ProjectSpine, type SpineRegion } from '@/vault/blocks/project-spine'
 import { StepSequence } from '@/vault/blocks/step-sequence'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
@@ -291,6 +292,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   // which TS cannot unify with next-sanity's PortableTextBlock.
   const body = project.body as PortableTextBlock[] | null
 
+  /*
+   * Where the notes go, decided once by the rule the hero lays its cover out
+   * by — the fork. Beside a half-width cover they fill the column the facts
+   * leave empty (Tahap 66 measured 487px of it); otherwise they follow the
+   * hero, as they always did. One decision, so they render exactly once.
+   */
+  const coverSpan = coverSpanOf(project.cover)
+  const notes = body && (
+    <div
+      id="notes"
+      data-region=""
+      className={cn(s.body, coverSpan === 'half' && s.bodyBeside)}
+    >
+      <RichText content={body} paragraphClassName="p-big" />
+    </div>
+  )
+
   const hasBody = Boolean(body)
   const hasGallery = Boolean(project.gallery && project.gallery.length > 0)
 
@@ -452,13 +470,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               { label: t('engagement'), value: project.engagement },
               { label: t('scope'), value: project.scope },
             ]}
+            aside={coverSpan === 'half' && notes ? notes : undefined}
           />
 
-          {body && (
-            <div id="notes" data-region="" className={s.body}>
-              <RichText content={body} />
-            </div>
-          )}
+          {coverSpan !== 'half' && notes}
 
           {/*
             The arc — Tahap 79.

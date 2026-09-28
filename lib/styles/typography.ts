@@ -88,13 +88,21 @@ const typography = {
     'letter-spacing': '-0.02em',
     'font-size': { mobile: 16, desktop: 20 },
   },
+  /*
+   * Running text at reading size — the fork. It was 12px on a phone and 14px
+   * on desktop at a 120% line: the case study's argument was the quietest
+   * text on its page, smaller than the mono facts beside it (the
+   * design-critique workflow). 16/18 at 150/145% is a reading size; it stays
+   * at or under `p-big` (16/20) so the order of the two holds. The only
+   * consumer is `RichText` — CMS body text.
+   */
   p: {
     'font-family': `var(${fonts.display})`,
     'font-style': 'normal',
     'font-weight': 400,
-    'line-height': { mobile: '125%', desktop: '120%' },
-    'letter-spacing': '-0.01em',
-    'font-size': { mobile: 12, desktop: 14 },
+    'line-height': { mobile: '150%', desktop: '145%' },
+    'letter-spacing': '0em',
+    'font-size': { mobile: 16, desktop: 18 },
   },
   caption: {
     'font-family': `var(${fonts.mono})`,

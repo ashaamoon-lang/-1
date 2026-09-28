@@ -5,9 +5,75 @@
   padding-block: calc(var(--header-height) + mobile-vw(48px)) mobile-vw(96px);
   padding-inline: var(--safe);
 
+  /*
+   * A reading page on the site's grid — the fork. It was one column: the
+   * opening plate ran the full width at 4:5 and took two screens before the
+   * first sentence (the design-critique workflow). Now the essay reads in
+   * six columns and the plate stands beside it in five, sticky while the
+   * text scrolls.
+   *
+   * The plate takes one row, the body's, not two: a grid item's containing block
+   * is its grid area, so it sticks for exactly as long as the body beside it
+   * runs, and stops there, with no empty row left under the essay.
+   */
   @media (--desktop) {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    row-gap: var(--section-lead);
+    align-items: start;
     padding-block: calc(var(--header-height) + desktop-vw(80px))
       desktop-vw(160px);
+  }
+}
+
+/*
+ * Every child spans the grid unless placed — the breadcrumbs above all. The
+ * first build of this grid placed only four of the five children; the
+ * breadcrumbs auto-placed into a single 1/12 column, and forcing the body to
+ * row 2 pushed the header with the title below the essay. Seen on screen,
+ * not caught by a gate. Rows are now explicit.
+ */
+@media (--desktop) {
+  .page > * {
+    grid-column: 1 / -1;
+  }
+
+  .header {
+    grid-column: 1 / 9;
+    grid-row: 2;
+  }
+
+  /*
+   * The essay and its plate, on a grid of their own so the sticky plate is
+   * held by this box and stops where the essay stops.
+   */
+  .reading {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: start;
+  }
+
+  .opening {
+    grid-column: 8 / -1;
+    grid-row: 1;
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + var(--section-lead));
+  }
+
+  .body {
+    grid-column: 1 / 7;
+    grid-row: 1;
+  }
+}
+
+/* On a phone the two stack, in source order, at the page's own rhythm. */
+@media (--mobile) {
+  .reading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-lead);
   }
 }
 
@@ -123,6 +189,10 @@
    * The reading measure. 65 characters is the figure every typographic manual
    * lands near, and the one place on this site where it matters most: the
    * other pages are indexes and fact lists, this is the only long read.
+   *
+   * Size and leading from the `p` class since the fork; before it these
+   * paragraphs carried no type style and read at `line-height: normal`
+   * (~1.19), found by the design-critique workflow.
    */
   max-width: 65ch;
 }
@@ -213,11 +283,14 @@
 
 .openingImage {
   /*
-   * Wider than the catalogue card's 4/5. A portrait plate at the head of an
-   * essay pushes the first paragraph off the screen; 16/9 sits in the reading
-   * flow the way a plate in a periodical does.
+   * The plate keeps its own ratio — the fork. A `16 / 9` rule stood here to
+   * keep a portrait from pushing the first paragraph off the screen, and it
+   * never took effect: the image's own inline ratio won, and the plate ran
+   * the full width at 4:5 (the design-critique workflow, measured on
+   * `/en/journal/scope-is-the-deliverable`). The page now solves that by
+   * placing the plate beside the essay on desktop, so the picture can keep
+   * the shape it was made in.
    */
-  aspect-ratio: 16 / 9;
   object-fit: cover;
   inline-size: 100%;
   block-size: auto;

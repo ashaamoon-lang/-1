@@ -1,7 +1,7 @@
 'use client'
 
 import cn from 'clsx'
-import { ViewTransition } from 'react'
+import { type ReactNode, ViewTransition } from 'react'
 
 import { SanityImage } from '@/components/ui/sanity-image'
 import { useReveal } from '@/lib/hooks/use-reveal'
@@ -10,10 +10,12 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { isFullWidth } from '@/lib/utils/grid-flow'
 import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
-import { isFullWidth } from '@/vault/blocks/project-gallery'
 import { TextReveal } from '@/vault/motion/text-reveal'
 import { MaterialImage } from '@/vault/webgl/material-image'
+
+import { coverSpanOf } from './cover-span'
 
 import s from './project-hero.module.css'
 
@@ -78,6 +80,16 @@ interface ProjectHeroProps {
    * `three` to that route's `allow` is a red gate, which is the point.
    */
   material?: boolean | undefined
+  /**
+   * What sits under the facts beside a half-width cover — the fork.
+   *
+   * The project page passes the case study's notes here when the cover is a
+   * portrait, so the column the facts leave empty holds the argument instead
+   * (`coverSpanOf` decides, for both sides). Ignored for a full-width cover
+   * or none: there is no column beside it, and the page renders the notes
+   * below the hero itself.
+   */
+  aside?: ReactNode | undefined
   className?: string | undefined
 }
 
@@ -90,6 +102,7 @@ export function ProjectHero({
   id,
   'data-region': region,
   material = false,
+  aside,
   className,
 }: ProjectHeroProps) {
   const facts = meta.filter(
@@ -110,9 +123,18 @@ export function ProjectHero({
    * with one whose ratio cannot be read, and the stylesheet must not then
    * reserve an empty column beside nothing.
    */
-  const hasCover = Boolean(cover) && coverRatio !== undefined
-  let coverSpan: 'full' | 'half' | 'none' = 'none'
-  if (hasCover) coverSpan = coverIsFull ? 'full' : 'half'
+  const coverSpan = coverSpanOf(cover)
+
+  const factsList = facts.length > 0 && (
+    <dl data-reveal-item className={s.meta}>
+      {facts.map((item) => (
+        <div key={item.label} className={s.fact}>
+          <dt className={cn('caption', s.label)}>{item.label}</dt>
+          <dd className={cn('caption', s.value)}>{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
 
   return (
     <header
@@ -232,15 +254,20 @@ export function ProjectHero({
         </ViewTransition>
       )}
 
-      {facts.length > 0 && (
-        <dl data-reveal-item className={s.meta}>
-          {facts.map((item) => (
-            <div key={item.label} className={s.fact}>
-              <dt className={cn('caption', s.label)}>{item.label}</dt>
-              <dd className={cn('caption', s.value)}>{item.value}</dd>
-            </div>
-          ))}
-        </dl>
+      {coverSpan === 'half' && aside !== undefined ? (
+        /*
+         * Facts and notes share the column beside the portrait cover — the
+         * fork. Tahap 66 measured 487px of that column empty and would not
+         * fill it with spacing; the case study's notes are the content it
+         * lacked. Sticky, so the argument stays beside the picture while the
+         * cover scrolls past.
+         */
+        <div className={s.side}>
+          {factsList}
+          {aside}
+        </div>
+      ) : (
+        factsList
       )}
     </header>
   )
