@@ -149,6 +149,16 @@ export async function readDerivedTokens() {
   }))
 }
 
+/**
+ * Every token a pair actually measures, as a background or a foreground.
+ *
+ * A derived token that is parsed but appears in no pair is **read and never
+ * checked** — which is what `contrast.test.ts` found three of in the fork.
+ */
+export const MEASURED_TOKENS: ReadonlySet<string> = new Set(
+  PAIRS.flatMap(({ bg, fg }) => [bg, fg])
+)
+
 /** Measure every pair in every theme. */
 export async function measureContrast(): Promise<Measurement[]> {
   const derived = await readDerivedTokens()

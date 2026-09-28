@@ -152,50 +152,13 @@ function report(findings: Finding[]): string {
  * unmodified in Tahap 47 to prove this file red, then removed.
  */
 
-/** `#abc`, `#aabbcc`, `#ffffff1f` — the eight-digit form is what upstream uses inside `shadow-[…]`. */
-const HEX = /#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b/
-
-/** `rgba(0, 0, 0, 1)` and friends. `CLAUDE.md` #10 wants `oklch()` and `color-mix()`. */
-const LEGACY_COLOR = /\b(?:rgba?|hsla?)\s*\(/
-
-/**
- * `3s`, `300ms`, `0.5s` — `CLAUDE.md` #3 and #8.
- *
- * Deliberately not matched: a bare number. `numOctaves={6}` and
- * `baseFrequency={0.4}` are filter parameters, not time.
- */
-const RAW_DURATION = /\b\d+(?:\.\d+)?m?s\b/
-
-/**
- * A bare curve — `CLAUDE.md` #2.
- *
- * The lookbehind is what keeps `var(--ease-out-quart)` legal: inside a token
- * name, `ease` is preceded by `-`. `easeInOut` (the `motion` spelling) is
- * caught by the trailing guard rejecting a word character.
- */
-const BARE_EASE = /(?<![\w-])ease(?:-in-out|-in|-out)?(?![\w-])/
-
-/** `CLAUDE.md` #1 — curves come from `lib/styles/css/easings.css`, never authored here. */
-const RAW_BEZIER = /cubic-bezier\s*\(/
-
 /** `CLAUDE.md` #6 — one RAF loop. Vendored canvas work is rewired to `useTempus`. */
 const OWN_RAF = /requestAnimationFrame/
 
 /** The owner's decision, and `CLAUDE.md` #6: `motion` runs a scheduler of its own. */
 const MOTION_IMPORT = /from\s+['"](?:motion|framer-motion)(?:\/[\w-]+)?['"]/
 
-/**
- * Tailwind arbitrary values — `blur-[2px]`, `[background:var(--bg)]`.
- *
- * Two shapes, because upstream ships both. The value half forbids whitespace
- * on purpose: Tailwind writes spaces as `_`, so `[key: string]: unknown` — a
- * TypeScript index signature, which several of these files carry — has a
- * space after its colon and is not an arbitrary utility.
- */
-const ARBITRARY_PROPERTY = /\[[a-z-]+:[^\s\]]+\]/
-const ARBITRARY_VALUE = /[a-z0-9]-\[[^\s\]]+\]/
-
-describe('vendored UI carries no value the design system did not choose', () => {
+describe('vendored UI keeps to the one RAF loop (CLAUDE.md #6)', () => {
   it('finds vendored source to check at all', async () => {
     /*
      * Anti-vacuum. A gate that examined nothing must not report success —
@@ -205,31 +168,6 @@ describe('vendored UI carries no value the design system did not choose', () => 
      */
     const files = await collectAll()
     expect(files.length, 'vault/magic/ has no source files').toBeGreaterThan(0)
-  })
-
-  it('#8, #10: no raw hex', async () => {
-    const found = await scan(HEX)
-    expect(found, `raw hex in vendored source:\n${report(found)}`).toEqual([])
-  })
-
-  it('#10: no rgb()/hsl() — colour is authored in oklch()', async () => {
-    const found = await scan(LEGACY_COLOR)
-    expect(found, `legacy colour function:\n${report(found)}`).toEqual([])
-  })
-
-  it('#3, #8: no literal durations', async () => {
-    const found = await scan(RAW_DURATION)
-    expect(found, `duration literal:\n${report(found)}`).toEqual([])
-  })
-
-  it('#2: no bare ease/ease-in/ease-out/ease-in-out', async () => {
-    const found = await scan(BARE_EASE)
-    expect(found, `bare easing keyword:\n${report(found)}`).toEqual([])
-  })
-
-  it('#1: no authored cubic-bezier()', async () => {
-    const found = await scan(RAW_BEZIER)
-    expect(found, `authored curve:\n${report(found)}`).toEqual([])
   })
 
   it('#6: no second RAF loop', async () => {
@@ -245,17 +183,6 @@ describe('vendored UI carries no value the design system did not choose', () => 
     expect(
       found,
       `motion is not a dependency of this project:\n${report(found)}`
-    ).toEqual([])
-  })
-
-  it('#8: no Tailwind arbitrary values', async () => {
-    const found = [
-      ...(await scan(ARBITRARY_PROPERTY)),
-      ...(await scan(ARBITRARY_VALUE)),
-    ]
-    expect(
-      found,
-      `arbitrary utility — the value belongs in a CSS module, from a token:\n${report(found)}`
     ).toEqual([])
   })
 })

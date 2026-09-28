@@ -26,6 +26,7 @@ import { describe, expect, it } from 'bun:test'
 import {
   AA_TEXT,
   APCA_MIN,
+  MEASURED_TOKENS,
   measureContrast,
   readBaseline,
   readDerivedTokens,
@@ -46,30 +47,66 @@ describe('WCAG 2.1 AA contrast (blocking)', () => {
     )
   })
 
-  it('parses the derived tokens out of global.css', async () => {
+  /*
+   * Every derived token is accounted for — replaced in the fork.
+   *
+   * This used to pin the exact list of derived token **names**, so a new token
+   * failed the build until someone re-typed the list. Its stated purpose was
+   * that "a new derived token cannot arrive without" a contrast decision, and
+   * its own comment claimed `--hero-wash-mid` "is measured here anyway, and
+   * deliberately."
+   *
+   * It was not. A name list proves a token was **parsed**, not **measured** —
+   * a token is only measured when some entry in `PAIRS` uses it. Checked in
+   * the fork, three of the seven were read and never compared against
+   * anything: `hero-wash-mid`, `line`, `line-strong`. The pinned list had been
+   * reporting a guarantee it did not provide.
+   *
+   * So this now asks the real question. Every derived token must be either
+   * measured by a pair, or named below with the reason it is not — a
+   * conscious decision per token, which is what the old list was reaching for.
+   * A measured token passes on its own; nobody re-types anything.
+   *
+   * The three below are **not** declared safe. They are the gap this fork
+   * surfaced, recorded honestly rather than papered over with a justification
+   * nobody verified. Deciding whether a hairline needs a 3:1 non-text pair
+   * (WCAG 1.4.11) is still open.
+   */
+  it('accounts for every derived token — measured, or unmeasured on the record', async () => {
+    const UNMEASURED = {
+      'hero-wash-mid':
+        'no pair measures it; surfaced by the fork, not yet decided',
+      line: 'no pair measures it; surfaced by the fork, not yet decided',
+      'line-strong':
+        'no pair measures it; surfaced by the fork, not yet decided',
+    } satisfies Record<string, string>
+
     const derived = await readDerivedTokens()
-    expect(derived.map((d) => d.token).sort()).toEqual([
-      // `--hero-wash-to` joined the list in Tahap 17, when the hero's gradient
-      // stopped being two hex literals in a component and became a token. It
-      // belongs here rather than being filtered out: the wash is what the hero
-      // headline sits on, so brightening it is a contrast decision, and this
-      // list exists so a new derived token cannot arrive without one.
-      /*
-       * `--hero-wash-mid` arrived in Tahap 55, and it is a ground for a
-       * *filter*, not for text: `vault/magic/noise-texture` adds grain around
-       * it so the layer's mean matches the surface it sits on. It is measured
-       * here anyway, and deliberately. It names a colour that covers a whole
-       * hero, and a token that no one ever checks is exactly how the wash it
-       * is derived from got two raw hex values in the first place (Tahap 17).
-       */
-      'hero-wash-mid',
-      'hero-wash-to',
-      'line',
-      'line-strong',
-      'surface',
-      'surface-2',
-      'text-muted',
-    ])
+    expect(
+      derived.length,
+      'no derived tokens parsed — the reader is broken'
+    ).toBeGreaterThan(0)
+
+    const unaccounted = derived
+      .map(({ token }) => token)
+      .filter((token) => !MEASURED_TOKENS.has(token) && !(token in UNMEASURED))
+
+    expect(
+      unaccounted,
+      'a derived token is neither measured by a pair in contrast.ts nor recorded as unmeasured here'
+    ).toEqual([])
+
+    // And the record cannot rot: a token listed as unmeasured that a pair now
+    // measures, or that no longer exists, is stale and must leave it.
+    const stale = Object.keys(UNMEASURED).filter(
+      (token) =>
+        MEASURED_TOKENS.has(token) ||
+        !derived.some((entry) => entry.token === token)
+    )
+    expect(
+      stale,
+      'UNMEASURED lists a token that is now measured or gone'
+    ).toEqual([])
   })
 
   it('introduces no contrast failure outside the accepted baseline', () => {
