@@ -48,7 +48,7 @@ import cn from 'clsx'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
-import type { RefObject } from 'react'
+import type { CSSProperties, RefObject } from 'react'
 import { useRef } from 'react'
 
 import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
@@ -126,6 +126,8 @@ interface TextRevealProps {
    */
   pace?: 'arrival' | 'epic' | undefined
   className?: string | undefined
+  /** Inline style on the element — a nameplate's `--fit-chars`, for one. */
+  style?: CSSProperties | undefined
 }
 
 /** Maps the public `split` prop to SplitText's config and result key. */
@@ -143,6 +145,7 @@ export function TextReveal({
   once = true,
   pace = 'arrival',
   className,
+  style,
 }: TextRevealProps) {
   const containerRef = useRef<HTMLElement>(null)
   const prefersReducedMotion = usePreferredReducedMotion()
@@ -255,6 +258,7 @@ export function TextReveal({
       // the ref is only passed to SplitText, which accepts any Element.
       ref={containerRef as RefObject<HTMLParagraphElement | null>}
       className={cn(s.reveal, className)}
+      style={style}
     >
       {children}
     </Tag>

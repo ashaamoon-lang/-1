@@ -325,6 +325,28 @@ terukur sama dengan DOM (horizon −2px mesh, −5px DOM untuk 200px gulir;
 besarnya identik menurut penurunan, selisihnya derau drift ambien). Hover dan
 fokus keyboard mengubah plat 5–6× di atas derau diam.
 
+**`/work`, `/studio`, `/journal`, `/practice/<v>` — papan nama.** Keempatnya
+membuka dengan komposisi yang sama (eyebrow mono, satu kata `h1` di sepertiga
+kiri, udara di sekitarnya) — satu templat diisi empat kali (usulan peringkat 2).
+Nama kini di-_fit_ ke wadahnya dengan alat email kontak yang sama:
+`100cqi / (karakter × 0,72)`, dibatasi `34svh` (`28svh` di `/work` supaya kartu
+pertama tetap di layar pertama), dan tak pernah lebih kecil dari kurva `h1`.
+0,72 adalah lebar per karakter **terlebar yang terukur** di antara semua string
+papan nama di kedua bahasa ("Work" 0,707 … "Konsultasi" 0,523), jadi tak ada
+nama yang meluap. Terukur: 48 dari 48 papan nama satu baris, tanpa luapan, di
+6 rute × 2 bahasa × 1440/1280/390/320; "Studio" 306px di 1440 mengisi rongga
+yang dulu kosong. Instrumen pertama salah — ia menghitung div baris SplitText
+sebagai baris kedua — dan dikoreksi sebelum hasilnya dipercaya.
+
+Menyertainya: garis reveal −25% → −8% (`use-reveal.ts`), karena konten yang
+diam di seperempat bawah layar tertahan di `opacity: 0` sampai pembaca
+menggulir — dan garis 75% itulah yang membatasi tinggi masthead; chip filter
+2×2 di ponsel (3 + 1 menyisakan "Commission" sendirian); judul kartu pada satu
+kurva kontinu 20→30px, bukan `p-big` 16px di ponsel — usulan kritikus untuk
+h3 hanya di ponsel ditolak karena menciptakan tebing turun di 800px; dan eyebrow
+"Catalogue", satu-satunya yang bertinta penuh, kini bersuara sama dengan yang
+lain.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

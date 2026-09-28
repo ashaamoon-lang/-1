@@ -89,13 +89,14 @@ interface RevealProps {
    * The observer's `rootMargin`, for a block that is **already on the first
    * screen** when the page loads.
    *
-   * The default (`lib/hooks/use-reveal.ts`) insets the root by -25% at the
-   * bottom, which mirrors a ScrollTrigger `start: 'top 75%'`: a block opens
-   * once it is a quarter of the way up the screen. That is right for
-   * everything a reader scrolls to, and **wrong for anything sitting in the
-   * lower quarter of the first screen** — the trigger line is above it, so
-   * the scroll that would cross it never happens and the block stays at
-   * `opacity: 0` on a screen the reader is looking at.
+   * The default (`lib/hooks/use-reveal.ts`) insets the root at the bottom —
+   * by -8% since the fork, -25% before it — so a block opens once its top is
+   * that far up the screen. That is right for everything a reader scrolls
+   * to, and **wrong for anything sitting below the line on the first
+   * screen** — the scroll that would cross it never happens and the block
+   * stays at `opacity: 0` on a screen the reader is looking at. The fork's
+   * smaller inset shrank that strip from a quarter of the screen to a
+   * twelfth; this prop still closes it for a block that needs it.
    *
    * Measured on `/studio` while Tahap 69 was moving the capability band into
    * the foot of the hero: band top **764** against a trigger line at **675**

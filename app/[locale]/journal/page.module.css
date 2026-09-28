@@ -32,7 +32,9 @@
    *    390x844   663px of 844   79%   opacity 0
    *
    * past `useReveal`'s line at 75%, which means a reading index that opens on
-   * no reading. `e2e/first-screen.e2e.ts` caught it at both widths.
+   * no reading. `e2e/first-screen.e2e.ts` caught it at both widths. (The line
+   * is at 92% since the fork, so this height now has room to spare; it was
+   * set against 75%.)
    *
    * ## Why 56 here and 48 on `/work`, and why that is not an inconsistency
    *

@@ -11,6 +11,7 @@ import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { featuredProjectsQuery } from '@/lib/integrations/sanity/queries'
+import { nameplateStyle } from '@/lib/utils/display-fit'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
@@ -194,16 +195,24 @@ export default async function StudioPage() {
           learn where the studio is or how many people are in it.
         */}
         <header className={s.hero}>
-          <div className={s.heroText}>
+          {/*
+            The nameplate spans the hero, above the lead and the facts — the
+            fork. One word, exactly as the catalogue's `h1` is "Work" with an
+            eyebrow framing it, and fitted the same way, so the three inner
+            routes share one opening rather than each having its own.
+          */}
+          <div className={cn('nameplate', s.heroTitle)}>
             <p className={cn('caption', s.eyebrow)}>{t('eyebrow')}</p>
-            {/*
-              One word, exactly as the catalogue's `h1` is "Work" with an
-              eyebrow framing it. Diverging here would make a third pattern out
-              of a page that should be reading from the same one.
-            */}
-            <TextReveal as="h1" split="lines" className={cn('h1', s.title)}>
+            <TextReveal
+              as="h1"
+              split="lines"
+              className={cn('h1', 'nameplate-title', s.title)}
+              style={nameplateStyle(t('title'))}
+            >
               {t('title')}
             </TextReveal>
+          </div>
+          <div className={s.heroText}>
             <Reveal>
               <p data-reveal-item className={cn('p-big', s.lead)}>
                 {t('lead')}

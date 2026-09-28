@@ -12,8 +12,9 @@ import { expect, test } from '@playwright/test'
  *
  * What it still holds is the defect underneath the history below: an item
  * that **is** on screen but sits at `opacity: 0`, because the reveal waits for
- * its top to cross 75% of the viewport and the reader has not scrolled. That
- * is a blank where content is, whatever the composition.
+ * its top to cross the reveal line (92% of the viewport since the fork, 75%
+ * before it) and the reader has not scrolled. That is a blank where content
+ * is, whatever the composition.
  *
  * ## The history, and why it runs at two widths
  *
@@ -23,8 +24,8 @@ import { expect, test } from '@playwright/test'
  * header) and above the filter and the count — 194px at 1440. The first cover
  * landed at 886px of a 900px screen.
  *
- * That is not only a proportion. `lib/hooks/use-reveal.ts` reveals a block
- * when its top passes 75% of the viewport, so a grid pushed past that line
+ * That is not only a proportion. `lib/hooks/use-reveal.ts` then revealed a
+ * block when its top passed 75% of the viewport, so a grid pushed past that line
  * never opens: every cover sat at `opacity: 0` until the reader scrolled, and
  * `catalogue-sift` — the animation that answers a chip press — played where
  * nobody could see it.

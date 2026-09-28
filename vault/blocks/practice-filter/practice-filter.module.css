@@ -8,6 +8,12 @@
    * — "Force all chips into one clipped row". So: no fixed height, no
    * horizontal overflow, no truncation. At 320px with four Indonesian labels
    * this wraps to three rows and every label stays readable.
+   *
+   * On a phone it is a two-by-two grid — the fork. Wrapping left the four
+   * chips 3 + 1, "Commission" alone on its own row (the design-critique
+   * workflow, in the 390px screenshots). Two equal columns keep every label
+   * whole: the longest chip is ~120px with its padding, against a 140px
+   * column at 320px, and `minmax(0, 1fr)` (`CLAUDE.md` #12).
    */
   display: flex;
   flex-wrap: wrap;
@@ -15,6 +21,11 @@
   list-style: none;
   margin: 0;
   padding: 0;
+
+  @media (--mobile) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
   @media (--desktop) {
     gap: desktop-vw(8px);

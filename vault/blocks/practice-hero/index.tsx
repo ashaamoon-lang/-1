@@ -26,6 +26,7 @@ import type { ReactNode } from 'react'
 import { ViewTransition } from 'react'
 
 import { transitionName } from '@/lib/motion/transition-name'
+import { nameplateStyle } from '@/lib/utils/display-fit'
 import { Reveal } from '@/vault/motion/reveal'
 
 import s from './practice-hero.module.css'
@@ -93,7 +94,7 @@ export function PracticeHero({
     <Reveal
       as="header"
       data-epic="practice-morph"
-      className={cn(s.hero, className)}
+      className={cn('nameplate', s.hero, className)}
     >
       <p data-reveal-item className={cn('caption', s.eyebrow)}>
         {eyebrow}
@@ -104,7 +105,11 @@ export function PracticeHero({
         share="morph"
         default="none"
       >
-        <h1 data-reveal-item className={cn('h1', s.name)}>
+        <h1
+          data-reveal-item
+          className={cn('h1', 'nameplate-title', s.name)}
+          style={typeof label === 'string' ? nameplateStyle(label) : undefined}
+        >
           {label}
         </h1>
       </ViewTransition>
