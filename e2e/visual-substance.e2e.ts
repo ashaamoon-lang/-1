@@ -5,12 +5,7 @@ import { expect, test } from '@playwright/test'
 import sharp from 'sharp'
 
 import { PRACTICES } from '../lib/content/practices'
-import {
-  contribution,
-  grain,
-  legibility,
-  tone,
-} from '../lib/styles/scripts/luminance'
+import { contribution, legibility, tone } from '../lib/styles/scripts/luminance'
 import { material } from '../vault/motion/tokens'
 import { FEATURED_WORK } from './fixtures'
 import { waitForEntrance } from './page-settled'
@@ -111,7 +106,7 @@ async function gutters(page: Page) {
   })
 }
 
-test.describe('the page starts where its own chrome starts', () => {
+test.describe('content does not start outside the page gutter', () => {
   for (const route of GUTTER_ROUTES) {
     test(`${route} keeps its gutter`, async ({ page }) => {
       await page.goto(route)
@@ -122,11 +117,18 @@ test.describe('the page starts where its own chrome starts', () => {
       expect(measured.chrome, `${route} rendered no header link`).not.toBeNull()
       expect(measured.heading, `${route} rendered no h1`).not.toBeNull()
 
+      /*
+       * One-sided since the fork. It used to require the heading to start
+       * exactly where the header does (±2px), which also forbade an indented
+       * or centred `h1`. The defect it was written for — Tahap 18's practice
+       * pages at x=0 — is a heading **left of** the gutter, so that is what
+       * fails now (`docs/FORK.md`, step 5).
+       */
       const chrome = measured.chrome ?? 0
       expect(
-        Math.abs((measured.heading ?? 0) - chrome),
-        `${route}: the heading starts at ${measured.heading}px while the header starts at ${chrome}px — the page is missing its horizontal padding`
-      ).toBeLessThanOrEqual(GUTTER_TOLERANCE)
+        measured.heading ?? 0,
+        `${route}: the heading starts at ${measured.heading}px, left of the header's ${chrome}px — the page is missing its horizontal padding`
+      ).toBeGreaterThanOrEqual(chrome - GUTTER_TOLERANCE)
     })
   }
 })
@@ -536,19 +538,11 @@ test.describe('a declared accent carries tone, and never subtracts it', () => {
           `the accent added no modulation: its own contribution spans ${added.range.toFixed(1)}`
         ).toBeGreaterThan(ACCENT_RANGE_MARGIN)
 
-        // Grain is texture, not noise. Tahap 17 measured 21.0/255 — 77% of the
-        // band's own mean — after the colour pipeline was corrected, because the
-        // value had been tuned against the broken one.
-        const texture = await grain(withAccent, {
-          left: 40,
-          top: 20,
-          width: 96,
-          height: 96,
-        })
-        expect(
-          texture,
-          `grain reads as static rather than texture: sd ${texture.toFixed(1)}/255`
-        ).toBeLessThan(12)
+        // A grain-strength ceiling stood here (sd under 12/255), set after
+        // Tahap 17 found grain tuned against a broken colour pipeline. How
+        // strong a texture reads is the design's call, and the fork removed it
+        // (`docs/FORK.md`, step 5); the accent's own contribution is still
+        // measured above.
       })
     }
   }
@@ -733,7 +727,7 @@ test.describe('the material is a material, not a picture', () => {
     ).toBeGreaterThan(0)
   })
 
-  test('scrolling reaches the shader, and stays quieter than the pointer', async ({
+  test('scrolling reaches the shader, and the surface settles', async ({
     page,
   }) => {
     test.setTimeout(120_000)
@@ -849,20 +843,15 @@ test.describe('the material is a material, not a picture', () => {
     ).toBeLessThan(material.shear * 0.05)
 
     /*
-     * The ladder, asserted where the amplitudes are real numbers rather than
-     * declarations: drift < shear < displacement, `vault/motion/tokens.ts`.
-     * `tokens.test.ts` holds the declared ordering; this holds that the running
-     * code never exceeds what it declared.
+     * The running code never exceeds the amplitude it declared. This also
+     * asserted the ladder between tokens — scroll quieter than the pointer's
+     * displacement — which is a design ordering, and the fork removed it
+     * (`docs/FORK.md`, step 5).
      */
     expect(
       scrolling,
       `the shear ran past its own token (${report})`
     ).toBeLessThanOrEqual(material.shear + 1e-9)
-
-    expect(
-      scrolling,
-      `the ambient input is not staying quieter than the deliberate one (${report})`
-    ).toBeLessThan(material.displacement)
   })
 })
 
@@ -1003,76 +992,6 @@ test.describe('a footer under a canvas is still readable', () => {
         painted.p99,
         `${route}: the footer's brightest text reaches ${painted.p99.toFixed(0)}/255 with the canvas and ${control.p99.toFixed(0)}/255 without it — the canvas is painting over the footer. Mean luminance is not the tell here: it *rises* across this defect.`
       ).toBeGreaterThan(control.p99 * FOOTER_LEGIBILITY_FLOOR)
-    })
-  }
-})
-
-/**
- * Routes a reader can land on, and whether they are allowed to be imageless.
- *
- * ## The defect this holds, measured
- *
- * Counted on the production build's server HTML before Tahap 44, `<img>` per
- * route:
- *
- * | route                    | images |
- * | ------------------------ | -----: |
- * | `/en`                    | 5      |
- * | `/en/work`               | 6      |
- * | `/en/work/<slug>`        | 4      |
- * | `/en/practice/<value>`   | 2      |
- * | **`/en/studio`**         | **0**  |
- * | **`/en/journal`**        | **0**  |
- * | **`/en/journal/<slug>`** | **0**  |
- *
- * Three of the eight human surfaces on a site whose subject is commissioned
- * artwork rendered nothing to look at. Not for want of assets — six project
- * covers were already in the CMS and already used on the other three routes.
- *
- * There used to be one declared exception, `/en/ai`: the machine-readable
- * view, where an image would have been weight served to something that
- * cannot see it. Tahap 84 removed the route; every page listed here now
- * renders work. (Corrected in Tahap 90 — Tahap 89's sweep did not reach
- * `e2e/`.)
- */
-const IMAGE_ROUTES = [
-  '/en',
-  '/en/work',
-  `/en/work/${FEATURED_WORK}`,
-  `/en/practice/${PRACTICES[0]}`,
-  '/en/studio',
-  '/en/journal',
-  '/en/journal/scope-is-the-deliverable',
-] as const
-
-test.describe('every surface a reader lands on has something to look at', () => {
-  for (const route of IMAGE_ROUTES) {
-    test(`${route} renders its work`, async ({ page }) => {
-      await page.setViewportSize({ width: 1440, height: 900 })
-      /*
-       * A box, not a download — Tahap 91.
-       *
-       * This waited for `networkidle`, and `goto` before it for `load`. What it
-       * counts is an `<img>` with a real box, which the aspect-ratio CSS gives
-       * before a byte of the picture arrives. With every image held back 35s
-       * it died in `goto` without counting anything. Whether pictures load is
-       * a different question, and not this gate's.
-       */
-      await page.goto(route, { waitUntil: 'domcontentloaded' })
-
-      const count = () =>
-        page.evaluate(
-          () =>
-            [...document.querySelectorAll('main img')].filter((img) => {
-              const rect = img.getBoundingClientRect()
-              // A rendered image, not a 1px tracking pixel or a hidden preload.
-              return rect.width > 32 && rect.height > 32
-            }).length
-        )
-
-      await expect
-        .poll(count, { message: `${route} renders no images`, timeout: 15_000 })
-        .toBeGreaterThan(0)
     })
   }
 })

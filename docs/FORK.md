@@ -122,6 +122,14 @@ Urutannya bukan selera: langkah 1 membuka kunci yang membuat langkah 6 mungkin.
 | `e2e/interaction-grammar.e2e.ts` | asersi jumlah momen dan band 150–250 ms hilang; sisanya tinggal                                                   |
 | `e2e/webgl-budget.e2e.ts`        | plafon byte hilang; _"reduced motion mengunduh nol engine"_ tinggal                                               |
 
+> **Dua baris di tabel ini salah, dan dikoreksi saat langkah 5b.**
+> `interaction-grammar`: langkah 2 hanya melepas plafon momen dan kewajiban
+> menamai gerakan panjang — tes band 150–250 ms **masih hidup** sampai 5b
+> menghapusnya. `webgl-budget`: tidak pernah ada plafon byte di sana.
+> `SCAN_FLOOR_BYTES` adalah ambang pemindaian (respons di bawah 50 KB tidak
+> diperiksa penanda engine-nya), bukan plafon; audit salah membacanya, dan
+> berkas itu tidak disentuh.
+
 ### Langkah 3 — penegakan gaya
 
 | berkas                                                                                 | tindakan                                                                                                             |
@@ -177,13 +185,45 @@ Komentar yang masih menyebut gerbang terhapus sebagai penegak aktif dikoreksi
 di tempat (28 berkas kode dan dokumen). Yang berupa **sejarah** — "gerbang X
 merah di Tahap N" — dibiarkan, karena ia tetap benar.
 
-**5b — berikutnya.** Tujuh belas yang campuran **disunting
+**5b — dieksekusi.** Tujuh belas yang campuran **disunting
 klausa-per-klausa**, karena menghapusnya utuh akan membuang axe,
 reduced-motion, jalur tanpa JS dan deteksi kebocoran WebGL: `catalogue-layout`, `continuous-motion`, `exploratory-layer`,
 `first-screen`, `gallery-run`, `interaction-grammar`, `media-edge`, `motion`,
 `practice-capabilities`, `practice-page`, `project-detail`, `route-budget`,
 `scale-continuity`, `site-reach`, `visual-substance`, `vocabulary`,
 `command-palette`.
+
+Per berkas, yang **keluar** — dan yang sengaja **tinggal**:
+
+| berkas                  | keluar                                                                                | tinggal, karena melindungi pembaca                                                     |
+| ----------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `catalogue-layout`      | satu span kolom di katalog; campuran span di beranda                                  | filter (juga tanpa JS), FLIP tanpa sisa, reduced motion                                |
+| `command-palette`       | hierarki ukuran tipe + wajib mono; tiga kolom berjarak ≥100 px                        | keyboard, axe dengan dialog terbuka, keadaan kosong/gagal, tanpa JS                    |
+| `continuous-motion`     | lantai ">3 frame berbeda" saat digulir; "tepat satu marquee"                          | prosa tak pernah ikut transform gulir; strip berhenti di reduced motion                |
+| `exploratory-layer`     | baris tak boleh sejajar; drift kolom 0,5–60 px                                        | kartu tak pernah menutupi kartu; kursor tak membawa info eksklusif; ikon bernama       |
+| `first-screen`          | item pertama wajib di atas 85% viewport                                               | item yang **ada di layar** tak boleh tertahan `opacity: 0` menunggu gulir              |
+| `gallery-run`           | semua plat selebar satu trek                                                          | pin punya jarak tempuh, plat terlihat, reduced motion, axe                             |
+| `media-edge`            | "maks dua lebar"; trek mengikuti rasio (+ `track-contract.ts` dan ujinya dihapus)     | gambar mengisi kotaknya; sitemap tak mendaftar redirect                                |
+| `motion`                | h1 wajib split per baris di enam rute; pin wajib >1 layar                             | h1 yang di-split tetap bernama (kini dicek di semua h1); indeks melaporkan langkahnya  |
+| `practice-capabilities` | pin wajib >1 layar                                                                    | satu yang memimpin, set per praktik, reduced motion + tingginya, axe                   |
+| `practice-page`         | wajib `[data-practice-statement]` dan `[data-next-practice]`                          | 200, h1, filter menyempit, satu URL kanonik                                            |
+| `project-detail`        | daftar fakta wajib memotong lipatan 1280×800                                          | 404, axe, sitemap, locale, spine                                                       |
+| `scale-continuity`      | plafon per nilai di 2560 px; jangkar desain dipaku (h1 120 px)                        | lantai 11 px; tanpa tebing saat viewport tumbuh                                        |
+| `site-reach`            | tiap rute wajib menaut katalog + tiap praktik; ≥3 tautan lanjut; tujuan header dipaku | header bukan jalan buntu, satu `aria-current`, 404, redirect tebakan, SEO, path Studio |
+| `visual-substance`      | tangga amplitudo shader; tiap permukaan wajib bergambar; gutter dua sisi → satu sisi  | gutter (tak mulai di kiri header), aksen tak mengurangi, footer terbaca, alt unik      |
+| `vocabulary`            | larangan 13 kata di halaman manusia                                                   | larangan yang sama di `/llms.txt`, sitemap, JSON-LD                                    |
+| `interaction-grammar`   | daftar kata benda per rute; band 150–250 ms; tekan wajib ber-transition `transform`   | tekan dijawab, INTENT dari keyboard, reduced motion; momen dicetak                     |
+| `route-budget`          | (langkah 2)                                                                           | duplikasi chunk                                                                        |
+
+Sapuan ulang sesudahnya menemukan **tiga pin desain di luar daftar audit**,
+dan ketiganya ikut keluar: bar baca wajib `<4 px` (`reading-progress`),
+kekuatan grain wajib `sd <12` (`visual-substance`), dan tombol tutup palette
+wajib tersembunyi `≤2 px` (`palette-touch`). Klausa pembaca di sebelahnya
+tinggal: bar tidak menelan klik, tombol tutup tetap ada untuk pembaca layar.
+
+Yang **sengaja tetap** walau berbentuk angka: `entrance` LCP 2,5 s (ambang
+"baik" Core Web Vitals — waktu tunggu pembaca, bukan selera) dan deteksi
+tirai macet 10 s.
 
 ### Tidak disentuh sama sekali
 

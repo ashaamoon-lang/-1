@@ -32,20 +32,6 @@ import { axeTags } from './axe-tags'
  *    nothing when pressed is worse than no button.
  */
 
-/**
- * The narrowest thing that still counts as a column rather than an indent.
- *
- * Three weaker versions of the band assertion below were written and measured
- * against the stacked layout Tahap 29 replaced, and all three passed on it:
- * `name.left > rail.left` passed on a 7px glyph inset; clearing the rail's
- * width passed because an inline span in a stacked row shrinks to its text;
- * and sharing a top edge passed because `align-items: baseline` moves box
- * tops by the difference in font size, which was *larger* than the stacked
- * layout's. Horizontal separation on this scale is the thing only real
- * columns have — measured 226px and 452px as shipped, 7px and 0px stacked.
- */
-const MIN_COLUMN_PX = 100
-
 /** Opens the palette with the keyboard, the way the shortcut advertises. */
 async function openWithShortcut(page: Page) {
   await page.keyboard.press('Control+k')
@@ -282,112 +268,13 @@ test.describe('the search palette', () => {
   }
 
   /*
-   * Tahap 29's gates. The palette passed everything above while looking like a
-   * command palette from any developer tool, so these check the things that
-   * made it this site's: a real type hierarchy, a rail on the page's own grid,
-   * a counter that answers the query, and three distinct states for an empty
-   * list. `docs/stages/TAHAP-29.md` carries the measurements.
+   * Tahap 29's gates, minus two. It also asserted the row's type hierarchy
+   * (three sizes, the rail in the mono face) and its column geometry (rail,
+   * name and description on three edges 100px apart). Those were how this
+   * site's palette looked, not whether it worked, and the fork removed them
+   * (`docs/FORK.md`, step 5). What stays is behaviour: a counter that answers
+   * the query, and three distinct states for an empty list.
    */
-  test('a result row has a real typographic hierarchy', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/en')
-    await page.waitForTimeout(1200)
-    await page.locator('[data-search-trigger]').click()
-    await page.waitForSelector('[data-search-row]')
-    await page.waitForTimeout(600)
-
-    const row = await page.evaluate(() => {
-      const first = document.querySelector('[data-search-row]')
-      const read = (index: number) => {
-        const el = first?.children[index]
-        const style = el ? getComputedStyle(el) : null
-        return style
-          ? {
-              size: Number.parseFloat(style.fontSize),
-              family: style.fontFamily,
-              left: Math.round(el?.getBoundingClientRect().left ?? 0),
-            }
-          : null
-      }
-      return { meta: read(0), label: read(1), description: read(2) }
-    })
-
-    expect(row.meta && row.label && row.description).toBeTruthy()
-    if (!row.meta || !row.label || !row.description) return
-
-    /*
-     * Tahap 28 set the name and its description at the same size, so nothing
-     * on the row could be scanned — `ui-ux-pro-max --domain ux`: "Consistent
-     * type hierarchy aids scanning". Three sizes, from the scale this site
-     * already has, in the order a reader needs them.
-     */
-    expect(
-      row.label.size,
-      `the name (${row.label.size}px) is not larger than its description (${row.description.size}px) — the row cannot be scanned`
-    ).toBeGreaterThan(row.description.size)
-    expect(
-      row.description.size,
-      'the description is not larger than the rail; the rail is meant to be the quietest thing on the row'
-    ).toBeGreaterThan(row.meta.size)
-    expect(
-      row.meta.family,
-      `the rail is set in ${row.meta.family} — it carries facts (a path, a date, a client and year) and this site sets facts in the mono face`
-    ).toContain('Mono')
-  })
-
-  test('every rail sits on one edge, and the reading column on another', async ({
-    page,
-  }) => {
-    await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/en')
-    await page.waitForTimeout(1200)
-    await page.locator('[data-search-trigger]').click()
-    await page.waitForSelector('[data-search-row]')
-    await page.waitForTimeout(600)
-
-    const edges = await page.evaluate(() => {
-      const rows = [...document.querySelectorAll('[data-search-row]')]
-      const at = (index: number) =>
-        rows.map((row) =>
-          Math.round(row.children[index]?.getBoundingClientRect().left ?? -1)
-        )
-      return {
-        rail: [...new Set(at(0))],
-        name: [...new Set(at(1))],
-        description: [...new Set(at(2))],
-      }
-    })
-
-    expect(
-      edges.rail,
-      `the rails start at ${edges.rail.join(', ')} — a column that does not line up is not a column`
-    ).toHaveLength(1)
-    expect(edges.name).toHaveLength(1)
-
-    /*
-     * Three bands, each a real column further right than the last — which is
-     * what a table of contents is, and what a stacked row is not.
-     *
-     * Three weaker versions of this were written and measured against the
-     * stacked layout this stage replaced, and all three passed on it. See
-     * `MIN_COLUMN_PX` above for what each one missed.
-     */
-    expect(edges.description).toHaveLength(1)
-    const [railX = 0, nameX = 0, descriptionX = 0] = [
-      edges.rail[0],
-      edges.name[0],
-      edges.description[0],
-    ]
-
-    expect(
-      nameX - railX,
-      `the name starts ${nameX - railX}px after the rail — that is an indent, not a column`
-    ).toBeGreaterThanOrEqual(MIN_COLUMN_PX)
-    expect(
-      descriptionX - nameX,
-      `the description starts ${descriptionX - nameX}px after the name — these are stacked, not banded`
-    ).toBeGreaterThanOrEqual(MIN_COLUMN_PX)
-  })
 
   test('the counter answers the query', async ({ page }) => {
     await page.goto('/en')

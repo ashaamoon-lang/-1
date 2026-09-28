@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 /**
- * The scale has a floor, a ceiling, and no cliff — Tahap 36.
+ * The scale has a floor and no cliff — Tahap 36.
  *
  * ## What this measures, and why nothing did before
  *
@@ -23,11 +23,16 @@ import { expect, test } from '@playwright/test'
  * One pixel of window width, and the caption shrank to a quarter of itself.
  * `docs/stages/TAHAP-36.md` §1 carries the full table.
  *
- * ## The four claims
+ * ## The two claims, and the two the fork removed
  *
- * A readability floor, no cliff, a ceiling, and — the one that keeps this a
- * *bounding* change rather than a redesign — the two design anchors must not
- * move.
+ * A readability floor, and no cliff. Both protect a reader: type below 11px
+ * is not read, and a caption that shrinks to a quarter of itself when the
+ * window grows by one pixel is a broken page.
+ *
+ * It also held a **ceiling** per value at 2560px (h1 160px, caption 14px…)
+ * and pinned the **design anchors** — h1 exactly 120px at 1440, 38px at 375.
+ * Those fixed the scale itself, so no design could change the type size; the
+ * fork removed both (`docs/FORK.md`, step 5).
  */
 
 /** Nine widths, chosen to sit either side of every boundary that matters. */
@@ -51,15 +56,6 @@ const MIN_FONT_PX = 11
  * noise of a subpixel layout.
  */
 const MAX_FALL = 0.1
-
-/** Ceilings, from `docs/stages/TAHAP-36.md` §3.1. */
-const CEILING_PX = {
-  h1: 160,
-  caption: 14,
-  gap: 20,
-  safe: 20,
-  header: 80,
-} as const
 
 interface Sample {
   h1: number
@@ -126,7 +122,7 @@ async function sample(page: Page, width: number): Promise<Sample> {
   })
 }
 
-test.describe('the scale is bounded and continuous', () => {
+test.describe('the scale has a floor and no cliff', () => {
   test('nothing is rendered below the readability floor', async ({ page }) => {
     test.setTimeout(120_000)
 
@@ -173,40 +169,5 @@ test.describe('the scale is bounded and continuous', () => {
         ).toBeLessThanOrEqual(MAX_FALL)
       }
     }
-  })
-
-  test('nothing grows past its ceiling', async ({ page }) => {
-    const measured = await sample(page, 2560)
-
-    for (const [key, ceiling] of Object.entries(CEILING_PX)) {
-      const value = measured[key as keyof typeof CEILING_PX]
-      expect(value, `${key} unmeasured`).toBeGreaterThan(0)
-      expect(
-        value,
-        `${key} reaches ${value.toFixed(1)}px at 2560px`
-      ).toBeLessThanOrEqual(ceiling)
-    }
-  })
-
-  /*
-   * The assertion that keeps this a bounding change and not a redesign.
-   * `typography.ts` and `layout.mjs` are the design; the curve has to pass
-   * through both of their anchors exactly.
-   */
-  test('the two design anchors do not move', async ({ page }) => {
-    const mobile = await sample(page, 375)
-    const desktop = await sample(page, 1440)
-
-    expect(mobile.h1).toBeCloseTo(38, 0)
-    expect(mobile.caption).toBeCloseTo(11, 0)
-    expect(mobile.gap).toBeCloseTo(16, 0)
-    expect(mobile.safe).toBeCloseTo(16, 0)
-    expect(mobile.header).toBeCloseTo(58, 0)
-
-    expect(desktop.h1).toBeCloseTo(120, 0)
-    expect(desktop.caption).toBeCloseTo(12, 0)
-    expect(desktop.gap).toBeCloseTo(16, 0)
-    expect(desktop.safe).toBeCloseTo(16, 0)
-    expect(desktop.header).toBeCloseTo(72, 0)
   })
 })

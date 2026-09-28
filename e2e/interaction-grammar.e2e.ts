@@ -41,6 +41,18 @@ declare global {
  * carries the acknowledgment would be a test that quietly stops checking the
  * moment the markup moves.
  *
+ * ## What left this file in the fork
+ *
+ * Five assertions fixed how the site expresses itself rather than whether a
+ * reader is answered, and the fork removed them (`docs/FORK.md`, steps 2 and
+ * 5): a list of nouns each route had to carry; COMMIT and INTENT inside a
+ * 150–250ms band; every press easing on `transform`; a ceiling on moments per
+ * route; and every long movement named. The last two are now printed.
+ *
+ * What stays is the reader's side of the grammar: a pressable thing answers a
+ * press, INTENT reaches the keyboard as well as the cursor, and reduced motion
+ * keeps the state change while dropping the transition.
+ *
  * ## What is deliberately not asserted
  *
  * **COMMIT from the keyboard.** `:active` is used precisely because the
@@ -50,16 +62,6 @@ declare global {
  * is no frame in which to measure the compression. INTENT *is* asserted from
  * the keyboard below, which is the half that can strand a reader.
  */
-
-/** Micro band, `MOTION-SPEC.md` §2, in seconds. */
-const MICRO = { low: 0.15, high: 0.25 }
-
-/** The nouns each route must be able to speak the sentence with. */
-const EXPECTED = {
-  '/en': ['nav', 'cta', 'card', 'email'],
-  '/en/work': ['chip', 'card'],
-  [`/en/work/${FEATURED_WORK}`]: ['next'],
-} satisfies Record<string, readonly string[]>
 
 /**
  * The visual state of one element, as a reader would perceive it.
@@ -115,28 +117,6 @@ function differs(before: Snapshot[], after: Snapshot[]): boolean {
 }
 
 test.describe('interaction grammar', () => {
-  for (const [route, nouns] of Object.entries(EXPECTED)) {
-    test(`${route} marks every pressable noun`, async ({ page }) => {
-      await page.goto(route, { waitUntil: 'domcontentloaded' })
-      await page.waitForTimeout(500)
-
-      const present = await page.evaluate(() => [
-        ...new Set(
-          [...document.querySelectorAll('[data-press]')].map(
-            (el) => el.getAttribute('data-press') ?? ''
-          )
-        ),
-      ])
-
-      for (const noun of nouns) {
-        expect(
-          present,
-          `${route}: nothing carries data-press="${noun}" — found [${present.join(', ')}]`
-        ).toContain(noun)
-      }
-    })
-  }
-
   test('every pressable noun answers a press', async ({ page }) => {
     /*
      * Longer than the 30s default, because this walks every marked noun on
@@ -261,81 +241,6 @@ test.describe('interaction grammar', () => {
     ).toEqual([])
   })
 
-  test('COMMIT and INTENT stay inside the micro band', async ({ page }) => {
-    await page.goto('/en', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(500)
-
-    /*
-     * Read from computed style, which reports the *declared* duration.
-     *
-     * Timing the state change instead would measure the machine, and would be
-     * flaky on a loaded runner. The claim is about what the stylesheet says,
-     * and this is where the stylesheet says it after the cascade.
-     */
-    const durations = await page.evaluate(() =>
-      [
-        ...document.querySelectorAll('[data-press]'),
-        ...document.querySelectorAll('[data-intent]'),
-      ].map((el) => ({
-        noun:
-          el.getAttribute('data-press') ??
-          el.closest('[data-press]')?.getAttribute('data-press') ??
-          '(unmarked)',
-        role: el.hasAttribute('data-press') ? 'commit' : 'intent',
-        seconds: getComputedStyle(el)
-          .transitionDuration.split(',')
-          .map((value) => Number.parseFloat(value))
-          .reduce((longest, value) => Math.max(longest, value), 0),
-      }))
-    )
-
-    expect(durations.length, 'nothing to measure').toBeGreaterThan(0)
-
-    const outside = durations.filter(
-      (d) => d.seconds < MICRO.low || d.seconds > MICRO.high
-    )
-
-    expect(
-      outside.map((d) => `${d.noun}/${d.role}: ${d.seconds * 1000}ms`),
-      'states outside the 150-250ms micro band'
-    ).toEqual([])
-  })
-
-  test('every pressable noun actually transitions its transform', async ({
-    page,
-  }) => {
-    await page.goto('/en', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(500)
-
-    /*
-     * The failure this exists for is silent by construction.
-     *
-     * `global.css` supplies the `:active` transform, but the transition has to
-     * be declared per control, because `transition` replaces rather than
-     * joins. A control that is marked `data-press` and forgets it still
-     * changes on press — instantly, with no easing — and every other
-     * assertion in this file passes: the state differs, and the duration read
-     * back is whatever the colour transition declares, which is in band.
-     */
-    const snapped = await page.evaluate(() =>
-      [...document.querySelectorAll('[data-press]')]
-        .filter((el) => {
-          const properties = new Set(
-            getComputedStyle(el)
-              .transitionProperty.split(',')
-              .map((value) => value.trim())
-          )
-          return !(properties.has('transform') || properties.has('all'))
-        })
-        .map((el) => el.getAttribute('data-press') ?? '(unnamed)')
-    )
-
-    expect(
-      [...new Set(snapped)],
-      'these snap instead of easing — no `transform` in their transition'
-    ).toEqual([])
-  })
-
   /**
    * Every page `MOTION-SPEC.md` §9.5 names, not just the home page.
    *
@@ -355,42 +260,18 @@ test.describe('interaction grammar', () => {
    * a corresponding route here is the kind of drift this file exists to stop.
    */
   /*
-   * The ceiling per route — `MOTION-SPEC.md` §9.5, widened in Tahap 60.
+   * The routes whose moments are reported.
    *
-   * ## Why this number stopped being the instrument that matters
-   *
-   * It was two, then three from Tahap 49. Tahap 60 took it to **twelve** on
-   * the four routes that carry the agency's image, and the reason is that the
-   * count was never what was worth protecting.
-   *
-   * §9.5 exists because a page where everything is epic has nothing epic. On
-   * a short page, capping the number is a crude way to get there. On a page
-   * with a 110svh hero and a 300vh pinned passage it is the wrong instrument
-   * entirely: such a page can hold many moments **in sequence** without any
-   * of them competing, and a count cannot tell the difference.
-   *
-   * So Tahap 60 moved the invariant to `e2e/epic-sequence.e2e.ts` — two
-   * moments with different names, neither nested in the other, might not
-   * occupy the same scroll range. The fork deleted that file too: layering
-   * two moments over one stretch of scroll is a composition choice, not a
-   * defect the reader suffers.
-   *
-   * What stays here is the **runaway guard**, and the assertion above it that
-   * matters more than either: every movement past the standard band must sit
-   * inside a *named* `[data-epic]`. Naming is the discipline; the number is
-   * only a tripwire now.
-   *
-   * `/journal/<slug>` is deliberately the tightest on the site. Holding back
-   * in one place is what makes the spending elsewhere read as a choice rather
-   * than a default.
-   *
-   * Written as a table rather than a single constant so that raising one
-   * route is a visible, reviewable edit rather than a bumped number.
+   * Each entry used to carry a `ceiling` — 12 on the four brand routes, 6 on
+   * `/journal` and `/work/<slug>`, 3 on a journal entry — `MOTION-SPEC.md`
+   * §9.5 as widened in Tahap 60. The fork removed the ceilings
+   * (`docs/FORK.md`, step 2): a route may spend as many moments as its
+   * design wants, and this prints how many it did.
    */
   const EPIC_ROUTES = [
-    { path: '/en', ceiling: 12 },
-    { path: '/en/work', ceiling: 12 },
-    { path: `/en/work/${FEATURED_WORK}`, ceiling: 6 },
+    { path: '/en' },
+    { path: '/en/work' },
+    { path: `/en/work/${FEATURED_WORK}` },
     /*
      * A practice page is a brand surface, not an information one.
      *
@@ -400,23 +281,18 @@ test.describe('interaction grammar', () => {
      * which `ProjectCard` carries wherever it renders, the same accounting
      * defect Tahap 50 found on `/studio`. The lesson was that an unmarked
      * moment is not an absent one.
-     *
-     * It joins the twelve because it sells a capability, which is what the
-     * agency is hired for. `/journal` and `/journal/<slug>` do not.
      */
-    { path: '/en/practice/consulting', ceiling: 12 },
-    { path: '/en/studio', ceiling: 12 },
-    { path: '/en/journal', ceiling: 6 },
-    { path: '/en/journal/scope-is-the-deliverable', ceiling: 3 },
+    { path: '/en/practice/consulting' },
+    { path: '/en/studio' },
+    { path: '/en/journal' },
+    { path: '/en/journal/scope-is-the-deliverable' },
   ] as const
 
-  for (const { path: route, ceiling } of EPIC_ROUTES)
-    test(`${route} spends no more than ${ceiling} choreographed moments`, async ({
-      browser,
-    }) => {
+  for (const { path: route } of EPIC_ROUTES)
+    test(`${route} reports its choreographed moments`, async ({ browser }) => {
       /*
-       * The epic-moment budget, `MOTION-SPEC.md` §9.5 — measured from motion
-       * that actually happened, not from what a stylesheet declares.
+       * The moments a route spends, `MOTION-SPEC.md` §9.5 — measured from
+       * motion that actually happened, not from what a stylesheet declares.
        *
        * That distinction is the whole difficulty, and the stage spec named it
        * as this stage's largest risk (`docs/stages/TAHAP-12.md` §8.3): counting
@@ -557,8 +433,8 @@ test.describe('interaction grammar', () => {
          * directly, as this sampler does, it declares nothing and should.
          *
          * The vacuum is already closed twice over, in the right places: the
-         * sampler asserts it observed elements at all, the `unnamed` check
-         * above catches choreographed movement that belongs to no name, and
+         * sampler asserts it observed elements at all, the unnamed count above
+         * reports choreographed movement that belongs to no name, and
          * `e2e/journey.e2e.ts` fails outright if the home page's pin never
          * engages. A floor here would have been a fourth guard that
          * contradicts the spec.

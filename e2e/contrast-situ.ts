@@ -144,7 +144,7 @@ const round = (value: number) => Math.round(value * 100) / 100
  * Every run that does not clear its own AA floor.
  *
  * Faults rather than a throw, so one run reports all of them and names each
- * one — `media-edge` and `track-contract` return lists for the same reason.
+ * one — `media-edge` returns lists for the same reason.
  */
 export function contrastFaults(runs: readonly TextRun[]): string[] {
   const faults: string[] = []

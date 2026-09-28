@@ -1,7 +1,5 @@
 import { expect, test } from '@playwright/test'
 
-import { routing } from '../lib/i18n/routing'
-
 /**
  * The site says what Arth actually does — measured on what it serves.
  *
@@ -55,7 +53,14 @@ const RETIRED = [
 const PATTERN = new RegExp(`\\b(${RETIRED.join('|')})\\b`, 'gi')
 
 /**
- * Every surface a person or an agent reads a claim from.
+ * The surfaces a machine takes as a claim about the business.
+ *
+ * **Scoped in the fork.** This list used to carry `/en`, `/id`, `/en/work`
+ * and `/id/work` as well, which banned thirteen words from every human page —
+ * a caption could not say "artwork", an essay could not say "illustration".
+ * The fork (`docs/FORK.md`, step 5) keeps the ban where it is honesty rather
+ * than copy-editing: `/llms.txt` and the sitemap here, and the JSON-LD in the
+ * test below, which an answer engine acts on rather than reads.
  *
  * `/${locale}/ai` stood here after Tahap 84 removed that route — found in
  * Tahap 90. A removed route answers the site's soft-404 with a 200, so the
@@ -63,10 +68,7 @@ const PATTERN = new RegExp(`\\b(${RETIRED.join('|')})\\b`, 'gi')
  * two tests that looked like they guarded the machine view and guarded the
  * 404 instead.
  */
-const SURFACES = [
-  '/llms.txt',
-  ...routing.locales.flatMap((locale) => [`/${locale}`, `/${locale}/work`]),
-]
+const SURFACES = ['/llms.txt', '/sitemap.xml']
 
 test.describe('vocabulary', () => {
   for (const path of SURFACES) {

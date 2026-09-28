@@ -130,8 +130,8 @@ export function Marquee({
       ref={setIntersectionRef}
       className={cn(className, s.marquee)}
       /*
-       * Names one marquee, so a gate can count instances rather than guess
-       * from class names — Tahap 42.
+       * Names one marquee, so a test can find it by attribute rather than
+       * guess from class names — Tahap 42.
        *
        * `e2e/taste-preflight.e2e.ts` enforced `taste-skill`'s one-marquee
        * rule (deleted in the fork) and counted `[class*="marquee"]`. CSS modules put the source

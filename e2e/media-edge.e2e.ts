@@ -1,11 +1,22 @@
 import { expect, test } from '@playwright/test'
 
-import { trackFaults } from './track-contract'
-
 /**
- * A project page has an edge a reader can follow.
+ * A project page fills the boxes it reserves for its artwork.
  *
- * ## What this caught
+ * ## What left this file in the fork
+ *
+ * Two layout rules stood here: artwork sits on **at most two widths** (one
+ * full track, one half), and the track a work lands in follows its shape
+ * (landscape full, portrait half, a run's plates all one track — judged in
+ * `track-contract.ts`). Both were how this site composed a project page, and
+ * the fork removed them with their module (`docs/FORK.md`, step 5).
+ *
+ * What stays is the defect the history below found, which is a defect under
+ * any composition: an image rendering narrower than the box reserved for it,
+ * leaving dead space where the picture should be. And a sitemap that lists a
+ * redirect, which asks a crawler to index a 308.
+ *
+ * ## What the width rules were written against
  *
  * Measured on `/en/work/arus-balik` at 1440×900, before the fix:
  *
@@ -85,154 +96,22 @@ function practiceUrlsAreGone(sitemap: string): string[] {
   ].map((m) => m[1] as string)
 }
 
-/** Sub-pixel rounding; two widths this close are the same width. */
-const TOLERANCE = 1.5
-
 test.describe('media edge', () => {
-  test('artwork sits on at most two widths', async ({ page, request }) => {
-    // A real slug from the sitemap rather than a hardcoded one, so this
-    // cannot pass against a dataset that no longer holds it.
+  test('the sitemap lists no practice under /work/', async ({ request }) => {
     const sitemap = await (await request.get('/sitemap.xml')).text()
 
-    // The guard that used to be a silent lookahead. Tahap 15 moved practices
-    // out of `/work/`; if one ever comes back, the list below would treat a
-    // filtered catalogue as a single work and report nonsense about its
-    // proportions rather than failing here.
+    // The guard that used to be a silent lookahead — see `WORK_LOC_ALL`.
     expect(
       practiceUrlsAreGone(sitemap),
       'the sitemap lists a practice under /work/, which is now a permanent redirect'
     ).toEqual([])
 
-    const paths = [...sitemap.matchAll(WORK_LOC_ALL)].map(
-      (match) => match[1] ?? ''
-    )
-
-    test.skip(paths.length === 0, 'no published project to measure')
-
-    for (const path of paths) {
-      await page.goto(path)
-
-      const widths = await page.evaluate(() => {
-        const nextProject = document.querySelector('[class*="next-project"]')
-        return [...document.querySelectorAll('main img')]
-          .filter((img) => !nextProject?.contains(img))
-          .map((img) => img.getBoundingClientRect().width)
-      })
-
-      expect(widths.length, `${path} renders no artwork`).toBeGreaterThan(0)
-
-      // Cluster within tolerance rather than comparing exact floats.
-      const distinct: number[] = []
-      for (const width of widths) {
-        if (!distinct.some((seen) => Math.abs(seen - width) <= TOLERANCE)) {
-          distinct.push(width)
-        }
-      }
-
-      expect(
-        distinct.length,
-        `${path} spreads artwork across ${distinct.length} widths: ${distinct
-          .map((w) => `${Math.round(w)}px`)
-          .join(', ')}`
-      ).toBeLessThanOrEqual(2)
-    }
-  })
-
-  test('the track a work lands in follows its shape', async ({
-    page,
-    request,
-  }) => {
-    /*
-     * `isFullWidth()` proven all the way to the screen, not just as a function.
-     *
-     * The rule — ratio >= 1 takes the full track, below it takes the half —
-     * has been unit-tested since Tahap 11b and passing, including at the
-     * boundary (`isFullWidth(1)`). That is a claim about a function. It says
-     * nothing about whether the branch survives the CSS, the grid, and the
-     * image component between it and a reader, and the defect Tahap 11b
-     * actually found lived in exactly that gap: `ProjectGallery` never passed
-     * `className`, so its `.image` rule had never once applied.
-     *
-     * Until Tahap 12a the dataset held two ratios, 0.80 and 1.60, so no
-     * rendered page had ever carried a square asset and the boundary was
-     * untested anywhere a browser could see it. `bacaan-mesin` is square on purpose.
-     *
-     * The assertion is relative — full is wider than half — rather than
-     * pinned to 1398px and 691px, for the same reason the test above is: those
-     * numbers are one viewport's, and the gutter is allowed to be tuned.
-     */
-    const sitemap = await (await request.get('/sitemap.xml')).text()
-
-    // The guard that used to be a silent lookahead. Tahap 15 moved practices
-    // out of `/work/`; if one ever comes back, the list below would treat a
-    // filtered catalogue as a single work and report nonsense about its
-    // proportions rather than failing here.
+    // Anti-vacuum: a sitemap with no work at all would pass the guard above
+    // by listing nothing.
     expect(
-      practiceUrlsAreGone(sitemap),
-      'the sitemap lists a practice under /work/, which is now a permanent redirect'
-    ).toEqual([])
-
-    const paths = [...sitemap.matchAll(WORK_LOC_ALL)].map(
-      (match) => match[1] ?? ''
-    )
-
-    test.skip(paths.length === 0, 'no published project to measure')
-
-    const everyRatio: number[] = []
-
-    for (const path of paths) {
-      await page.goto(path)
-
-      const artwork = await page.evaluate(() => {
-        const nextProject = document.querySelector('[class*="next-project"]')
-        /*
-         * The horizontal run is a different layout with a different contract —
-         * Tahap 71. Its plates share one track whatever their shape, which is
-         * the opposite of the grid's rule, so they are tagged here and judged
-         * separately in `trackFaults`. Tagging rather than excluding: dropping
-         * them would leave nothing asserting their widths at all.
-         */
-        const run = document.querySelector('[data-epic="project-run"]')
-        return [...document.querySelectorAll<HTMLImageElement>('main img')]
-          .filter((img) => !nextProject?.contains(img) && img.naturalHeight > 0)
-          .map((img) => ({
-            // The *served* derivative's shape. Sanity keeps the source ratio
-            // unless a crop is requested, so this is what the layout reasoned
-            // about — and if a crop ever is requested, this catches that too.
-            ratio: img.naturalWidth / img.naturalHeight,
-            width: img.getBoundingClientRect().width,
-            inRun: run?.contains(img) ?? false,
-          }))
-      })
-
-      expect(artwork.length, `${path} renders no artwork`).toBeGreaterThan(0)
-      everyRatio.push(...artwork.map((item) => item.ratio))
-
-      /*
-       * The judgement lives in `track-contract.ts` so that the run's branch is
-       * reachable from a unit test. No route draws a run on today's dataset —
-       * every project carries two images against a `RUN_MINIMUM` of four — so
-       * written inline it would be a rule that never executes, which is the
-       * failure Tahap 68, 69 and 70 each recorded once.
-       */
-      expect(
-        trackFaults(artwork, TOLERANCE),
-        `${path} breaks the contract for the layout it is in`
-      ).toEqual([])
-    }
-
-    /*
-     * And the boundary itself reached a page.
-     *
-     * Without this the test above passes on a dataset that never exercises
-     * `ratio === 1` — which is precisely the state this project shipped in for
-     * eleven stages. A gate that cannot see the case it exists for is not a
-     * gate.
-     */
-    expect(
-      everyRatio.some((ratio) => Math.abs(ratio - 1) < 0.01),
-      `no square work in the dataset; ratios seen: ${[...new Set(everyRatio.map((r) => r.toFixed(2)))].join(', ')}`
-    ).toBe(true)
+      [...sitemap.matchAll(WORK_LOC_ALL)].length,
+      'the sitemap lists no work to check against'
+    ).toBeGreaterThan(0)
   })
 
   test('every artwork box is filled by its image', async ({
@@ -243,9 +122,8 @@ test.describe('media edge', () => {
      * The second cause above, on its own.
      *
      * `.media` reserves a box from the asset's ratio; if the `<img>` inside
-     * renders narrower, the reserved box shows as dead space and the width
-     * test above can still pass — every image would simply be short by the
-     * same amount. This asserts the box is actually filled.
+     * renders narrower, the reserved box shows as dead space. This asserts
+     * the box is actually filled.
      */
     const sitemap = await (await request.get('/sitemap.xml')).text()
     const path = sitemap.match(WORK_LOC)?.[1]
