@@ -304,6 +304,27 @@ supaya tetap satu baris — label CTA yang terbungkus adalah tombol rusak
 (`e2e/controls.e2e.ts`). Terukur satu baris tanpa luapan di 390, 800, 1440 dan
 2560px, mengisi 94% wadahnya.
 
+**`/work` dan beranda (desktop, WebGL) — plat material kembali di dalam
+bingkainya, dengan parallax dan hover.** Ditemukan oleh workflow kritik desain
+(`fork-design-critique`, usulan peringkat 1) dan dilihat sendiri di layar:
+mesh diukur dari pembungkusnya sendiri, yang berada di dalam lapisan parallax —
+lebih tinggi dari bingkai dan tertranslasi — jadi plat diskalakan ke lapisan
+itu, dibekukan di offset saat diukur, dan tak terpotong apa pun. Plat meluap
+40–90px melewati bingkai dan duduk **di bawah keterangannya sendiri**. Dan
+karena gambar DOM disembunyikan selama material hidup, parallax kartu dan
+`:hover`-nya menggerakkan sesuatu yang tak terlihat siapa pun: di desktop,
+sampul tidak punya kedalaman dan tidak menjawab hover.
+
+Kini mesh diukur terhadap bingkai (`[data-plate-frame]`, `ignoreTransform`),
+dan parallax serta INTENT digambar di shader dengan geometri yang sama dengan
+lapisan DOM. Gerbang baru `e2e/material-frame.e2e.ts` memotret strip tipis di
+luar bingkai dengan dan tanpa kanvas — dibuktikan merah di build lama (46,4
+lawan 14,4) setelah versi pertamanya merah **karena alasan yang salah** (ia
+mencari penanda yang baru ditambahkan perbaikannya sendiri). Arah parallax
+terukur sama dengan DOM (horizon −2px mesh, −5px DOM untuk 200px gulir;
+besarnya identik menurut penurunan, selisihnya derau drift ambien). Hover dan
+fokus keyboard mengubah plat 5–6× di atas derau diam.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
