@@ -520,16 +520,26 @@ test.describe('interaction grammar', () => {
           'the sampler observed no elements at all'
         ).toBeGreaterThan(20)
 
+        /*
+         * Reported, not capped — the fork.
+         *
+         * Two assertions stood here. One capped how many choreographed moments
+         * a route could declare (`ceiling`); the other failed any movement past
+         * the 150–250ms standard band that no named moment claimed. Both are
+         * budgets on expression, and the first contradicted this repo in
+         * writing: `epic-sequence.e2e.ts:11` says the per-page count was
+         * replaced by its overlap rule because "the count was never the thing
+         * worth protecting" — and this line went on enforcing it.
+         *
+         * The overlap rule it pointed to is kept in `epic-sequence.e2e.ts`.
+         * Here the route's moments are printed, so the number stays visible.
+         */
         const unnamed = moved.filter((item) => item.epic === null)
-        expect(
-          unnamed.map((item) => `${item.what} moved ${item.ms}ms`),
-          `${route}: movement past the standard band that belongs to no named moment`
-        ).toEqual([])
-
-        expect(
-          names.length,
-          `${route} may spend ${ceiling} choreographed moments; it declares ${names.length}: ${names.join(', ')}`
-        ).toBeLessThanOrEqual(ceiling)
+        console.log(
+          `MOMENTS ${route.padEnd(38)} ${String(names.length).padStart(2)} named${
+            names.length > 0 ? ` (${names.join(', ')})` : ''
+          }${unnamed.length > 0 ? ` + ${unnamed.length} unnamed long moves` : ''}`
+        )
         /*
          * There is deliberately **no** floor of "at least one named moment",
          * and that is a correction to this file's own first attempt at the

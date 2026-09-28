@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import type { Browser } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
@@ -256,6 +258,7 @@ async function measure(browser: Browser, path: string) {
 
   let bytes = 0
   const libraries = new Set<string>()
+  const byContent = new Map<string, string[]>()
 
   page.on('response', async (response) => {
     const url = response.url()
@@ -264,6 +267,8 @@ async function measure(browser: Browser, path: string) {
     try {
       const body = await response.body()
       bytes += body.length
+      const digest = createHash('sha256').update(body).digest('hex')
+      byContent.set(digest, [...(byContent.get(digest) ?? []), url])
       if (body.length < SCAN_FLOOR_BYTES) return
 
       const text = body.toString('latin1')
@@ -281,7 +286,12 @@ async function measure(browser: Browser, path: string) {
   await page.waitForTimeout(1500)
 
   await context.close()
-  return { kb: Math.round(bytes / 1024), libraries: [...libraries].sort() }
+  const duplicated = [...byContent.values()].filter((urls) => urls.length > 1)
+  return {
+    kb: Math.round(bytes / 1024),
+    libraries: [...libraries].sort(),
+    duplicated,
+  }
 }
 
 /*
@@ -307,7 +317,7 @@ async function measure(browser: Browser, path: string) {
 test.describe('per-route weight, reported', () => {
   for (const route of ROUTES) {
     test(`${route.path} reports its weight`, async ({ browser }) => {
-      const { kb, libraries } = await measure(browser, route.path)
+      const { kb, libraries, duplicated } = await measure(browser, route.path)
 
       console.log(
         `WEIGHT ${route.path.padEnd(38)} ${String(kb).padStart(5)} KB  ${
@@ -319,6 +329,32 @@ test.describe('per-route weight, reported', () => {
         kb,
         `${route.path} measured 0KB — the probe is broken, not the page`
       ).toBeGreaterThan(0)
+
+      /*
+       * The one thing the old ceiling caught that was a defect, not a choice.
+       *
+       * Tahap 28: three routes jumped over the ceiling for code nobody had
+       * opened. One import inside the search palette put a module in both the
+       * eager and the async graph, and the bundler shipped ~43KB of
+       * already-downloaded code a second time. The ceiling is what made it
+       * visible — and removing the ceiling removed that, which the fork's own
+       * re-audit caught.
+       *
+       * But what went wrong there was weight nobody wrote, and that is
+       * catchable without capping weight anybody chose: the same bytes arriving
+       * under two URLs. This checks exactly that and nothing about size.
+       *
+       * Honest about its reach: it catches byte-identical duplication. A module
+       * copied into two *different* chunks alongside other code will not hash
+       * the same and is not caught here — the weight report above is what
+       * shows that, as a number rather than a failure.
+       */
+      expect(
+        duplicated,
+        `${route.path} downloaded the same chunk under more than one URL: ${duplicated
+          .map((urls) => urls.join(' = '))
+          .join('; ')}`
+      ).toEqual([])
     })
   }
 })
