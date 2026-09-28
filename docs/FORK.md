@@ -296,6 +296,14 @@ sebagian besar 62svh-nya kosong. Kini nomor, judul berskala display, dan isi
 **`/practice/<v>` — pernyataan kapabilitas berskala display.** Dua atau tiga
 kata dalam 46svh; kini lead/recede-nya adalah gerak tipografi selebar layar.
 
+**Beranda — alamat email selebar layar.** Satu-satunya aksi konversi situs
+agensi ini duduk di `h2`, sepertiga lebar, dengan sisa baris kosong. Kini ia
+membentang dari tepi ke tepi, dan ukurannya **dihitung** dari jumlah
+karakternya (`100cqi / (chars × 0.58)`, dari 0,55em/karakter yang terukur)
+supaya tetap satu baris — label CTA yang terbungkus adalah tombol rusak
+(`e2e/controls.e2e.ts`). Terukur satu baris tanpa luapan di 390, 800, 1440 dan
+2560px, mengisi 94% wadahnya.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
