@@ -274,6 +274,25 @@ html.overflow-hidden {
   touch-action: none;
 }
 
+/*
+ * The page holds still under the phone menu's open sheet — the fork
+ * (`components/layout/header`). The sheet is a popover, so this is `:has()`
+ * rather than a class a script toggles, and it holds with scripting off.
+ * `overscroll-behavior` on the sheet was the first attempt; review measured
+ * the sheet's content at ~473px of a 786px box, so it had nothing to scroll
+ * and every drag went to the document. Two rules, not one list: an engine
+ * without `:popover-open` would drop a list that named it.
+ */
+@media (--mobile) {
+  html:has(#header-nav:popover-open) {
+    overflow: hidden;
+  }
+
+  html:has(#header-nav[data-open]) {
+    overflow: hidden;
+  }
+}
+
 body {
   /*
    * The document's default face.

@@ -97,6 +97,9 @@ export default defineConfig({
         // with scripting off a phone clipped three of its four plates where
         // desktop clipped two. Each width is its own claim (the fork).
         '**/gallery-strip.e2e.ts',
+        // The menu exists only below the desktop breakpoint, so this is the
+        // one project that can open it (the fork).
+        '**/phone-menu.e2e.ts',
       ],
       use: {
         browserName: 'chromium',

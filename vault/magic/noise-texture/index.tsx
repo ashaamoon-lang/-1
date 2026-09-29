@@ -144,9 +144,9 @@ export function NoiseTexture({
           numOctaves={octaves}
           stitchTiles="stitch"
         />
-        {/* To grey. Turbulence is coloured, and grain in a colour this
-            palette never chose would tint every surface it sits on — even
-            when it arrives as a filter rather than as a literal. */}
+        {/* To grey. Turbulence is coloured, and a colour this palette never
+            chose is exactly what `token-rules.test.ts` exists to prevent —
+            even when it arrives as a filter rather than as a literal. */}
         <feColorMatrix type="saturate" values="0" />
         <feComponentTransfer result="grain">
           <feFuncR type="linear" slope={slope} />

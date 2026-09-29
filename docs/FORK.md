@@ -23,6 +23,53 @@ yang dikurasi; bangun desainnya lebih baik.
 > larangan mengarang konten tidak ikut dilepas — melepasnya bukan membebaskan
 > imajinasi, melainkan mengirim barang rusak.
 
+### 0.1 Tiga jawaban, untuk pembaca yang baru datang
+
+Ditambahkan saat serah terima, supaya dokumen ini bisa dibaca tanpa membuka
+kode. Rinciannya tetap di bagian yang dirujuk; tidak ada yang dihapus.
+
+**Apa yang dicabut, dan kenapa** — aturan yang menolak gagasan sebelum
+gagasan itu terlihat (rinciannya §1–§2):
+
+| keluarga           | yang dicabut                                                                                                        | kenapa                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| kunci pembukuan    | `rule-coverage`, `stage-position`, drift papan skor & design-debt                                                   | memaku dokumen, bukan melindungi pembaca; menghapus satu aturan memerahkan `bun test` |
+| anggaran           | plafon KB dan daftar-izin pustaka per rute, plafon aset, plafon momen, "≤1 pin per rute", band durasi               | angka yang menolak gagasan; kini **diukur dan dicetak**, bukan veto                   |
+| penegakan gaya     | `token-rules`, `taste-rules`, `scale-rules`; larangan sintaks; 19 rule anti-slop turun dari `error`                 | kosakata gaya dan selera sebagai gerbang                                              |
+| doktrin            | dial `DESIGN_VARIANCE`/`MOTION_INTENSITY`/`VISUAL_DENSITY`, larangan masonry, ritual skill wajib, spec-sebelum-kode | selera dari basis data pola menggantikan penilaian                                    |
+| gerbang selera e2e | 10 spec dihapus, 17 disunting klausa-per-klausa                                                                     | mempolisikan bentuk komposisi, bukan cacat yang diderita pembaca                      |
+
+**Apa yang dipertahankan** — dan di mana ia dijaga:
+
+| perlindungan    | dijaga oleh                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| axe             | `route-sweep`, `storybook-a11y`, dan axe per fitur (`gallery-run`, `phone-menu`, `command-palette`, …)                                           |
+| kontras terukur | `lib/styles/scripts/contrast.test.ts` (kini **lantai**, bukan baseline terpaku), `contrast-situ` (diukur di atas apa yang benar-benar tergambar) |
+| reduced motion  | `motion-rules.test.ts` + klausa reduced-motion di tiap gerbang yang bergerak                                                                     |
+| keyboard        | `keyboard-focus`, `controls`, `phone-menu`, `lightbox`, `command-palette`                                                                        |
+| jalur tanpa JS  | `no-javascript`, `gallery-strip`, `phone-menu`, `catalogue-layout`                                                                               |
+| pembersihan GPU | `material-layer` (buffer tak tumbuh), `canvas-survives-navigation`, `webgl-budget` (reduced motion mengunduh nol engine)                         |
+| CSP / header    | `response-headers`                                                                                                                               |
+| penjaga token   | `lib/env-guard.test.ts` — tak ada token ber-prefix `NEXT_PUBLIC_`                                                                                |
+| kejujuran       | `CLAUDE.md` #19–#21; konten hanya dari CMS atau kamus `messages/*.json`; placeholder berlabel                                                    |
+
+**Aset dan pustaka kurasi yang sengaja tidak disentuh** — asal dan
+lisensi tiap satunya di `docs/PROVENANCE.md`, yang juga tidak disunting:
+
+- `vault/magic/*` — Magic UI (MIT), vendored dengan transformasinya sendiri;
+  pemakainya boleh berubah, berkasnya tidak (lihat veil di §3.2).
+- `tools/oxlint/anti-slop/` — plugin MIT-vendored; hanya tingkat rule-nya
+  di `oxlint.config.ts` yang diturunkan.
+- `.claude/skills/` — taste-skill, ui-ux-pro-max: wewenangnya dicabut,
+  isinya tidak.
+- font dan lisensinya, `sanity.types.ts` dan tipe ter-generate, `public/`,
+  seluruh dependencies.
+- `lib/styles/css/tailwind.css` dan `root.css` ter-generate — hanya lewat
+  `bun run setup:styles`.
+
+Yang **boleh** disunting karena karya asli proyek ini: `vault/blocks/*`,
+`vault/motion/*`, `vault/webgl/material-image/*` (§3.1).
+
 ---
 
 ## 1. Audit
@@ -232,6 +279,15 @@ tirai macet 10 s.
 > jadi mati ketika rule-nya dimatikan (langkah 3), dan komentar yang menunjuk
 > gerbang terhapus (langkah 5). Kode, props, perilaku, dan header provenance
 > `vault/` tidak disentuh.
+>
+> **Dan satu dari komentar itu dikembalikan saat serah terima.** Pemeriksaan
+> `git diff 22136de -- vault/magic tools/oxlint/anti-slop .claude/skills public`
+> tidak kosong: langkah 5a menyunting komentar di
+> `vault/magic/noise-texture/index.tsx` (ia menyebut `token-rules.test.ts`,
+> yang fork hapus). `vault/magic/` adalah aset kurasi, jadi berkas itu
+> dikembalikan ke byte vendored-nya; komentar yang menyebut uji terhapus
+> adalah sejarah yang tak merugikan, berkas kurasi yang disunting melanggar
+> batas. Pemeriksaan itu kini kosong.
 
 `vault/` dan header provenance-nya, `tools/oxlint/anti-slop/` (MIT-vendored),
 `.claude/skills/` (taste-skill, ui-ux-pro-max — wewenangnya dicabut, isinya
@@ -439,6 +495,58 @@ dalamnya. `RUN_WORK` diekspor sejak Tahap 82 dan tak dipakai satu gerbang pun;
 kini ia juga dikunjungi `image-resolution`, karena `sizes` plat strip ditulis
 per plat.
 
+**Menu ponsel — kata besar, dan bekerja tanpa JavaScript** (usulan yang
+ditunda nomor 9, "kandidat terkuat berikutnya"). MENU adalah toggle state
+React di atas dropdown tiga tautan mono 11px; tanpa skrip tombolnya tak
+berbuat apa-apa dan nav tetap `display: none`, jadi header ponsel tidak
+membawa satu pun tautan rute. Kini **nav itu sendiri** adalah
+`popover="auto"` dan MENU `popovertarget`-nya: peramban yang membuka, menutup
+dengan Escape atau ketukan di luar, dan mengembalikan fokus ke tombol — tanpa
+skrip. Di desktop elemen yang sama tetap baris header; di ponsel ia sheet yang
+mulai **di bawah** bar, jadi header tetap di tempatnya dan MENU (kini
+"Close"/"Tutup") tetap jalan keluarnya. Isinya tiga rute pada ukuran display
+yang di-_fit_ ke label terpanjang dalam bahasanya (71px "Journal", 83px
+"Jurnal" di 390px; baris ketuk 76px); halaman yang sedang dibuka bertinta
+penuh **dan bergaris bawah**. MENU pindah ke tepi kanan di markup, jadi urutan
+fokus sama dengan urutan di layar dan `order: 1` yang menambalnya dibuang.
+
+**Versi pertamanya salah bentuk, dan itu dikatakan.** Ia merender nav
+**kedua** khusus sheet, berisi rute plus tiga tautan praktik. Suite penuh
+merah di sana karena desainnya, bukan karena flaky: salinan tersembunyi setiap
+tautan ada di halaman desktop, dan `interaction-grammar`, `journey`, `motion`
+dan `navigation-landing` masing-masing mengambil "tautan pertama ke …" atau
+"setiap `[data-press]`" yang ternyata tak terlihat siapa pun; review juga
+menemukan dua `aria-current` di header (`site-reach`). Jawabannya satu elemen,
+bukan menyunting lima gerbang. Tautan praktik keluar dari menu karena alasan
+yang `ROUTE_LINKS` sudah tulis: nav ini menjawab "halaman apa yang situs ini
+punya", dan indeks footer memuat praktik di setiap halaman. Email studio dari
+usulan juga **tidak** dimasukkan: ia placeholder berlabel, dan permukaan kedua
+akan menyebarkannya.
+
+Yang ditambahkan skrip, masing-masing dari review: fokus yang meninggalkan
+sheet menutupnya (Tab melewati tautan terakhir dulu mendarat di konten di
+bawah sheet yang opak — WCAG 2.4.11); ⌘K menutup popover apa pun sebelum
+palette dibuka (lapisan atas mengecat di atas `z-index` mana pun, jadi palette
+terbuka **di bawah** sheet dengan fokus terkunci di kolom yang tak terlihat);
+tautan yang bernavigasi menutupnya, karena tiap halaman merender header-nya
+sendiri dan Next menyimpan halaman sebelumnya di `<Activity>` tersembunyi —
+tanpa itu, Back menampilkan halaman itu dengan sheet masih terbuka; label
+"Close" dibaca dari elemen lewat `useSyncExternalStore`, jadi ketukan sebelum
+hidrasi pun tercermin; melintasi 800px menutupnya; dan peramban tanpa
+`popover` mendapat toggle dengan `aria-expanded` dan Escape. Halaman di
+belakang ditahan diam lewat `html:has(#header-nav:popover-open)` — juga
+tanpa skrip — karena `overscroll-behavior` tak berbuat apa-apa pada sheet
+yang isinya tak meluap.
+
+Gerbang baru `e2e/phone-menu.e2e.ts` menemukan menu seperti pembaca
+menemukannya — navigasi terlihat bernama "Primary" — setelah versi pertamanya
+merah di build lama **karena alasan yang salah** (id sheet yang baru belum
+ada). Satu tes desktop menjaga bentuk yang benar: satu nav, tak ada pressable
+tersembunyi, paling banyak satu `aria-current`. Dua perilaku harness dicatat:
+tanpa skrip, pemeriksaan "stabil" Playwright tidak selesai pada tautan yang
+masih naik, dan palette punya entrance sendiri — keduanya ditunggu, bukan
+dilawan, dan cacatnya tetap membuat tes merah karena waktu habis.
+
 **Ditunda, dengan alasan:** morph sampul dari proyek ke proyek berikutnya.
 Memberi sampul "berikutnya: C" nama transisi C berarti halaman proyek ke
 katalog membentuk **dua** pasangan morph (hero B ↔ kartu B, dan C ↔ kartu C),
@@ -533,6 +641,81 @@ Sengaja **tidak** diperbaiki di sini, dengan alasannya:
   gerbangnya **tidak**, dan itu ada sebelum fork. Memperbaikinya mengubah
   byte di setiap halaman proyek dan ambang sebuah gerbang — pekerjaan
   tersendiri yang diukur, bukan tambahan diam-diam di sini.
+
+**Review ketiga — menu ponsel** (tiga peninjau baca-saja: a11y/popover,
+CSS/runtime, validitas gerbang; lalu verifikator yang diminta membantah).
+Sesi berakhir saat verifikator berjalan, dan kode sudah ditulis ulang sebelum
+ia bisa diulang, jadi yang ia periksa adalah **perbaikannya**, bukan temuan
+aslinya: dari 21 temuan, 17 diperbaiki, 1 gugur karena desainnya berubah, 4
+masih terbuka. Peninjau segar atas kode baru menambah 6. Yang terbuka dan yang
+baru, semuanya diperbaiki sesudahnya:
+
+- **Fokus di bawah sheet lewat jalur yang tak melewati sheet** — Shift+Tab
+  dari MENU ke pencarian, tautan lompat-ke-konten. Kini `focusin` di dokumen
+  menutup sheet, dan `main`/`footer` `inert` selama tertutup sheet — juga
+  bagi kursor pembaca layar, yang dulu membaca halaman di bawahnya.
+- **Tombol pencarian lewat keyboard** membuka palette di bawah sheet; hanya
+  ⌘K yang sempat diperbaiki. Kini tombolnya juga memberi jalan.
+- **Dua `#header-nav` dalam satu dokumen** sesudah navigasi klien, karena Next
+  menyimpan halaman sebelumnya di `<Activity>` tersembunyi — diukur. MENU kini
+  menunjuk nav-nya sendiri lewat `popoverTargetElement`; id tetap untuk halaman
+  tanpa skrip, yang hanya pernah punya satu.
+- **Fallback tanpa `popover`**: fokus kini dikembalikan ke MENU, ketukan di
+  luar menutupnya.
+- **Ukuran cadangan `12vw` tak pernah berlaku** — deklarasi ber-`var()` tak
+  pernah dibuang saat parse. Kini di balik `@supports`.
+- **Dua uji yang tak bisa merah**: hitungan tautan desktop yang pecah di
+  `next dev` (tautan Storybook keempat), dan uji ⌘K yang bisa mengukur MENU
+  sebelum palette ada.
+
+Satu temuan **tidak terulang saat diukur**: "Back dengan sheet terbuka
+membekukan gulir halaman tujuan". Di Chromium, popover halaman yang
+disembunyikan tertutup sendiri dan halamannya bergulir. Penutupan saat header
+dilepas tetap ditambahkan — murah, dan mesin lain tak wajib berlaku sama.
+
+Satu gerbang lain memerah karena perubahan ini, dan instrumennya yang
+dikoreksi: `scale-continuity` membaca ukuran caption dari `.caption`
+**pertama** di dokumen — dulu tombol MENU, kini tautan nav yang di ponsel
+menjadi kata display. Ukuran kelasnya kini dibaca dari probe tersendiri,
+seperti token lain di fungsi yang sama.
+
+Sengaja **tidak** diperbaiki, dengan alasannya:
+
+- **Tanpa skrip, melintasi 800px dengan sheet terbuka** (iPad diputar)
+  meninggalkan baris desktop di lapisan atas, tergambar di pojok kiri atas,
+  sampai ketukan berikutnya. Penutup saat melintas butuh skrip; di tanpa-skrip
+  satu ketukan membereskannya. Dicatat supaya yang pertama melihatnya tahu.
+- **Tab melewati tautan terakhir kini meninggalkan halaman** ke kontrol
+  peramban, bukan menutup sheet: yang di bawah sheet `inert`, jadi tidak ada
+  lagi yang bisa difokus di sana. Itu memenuhi WCAG 2.4.11; uji dan judulnya
+  dikoreksi ke klaim itu, bukan ke "sheet tertutup" yang lebih keras.
+- **Tanpa skrip, `inert` tidak ada**: pembaca keyboard tanpa JavaScript yang
+  menekan Tab melewati tautan terakhir masih bisa mendarat di konten di bawah
+  sheet. Menutupnya butuh `<dialog>` modal yang dibuka secara deklaratif
+  (invoker commands), yang belum cukup luas didukung; sampai itu, Escape dan
+  MENU tetap menutupnya tanpa skrip.
+
+**Pembuktian merah `phone-menu.e2e.ts`, apa adanya.** Aturan fork: gerbang
+baru dibuktikan merah di build lama, karena perilaku. Untuk gerbang ini aturan
+itu **hanya terpenuhi sebagian**, dan batasnya dikatakan di sini:
+
+| tes                                                                                                                                       | di build lama (`67af568`, menu dropdown React)                                                                                                      |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| tanpa skrip, MENU membuka rute                                                                                                            | **merah** — menu tak berbuat apa-apa                                                                                                                |
+| sheet mengisi layar di bawah bar                                                                                                          | **merah** — dropdown berakhir di 216px dari 844px                                                                                                   |
+| Escape menutup, fokus kembali ke MENU                                                                                                     | **merah** — Escape tak menutup (dibuktikan dengan versi uji sebelum langkah Tab-masuk ditambahkan; versi kini tidak dijalankan ulang di build lama) |
+| Tab dari MENU masuk ke menu                                                                                                               | hijau di sana setelah hidrasi; sekali merah saat Enter mendahului hidrasi                                                                           |
+| tautan bernavigasi                                                                                                                        | hijau di sana (langkah Back ditambahkan kemudian, tidak dijalankan di build lama)                                                                   |
+| reduced motion, axe                                                                                                                       | hijau di sana (versi lama uji; kontrol animasi ditambahkan kemudian)                                                                                |
+| Tab melewati tautan terakhir; ⌘K; fokus keluar + pencarian; navigasi klien; halaman di belakang diam; kontrol reduced motion; tes desktop | **tidak dibuktikan merah**                                                                                                                          |
+
+Tujuh yang terakhir ditulis sesudah review dan diverifikasi hijau di build
+baru, tapi **tidak** dijalankan di build lama: build dan suite lokal
+dihentikan atas permintaan pemilik repo karena RAM bebas laptop tinggal
+~0,75 GB, dan verifikasi penuh pindah ke CI. Tes desktop punya bukti tidak
+langsung: pada versi popover pertama, lima gerbang lain merah persis karena
+cacat yang ia jaga. Sisanya belum punya bukti bahwa mereka bisa merah — itu
+utang, bukan klaim.
 
 ---
 

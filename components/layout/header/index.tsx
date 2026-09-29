@@ -2,7 +2,14 @@
 
 import cn from 'clsx'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import type { CSSProperties, MouseEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 
 import { CommandTrigger } from '@/components/ui/command'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
@@ -37,6 +44,40 @@ import s from './header.module.css'
  * active-state comparison is template-against-template. Using the bare
  * `next/navigation` version compares `/id` against `/`, which is never equal,
  * and every item renders inactive. See `components/ui/link/link.test.ts`.
+ *
+ * ## One navigation, which on a phone is a popover — the fork
+ *
+ * MENU was a React state toggle over a dropdown of three 11px mono links.
+ * With scripting off the button did nothing and the nav stayed
+ * `display: none`, so a phone had no route links in its header at all; only
+ * the footer led anywhere (the design-critique workflow, deferred item 9).
+ *
+ * Now the nav **is** a `popover="auto"`, and MENU its `popovertarget`: the
+ * browser opens it, closes it on Escape or a tap outside, returns focus to
+ * the button — none of it needs a script. On a phone it is a sheet under the
+ * bar with the three routes at display size; on desktop the same element is
+ * the header's row, as it always was.
+ *
+ * One element, not two. The first version of this rendered a second nav for
+ * the sheet, and that put a hidden copy of every route link — and a second
+ * `aria-current` — into the desktop page. Five gates walked into it, each
+ * reasonably: a "first link to /en/practice/…" or "every `[data-press]`" that
+ * landed on a link nobody could see. The sheet also carried the practices;
+ * they are gone from it for the reason `ROUTE_LINKS` gives — this nav answers
+ * "what pages does this site have", and the footer's index lists the
+ * practices on every page.
+ *
+ * What the script adds (each from review): the button reads "Close" while
+ * the sheet is open, read from the element so a tap before hydration counts;
+ * focus landing anywhere outside the sheet closes it, and what it covers is
+ * `inert` while it covers it, so neither Tab nor a screen reader ends up on
+ * content hidden under an opaque sheet; a link that navigates closes it,
+ * because each page renders its own header and Next keeps the previous page
+ * in a hidden `<Activity>` — without this, Back reveals that page with its
+ * sheet still open; MENU targets its own nav by reference, because that
+ * `<Activity>` also means two `#header-nav` in one document; crossing into
+ * desktop closes it; and a browser without `popover` gets a plain toggle with
+ * `aria-expanded`, Escape, a tap outside, and focus handed back.
  */
 
 // In local dev, link straight to the Storybook dev server. In deployed builds,
@@ -88,10 +129,193 @@ const ROUTE_LINKS = [
   { href: '/journal', labelKey: 'journal' },
 ] as const
 
+/**
+ * Whether this browser has the popover API.
+ *
+ * Never read during the server render: the server has no `HTMLElement`.
+ * Components read it through `useSyncExternalStore`, whose server snapshot
+ * keeps the markup the same on both sides.
+ */
+function supportsPopover() {
+  return (
+    typeof HTMLElement !== 'undefined' &&
+    Object.hasOwn(HTMLElement.prototype, 'popover')
+  )
+}
+
+/**
+ * A store that never changes, for a value read once on the client — the
+ * shape `lib/hooks/use-device-detection.ts` uses for the same need.
+ */
+function subscribeNever() {
+  // oxlint-disable-next-line eslint/no-empty-function -- required unsubscribe signature; nothing to tear down since the value is never notified
+  return () => {}
+}
+
 export function Header() {
   const pathname = usePathname()
-  const [menuOpen, setMenuOpen] = useState(false)
+  /*
+   * Only for a browser without `popover` — there, `data-open` is what opens
+   * the sheet (the stylesheet's `.nav[data-open]`). Everywhere else the
+   * browser owns the open state and this stays false.
+   */
+  const [fallbackOpen, setFallbackOpen] = useState(false)
+  /*
+   * Whether the browser owns the open state. True on the server, so the
+   * server render carries no `aria-expanded`: with a popover the browser
+   * computes that state itself, and an explicit "false" baked into the HTML
+   * would contradict it for a reader with no script.
+   */
+  const native = useSyncExternalStore(
+    subscribeNever,
+    supportsPopover,
+    () => true
+  )
+  const nav = useRef<HTMLElement>(null)
+  const menuButton = useRef<HTMLButtonElement>(null)
   const t = useTranslations('nav')
+
+  /*
+   * The sheet's open state is the browser's, so it is read from the element
+   * rather than mirrored into React. Subscribing re-reads it too, which is
+   * what catches a tap that opened the sheet before hydration — the `toggle`
+   * it fired then had no listener, and React does not replay it.
+   */
+  const subscribeToggle = useCallback((onChange: () => void) => {
+    const element = nav.current
+    element?.addEventListener('toggle', onChange)
+    return () => element?.removeEventListener('toggle', onChange)
+  }, [])
+  const menuOpen = useSyncExternalStore(
+    subscribeToggle,
+    () => supportsPopover() && (nav.current?.matches(':popover-open') ?? false),
+    () => false
+  )
+
+  /*
+   * The route words share one size on a phone, fitted to the longest of them
+   * in this language — `lib/styles/css/global.css` `.nameplate-title`
+   * measured the face's widest glyph run at 0.72em per character, and the
+   * sheet uses the same figure.
+   */
+  const routeStyle = {
+    '--fit-chars': Math.max(
+      ...ROUTE_LINKS.map(({ labelKey }) => Array.from(t(labelKey)).length)
+    ),
+  } as CSSProperties
+
+  const closeMenu = useCallback(() => {
+    const element = nav.current
+    if (!element) return
+    if (supportsPopover()) {
+      if (element.matches(':popover-open')) element.hidePopover()
+      return
+    }
+    // The fallback has no browser focus-restore: a link that goes
+    // `display: none` under focus drops it to `<body>`, so it is handed back.
+    if (element.contains(document.activeElement)) menuButton.current?.focus()
+    setFallbackOpen(false)
+  }, [])
+
+  const open = menuOpen || fallbackOpen
+
+  useEffect(() => {
+    const element = nav.current
+    const button = menuButton.current
+    if (!element || !button) return
+
+    /*
+     * This header's own nav, by reference. Next keeps the previous page in a
+     * hidden `<Activity>`, header and all, so after a client navigation the
+     * document holds two `#header-nav` — measured — and `popovertarget`
+     * resolves an id to the first in the tree. The id stays for the page a
+     * reader without a script loads, where there is only ever one.
+     */
+    if ('popoverTargetElement' in button) button.popoverTargetElement = element
+
+    // Crossing into desktop, the sheet becomes the row: close it first.
+    const desktop = window.matchMedia('(min-width: 800px)')
+    const onBreakpoint = () => {
+      if (desktop.matches) closeMenu()
+    }
+    desktop.addEventListener('change', onBreakpoint)
+    return () => {
+      desktop.removeEventListener('change', onBreakpoint)
+      // Hidden with its page, the sheet is not left open behind it.
+      closeMenu()
+    }
+  }, [closeMenu])
+
+  useEffect(() => {
+    if (!open) return
+    const element = nav.current
+
+    /*
+     * Focus landing anywhere outside the open sheet closes it — the fork,
+     * from review. `popover="auto"` is not modal, and the sheet is opaque:
+     * a Tab past the last link, a Shift+Tab from MENU to search, the skip
+     * link — each put focus on something under the sheet, where no one could
+     * see it (WCAG 2.4.11), and search opened its palette underneath.
+     * Listening on the document, not the nav, is what catches the paths
+     * that never pass through the sheet at all.
+     */
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (element?.contains(target) || target === menuButton.current) return
+      closeMenu()
+    }
+
+    /*
+     * What the sheet covers is out of reach while it covers it, for a
+     * screen reader's cursor as much as for Tab: a swipe past the last route
+     * read the page underneath.
+     */
+    const covered = [
+      ...document.querySelectorAll<HTMLElement>('main, footer'),
+    ].filter((node) => node.getClientRects().length > 0 && !node.inert)
+    for (const node of covered) node.inert = true
+
+    // The fallback has neither the browser's Escape nor its light dismiss.
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !supportsPopover()) {
+        closeMenu()
+        menuButton.current?.focus()
+      }
+    }
+    const onPointerDown = (event: PointerEvent) => {
+      if (supportsPopover()) return
+      const target = event.target
+      if (!(target instanceof Node)) return
+      if (element?.contains(target) || menuButton.current?.contains(target))
+        return
+      closeMenu()
+    }
+
+    document.addEventListener('focusin', onFocusIn)
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      document.removeEventListener('focusin', onFocusIn)
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('pointerdown', onPointerDown)
+      for (const node of covered) node.inert = false
+    }
+  }, [open, closeMenu])
+
+  const onRouteClick = (event: MouseEvent<HTMLElement>) => {
+    // A modified click opens a new tab and leaves the reader here, menu and
+    // all.
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return
+    closeMenu()
+  }
 
   return (
     <header className={s.header}>
@@ -99,26 +323,26 @@ export function Header() {
         Arth
       </Link>
 
-      <button
-        aria-expanded={menuOpen}
-        aria-controls="header-nav"
-        aria-label={menuOpen ? t('closeMenu') : t('openMenu')}
-        className={cn('caption', s.menuToggle)}
-        onClick={() => setMenuOpen((prev) => !prev)}
-        type="button"
-      >
-        {menuOpen ? t('closeMenu') : t('openMenu')}
-      </button>
-
       <nav
-        aria-label={t('primary')}
-        className={cn(s.nav, menuOpen && s.navOpen)}
+        ref={nav}
         id="header-nav"
+        popover="auto"
+        aria-label={t('primary')}
+        className={s.nav}
+        {...(fallbackOpen && { 'data-open': '' })}
+        /*
+         * Lenis listens for the wheel on the window and scrolls the page
+         * itself; this attribute tells it to leave a gesture that starts in
+         * the open sheet alone. Only while open — on the desktop row it would
+         * hand the wheel to the browser and the page would jump rather than
+         * glide.
+         */
+        {...(open && { 'data-lenis-prevent': '' })}
       >
-        <ul className={s.navList}>
+        <ul className={s.navList} style={routeStyle}>
           {/*
             The routes, on every page — Tahap 38.
-            
+
             This nav rendered `sections` and nothing else, and only the home
             page passes any. Measured: nine of eleven page types shipped a
             header of wordmark, search and language switcher, with **zero**
@@ -133,12 +357,16 @@ export function Header() {
             Tahap 54 removed the home-page anchors that used to sit above
             these, so this is now the whole list.
           */}
-          {ROUTE_LINKS.map(({ href, labelKey }) => (
-            <li key={href} className={s.navItem}>
+          {ROUTE_LINKS.map(({ href, labelKey }, index) => (
+            <li
+              key={href}
+              className={s.navItem}
+              style={{ '--item': index } as CSSProperties}
+            >
               <Link
                 className={cn('caption', s.navLink)}
                 href={href}
-                onClick={() => setMenuOpen(false)}
+                onClick={onRouteClick}
                 // `MOTION-SPEC.md` §9.
                 data-press="nav"
                 data-intent=""
@@ -152,12 +380,11 @@ export function Header() {
           ))}
 
           {STORYBOOK_ENABLED && (
-            <li className={s.navItem}>
+            <li className={cn(s.navItem, s.navAside)}>
               <Link
                 className={cn('caption', s.navLink)}
                 href={STORYBOOK_HREF}
                 newTab
-                onClick={() => setMenuOpen(false)}
                 {...(getLinkIntent(STORYBOOK_HREF, pathname, { newTab: true })
                   .isActive && { 'aria-current': 'page' as const })}
               >
@@ -187,6 +414,26 @@ export function Header() {
         <CommandTrigger className={s.search} />
         <LanguageSwitcher className={s.language} />
       </div>
+
+      {/*
+        After the tools in the markup, so it sits at the right edge — under
+        the thumb — and the focus order is the order on screen. It sat
+        between the wordmark and search, with the language switcher moved
+        past it by `order`, so the thumb had to reach the middle of the bar.
+      */}
+      <button
+        ref={menuButton}
+        type="button"
+        className={cn('caption', s.menuToggle)}
+        popoverTarget="header-nav"
+        aria-controls="header-nav"
+        {...(!native && { 'aria-expanded': fallbackOpen })}
+        onClick={() => {
+          if (!supportsPopover()) setFallbackOpen((was) => !was)
+        }}
+      >
+        {open ? t('closeMenu') : t('openMenu')}
+      </button>
     </header>
   )
 }

@@ -157,33 +157,65 @@
   }
 }
 
+/*
+ * One nav, two shapes — the fork. It is a `popover="auto"` (`index.tsx` has
+ * why): on desktop the header's row, on a phone a sheet MENU opens.
+ *
+ * The browser's `[popover]` rule hides a popover that is not open and dresses
+ * an open one as a centred dialog — `inset: 0`, `margin: auto`, a border, a
+ * padding, `Canvas` colours, `fit-content` sizes. Every one of those is undone
+ * here, because in both shapes this is a surface of the page.
+ */
 .nav {
+  inset: auto;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  overflow: visible;
+
   /* The middle track — the header's centre. Tahap 87. */
   @media (--desktop) {
     grid-column: 2;
+    display: block;
+    position: static;
   }
 
+  /*
+   * Shut on a phone until MENU opens it: the author default, which also keeps
+   * it shut in a browser without `popover`, where the attribute means nothing
+   * and the browser's own rule is absent.
+   */
   @media (--mobile) {
-    /*
-     * `display: none` removes the list from the tab order and the
-     * accessibility tree while collapsed, which is what a disclosure should
-     * do — the toggle button carries `aria-expanded` and `aria-controls`, so
-     * the state is announced rather than merely visible.
-     */
     display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: var(--color-primary);
-    border-bottom: 1px solid var(--line);
-    padding: mobile-vw(8px) var(--safe) mobile-vw(16px);
   }
 }
 
-.navOpen {
-  @media (--mobile) {
-    display: block;
+/*
+ * The phone's sheet. It starts under the bar and fills the rest of the
+ * screen, so the header — and MENU, now reading "Close" — stays where it was.
+ * `:is()` lets one rule serve the popover and the no-`popover` fallback
+ * (`data-open`): it forgives the selector it cannot parse, where a plain list
+ * would be dropped whole.
+ */
+@media (--mobile) {
+  :is(.nav:popover-open, .nav[data-open]) {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: var(--header-height) 0 0;
+    /* Above the page when it is not in the top layer (`data-open`). */
+    z-index: 1;
+    padding: mobile-vw(16px) var(--safe) mobile-vw(40px);
+    background-color: var(--color-primary);
+    color: var(--color-secondary);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 
@@ -199,6 +231,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
+    /* The sheet's words are fitted to this column (`.navLink`). */
+    container-type: inline-size;
+    inline-size: 100%;
   }
 
   @media (--desktop) {
@@ -258,6 +293,52 @@
     outline-offset: 4px;
     border-radius: var(--radius-hairline);
   }
+
+  /*
+   * On a phone the same links are the sheet's words — the fork: display
+   * type, one size, fitted to the longest of them in this language
+   * (`--fit-chars`, set by `index.tsx`) with the nameplate's 0.72em per
+   * character. "Journal" is 71px on a 390px phone, "Jurnal" 83; `14svh` caps
+   * a phone on its side, where width is plentiful and height is not.
+   *
+   * `12vw` for a browser with neither `cqi` nor `svh` — behind `@supports`,
+   * because a declaration that holds a `var()` is never dropped at parse
+   * time: written as two lines, the fitted one always won and, invalid only
+   * later, fell to body size (found in review).
+   */
+  @media (--mobile) {
+    display: block;
+    padding-block: mobile-vw(4px);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 12vw;
+
+    @supports (width: 1cqi) and (height: 1svh) {
+      font-size: min(calc(100cqi / (var(--fit-chars, 7) * 0.72)), 14svh);
+    }
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    text-transform: none;
+
+    /*
+     * "You are here" by more than a step of ink. Review measured the muted
+     * and full inks at about 1.8:1 against each other — under the 3:1 a
+     * state change should carry — and in forced colours they are one colour.
+     * An underline survives both.
+     */
+    &[aria-current] {
+      text-decoration-line: underline;
+      text-decoration-thickness: 0.06em;
+      text-underline-offset: 0.12em;
+    }
+  }
+}
+
+/* The development-only Storybook link stays off the phone's sheet. */
+.navAside {
+  @media (--mobile) {
+    display: none;
+  }
 }
 
 .externalMark {
@@ -291,18 +372,41 @@
 }
 
 .language {
+  /* Outside the sheet on purpose: a preference, reachable while it is shut. */
   flex-shrink: 0;
+}
 
-  @media (--mobile) {
-    /* Order matters on mobile: wordmark, language, menu toggle. The language
-       control is a preference, so it sits before the disclosure rather than
-       inside it, where it would be unreachable while the menu is closed. */
-    order: 1;
+/*
+ * The words arrive in order when the sheet opens: each rises from below and
+ * fades in, one `--stagger-items` apart. `@starting-style` is the state they
+ * transition from, so this needs no script and no frame loop — only
+ * `transform` and `opacity` move. Closing is instant: the exit is faster than
+ * the entrance (`MOTION-SPEC.md`), and here it is the fastest there is.
+ */
+@media (--mobile) {
+  :is(.nav:popover-open, .nav[data-open]) .navItem {
+    transition:
+      opacity var(--duration) var(--ease-out-expo),
+      transform var(--duration) var(--ease-out-expo);
+    transition-delay: calc(var(--item, 0) * var(--stagger-items));
+  }
+
+  @starting-style {
+    :is(.nav:popover-open, .nav[data-open]) .navItem {
+      opacity: 0;
+      transform: translate3d(0, mobile-vw(24px), 0);
+    }
   }
 }
 
 @media (--reduced-motion) {
-  .navLink {
+  /*
+   * The open-state selector, repeated: at `.navItem` alone this would lose to
+   * the rule above, and so does `global.css`'s kill switch, which sets a
+   * duration the shorthand above overrides.
+   */
+  .navLink,
+  :is(.nav:popover-open, .nav[data-open]) .navItem {
     transition: none;
   }
 }
@@ -328,9 +432,10 @@
  * than two.
  *
  * Below the breakpoint it is `display: contents`: its two children stay the
- * header's flex items exactly as they were before the group existed, which
- * keeps the language switcher's `order` before the menu button. A `<div>` has
- * no role for `contents` to strip.
+ * header's flex items exactly as they were before the group existed, with the
+ * menu button after them in the markup (the fork; it used to sit before them,
+ * moved past by an `order` on the language switcher). A `<div>` has no role
+ * for `contents` to strip.
  */
 .tools {
   display: contents;

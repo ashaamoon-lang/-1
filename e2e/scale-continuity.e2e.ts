@@ -94,6 +94,23 @@ async function sample(page: Page, width: number): Promise<Sample> {
     }
     probe.remove()
 
+    /*
+     * The caption class, read on a probe of its own — the fork. It was read
+     * from the first `.caption` in the document, which was the phone's MENU
+     * button; the fork's menu moved MENU after the nav, and the first one
+     * became a nav link that a phone restyles as a display word (71px at
+     * 390, 11px on desktop). The series is about the class, so the class is
+     * what is measured.
+     */
+    const captionProbe = document.createElement('span')
+    captionProbe.className = 'caption'
+    captionProbe.style.position = 'absolute'
+    captionProbe.style.visibility = 'hidden'
+    captionProbe.textContent = 'x'
+    document.body.append(captionProbe)
+    const caption = Number.parseFloat(getComputedStyle(captionProbe).fontSize)
+    captionProbe.remove()
+
     const size = (selector: string) => {
       const el = document.querySelector(selector)
       return el ? Number.parseFloat(getComputedStyle(el).fontSize) : 0
@@ -115,7 +132,7 @@ async function sample(page: Page, width: number): Promise<Sample> {
     return {
       ...tokens,
       h1: size('h1'),
-      caption: size('.caption'),
+      caption,
       texts: sizes.length,
       smallest: sizes.length > 0 ? Math.min(...sizes) : 0,
     }

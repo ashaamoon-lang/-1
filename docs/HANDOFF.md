@@ -130,6 +130,27 @@ posisi 2471 — sementara setiap query aplikasi, langsung ke Sanity lewat
 ulang). Penyebab tulisan rusaknya tidak diketahui. CI tidak terdampak: ia
 membangun tanpa cache ini.
 
+**Jebakan lingkungan lain di mesin ini**, masing-masing sudah memakan waktu
+sekali:
+
+- **Jangan `bun run build` selagi suite e2e berjalan**, dan bangun Storybook
+  **sebelum** suite — `storybook-a11y` memerahkan katalog yang lebih tua dari
+  komponennya.
+- **Hentikan server lewat PID**, bukan pola nama:
+  `Get-NetTCPConnection -LocalPort 3000 -State Listen` → `Stop-Process -Id`.
+  **Jangan pernah** `pgrep -f` / `pkill -f`; sebuah sesi pernah menggantung
+  101 menit pada satu pola.
+- **Jangan `git stash` / `git stash pop` polos**: stack stash dipakai bersama
+  beberapa worktree dan sesi lain. Sisihkan pekerjaan dengan commit WIP.
+- **Skrip Playwright ad-hoc dijalankan dengan `node`, bukan `bun`** — di bawah
+  bun ia menggantung sampai timeout. Di Git Bash, argumen seperti `/en` perlu
+  `MSYS_NO_PATHCONV=1`. Skrip scratch di dalam repo dihapus sebelum commit.
+- **Gerbang yang gagal di suite penuh belum tentu cacat.** Suite dua worker di
+  laptop 8 GB menjatuhkan beberapa uji yang lulus saat dijalankan sendirian;
+  yang lulus sendirian boleh disebut beban mesin, **yang lain tidak**. Tapi
+  periksa dulu apakah kegagalannya berbagi satu sebab — di fork, lima gerbang
+  merah sekaligus ternyata satu cacat desain (`FORK.md` §3.2, menu ponsel).
+
 ## 3. Cara kerja yang berlaku
 
 Bukan aturan teknis — itu ada di `CLAUDE.md` dan `AGENTS.md`. Ini **cara
@@ -176,18 +197,43 @@ push, lalu **baca CI dan tunggu selesai sebelum push berikutnya** — `ci.yml` m
 `cancel-in-progress`, jadi push kedua membatalkan run yang pertama sebelum
 suite e2e-nya selesai.
 
+### 4.1 Pekerjaan desain yang terkirim di fork, dan yang berikutnya
+
+Yang terkirim tercatat di `docs/FORK.md` §3.2 — satu entri per pekerjaan,
+dengan angka terukurnya dan cacat yang ditemukan di jalan. Daftar pendek
+workflow kritik desain (peringkat 1–5) sudah habis, ditambah menu ponsel
+(usulan yang ditunda nomor 9).
+
+**Ditunda, masing-masing dengan alasannya** — pilih dari sini, bukan dari
+ingatan:
+
+| butir                                                                                        | kenapa belum                                                                                                                                                                               |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Morph sampul ke proyek berikutnya                                                            | nama transisi harus dipasang **saat tautan ditekan**, bukan di render — kalau tidak, proyek → katalog membentuk dua pasangan morph. Perlu uji navigasi mundur di peramban (`FORK.md` §3.2) |
+| Overscan parallax 12% di `sizes` grid galeri, dan di `needed` pada `image-resolution.e2e.ts` | ada sebelum fork; memperbaikinya mengubah byte di setiap halaman proyek dan ambang sebuah gerbang (`FORK.md` §3.4)                                                                         |
+| Indeks "What we take on" di beranda                                                          | menulis ulang tiga spec e2e; tiga kata `h1` di bawah `h1` hero (kritik, ditolak no. 3)                                                                                                     |
+| Dok ponsel di halaman proyek                                                                 | lapisan tetap di atas konten ponsel (risiko WCAG 2.4.11) dan permukaan navigasi kedua (no. 8)                                                                                              |
+| Material grid di hero                                                                        | perlu GPU nyata untuk dinilai; garis kanvas tak terlihat oleh `contrast-situ` (no. 13)                                                                                                     |
+| Tirai transisi halaman                                                                       | menambah hingga ~370 ms sebelum setiap navigasi — perlu pengukuran latensi dulu (no. 15)                                                                                                   |
+| Desain ulang 404                                                                             | rute ber-trafik terendah, bergantung pada butir hero di atas (no. 17)                                                                                                                      |
+
+Nomor-nomor di atas merujuk daftar `rejected` workflow kritik desain. Keluaran
+workflow itu tidak ada di repo — tabel ini adalah catatannya.
+
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
-| butir                                   | status                                                                                                    |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Menyemai dataset Sanity                 | `bun --env-file .env.local lib/scripts/seed-fixtures.ts` — tulisan ke CMS Anda                            |
-| Rotasi kredensial Sanity                | **ditunda atas permintaan pemilik repo.** Tetap jadi butir checklist pra-luncur; jangan diungkit berulang |
-| `/lab` + hosting                        | terblokir menunggu domain                                                                                 |
-| Merge PR #9                             | keputusan pemilik repo                                                                                    |
-| Mayor `three` 0.186, `@sanity/client` 8 | belum dinaikkan                                                                                           |
-| Tiga token kontras tak terukur          | `hero-wash-mid`, `line`, `line-strong` — tercatat di `contrast.test.ts`, belum diputuskan                 |
-| Kontradiksi provenance `vault/`         | `vault/PROVENANCE-NOTE.md` vs `vault/magic/README.md` — lisensi, keputusan pemilik (`FORK.md` §1.4)       |
-| Typeface berlisensi                     | biaya pemilik repo                                                                                        |
+| butir                                     | status                                                                                                                 |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Menyemai dataset Sanity                   | `bun --env-file .env.local lib/scripts/seed-fixtures.ts` — tulisan ke CMS Anda                                         |
+| Rotasi kredensial Sanity                  | **wajib sebelum domain publik** (JEDA 4); produksi memakai token role Viewer. Dicatat sekali, jangan diungkit berulang |
+| `/lab` + hosting                          | terblokir menunggu domain                                                                                              |
+| Merge PR #17 (fork `claude/arth-unbound`) | draft, base `claude/arth-design` — **jangan di-merge tanpa keputusan pemilik repo**                                    |
+| Merge PR #9                               | keputusan pemilik repo                                                                                                 |
+| Email kontak placeholder                  | `studio@arth.example`, berlabel placeholder di markup; `SITE.email` kosong supaya JSON-LD tidak menerbitkannya         |
+| Mayor `three` 0.186, `@sanity/client` 8   | belum dinaikkan                                                                                                        |
+| Tiga token kontras tak terukur            | `hero-wash-mid`, `line`, `line-strong` — tercatat di `contrast.test.ts`, belum diputuskan                              |
+| Kontradiksi provenance `vault/`           | `vault/PROVENANCE-NOTE.md` vs `vault/magic/README.md` — lisensi, keputusan pemilik (`FORK.md` §1.4)                    |
+| Typeface berlisensi                       | biaya pemilik repo                                                                                                     |
 
 ### 5.1 Gerbang kanvas yang melewati dirinya sendiri — ditutup di Tahap 90
 
