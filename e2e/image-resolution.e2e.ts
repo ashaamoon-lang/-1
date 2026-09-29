@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { FEATURED_WORK } from './fixtures'
+import { FEATURED_WORK, RUN_WORK } from './fixtures'
 
 /**
  * Images carry enough real pixels for the density they are displayed at.
@@ -32,7 +32,13 @@ import { FEATURED_WORK } from './fixtures'
 /** Below this, the image is being upscaled on screen. */
 const MIN_RATIO = 0.95
 
-const ROUTES = ['/en', `/en/work/${FEATURED_WORK}`]
+/*
+ * `RUN_WORK` since the fork: the run's plates take their width from their own
+ * ratio at one shared height, so their `sizes` are written per plate
+ * (`project-gallery`, `stripSizing`) — a different claim from the grid's, and
+ * one nothing measured until it was added here.
+ */
+const ROUTES = ['/en', `/en/work/${FEATURED_WORK}`, `/en/work/${RUN_WORK}`]
 
 test.describe('images are not upscaled', () => {
   for (const route of ROUTES) {

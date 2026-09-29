@@ -119,6 +119,17 @@ Jalankan tahapnya satu per satu di sana (`bun test`, `bun run lint`,
 `bun run test:oxlint-plugin`) dan percayai CI untuk
 tarikan penuhnya. `docs/stages/TAHAP-93.md` §7.5 memuat pengukurannya.
 
+**Kalau `bun run build` gagal berulang pada byte yang sama dengan
+`Failed to parsed response body as JSON: Bad control character …`, periksa
+`.next/cache/fetch-cache` sebelum menyalahkan Sanity.** Terjadi 29 September
+2026: satu entri cache fetch tertulis rusak (base64 yang tergeser) di tengah
+sebuah build, lalu setiap build berikutnya membacanya kembali dan gagal di
+posisi 2471 — sementara setiap query aplikasi, langsung ke Sanity lewat
+`@sanity/client`, lulus bersih. Temukan entrinya dengan men-decode tiap
+`data.body` dan mencoba `JSON.parse`; hapus satu file itu saja (cache, dibuat
+ulang). Penyebab tulisan rusaknya tidak diketahui. CI tidak terdampak: ia
+membangun tanpa cache ini.
+
 ## 3. Cara kerja yang berlaku
 
 Bukan aturan teknis — itu ada di `CLAUDE.md` dan `AGENTS.md`. Ini **cara

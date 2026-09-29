@@ -41,6 +41,12 @@ import { readStories, serveStorybook, storyUrl } from './storybook-server'
  * nothing mocked. When the dataset does gain a four-image project, the route
  * gets the same mode this already holds.
  *
+ * It has one since Tahap 82 — `RUN_WORK` — and the route is gated on its own
+ * terms in `gallery-strip.e2e.ts` (the fork): the strip's shared height, and
+ * the run with scripting off and under reduced motion. This file stays on the
+ * story, whose images carry no asset and so no shape: it is the run with
+ * nothing to equalise, which keeps one width.
+ *
  * ## Why "it rendered" is not the assertion
  *
  * A pin with zero travel is the failure Tahap 64 measured and rejected:

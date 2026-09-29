@@ -121,6 +121,15 @@ export function StudioNote({
                 competing one.
               */}
               <PixelImage className={s.pixels} />
+              {/* No script, no veil — the fork; the reason is in `project-gallery`. */}
+              <noscript>
+                <style
+                  // oxlint-disable-next-line react/no-danger -- a static, self-authored rule whose only interpolation is this module's own hashed class name, a build-time constant
+                  dangerouslySetInnerHTML={{
+                    __html: `.${s.pixels}{display:none!important}`,
+                  }}
+                />
+              </noscript>
             </div>
           </figure>
         )}

@@ -14,9 +14,13 @@ import {
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
 import { isFullWidth, loneHalves } from '@/lib/utils/grid-flow'
-import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
+import {
+  boundedRatio,
+  ratioStyle,
+  trackImageSizes,
+} from '@/lib/utils/image-sizes'
 import { PixelImage } from '@/vault/magic/pixel-image'
-import { Horizontal } from '@/vault/motion/horizontal'
+import { Horizontal, STRIP_SHARE } from '@/vault/motion/horizontal'
 import { useParallax } from '@/vault/motion/parallax'
 
 import s from './project-gallery.module.css'
@@ -152,6 +156,73 @@ type LightboxComponent = ComponentType<LightboxProps>
 const PLATE_DRIFT = 10
 
 /**
+ * The share of the viewport the run's frame takes on `/work/<slug>`, the one
+ * route that runs it — measured, not derived: 0.784 at 800px, 0.802 at 1280,
+ * 0.806 at 1440, 0.818 at 2560. It grows with the screen, so the widest
+ * measured share is the one used, and `sizes` errs wide rather than asking for
+ * too few pixels.
+ */
+const RUN_FRAME_SHARE = 0.82
+
+/**
+ * How much wider than its box a plate's picture is drawn.
+ *
+ * `.parallax` is taller than `.media` by `PLATE_DRIFT + 2` percent (the `+ 2`
+ * is sub-pixel headroom, written in `project-gallery.module.css`), and the
+ * picture covers it with `object-fit: cover` — so it is scaled by that
+ * height and drawn 12% wider than the box, cropped at the sides. A `sizes`
+ * equal to the box asks for 12% too few pixels (found in review).
+ */
+const PLATE_OVERSCAN = 1 + (PLATE_DRIFT + 2) / 100
+
+/**
+ * `sizes` and the source cap for one plate of the run — the fork.
+ *
+ * Three layouts, one `<img>`, and `sizes` has to cover whichever the reader
+ * gets, because the server writes it before it knows:
+ *
+ *   - **The pinned strip, desktop.** Every plate shares a height and its width
+ *     follows its ratio, so the widest plate takes `STRIP_SHARE` of the frame
+ *     and each other plate that share scaled by its ratio against the widest.
+ *     The screen's height can hold the strip lower, which only makes a plate
+ *     narrower — so this can overstate, never understate.
+ *   - **The pinned run, phone:** one width, 78vw (`horizontal.module.css`).
+ *   - **The unwrapped rows** — reduced motion, or no script. A row grows until
+ *     it fills its line, so any plate can be as wide as the line: 82% of the
+ *     viewport on desktop, about 92% on a phone. Review measured the first
+ *     version of this, which described only the strip, at 0.84–0.91 of the
+ *     pixels a row plate needed.
+ *
+ * Mobile is the default and desktop starts at `800px`, mirroring the
+ * stylesheet's own breakpoints — a `(max-width: 799px)` left a fractional
+ * viewport between the two with the layout on one side and `sizes` on the
+ * other. Every width is multiplied by `PLATE_OVERSCAN`.
+ *
+ * `maxWidth` 1440 for every plate, whatever its shape: at 2560 the widest
+ * strip plate is ~1800px, far past the 704 a half-track grid plate is capped
+ * at.
+ */
+function stripSizing(ratio: number | null, widest: number | null) {
+  const share = ratio !== null && widest !== null ? ratio / widest : 1
+  const vw = (fraction: number) =>
+    `${Math.ceil(100 * fraction * PLATE_OVERSCAN)}vw`
+  const strip = vw(RUN_FRAME_SHARE * STRIP_SHARE * share)
+  const rowDesktop = vw(RUN_FRAME_SHARE)
+  const rowPhone = vw(0.92)
+  return {
+    maxWidth: 1440,
+    sizes: [
+      `(prefers-reduced-motion: reduce) and (min-width: 800px) ${rowDesktop}`,
+      `(prefers-reduced-motion: reduce) ${rowPhone}`,
+      `(scripting: none) and (min-width: 800px) ${rowDesktop}`,
+      `(scripting: none) ${rowPhone}`,
+      `(min-width: 800px) ${strip}`,
+      vw(0.78),
+    ].join(', '),
+  }
+}
+
+/**
  * One figure's picture, in its own component so it can hold its own ref.
  *
  * A hook cannot be called inside a `map`, and the alternative — one ref array
@@ -161,11 +232,13 @@ const PLATE_DRIFT = 10
 function GalleryMedia({
   image,
   ratio,
-  full,
+  maxWidth,
+  sizes,
 }: {
   image: GalleryImage
   ratio: number | null
-  full: boolean
+  maxWidth: number
+  sizes: string
 }) {
   const parallaxRef = useRef<HTMLDivElement>(null)
   /*
@@ -214,14 +287,15 @@ function GalleryMedia({
           image={toImageSource(image)}
           alt={image.alt ?? ''}
           className={s.image}
-          maxWidth={full ? 1440 : 704}
+          maxWidth={maxWidth}
           /*
-           * Matched to the grid track, which the box now actually fills. The
-           * derived default assumes an image fills the viewport, so a
-           * half-width figure asked for 1440px to render 691 — twice the
-           * pixels on the heaviest thing on the page.
+           * Matched to the box the plate actually fills — the grid track, or
+           * its width in the strip (`stripSizing`). The derived default
+           * assumes an image fills the viewport, so a half-width figure asked
+           * for 1440px to render 691 — twice the pixels on the heaviest thing
+           * on the page.
            */
-          sizes={trackImageSizes(full ? 92 : 48)}
+          sizes={sizes}
         />
       </div>
       {/*
@@ -318,6 +392,16 @@ export function ProjectGallery({
   const RUN_MINIMUM = 4
   const travels = run && images.length >= RUN_MINIMUM
 
+  /*
+   * Each plate's shape, bounded exactly as `ratioStyle` bounds the box it is
+   * drawn in — the strip sets a plate's width from this number and the box
+   * sets its height from that width, so the two must be the same number or
+   * the heights will not agree.
+   */
+  const ratios = images.map((image) => boundedRatio(aspectRatioFor(image)))
+  const known = ratios.filter((ratio): ratio is number => ratio !== null)
+  const widest = known.length > 0 ? Math.max(...known) : null
+
   /**
    * Wraps the plates in whichever container this gallery is being.
    *
@@ -348,6 +432,7 @@ export function ProjectGallery({
         label={t('run', { count: images.length })}
         listRef={ref}
         items={entries.map((entry) => entry.figure)}
+        ratios={ratios}
         className={className}
       />
     ) : (
@@ -411,6 +496,35 @@ export function ProjectGallery({
   return (
     <>
       {/*
+        No script, no veil — the fork.
+
+        The tiles dissolve when `useReveal` marks a plate `visible`, and with
+        scripting off nothing ever does: measured on `/en/work/pusat-beban`,
+        every plate at full opacity and every picture under 24 opaque tiles
+        (`e2e/gallery-strip.e2e.ts`). A plate that passes a visibility check
+        while showing nothing.
+
+        A `<noscript>` rule and not a selector on the reveal's own attribute.
+        `.pixels:not([data-reveal] *)` was the first fix, and review caught
+        what it cost readers *with* a script: `data-reveal` is written at
+        hydration, so the server-rendered page showed the picture, and then
+        the veil snapped back over it, opaque and with no transition (a box
+        leaving `display: none` has nothing to transition from), before
+        dissolving again — on any reload that restores the scroll position.
+        The rule below reaches only a reader whose page no script will touch.
+
+        Here and not in `vault/magic/pixel-image`, which is curated and stays
+        as vendored; `next-project` and `studio-note` carry the same rule.
+      */}
+      <noscript>
+        <style
+          // oxlint-disable-next-line react/no-danger -- a static, self-authored rule whose only interpolation is this module's own hashed class name, a build-time constant; `style-src` carries 'unsafe-inline' as the documented base policy (lib/integrations/csp.ts)
+          dangerouslySetInnerHTML={{
+            __html: `.${s.pixels}{display:none!important}`,
+          }}
+        />
+      </noscript>
+      {/*
         Two shapes, one set of plates — Tahap 64.
 
         The `<figure>` below is byte-identical in both: same trigger, same
@@ -424,6 +538,12 @@ export function ProjectGallery({
         images.map((image, position) => {
           const ratio = aspectRatioFor(image)
           const full = isFullWidth(ratio)
+          const sizing = travels
+            ? stripSizing(ratios[position] ?? null, widest)
+            : {
+                maxWidth: full ? 1440 : 704,
+                sizes: trackImageSizes(full ? 92 : 48),
+              }
           /*
            * `01 / 04`, padded, so the counter is the same width on every
            * plate and the column edge below the images stays straight.
@@ -467,7 +587,12 @@ export function ProjectGallery({
                   void openAt(position, event.currentTarget)
                 }}
               >
-                <GalleryMedia image={image} ratio={ratio} full={full} />
+                <GalleryMedia
+                  image={image}
+                  ratio={ratio}
+                  maxWidth={sizing.maxWidth}
+                  sizes={sizing.sizes}
+                />
               </button>
               {/*
                   `aria-hidden`, because the button above already announces

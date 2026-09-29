@@ -92,6 +92,11 @@ export default defineConfig({
         // sits, and whether it lands on the header rather than under it, is a
         // different question at each width.
         '**/reading-progress.e2e.ts',
+        // The run lays out differently at each width — one height for every
+        // plate on desktop, one width and one centre line on a phone — and
+        // with scripting off a phone clipped three of its four plates where
+        // desktop clipped two. Each width is its own claim (the fork).
+        '**/gallery-strip.e2e.ts',
       ],
       use: {
         browserName: 'chromium',

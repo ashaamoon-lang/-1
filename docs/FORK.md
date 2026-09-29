@@ -380,6 +380,65 @@ dengan nama 120px yang dibatasi supaya kata terpanjangnya muat (bukan
 lokalnya dibuang. Footer di ponsel: dua kolom, target sentuh 44px — email
 sempat terukur 36px dan diperbaiki — dan alamat di-_fit_ satu baris.
 
+**Galeri ter-pin sebagai film strip, dan terbaca tanpa JavaScript** (usulan
+peringkat 5). Trek memberi setiap plat satu lebar (34vw), jadi tingginya
+mengikuti gambar: di `/en/work/pusat-beban` 1440×900 tepi bawahnya berakhir di
+765/612/388/504px dan sepertiga bawah layar ter-pin kosong. Kini di desktop
+semua plat berbagi **satu tinggi** dan lebarnya mengikuti rasionya sendiri
+(`Horizontal` menerima `ratios`): terukur 421/550/998/702 × 562px, satu garis
+atas, satu garis bawah, satu garis keterangan `01 / 04`, 11,8% layar kosong di
+bawah. Tingginya yang lebih kecil dari dua anggaran — layar di bawah header,
+atau yang membuat plat **terlebar** mengambil 86% bingkai (`STRIP_SHARE`,
+satu angka yang juga dibaca `sizes`). Fokus keyboard tetap membawa tiap plat
+utuh ke dalam bingkai, yang selebar 998px pun. Di ponsel satu tinggi bersama
+ditolak dengan angka: sebuah 16:9 dalam set akan menahan **semua** plat di
+173px pada layar 390×844 — lebih kecil dari plat yang digantikannya. Ponsel
+menampilkan satu plat sekaligus, jadi ia tetap satu lebar, dan plat kini duduk
+di satu garis tengah pada bagian layar yang terlihat alih-alih menggantung dari
+puncak plat tertinggi.
+
+Tanpa JavaScript, rencananya menyebut satu cacat dan melihat menemukan dua lagi.
+Yang disebut: kotak tetap `100svh` dengan `overflow: clip`, jadi plat 3–4
+(desktop) dan 2–4 (ponsel) berada di luar jangkauan apa pun — kini
+`<noscript><style>` mengulang pembukaan trek reduced-motion, idiom yang sudah
+dipakai `command` dan `curtain`. Yang ditemukan: **pembukaan itu sendiri tak
+pernah membuka** — trek sebagai item flex menyusut ke isinya; diukur di katalog
+yang dibangun sebelum perubahan ini, trek 208px di kotak 1430px, enam plat
+bertumpuk selebar 176px. Pembaca reduced-motion selama ini mendapat satu kolom
+sempit. Kini keduanya mendapat **baris berjustifikasi**: tiap baris satu
+tinggi, lebar dari rasio, tak ada baris lebih tinggi dari layar, satu plat per
+baris di ponsel — terukur dua baris penuh (482+630 dan 653+459). Dan yang kedua:
+**setiap gambar tertutup veil mosaik** — 24 ubin opak per plat, karena ubin
+hanya larut saat `useReveal` menandai plat `visible`, dan tanpa skrip tak ada
+yang melakukannya. Plat lulus cek "terlihat" sambil tidak menampilkan apa pun.
+Perbaikan pertama saya mengikat veil ke atribut reveal
+(`.pixels:not([data-reveal] *)`), dan review menangkap harganya bagi pembaca
+**yang** memakai skrip: atribut itu ditulis saat hidrasi, jadi halaman hasil
+server menampilkan gambar lalu veil muncul kembali di atasnya, opak dan tanpa
+transisi, setiap kali muat ulang memulihkan posisi gulir. Kini aturannya
+`<noscript>` — hanya menjangkau halaman yang tak akan disentuh skrip — di tiga
+pemakai (`project-gallery`, `next-project`, `studio-note`), bukan di
+`vault/magic/` yang tetap dikurasi.
+
+Strip hanya menyala bila setidaknya satu bentuk diketahui: tanpa satu pun,
+tak ada yang perlu disamakan, dan story `Run` (gambar tanpa aset) menjadi
+persegi 531px di tempat satu lebar memberi 435 — `gallery-run.e2e.ts`
+menangkapnya sebagai plat keempat yang tak pernah tiba.
+
+Gerbang baru `e2e/gallery-strip.e2e.ts` di kedua proyek Playwright: satu
+tinggi/garis bawah/garis keterangan dan plat terlebar muat bingkai di desktop,
+satu garis tengah di ponsel, dan dengan skrip mati maupun reduced motion tiap
+plat punya kotak, tak terpotong, tak transparan, tak tertutup — dan baris
+bukaannya selebar bingkai, satu tinggi per baris, satu baris mengisi garisnya.
+Angka 173px di ponsel diukur dengan memaksakan aturan strip di 390×844
+(130/170/308/216 × 173, lawan 304px lebar yang dikirim). Semuanya dibuktikan merah di build
+lama — kecuali reduced motion yang memang sudah terbuka — dan satu instrumen
+salah dulu: garis tengah ponsel **lulus** di layout lama karena `stretch`
+membuat setiap `<li>` setinggi yang tertinggi, jadi ia kini membaca figure di
+dalamnya. `RUN_WORK` diekspor sejak Tahap 82 dan tak dipakai satu gerbang pun;
+kini ia juga dikunjungi `image-resolution`, karena `sizes` plat strip ditulis
+per plat.
+
 **Ditunda, dengan alasan:** morph sampul dari proyek ke proyek berikutnya.
 Memberi sampul "berikutnya: C" nama transisi C berarti halaman proyek ke
 katalog membentuk **dua** pasangan morph (hero B ↔ kartu B, dan C ↔ kartu C),
@@ -446,6 +505,34 @@ Sengaja **tidak** diperbaiki, dengan alasannya:
 - Opasitas 0,7 langkah yang meredup belum pernah dipakai di tema terang;
   kalau kelak dipakai, gerbang kontras yang kini membaca opasitas akan
   menangkapnya.
+
+**Review kedua — film strip** (workflow `review-gallery-strip`, tiga peninjau
+baca-saja dan satu verifikator yang diminta membantah): 16 temuan, 8
+terkonfirmasi (dua pasang duplikat), 8 ditolak dengan alasan tertulis.
+Diperbaiki:
+
+- **Veil muncul kembali di atas gambar yang sudah tergambar** bagi pembaca
+  dengan skrip — cacat saya, dari perbaikan no-JS pertama. Kini `<noscript>`.
+- **`sizes` hanya menggambarkan strip ter-pin**; baris bukaan (reduced motion,
+  tanpa skrip) menggambar plat lebih lebar dari yang dinyatakan — 0,84–0,91
+  piksel yang dibutuhkan dalam skenario peninjau. Kini `sizes` punya entri
+  untuk ketiga tata letak, breakpoint-nya mencerminkan stylesheet (mobile
+  default, desktop mulai `800px` — `799px` meninggalkan celah pecahan), dan
+  setiap lebar dikali overscan parallax.
+- **Gerbang buta pada dua hal**: plat tanpa kotak sama sekali lulus ketiga
+  cek, dan kasus reduced motion hijau pada kolom sempit yang diganti fork
+  ini. Kini keduanya diukur; asersi geometri dibuktikan merah dengan
+  menyuntikkan kembali bukaan lama (trek 276px di bingkai 1027px).
+
+Sengaja **tidak** diperbaiki di sini, dengan alasannya:
+
+- **Plat galeri digambar 12% lebih lebar dari kotaknya** (lapisan parallax
+  lebih tinggi dari bingkai, `object-fit: cover`), dan `sizes` grid serta
+  `needed` di `image-resolution.e2e.ts` sama-sama membaca lebar elemen, bukan
+  lebar yang digambar. Strip baru sudah memperhitungkannya; grid dan
+  gerbangnya **tidak**, dan itu ada sebelum fork. Memperbaikinya mengubah
+  byte di setiap halaman proyek dan ambang sebuah gerbang — pekerjaan
+  tersendiri yang diukur, bukan tambahan diam-diam di sini.
 
 ---
 
