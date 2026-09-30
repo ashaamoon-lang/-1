@@ -303,13 +303,28 @@ test.describe('the phone menu', () => {
     const menu = page.getByRole('button', { name: 'Menu' })
     await menu.focus()
     await page.keyboard.press('Enter')
-    await expect(menuOf(page)).toBeVisible()
 
     /*
      * Shift+Tab from MENU never passes through the sheet — review found this
      * path left it open over whatever took focus next, and search opened its
      * palette underneath it.
+     *
+     * Pressed at once, with no wait for the sheet to look visible: that wait
+     * was long enough, most of the time, for a listener attached after the
+     * popover's queued `toggle` to be in place — and once on CI it was not,
+     * and the sheet stayed open (flaky, on the way to `main`). The popover is
+     * open the moment Enter's default action has run; the check below reads
+     * that directly, and the Shift+Tab lands inside the gap the old wiring
+     * left.
      */
+    // Read from the DOM, not through a role locator, which would wait for the
+    // nav to become accessible — the very wait this test removes. A fresh load
+    // holds exactly one `#header-nav`.
+    const openedAtOnce = await page.evaluate(
+      () =>
+        document.querySelector('#header-nav')?.matches(':popover-open') ?? false
+    )
+    expect(openedAtOnce, 'Enter on MENU did not open the sheet').toBe(true)
     await page.keyboard.press('Shift+Tab')
     await expect(menuOf(page)).toBeHidden()
 

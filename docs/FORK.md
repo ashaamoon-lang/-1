@@ -732,6 +732,20 @@ langsung: pada versi popover pertama, lima gerbang lain merah persis karena
 cacat yang ia jaga. Sisanya belum punya bukti bahwa mereka bisa merah — itu
 utang, bukan klaim.
 
+**Satu dari tujuh itu kemudian merah sendiri — di CI, dalam perjalanan ke
+`main`.** "Fokus keluar + pencarian" flaky di CI PR #16: sekali gagal, lulus
+saat retry, dan sheet tetap terbuka lima detik sesudah Shift+Tab. Sebabnya di
+kode produk, bukan di tesnya: pendengar `focusin` dan `inert` dipasang oleh
+efek React yang berjalan sesudah `open` berubah, dan `open` mengikuti event
+`toggle` popover, yang peramban **antrikan**. Shift+Tab di celah itu tidak
+menemukan pendengar. Aturan fork menyebut kegagalan akibat perubahan fork
+diperbaiki, bukan dilabeli — jadi ia diperbaiki sebelum merge ke `main`, lewat
+branch sendiri dan PR ke `claude/arth-design`: pendengar kini dipasang sejak
+mount dan membaca keadaan popover dari elemennya, dan `inert` diterapkan di
+`beforetoggle`, yang dikirim sinkron sebelum sheet tampil. Tesnya ditajamkan:
+ia menekan Shift+Tab seketika sesudah Enter, tanpa menunggu sheet terlihat —
+tepat di celah yang dulu kosong.
+
 ---
 
 ## 4. Cara kerja, satu paragraf
