@@ -52,6 +52,8 @@ interface MaterialUniforms {
   uDrift: IUniform<number>
   uDriftPeriod: IUniform<number>
   uShear: IUniform<number>
+  uZoom: IUniform<number>
+  uShift: IUniform<number>
   uTime: IUniform<number>
   uResolution: IUniform<Vector2>
   /** How much of the texture each plate axis shows — `object-fit: cover`. */
@@ -73,6 +75,19 @@ function aspectOf(image: Texture['image']): number {
   return 0
 }
 
+/**
+ * The parallax layer's headroom beyond its travel, as a fraction of the frame
+ * — the `+ 2` in `project-card.module.css`, kept so the drawn plate crops
+ * exactly as the DOM one does.
+ */
+const PARALLAX_HEADROOM = 0.02
+
+/** INTENT's zoom — the DOM card's `.link:hover .image { scale: 1.03 }`. */
+const INTENT_ZOOM = 0.03
+
+/** How quickly INTENT arrives and leaves, in seconds (a time constant). */
+const INTENT_TAU = 0.12
+
 interface MaterialImageSceneProps {
   /** The already-decoded source the DOM `<img>` settled on. */
   src: string
@@ -90,6 +105,13 @@ interface MaterialImageSceneProps {
   shearVelocity: number
   /** Exponential decay time constant, in seconds, for the shear. */
   shearTau: number
+  /**
+   * The card's parallax travel, as a fraction of the frame's height — the
+   * `distance` its `useParallax` scrubs, over 100. 0 draws no parallax.
+   */
+  travel: number
+  /** INTENT: the card is hovered, or has keyboard focus. */
+  intent: boolean
   /** False when the element is outside the viewport — skips all per-frame work. */
   visible: boolean
   /**
@@ -179,6 +201,8 @@ export function MaterialImageScene({
   shear,
   shearVelocity,
   shearTau,
+  travel,
+  intent,
   visible,
   onFirstFrame,
 }: MaterialImageSceneProps) {
@@ -207,6 +231,8 @@ export function MaterialImageScene({
    */
   const lastScroll = useRef<number | null>(null)
   const shearValue = useRef(0)
+  /** INTENT, eased toward 0 or 1 — the same exponential approach as the shear. */
+  const intentValue = useRef(0)
 
   /*
    * `null` whenever the root canvas did not opt into the flowmap sim.
@@ -242,6 +268,8 @@ export function MaterialImageScene({
       uTime: { value: 0 },
       uResolution: { value: new Vector2(1, 1) },
       uCover: { value: new Vector2(1, 1) },
+      uZoom: { value: 1 },
+      uShift: { value: 0 },
     }),
     // Intentionally built once; the effects below push prop changes into the
     // existing uniform objects.
@@ -438,6 +466,43 @@ export function MaterialImageScene({
           wider ? imageAspect / plateAspect : 1
         )
       }
+
+      /*
+       * The card's parallax and its INTENT, drawn here — the fork.
+       *
+       * While this plate is live the DOM image is at opacity 0, so the card's
+       * `useParallax` tween and its `:hover` scale both moved something no one
+       * could see: desktop covers had no depth and no hover response. The
+       * same geometry is reproduced against the frame:
+       *
+       * - zoom `1 + travel + 0.02` — the parallax layer's overshoot, the
+       *   `(drift + 2)%` in `project-card.module.css`;
+       * - a shift from `+room` to `−room` as the frame crosses the viewport,
+       *   bottom edge in to top edge out — the scrub's `start: 'top bottom'`
+       *   to `end: 'bottom top'` — scaled by `travel / overshoot`, as the DOM
+       *   layer never uses its headroom. `+` samples higher in the picture,
+       *   which is what the layer's `+yPercent` shows at the start;
+       * - INTENT's 1.03, eased over ~120ms.
+       *
+       * Computed from `scrollY`, not read off the GSAP tween: GSAP runs later
+       * in the same Tempus tick and would lag a frame.
+       */
+      const overshoot = travel > 0 ? travel + PARALLAX_HEADROOM : 0
+      const zoom = 1 + overshoot
+      const room = (live.uCover.value.y - live.uCover.value.y / zoom) / 2
+      const progress = Math.min(
+        1,
+        Math.max(
+          0,
+          (scroll + size.height - rect.top) / (size.height + rect.height)
+        )
+      )
+      live.uShift.value =
+        overshoot > 0 ? (1 - 2 * progress) * room * (travel / overshoot) : 0
+      intentValue.current +=
+        ((intent ? 1 : 0) - intentValue.current) *
+        (1 - Math.exp(-seconds / INTENT_TAU))
+      live.uZoom.value = zoom * (1 + INTENT_ZOOM * intentValue.current)
 
       /*
        * Everything this mesh needs in order to be visible now holds: it has a

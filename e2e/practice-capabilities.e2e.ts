@@ -21,12 +21,10 @@ import { axeTags } from './axe-tags'
  * this measures the three claims the section makes, rather than that it
  * renders.
  *
- * 1. **It is held, and holding does something.** The same two questions
- *    `e2e/motion.e2e.ts` asks of `studio-process`, because the failure it was
- *    written for — a pin that resolves inside one screen — is the failure a
- *    shorter section is most at risk of. This one is deliberately shorter
- *    (46svh per item against the step sequence's 62svh), which is precisely
- *    why it has to be measured rather than assumed.
+ * 1. **Holding does something.** The lead moves through the set as it is
+ *    read. This used to require the pin to outlast a screen as well; the
+ *    fork removed that floor (`docs/FORK.md`, step 5) — how long a section
+ *    holds is a design decision — and the length is now printed instead.
  * 2. **Exactly one statement leads.** Two active items is a lead that means
  *    nothing; zero is a section stuck at its first frame.
  * 3. **Reduced motion ends fully visible, and shorter.** `CLAUDE.md` #5 for
@@ -39,9 +37,7 @@ import { axeTags } from './axe-tags'
 const ROUTE = `/en/practice/${PRACTICES[0]}`
 
 test.describe('what a practice covers is a held set', () => {
-  test('the pin outlasts a screen, and the lead moves through it', async ({
-    page,
-  }) => {
+  test('the lead moves through the held set', async ({ page }) => {
     test.setTimeout(120_000)
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto(ROUTE)
@@ -90,15 +86,9 @@ test.describe('what a practice covers is a held set', () => {
       }
     }
 
-    /*
-     * 800px is one viewport here. The threshold is the same one
-     * `studio-process` is measured against, and it is the claim itself: a
-     * held note that resolves inside one screen is a coincidence, not a pin.
-     */
-    expect(
-      Math.round(held),
-      `the column held for ${Math.round(held)}px against an 800px viewport — a pin that resolves inside one screen is a coincidence, not a hold`
-    ).toBeGreaterThan(800)
+    console.log(
+      `HELD ${ROUTE} capability column held for ${Math.round(held)}px`
+    )
 
     expect(
       reported.size,

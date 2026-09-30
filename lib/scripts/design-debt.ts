@@ -21,7 +21,7 @@
  * Nothing had gone wrong in the code. What was missing is that **nothing ever
  * read those numbers again**: `grep -rl "stories.tsx"` across `e2e/`, `lib/`,
  * `tools/` and `.storybook/` returns nothing, and `manifest:check` — which
- * does run on every `bun run check` — counts components, not stories. A rule
+ * then ran on every `bun run check` — counts components, not stories. A rule
  * with no instrument (§6.4) and a debt note with no instrument (§7) drifted
  * for twenty-six stages in the one document whose job is to not drift.
  *

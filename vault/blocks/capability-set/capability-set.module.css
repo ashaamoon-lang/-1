@@ -142,9 +142,30 @@
   opacity: 1;
 }
 
+/*
+ * The statement at display size — the fork (`docs/FORK.md` §3.2).
+ *
+ * It was `h2`, about 55px at 1440, which left a two-word capability alone in
+ * a 46svh box: the pin's length was right, the thing it held was small. At
+ * display size the lead passing from one statement to the next is the
+ * section's movement, and the recede reads across the screen. `balance`
+ * because the items are short phrases that should break as phrases.
+ */
 .statement {
   margin: 0;
-  max-width: 20ch;
+  max-width: 14ch;
+  font-size: clamp(32px, 9.6vw, 48px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  hyphens: auto;
+
+  @media (--desktop) {
+    font-size: clamp(56px, 7.2vw, 128px);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+  }
 }
 
 /*

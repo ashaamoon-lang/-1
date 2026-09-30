@@ -5,9 +5,10 @@ import { loneHalves, settledSpans } from './grid-flow'
 /**
  * `settledSpans` — the editorial grid never strands a half. Tahap 86.
  *
- * The browser half of this is `e2e/grid-rows.e2e.ts`, which measures the
- * rendered page. These pin the rule itself, including the property the
- * component's note relies on: one pass is enough.
+ * The browser half of this was `e2e/grid-rows.e2e.ts`, deleted in the fork
+ * as a gate on layout. These pin the helper itself — what `settledSpans`
+ * returns for the spans it is given, including the property the component's
+ * note relies on: one pass is enough.
  */
 describe('settledSpans', () => {
   it('closes the hole the home page shipped with', () => {

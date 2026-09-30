@@ -267,6 +267,27 @@
      * to say; this column has nothing left to say, and spacing is not content.
      * Reverted, with the numbers, rather than shipped because it was already
      * written.
+     *
+     * The fork gave the column something to say: the case study's notes,
+     * under the facts, in `.side` below. The conclusion above still holds —
+     * the void was filled with content, not with spacing.
      */
+  }
+
+  /*
+   * Facts, then the notes, beside the cover — the fork. Sticky under the
+   * header while the portrait scrolls past, so the argument stays next to
+   * the picture it is about. This is layout, and nothing here animates or
+   * moves by a transform (`CLAUDE.md` #4).
+   */
+  .hero[data-cover='half'] .side {
+    grid-column: 2;
+    position: sticky;
+    inset-block-start: calc(var(--header-height) + var(--section-lead));
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-lead);
+    min-width: 0;
   }
 }

@@ -26,6 +26,7 @@ import type { ReactNode } from 'react'
 import { ViewTransition } from 'react'
 
 import { transitionName } from '@/lib/motion/transition-name'
+import { nameplateStyle } from '@/lib/utils/display-fit'
 import { Reveal } from '@/vault/motion/reveal'
 
 import s from './practice-hero.module.css'
@@ -60,7 +61,8 @@ interface PracticeHeroProps {
    * counted as 1398px of used width. Measured as ink the other routes reach
    * 66-97% of the width (leftmost to rightmost), and this page's own
    * before-state is 45%, not the 57% claimed above it. The defect was real and the fix was right; only the size of it
-   * was overstated. `e2e/first-screen-void.ts` measures ink now.
+   * was overstated. `e2e/first-screen-void.ts` measured ink until the fork
+   * deleted it.
    */
   index?:
     | {
@@ -92,7 +94,7 @@ export function PracticeHero({
     <Reveal
       as="header"
       data-epic="practice-morph"
-      className={cn(s.hero, className)}
+      className={cn('nameplate', s.hero, className)}
     >
       <p data-reveal-item className={cn('caption', s.eyebrow)}>
         {eyebrow}
@@ -103,7 +105,11 @@ export function PracticeHero({
         share="morph"
         default="none"
       >
-        <h1 data-reveal-item className={cn('h1', s.name)}>
+        <h1
+          data-reveal-item
+          className={cn('h1', 'nameplate-title', s.name)}
+          style={typeof label === 'string' ? nameplateStyle(label) : undefined}
+        >
           {label}
         </h1>
       </ViewTransition>

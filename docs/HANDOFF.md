@@ -12,9 +12,30 @@
 ## 1. Posisi
 
 ```
-branch    claude/arth-design
-PR        #16, base `main`
+kerja baru   main                   ← mulai dari sini, di branch baru
+fork         claude/arth-unbound    ← digabung ke claude/arth-design lewat PR #17
+induk        claude/arth-design     ← digabung ke main lewat PR #16
 ```
+
+**Fork ini dibawa ke `main` atas keputusan pemilik repo**: PR #17
+(`claude/arth-unbound` → `claude/arth-design`), lalu PR #16
+(`claude/arth-design` → `main`), keduanya dengan **merge commit** — bukan
+squash, bukan rebase, karena `docs/FORK.md` merujuk hash commit-nya. Kedua
+branch **tidak dihapus**; riwayatnya tetap bisa dibaca di sana. Pekerjaan baru
+dimulai dari `main`, di branch baru, lewat PR ke `main`.
+
+`docs/FORK.md` tetap dokumen pendirinya dan dibaca lebih dulu: aturan yang
+membatasi ekspresi desain dilepas — anggaran, dial, kosakata gaya, ritual
+skill, spec-sebelum-kode, gerbang selera e2e — dan yang melindungi pembaca
+dipertahankan: axe, kontras terukur, reduced motion, keyboard, jalur tanpa JS,
+kebocoran GPU, header/CSP, penjaga token, dan kejujuran. Prinsipnya: **ukur,
+jangan veto.** Tidak ada lagi nomor tahap. §0.1 di sana menjawab apa yang
+dicabut, apa yang dipertahankan, dan aset kurasi mana yang tidak disentuh.
+
+**Satu hal tentang repo ini yang mudah terlewat:** default branch-nya di
+GitHub **bukan** `main`, melainkan `claude/satus-award-website-foundation-r6o5cf`
+(PR #9). Menggabungkan ke `main` tidak mengubahnya; mengganti default branch
+adalah keputusan pemilik repo.
 
 Dua track berjalan paralel di repo ini dan keduanya nyata.
 `claude/satus-award-website-foundation-r6o5cf` (PR #9) membawa portabilitas
@@ -26,9 +47,9 @@ riwayatnya sendiri.
 percaya dokumen:
 
 ```bash
-git rev-parse --short HEAD
-gh pr view 16 --json headRefOid,state,mergeStateStatus
-gh run list --branch claude/arth-design --limit 5
+git rev-parse --short origin/main
+git log --oneline 22136de..origin/claude/arth-unbound   # apa yang fork lakukan
+gh run list --branch main --limit 5
 ```
 
 > **Kenapa dihapus, bukan diperbarui.** Blok ini pernah berbunyi `af1f499` /
@@ -38,11 +59,11 @@ gh run list --branch claude/arth-design --limit 5
 > akan salah lagi setiap kali. Fakta yang tidak bisa benar saat ditulis tidak
 > ditulis; yang ditulis adalah perintah yang menjawabnya.
 >
-> Bandingkan dengan dua dokumen di repo ini yang **memverifikasi dirinya
-> sendiri** — blok `rule-coverage` di `CLAUDE.md` dan blok design-debt di
-> `DESIGN-SYSTEM.md` §7 — keduanya di-generate dan diuji agar tidak hanyut.
-> Nomor tahap di bawah kini ikut dijaga begitu, oleh
-> `lib/scripts/stage-position.test.ts`.
+> Dulu dua dokumen di repo ini **memverifikasi dirinya sendiri** — blok
+> `rule-coverage` di `CLAUDE.md` dan blok design-debt di `DESIGN-SYSTEM.md` §7
+> — dan nomor tahap dijaga `lib/scripts/stage-position.test.ts`. Fork
+> (langkah 1) menghapus ketiga kunci itu: mereka menjaga pembukuan, bukan
+> pembaca. Generatornya tinggal sebagai laporan.
 
 **Angka gerbang juga tidak ditulis di sini, dan alasannya sama.** Blok di atas
 menuliskan aturannya untuk hash commit; ia berlaku persis sama untuk tally uji,
@@ -51,16 +72,16 @@ menemukan **lima** angka di dokumen ini yang sudah tidak benar — dua di tabel
 gerbang yang dulu berdiri di sini, satu di §2, dan dua di §4 — lalu
 menggantinya dengan perintah, bukan dengan angka baru.
 
-`lib/scripts/stage-position.test.ts` kini menegakkannya: §1 dan §2 gagal kalau
-sebuah tally dipaku ke dalamnya. Tally yang **menyebut run atau tanggalnya**
-tetap boleh, dan tempatnya §5 — di sana ia tetap benar selamanya.
+Aturan itu dulu ditegakkan `stage-position.test.ts`; sejak fork ia hanya
+kebiasaan baik. Tally yang **menyebut run atau tanggalnya** tetap boleh, dan
+tempatnya §5 — di sana ia tetap benar selamanya.
 
 ```bash
-bun run check              # unit, lint, tipe, manifest, aset
+bun run check              # unit, lint, tipe, aset
 bun run build              # produksi
 bun run build-storybook    # SEBELUM suite e2e, bukan sesudah
 bunx playwright test       # terhadap server produksi yang sudah menyala
-gh run list --branch claude/arth-design --limit 5   # angka CI yang mengikat
+gh run list --branch main --limit 5  # angka CI yang mengikat
 ```
 
 Angka per tahap ada di entri `ROADMAP.md` masing-masing, **bersama tahapnya**,
@@ -72,8 +93,10 @@ CI, dan delapan uji jatuh pada `Test timeout of 30000ms` tanpa satu pun cacat
 halaman. Sebelum menyimpulkan regresi dari angka yang berbeda, bandingkan ke
 log CI run yang sama — bukan ke ingatan, dan bukan ke dokumen ini.
 
-Tahap terakhir yang dikerjakan: **100**. Entri per tahap ada di `ROADMAP.md`,
-spec-nya di `docs/stages/`.
+Tahap terakhir sebelum fork: **100**. Entri per tahap ada di `ROADMAP.md`,
+spec-nya di `docs/stages/` — keduanya kini arsip. Fork tidak menomori tahap;
+riwayatnya adalah `git log 22136de..HEAD` dan status eksekusi di
+`docs/FORK.md`.
 
 Suite e2e lokal dijalankan **tanpa `CI=1`**, terhadap server produksi yang dibangun
 dan dinyalakan lebih dulu. Sebabnya diukur: `CI=1` memicu `bun run build`
@@ -90,7 +113,8 @@ termasuk tiga nilai publiknya. **Nilai rahasia tidak ada di repo ini dan tidak
 boleh masuk** — ambil dari dashboard Sanity.
 
 ```bash
-git checkout claude/arth-design
+git checkout main && git pull
+git checkout -b <branch-baru>   # pekerjaan baru: branch baru, PR ke main
 bun install
 # buat .env.local — lihat MENJALANKAN-LOKAL.md §4
 bun run check
@@ -104,22 +128,54 @@ kecil, itu bukan repo ini.** RuleTester plugin JS oxlint meminta satu
 `RangeError: Array buffer allocation failed`, dan **nama rule yang disebut
 berbeda hampir setiap kali** — rule yang rusak tidak berpindah nama.
 Jalankan tahapnya satu per satu di sana (`bun test`, `bun run lint`,
-`bun run lint:types`, `bun run typecheck`, `bun run manifest:check`,
-`bun run check:assets`, `bun run test:oxlint-plugin`) dan percayai CI untuk
+`bun run lint:types`, `bun run typecheck`, `bun run check:assets`,
+`bun run test:oxlint-plugin`) dan percayai CI untuk
 tarikan penuhnya. `docs/stages/TAHAP-93.md` §7.5 memuat pengukurannya.
+
+**Kalau `bun run build` gagal berulang pada byte yang sama dengan
+`Failed to parsed response body as JSON: Bad control character …`, periksa
+`.next/cache/fetch-cache` sebelum menyalahkan Sanity.** Terjadi 29 September
+2026: satu entri cache fetch tertulis rusak (base64 yang tergeser) di tengah
+sebuah build, lalu setiap build berikutnya membacanya kembali dan gagal di
+posisi 2471 — sementara setiap query aplikasi, langsung ke Sanity lewat
+`@sanity/client`, lulus bersih. Temukan entrinya dengan men-decode tiap
+`data.body` dan mencoba `JSON.parse`; hapus satu file itu saja (cache, dibuat
+ulang). Penyebab tulisan rusaknya tidak diketahui. CI tidak terdampak: ia
+membangun tanpa cache ini.
+
+**Jebakan lingkungan lain di mesin ini**, masing-masing sudah memakan waktu
+sekali:
+
+- **Jangan `bun run build` selagi suite e2e berjalan**, dan bangun Storybook
+  **sebelum** suite — `storybook-a11y` memerahkan katalog yang lebih tua dari
+  komponennya.
+- **Hentikan server lewat PID**, bukan pola nama:
+  `Get-NetTCPConnection -LocalPort 3000 -State Listen` → `Stop-Process -Id`.
+  **Jangan pernah** `pgrep -f` / `pkill -f`; sebuah sesi pernah menggantung
+  101 menit pada satu pola.
+- **Jangan `git stash` / `git stash pop` polos**: stack stash dipakai bersama
+  beberapa worktree dan sesi lain. Sisihkan pekerjaan dengan commit WIP.
+- **Skrip Playwright ad-hoc dijalankan dengan `node`, bukan `bun`** — di bawah
+  bun ia menggantung sampai timeout. Di Git Bash, argumen seperti `/en` perlu
+  `MSYS_NO_PATHCONV=1`. Skrip scratch di dalam repo dihapus sebelum commit.
+- **Gerbang yang gagal di suite penuh belum tentu cacat.** Suite dua worker di
+  laptop 8 GB menjatuhkan beberapa uji yang lulus saat dijalankan sendirian;
+  yang lulus sendirian boleh disebut beban mesin, **yang lain tidak**. Tapi
+  periksa dulu apakah kegagalannya berbagi satu sebab — di fork, lima gerbang
+  merah sekaligus ternyata satu cacat desain (`FORK.md` §3.2, menu ponsel).
 
 ## 3. Cara kerja yang berlaku
 
 Bukan aturan teknis — itu ada di `CLAUDE.md` dan `AGENTS.md`. Ini **cara
 menjalankan pekerjaannya**, diminta pemilik repo dan masih berlaku:
 
-| aturan                               | maksudnya                                                                                                  |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| **Satu tahap penuh, sampai tuntas**  | Spec dulu (`ROADMAP.md` §3.0), lalu kode, lalu **semua** gerbang, lalu commit dan push                     |
-| **Jangan menunggu persetujuan**      | Lanjut ke tahap berikutnya sendiri. Berhenti hanya kalau ada keputusan yang benar-benar milik pemilik repo |
-| **Nol konten karangan**              | Tidak ada nama klien, entri, atau angka yang tidak berasal dari sumber yang sudah ada                      |
-| **Katakan yang gagal atau dilewati** | `CLAUDE.md` #21. Mempersempit ruang lingkup diam-diam lebih buruk daripada gagal terbuka                   |
-| **Kerjakan sendiri**                 | Pemilik repo meminta pekerjaan dilakukan agen utama, bukan didelegasikan ke sub-agen                       |
+| aturan                                  | maksudnya                                                                                                  |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Satu pekerjaan penuh, sampai tuntas** | Kode, lalu **semua** gerbang, lalu commit dan push. Spec-sebelum-kode dilepas fork                         |
+| **Jangan menunggu persetujuan**         | Lanjut ke tahap berikutnya sendiri. Berhenti hanya kalau ada keputusan yang benar-benar milik pemilik repo |
+| **Nol konten karangan**                 | Tidak ada nama klien, entri, atau angka yang tidak berasal dari sumber yang sudah ada                      |
+| **Katakan yang gagal atau dilewati**    | `CLAUDE.md` #21. Mempersempit ruang lingkup diam-diam lebih buruk daripada gagal terbuka                   |
+| **Kerjakan sendiri**                    | Pemilik repo meminta pekerjaan dilakukan agen utama, bukan didelegasikan ke sub-agen                       |
 
 ### 3.1 Dua aturan yang tahap-tahap terakhir bayar mahal untuk pelajari
 
@@ -145,28 +201,54 @@ Yang menggantikannya adalah tiga sumber yang **menjaga dirinya sendiri**:
 
 | pertanyaan                                                | sumber                                | dijaga oleh                               |
 | --------------------------------------------------------- | ------------------------------------- | ----------------------------------------- |
-| Tahap apa yang sudah terkirim, dan apa isinya             | entri per tahap di `ROADMAP.md`       | `stage-position.test.ts`                  |
-| Berapa momen, bidang kedalaman, dan pin yang ada sekarang | blok papan skor di `DIREKSI.md` §3.2b | `design-scoreboard.test.ts`               |
+| Apa yang sudah terkirim, dan apa isinya                   | `git log`; sebelum fork, `ROADMAP.md` | tidak lagi diuji (fork, langkah 1)        |
+| Berapa momen, bidang kedalaman, dan pin yang ada sekarang | blok papan skor di `DIREKSI.md` §3.2b | tidak lagi diuji — regenerate dulu        |
 | Utang mana yang masih terbuka, dan sejak kapan            | §5 di bawah                           | dibaca manusia, ditulis dengan tanggalnya |
 
-Urutan kerja satu tahap tetap seperti §3: spec lebih dulu (`ROADMAP.md`
-§3.0), lalu kode, lalu semua gerbang, lalu commit dan push, lalu **baca CI dan
-tunggu selesai sebelum push berikutnya** — `ci.yml` memakai
+Urutan kerja tetap seperti §3: kode, lalu semua gerbang, lalu commit dan
+push, lalu **baca CI dan tunggu selesai sebelum push berikutnya** — `ci.yml` memakai
 `cancel-in-progress`, jadi push kedua membatalkan run yang pertama sebelum
 suite e2e-nya selesai.
 
+### 4.1 Pekerjaan desain yang terkirim di fork, dan yang berikutnya
+
+Yang terkirim tercatat di `docs/FORK.md` §3.2 — satu entri per pekerjaan,
+dengan angka terukurnya dan cacat yang ditemukan di jalan. Daftar pendek
+workflow kritik desain (peringkat 1–5) sudah habis, ditambah menu ponsel
+(usulan yang ditunda nomor 9).
+
+**Ditunda, masing-masing dengan alasannya** — pilih dari sini, bukan dari
+ingatan:
+
+| butir                                                                                        | kenapa belum                                                                                                                                                                               |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Morph sampul ke proyek berikutnya                                                            | nama transisi harus dipasang **saat tautan ditekan**, bukan di render — kalau tidak, proyek → katalog membentuk dua pasangan morph. Perlu uji navigasi mundur di peramban (`FORK.md` §3.2) |
+| Overscan parallax 12% di `sizes` grid galeri, dan di `needed` pada `image-resolution.e2e.ts` | ada sebelum fork; memperbaikinya mengubah byte di setiap halaman proyek dan ambang sebuah gerbang (`FORK.md` §3.4)                                                                         |
+| Indeks "What we take on" di beranda                                                          | menulis ulang tiga spec e2e; tiga kata `h1` di bawah `h1` hero (kritik, ditolak no. 3)                                                                                                     |
+| Dok ponsel di halaman proyek                                                                 | lapisan tetap di atas konten ponsel (risiko WCAG 2.4.11) dan permukaan navigasi kedua (no. 8)                                                                                              |
+| Material grid di hero                                                                        | perlu GPU nyata untuk dinilai; garis kanvas tak terlihat oleh `contrast-situ` (no. 13)                                                                                                     |
+| Tirai transisi halaman                                                                       | menambah hingga ~370 ms sebelum setiap navigasi — perlu pengukuran latensi dulu (no. 15)                                                                                                   |
+| Desain ulang 404                                                                             | rute ber-trafik terendah, bergantung pada butir hero di atas (no. 17)                                                                                                                      |
+
+Nomor-nomor di atas merujuk daftar `rejected` workflow kritik desain. Keluaran
+workflow itu tidak ada di repo — tabel ini adalah catatannya.
+
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
-| butir                                   | status                                                                                                    |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Menyemai dataset Sanity                 | `bun --env-file .env.local lib/scripts/seed-fixtures.ts` — tulisan ke CMS Anda                            |
-| Rotasi kredensial Sanity                | **ditunda atas permintaan pemilik repo.** Tetap jadi butir checklist pra-luncur; jangan diungkit berulang |
-| `/lab` + hosting                        | terblokir menunggu domain                                                                                 |
-| Merge PR #9                             | keputusan pemilik repo                                                                                    |
-| Mayor `three` 0.186, `@sanity/client` 8 | belum dinaikkan                                                                                           |
-| `epic-sequence` untuk halaman run       | tidak bisa diverifikasi tanpa data ter-semai                                                              |
-| Plafon aturan #3 (band durasi)          | tidak ditegakkan — lihat `lib/scripts/rule-coverage.ts`, tercatat ber-alasan                              |
-| Typeface berlisensi                     | biaya pemilik repo                                                                                        |
+| butir                                        | status                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Merge fork ke `main`                         | **Diputuskan** oleh pemilik repo: PR #17 lalu PR #16, merge commit, branch tidak dihapus (§1)                                                                                                                                                                                                                                                                          |
+| Kontradiksi provenance `vault/`              | **Selesai.** `vault/PROVENANCE-NOTE.md` dikoreksi sesuai fakta; `vault/magic/*` dan `docs/PROVENANCE.md` tidak disunting. Koreksinya juga menemukan salinan kedua yang tercatat benar di tempat lain: path ikon Phosphor (MIT) di `vault/primitives/icon` (`FORK.md` §1.4)                                                                                             |
+| Tiga token kontras                           | **Diukur**, palet tidak diubah (keputusan pemilik). `hero-wash-mid`: tinta 14,93:1 (terang) / 15,70:1 (gelap), teks muted 8,60 / 8,62 — lulus 4,5:1; teks muted di titik wash paling terang 7,76 / 7,90. `line`/`line-strong`: dikecualikan dari WCAG 1.4.11 per pemakaian, alasannya di `contrast.test.ts`                                                            |
+| Thumb scrollbar palette — **temuan terbuka** | Satu-satunya tempat `line`/`line-strong` menjadi satu-satunya visual sebuah kontrol, dan ia **gagal** 3:1: 1,97 / 2,15 di atas track, 2,07 / 2,01 di atas ground (model oklab gerbang; dicat sRGB 1,83–2,34 — kesimpulan sama). Tercatat sebagai lantai di `contrast-baseline.json`; memperbaikinya berarti mengubah palet atau warna thumb, dan itu keputusan pemilik |
+| Rotasi kredensial Sanity                     | **Tetap terbuka** (JEDA 4): **wajib sebelum domain publik**; produksi memakai token role Viewer. Terbuka karena belum ada domain publik. Dicatat sekali, jangan diungkit berulang                                                                                                                                                                                      |
+| Email kontak placeholder                     | **Tetap terbuka**, atas keputusan pemilik: `studio@arth.example`, berlabel placeholder di markup; `SITE.email` kosong supaya JSON-LD tidak menerbitkannya. Alamat nyata tidak dikarang                                                                                                                                                                                 |
+| Default branch GitHub                        | `claude/satus-award-website-foundation-r6o5cf`, bukan `main` — keputusan pemilik repo (§1)                                                                                                                                                                                                                                                                             |
+| PR #9                                        | seluruh commit-nya termuat di `claude/arth-design`, jadi ikut ke `main` lewat #16; ditutup sesudahnya bila `main` memuatnya                                                                                                                                                                                                                                            |
+| Menyemai dataset Sanity                      | `bun --env-file .env.local lib/scripts/seed-fixtures.ts` — tulisan ke CMS Anda                                                                                                                                                                                                                                                                                         |
+| `/lab` + hosting                             | terblokir menunggu domain                                                                                                                                                                                                                                                                                                                                              |
+| Mayor `three` 0.186, `@sanity/client` 8      | belum dinaikkan                                                                                                                                                                                                                                                                                                                                                        |
+| Typeface berlisensi                          | biaya pemilik repo                                                                                                                                                                                                                                                                                                                                                     |
 
 ### 5.1 Gerbang kanvas yang melewati dirinya sendiri — ditutup di Tahap 90
 

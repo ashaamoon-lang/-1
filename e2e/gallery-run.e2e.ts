@@ -41,6 +41,12 @@ import { readStories, serveStorybook, storyUrl } from './storybook-server'
  * nothing mocked. When the dataset does gain a four-image project, the route
  * gets the same mode this already holds.
  *
+ * It has one since Tahap 82 — `RUN_WORK` — and the route is gated on its own
+ * terms in `gallery-strip.e2e.ts` (the fork): the strip's shared height, and
+ * the run with scripting off and under reduced motion. This file stays on the
+ * story, whose images carry no asset and so no shape: it is the run with
+ * nothing to equalise, which keeps one width.
+ *
  * ## Why "it rendered" is not the assertion
  *
  * A pin with zero travel is the failure Tahap 64 measured and rejected:
@@ -192,43 +198,6 @@ test.describe('the gallery run has somewhere to run', () => {
       after.filter((opacity) => opacity < 0.01).length,
       `after the track moved, plate(s) still at opacity 0: ${after.join(', ')}`
     ).toBe(0)
-  })
-
-  test('every plate takes the same track, whatever its shape', async ({
-    page,
-  }) => {
-    await page.goto(storyUrl(origin, STORY_ID), { waitUntil: 'networkidle' })
-    await page.waitForTimeout(600)
-
-    /*
-     * The run's own contract, and the reason `media-edge` had to learn about
-     * it — Tahap 71.
-     *
-     * A grid gives a portrait a narrower track than a landscape; that is the
-     * Tahap 11b rule and `media-edge.e2e.ts` has held it since. A run does the
-     * opposite on purpose: one track, every plate takes it whole, and the
-     * picture sits inside. Judged by the grid's rule a correct run is red,
-     * which is exactly the false failure Tahap 70 measured and refused to
-     * ship a fixture change into.
-     *
-     * So the rule is asserted here, against the catalogue, where a run exists
-     * today — rather than on a route, where none does.
-     */
-    const widths = await page.evaluate(() =>
-      [...document.querySelectorAll('[data-run-item]')].map(
-        (item) => item.getBoundingClientRect().width
-      )
-    )
-
-    expect(widths.length, 'no run plates to measure').toBeGreaterThanOrEqual(4)
-
-    const spread = Math.max(...widths) - Math.min(...widths)
-    expect(
-      spread,
-      `the run spreads its plates across ${Math.round(spread)}px of width (${widths
-        .map((width) => `${Math.round(width)}px`)
-        .join(', ')}) — a run is one track`
-    ).toBeLessThanOrEqual(1.5)
   })
 
   test('under reduced motion the plates are readable, not hidden', async ({

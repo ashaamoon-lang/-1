@@ -4,73 +4,22 @@ import { expect, test } from '@playwright/test'
 import { FEATURED_WORK } from './fixtures'
 
 /**
- * The site keeps moving — Tahap 33.
+ * Scroll-linked motion, and where it must not go — Tahap 33.
  *
- * ## The measurement this file exists to hold
+ * ## What left this file in the fork
  *
- * The project owner judged the site under-animated. That was measured rather
- * than argued: each route was scrolled through eight positions and the
- * elements carrying a non-identity `transform` were counted at each one.
+ * It opened with a floor: `/en/work` and a project page had to render more
+ * than three distinct transform "frames" across nine scroll positions, written
+ * after the owner judged the site under-animated (the catalogue measured one
+ * frame across 4.5 screens). A floor on how much a page moves is a quota on
+ * expression, so the fork removed it (`docs/FORK.md`, step 5).
  *
- * | route      | before          | after            |
- * | ---------- | --------------- | ---------------- |
- * | `/en/work` | 0 of 79, **1 distinct frame across 4.5 screens** | 6 of 85, 8 frames |
- * | `/en`      | 11 of 127, 7    | 14 of 131, 9     |
- * | a project  | 1 of 43, 4      | 3 of 45, 8       |
- *
- * The catalogue — the portfolio page — did not move at all. The site's motion
- * was entrance motion: blocks arrived and froze. These tests hold the
- * difference, and the first one goes red against the site as it was.
+ * What stays protects the reader: prose never drifts against its column, a
+ * plate stays where the layout put it under reduced motion, the travelling
+ * layer never shows its frame, and the footer strip stops when asked.
  */
 
-const SAMPLES = 8
-
-/** Elements carrying a transform, sampled down the page. */
-async function frames(page: Page, path: string): Promise<string[]> {
-  await page.goto(path)
-  await page.waitForTimeout(2200)
-
-  const height = await page.evaluate(
-    () => document.documentElement.scrollHeight
-  )
-  const seen: string[] = []
-
-  for (let i = 0; i <= SAMPLES; i += 1) {
-    await page.evaluate((y) => window.scrollTo(0, y), (height * i) / SAMPLES)
-    await page.waitForTimeout(400)
-    seen.push(
-      await page.evaluate(() =>
-        [...document.querySelectorAll('main *')]
-          .map((el) => getComputedStyle(el).transform)
-          .filter((t) => t && t !== 'none' && t !== 'matrix(1, 0, 0, 1, 0, 0)')
-          .slice(0, 30)
-          .join('|')
-      )
-    )
-  }
-
-  return seen
-}
-
-test.describe('the page keeps moving as it is read', () => {
-  for (const path of ['/en/work', `/en/work/${FEATURED_WORK}`]) {
-    test(`${path} is not a still photograph`, async ({ page }) => {
-      test.setTimeout(90_000)
-      await page.setViewportSize({ width: 1440, height: 900 })
-
-      const distinct = new Set(await frames(page, path))
-
-      /*
-       * Proved red on 2026-09-04: the catalogue returned one signature at
-       * every position, because nothing on it carried a transform at all.
-       */
-      expect(
-        distinct.size,
-        `the page rendered ${distinct.size} distinct frame(s) across ${SAMPLES + 1} scroll positions — nothing moves as it is read`
-      ).toBeGreaterThan(3)
-    })
-  }
-
+test.describe('scroll-linked motion stays off the prose', () => {
   test('prose never acquires a scroll-linked transform', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`/en/work/${FEATURED_WORK}`)
@@ -265,20 +214,17 @@ test.describe('the footer answers the reader', () => {
     }, STRIP)
   }
 
-  test('the wordmark moves, and there is exactly one of it', async ({
-    page,
-  }) => {
+  test('the wordmark moves', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/en/work')
     await page.waitForTimeout(1200)
 
     /*
-     * One per page, never two. `taste-skill` §4 is explicit that two
-     * scrolling strips read as lazy filler, and this one is in the footer —
-     * which every route renders — so the site's single slot is spent here and
-     * a second one anywhere would be a violation on eleven pages at once.
+     * It used to assert exactly one strip per page, from `taste-skill` §4's
+     * one-marquee rule. The fork removed that count (`docs/FORK.md`); what a
+     * test can hold is that the strip that is there actually moves.
      */
-    expect(await page.locator(STRIP).count(), 'not exactly one marquee').toBe(1)
+    await expect(page.locator(STRIP).first(), 'no footer strip').toBeAttached()
 
     const before = await stripTransforms(page)
     await page.evaluate(() =>

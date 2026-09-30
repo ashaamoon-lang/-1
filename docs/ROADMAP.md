@@ -164,11 +164,20 @@ browser). Sampai `chrome-devtools-mcp` tersedia, semua angka performa disebut
 
 # BAGIAN 2 — Alur Kerja
 
-## 2.1 Ritual skill — wajib, setiap tahap
+## 2.1 Skill desain — rujukan, bukan ritual
 
-Bukan opsional dan bukan "kalau sempat". Urutannya tetap:
+> **Fork (`docs/FORK.md`).** Bagian ini dulu berjudul _"Ritual skill — wajib,
+> setiap tahap"_ dan dibuka dengan _"Bukan opsional"_. Ia menuntut tujuh query
+> sebelum UI apa pun didesain, dan hasilnya dicatat _"supaya keputusan desain
+> bisa ditelusuri, bukan diperdebatkan sebagai selera"_ — artinya sebuah
+> gagasan baru sah hanya kalau basis data pola sudah memuatnya. Urutan seksi
+> beranda memang diambil dari satu baris `landing.csv`.
+>
+> Kewajiban itu dilepas. Skill-nya tetap tervendor dan tetap berguna; selera
+> kembali menjadi masukan yang sah. Perintah di bawah dipertahankan sebagai
+> rujukan untuk kapan pun ia membantu.
 
-**Sebelum mendesain UI apa pun — `ui-ux-pro-max`:**
+**Kalau ingin berkonsultasi dengan `ui-ux-pro-max`:**
 
 ```bash
 S=.claude/skills/ui-ux-pro-max/scripts/search.py
@@ -205,18 +214,15 @@ artwork"` mengembalikan **0 hasil**; `"Portfolio Grid"` mengembalikan pola
    database sebelum memakai default umum. Skill itu sendiri yang memerintahkan
    ini, dan itu mencegah kita mengarang lalu mengklaimnya berbasis riset.
 
-Hasil query **dicatat di stage-spec tahap tersebut**, supaya keputusan desain
-bisa ditelusuri, bukan diperdebatkan sebagai selera.
+**Skill lain yang berguna pada titik-titik ini:**
 
-**Skill lain, pada titik tetap:**
-
-| Skill              | Kapan                                                      | Kenapa                                                  |
-| ------------------ | ---------------------------------------------------------- | ------------------------------------------------------- |
-| `/code-review`     | akhir tiap tahap, sebelum commit                           | Menangkap bug korektness + duplikasi                    |
-| `/simplify`        | setelah tahap yang menambah ≥3 komponen                    | Membuang lapisan sebelum menumpuk                       |
-| `/security-review` | tahap apa pun yang menyentuh form, route handler, atau env | Wajib sebelum kontak/CMS live                           |
-| `/run`             | tiap tahap yang menghasilkan UI                            | Melihat halaman berjalan, bukan cuma test hijau         |
-| `/init`            | —                                                          | Tidak dipakai; `CLAUDE.md` sudah ada dan lebih spesifik |
+| Skill              | Kapan                                                | Kenapa                                                  |
+| ------------------ | ---------------------------------------------------- | ------------------------------------------------------- |
+| `/code-review`     | akhir tiap tahap, sebelum commit                     | Menangkap bug korektness + duplikasi                    |
+| `/simplify`        | setelah tahap yang menambah ≥3 komponen              | Membuang lapisan sebelum menumpuk                       |
+| `/security-review` | apa pun yang menyentuh form, route handler, atau env | Tetap wajib sebelum kontak/CMS live — itu keamanan      |
+| `/run`             | tiap tahap yang menghasilkan UI                      | Melihat halaman berjalan, bukan cuma test hijau         |
+| `/init`            | —                                                    | Tidak dipakai; `CLAUDE.md` sudah ada dan lebih spesifik |
 
 ## 2.2 Aturan library-first — hemat sintaks
 
@@ -277,16 +283,28 @@ karena locale dibaca dari `next/root-params` yang dapat dianalisis statis.
 
 ## 2.3 Aturan yang sudah mengikat
 
-`CLAUDE.md` tetap berlaku penuh dan tidak diulang di sini. Yang paling sering
-dilanggar saat menulis halaman: **nol `cubic-bezier()` mentah**, **nol 300ms
-generik** (default 400ms), **hanya `transform`/`opacity`**, **satu RAF loop**,
-dan **`prefers-reduced-motion` menyisakan konten terlihat penuh**.
+`CLAUDE.md` berlaku dan tidak diulang di sini. Yang paling sering dilanggar
+saat menulis halaman, dari aturan yang **bertahan** di fork: **hanya
+`transform`/`opacity`** (#4), **`prefers-reduced-motion` menyisakan konten
+terlihat penuh** (#5), dan **satu RAF loop** (#6).
+
+Dua yang dulu tercantum di sini — _nol `cubic-bezier()` mentah_ dan _nol 300ms
+generik, default 400ms_ — dipensiunkan fork sebagai `CLAUDE.md` #1 dan #3.
 
 ---
 
 # BAGIAN 3 — Tahapan Eksekusi
 
-## 3.0 Gerbang pendalaman — berlaku untuk SETIAP tahap
+## 3.0 Gerbang pendalaman — dilepas di fork
+
+> **Fork (`docs/FORK.md`).** Gerbang di bawah berlaku untuk Tahap 0–100 dan
+> dicatat di sini sebagai sejarah. Ia **tidak berlaku lagi**: tidak ada
+> stage-spec yang wajib ditulis sebelum kode, tidak ada nomor tahap, dan
+> langkah 3 — _"komponen baru hanya untuk yang benar-benar belum ada"_ — tidak
+> lagi mengunci desain pada apa yang sudah dibangun. Yang tetap: kalau sebuah
+> angka diklaim, ia diukur (`CLAUDE.md` #19).
+>
+> Teks aslinya:
 
 Tidak ada tahap yang boleh langsung dikerjakan dari rencana ini. Rencana ini
 sengaja berhenti di level arsitektur. Sebelum menulis kode, tiap tahap **wajib**

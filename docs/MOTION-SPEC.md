@@ -491,6 +491,15 @@ is the wrong register for this site — rejected for the same reason in Tahap
 
 ### 9.5 The epic-moment budget
 
+> **Retired in the fork (`docs/FORK.md`).** No gate caps the moments on a
+> route, no gate requires a long movement to be named, and
+> `e2e/epic-sequence.e2e.ts` — the overlap rule quoted below — is deleted.
+> `e2e/interaction-grammar.e2e.ts` prints each route's named moments and its
+> unnamed long moves on every run: a report, not a ceiling. Naming a moment
+> with `data-epic` is still worth doing — it is how that report says which
+> moment did what — and reduced motion is still enforced, separately.
+> Everything below is the history of how the budget worked.
+
 Award sites do not make everything epic. They make **one or two** things epic
 and keep everything else quiet.
 
@@ -529,9 +538,10 @@ and keep everything else quiet.
 > composition — and a moment's range is its **pin spacer** when GSAP made one,
 > because a pinned passage owns 3150px of scroll while its box reports 900.
 >
-> **What did not move:** every movement past the standard band must still sit
-> inside a _named_ `[data-epic]`. That assertion in
-> `e2e/interaction-grammar.e2e.ts` is untouched. Naming is the discipline;
+> **What did not move (in Tahap 60):** every movement past the standard band
+> still had to sit inside a _named_ `[data-epic]`, and that assertion in
+> `e2e/interaction-grammar.e2e.ts` was untouched then. The fork turned it into
+> a report. Naming is the discipline;
 > the number is only a tripwire now. Nor did the height of anything become a
 > matter for this budget — **no gate limits the height of a hero or a
 > section**, and Tahap 60 verified that across all 39 e2e files before

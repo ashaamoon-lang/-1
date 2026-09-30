@@ -21,6 +21,7 @@ import { toImageSource } from '@/lib/integrations/sanity/utils/image'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { collectionPageSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
+import { nameplateStyle } from '@/lib/utils/display-fit'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
@@ -293,9 +294,14 @@ export default async function JournalPage() {
         })}
       />
       <div className={s.page}>
-        <header className={s.header}>
+        <header className={cn('nameplate', s.header)}>
           <p className={cn('caption', s.eyebrow)}>{t('eyebrow')}</p>
-          <TextReveal as="h1" split="lines" className={cn('h1', s.title)}>
+          <TextReveal
+            as="h1"
+            split="lines"
+            className={cn('h1', 'nameplate-title', s.title)}
+            style={nameplateStyle(t('title'))}
+          >
             {t('title')}
           </TextReveal>
           <Reveal>

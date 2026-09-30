@@ -4,7 +4,21 @@ import { expect, test } from '@playwright/test'
 /**
  * The exploratory layer — Tahap 43.
  *
- * ## What this file holds, and the numbers it was written against
+ * ## What left this file in the fork
+ *
+ * Two assertions enforced `DESIGN_VARIANCE`: rows of the catalogue could not
+ * run in lockstep, and its two columns had to drift by more than 0.5px and no
+ * more than 60px. Both mandated a composition — a regular grid became a
+ * failure, and so did a bolder drift — so the fork removed them with the dials
+ * themselves (`docs/FORK.md`, step 5). The table below is the history that
+ * produced them.
+ *
+ * What stays protects the reader: cards never sit on top of each other at any
+ * scroll position (a covered card is hidden content), the cursor carries
+ * nothing the page does not also say, the journal keeps its theme without
+ * JavaScript, and no icon ships without a name.
+ *
+ * ## The numbers the variance rule was written against
  *
  * `DESIGN_VARIANCE` was set to 7 in Tahap 34 and the catalogue kept running
  * at 3. Measured on the production build at 1440x900, six works:
@@ -22,16 +36,6 @@ import { expect, test } from '@playwright/test'
  * running, and **three of three rows with both cards sharing an identical
  * top**. A grid a reader can predict in full from its first two cards.
  *
- * `rows never run in lockstep` is the assertion that goes red against that,
- * and it is written as "not every row" rather than "no row" on purpose: an
- * offset pattern with three values will still align some rows, and demanding
- * that none ever line up would be demanding randomness. Randomness reads as a
- * bug; a repeating three-value figure reads as a decision.
- *
- * The other assertions are the guard rails that keep the composition from
- * becoming a trick — cards that never overlap, a drift difference that stays
- * inside the band, information that never lives only in the cursor, and a
- * theme that survives with JavaScript switched off.
  */
 
 const SCROLL_SAMPLES = 12
@@ -76,43 +80,9 @@ function overlaps(a: Box, b: Box): boolean {
   )
 }
 
-test.describe('the catalogue composes rather than repeats', () => {
+test.describe('catalogue cards never cover one another', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-  })
-
-  test('rows never run in lockstep', async ({ page }) => {
-    await page.goto('/en/work')
-    await page.waitForTimeout(1200)
-
-    const boxes = await cardBoxes(page)
-    // Anti-vacuum: an empty catalogue would pass every assertion below.
-    expect(boxes.length).toBeGreaterThanOrEqual(4)
-
-    const tops = boxes.map((b) => Math.round(b.y))
-    const columns = new Set(boxes.map((b) => Math.round(b.x)))
-    expect(columns.size).toBeGreaterThanOrEqual(2)
-
-    /*
-     * Group by column, then ask how many cards in the *second* column share a
-     * top with a card in the first. Measured before this stage: every one of
-     * them. The composition is doing its job when at least one card in the
-     * grid sits at a top no card in the other column shares.
-     */
-    const byColumn = new Map<number, number[]>()
-    for (const box of boxes) {
-      const key = Math.round(box.x)
-      byColumn.set(key, [...(byColumn.get(key) ?? []), Math.round(box.y)])
-    }
-    const [first = [], second = []] = [...byColumn.values()]
-    const shared = second.filter((y) =>
-      first.some((other) => Math.abs(other - y) <= 2)
-    )
-
-    expect(
-      shared.length,
-      `every card in column two shares a top with column one (${tops.join(', ')})`
-    ).toBeLessThan(second.length)
   })
 
   test('cards never overlap, at any scroll position', async ({ page }) => {
@@ -146,49 +116,6 @@ test.describe('the catalogue composes rather than repeats', () => {
         }
       }
     }
-  })
-
-  test('the two columns drift by a readable difference, not a large one', async ({
-    page,
-  }) => {
-    await page.goto('/en/work')
-    await page.waitForTimeout(1500)
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 1.5))
-    await page.waitForTimeout(700)
-
-    /*
-     * The parallax runs on the media wrapper inside each card, so the
-     * difference is read there rather than on the `<li>`, whose position is
-     * layout and does not move.
-     */
-    const shifts = await page.evaluate(() =>
-      [...document.querySelectorAll('ul li[data-flip-id]')].map((li) => {
-        const media = li.querySelector('[class*="parallax"]')
-        const t = media ? getComputedStyle(media).transform : 'none'
-        const m = /matrix\([^)]*,\s*([-\d.]+)\)$/.exec(t)
-        return {
-          x: Math.round(li.getBoundingClientRect().x),
-          y: m?.[1] ? Number.parseFloat(m[1]) : 0,
-        }
-      })
-    )
-    expect(shifts.length).toBeGreaterThanOrEqual(4)
-
-    const columns = [...new Set(shifts.map((s) => s.x))].sort((a, b) => a - b)
-    expect(columns.length).toBeGreaterThanOrEqual(2)
-
-    const mean = (xs: number[]) =>
-      xs.length === 0 ? 0 : xs.reduce((a, b) => a + b, 0) / xs.length
-    const left = mean(shifts.filter((s) => s.x === columns[0]).map((s) => s.y))
-    const right = mean(shifts.filter((s) => s.x === columns[1]).map((s) => s.y))
-
-    // Anti-vacuum: zero on both sides would satisfy any upper bound.
-    expect(
-      Math.abs(left - right),
-      `columns drift identically (${left} vs ${right})`
-    ).toBeGreaterThan(0.5)
-    // The plan's ceiling: a difference, not a divergence.
-    expect(Math.abs(left - right)).toBeLessThanOrEqual(60)
   })
 })
 

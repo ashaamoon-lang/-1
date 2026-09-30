@@ -110,6 +110,62 @@ const PAIRS: { label: string; bg: string; fg: string; min: number }[] = [
     fg: 'secondary',
     min: AA_TEXT,
   },
+  /*
+   * The rest of the hero's text on its wash — measured on the repo owner's
+   * decision, when the fork went to `main`.
+   *
+   * `--hero-wash-mid` is the base the hero's grain sits on (`hero.module.css`,
+   * `.heroGrain`); the fork found it parsed and never measured. The hero sets
+   * text in two colours — ink (headline, index list) and muted (the index
+   * label) — so both are measured on the wash's middle, and muted is also
+   * measured on `--hero-wash-to`, the wash's lightest stop and so its worst
+   * case, which no pair covered.
+   */
+  {
+    label: 'ink on the hero wash middle',
+    bg: 'hero-wash-mid',
+    fg: 'secondary',
+    min: AA_TEXT,
+  },
+  {
+    label: 'muted text on the hero wash middle',
+    bg: 'hero-wash-mid',
+    fg: 'text-muted',
+    min: AA_TEXT,
+  },
+  {
+    label: 'muted text on the hero wash',
+    bg: 'hero-wash-to',
+    fg: 'text-muted',
+    min: AA_TEXT,
+  },
+  /*
+   * `--line` and `--line-strong` — where either is a control's only visual.
+   *
+   * Everywhere else they are exempt from WCAG 1.4.11, each for a stated
+   * reason, and the reasons are listed in `contrast.test.ts`. One use is not:
+   * the command palette's scrollbar (`components/ui/command`, Base UI
+   * `ScrollArea`) draws its thumb in `--line-strong` on a track of `--line`,
+   * and that thumb is interactive — it is dragged — with nothing else to show
+   * where it is. So it is held to 3:1 against both colours it touches: the
+   * track, and the palette's ground on either side of a 3px bar.
+   *
+   * Both pairs fail, and ship as a recorded floor in `contrast-baseline.json`
+   * rather than as a palette change: the repo owner's decision was to measure
+   * these tokens and record them, not to change them (`docs/HANDOFF.md` §5).
+   */
+  {
+    label: 'palette scrollbar thumb on its track',
+    bg: 'line',
+    fg: 'line-strong',
+    min: AA_NON_TEXT,
+  },
+  {
+    label: 'palette scrollbar thumb on the ground',
+    bg: 'primary',
+    fg: 'line-strong',
+    min: AA_NON_TEXT,
+  },
   {
     label: 'focus ring on primary',
     bg: 'primary',
@@ -149,9 +205,20 @@ export async function readDerivedTokens() {
   }))
 }
 
+/**
+ * Every token a pair actually measures, as a background or a foreground.
+ *
+ * A derived token that is parsed but appears in no pair is **read and never
+ * checked** — which is what `contrast.test.ts` found three of in the fork.
+ */
+export const MEASURED_TOKENS: ReadonlySet<string> = new Set(
+  PAIRS.flatMap(({ bg, fg }) => [bg, fg])
+)
+
 /** Measure every pair in every theme. */
 export async function measureContrast(): Promise<Measurement[]> {
   const derived = await readDerivedTokens()
+  const recipes = new Map(derived.map((entry) => [entry.token, entry]))
   const measurements: Measurement[] = []
 
   for (const [name, theme] of Object.entries(themes)) {
@@ -174,7 +241,20 @@ export async function measureContrast(): Promise<Measurement[]> {
 
     for (const { label, bg, fg, min } of PAIRS) {
       const background = resolved.get(bg)
-      const foreground = resolved.get(fg)
+      /*
+       * A foreground mixed into `transparent` is painted over **this pair's**
+       * background, not over the page ground — muted text over the hero's
+       * wash, a scrollbar thumb over its track. Resolving it over the ground
+       * measured a colour that is never on screen. For every pair whose
+       * background is the ground, this is the same colour as before.
+       */
+      const recipe = recipes.get(fg)
+      const foreground =
+        recipe && recipe.onto === 'transparent' && background
+          ? Color.mix(background, new Color(t[recipe.from]), recipe.pct, {
+              space: 'oklab',
+            })
+          : resolved.get(fg)
       if (!(background && foreground)) continue
 
       measurements.push({

@@ -33,9 +33,9 @@ import s from './section-header.module.css'
  * </Reveal>`. That was written, and it broke two things at once. The extra
  * box sits between the `<section>` and its `<header>`, so the section's own
  * `gap` no longer applies between header and body — and
- * `e2e/spatial-rhythm.e2e.ts`, which reads `header.nextElementSibling` to
- * measure that gap, found **zero** header/body pairs on the whole home page.
- * One wrapper div, and the Tahap 11a invariant stopped being measurable.
+ * `e2e/spatial-rhythm.e2e.ts` (since deleted in the fork), which read
+ * `header.nextElementSibling` to measure that gap, found **zero** header/body
+ * pairs on the whole home page. The spacing reason stands without the gate.
  *
  * So the reveal goes on the `<header>` this component already renders. The
  * DOM shape is byte-for-byte what it was; only an attribute is added.

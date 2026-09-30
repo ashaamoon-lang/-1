@@ -13,11 +13,20 @@
   --press-scale: 0.99;
   transition: transform var(--duration-micro) var(--ease-out-quart);
 
+  /*
+   * Twelve columns: the cover in seven, the name in five, on its baseline —
+   * the fork. It was a four-column thumbnail beside a 48px title with the
+   * rest of the row empty: the page's last invitation was its smallest
+   * object (the design-critique workflow).
+   */
   @media (--desktop) {
-    flex-direction: row;
-    align-items: center;
-    gap: calc(var(--gap) * 2);
-    padding-block: desktop-vw(48px);
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: end;
+    column-gap: var(--gap);
+    /* No bottom padding: the page's own padding is the breath before the
+       footer's seam, and the two stacked left ~190px of nothing. */
+    padding-block: desktop-vw(64px) 0;
   }
 
   &:focus-visible {
@@ -34,8 +43,9 @@
   flex-shrink: 0;
 
   @media (--desktop) {
-    /* Four of twelve columns — a thumbnail, not a second hero. */
-    width: calc(4 * var(--column-width) + 3 * var(--gap));
+    /* Seven of twelve columns at 3:2 since the fork; it was four, at 4:3. */
+    grid-column: 1 / 8;
+    aspect-ratio: 3 / 2;
   }
 }
 
@@ -53,12 +63,15 @@
 }
 
 .text {
+  /* The title is fitted to this column (`.title`). */
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: mobile-vw(8px);
   min-width: 0;
 
   @media (--desktop) {
+    grid-column: 8 / -1;
     gap: desktop-vw(12px);
   }
 }
@@ -69,18 +82,44 @@
   color: var(--text-muted);
 }
 
+/*
+ * The next work's name at display size, as big as its longest word allows
+ * — the fork. `--fit-word` is that word's length, set by the component. The
+ * name takes the `h1` curve unless its longest word would not fit the text
+ * column at that size, and then exactly as much as fits: a long single word
+ * shrinks rather than breaking mid-word, and a title of short words keeps
+ * the full `h1`. 0.72em per character is the widest measured in this face
+ * (`lib/styles/css/global.css`, `.nameplate-title`).
+ */
 .title {
+  font-size: min(
+    clamp(38px, calc(9.127px + 7.7vw), 156.958px),
+    calc(100cqi / (var(--fit-word, 8) * 0.72))
+  );
   text-wrap: balance;
+  transition: transform var(--duration-fast) var(--ease-out-quart);
+}
+
+/* INTENT on the name as well as the cover: it steps toward the reader. */
+.link:hover .title,
+.link:focus-visible .title {
+  transform: translate3d(desktop-vw(12px), 0, 0);
 }
 
 @media (--reduced-motion) {
-  .image {
+  .image,
+  .title {
     transition: none;
   }
 
   .link:hover .image,
   .link:focus-visible .image {
     scale: 1;
+  }
+
+  .link:hover .title,
+  .link:focus-visible .title {
+    transform: none;
   }
 }
 

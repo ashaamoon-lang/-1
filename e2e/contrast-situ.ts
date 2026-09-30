@@ -25,7 +25,8 @@
  *
  * ## Why the maths lives here and not in the browser
  *
- * `loneHalves()` (Tahap 66) and `trackFaults()` (Tahap 71) set the pattern:
+ * `loneHalves()` (Tahap 66) and `trackFaults()` (Tahap 71, deleted with its
+ * layout rule in the fork) set the pattern:
  * lift the judgement out of `page.evaluate`, let the browser supply only
  * measurements, and test the decision against cases the fixtures cannot
  * produce. WCAG's *large text* rule in particular — 24px at any weight, or
@@ -144,7 +145,7 @@ const round = (value: number) => Math.round(value * 100) / 100
  * Every run that does not clear its own AA floor.
  *
  * Faults rather than a throw, so one run reports all of them and names each
- * one — `media-edge` and `track-contract` return lists for the same reason.
+ * one — `media-edge` returns lists for the same reason.
  */
 export function contrastFaults(runs: readonly TextRun[]): string[] {
   const faults: string[] = []
@@ -156,4 +157,101 @@ export function contrastFaults(runs: readonly TextRun[]): string[] {
     )
   }
   return faults
+}
+
+/** A rectangle in CSS pixels, in viewport coordinates. */
+export interface Rect {
+  readonly left: number
+  readonly top: number
+  readonly right: number
+  readonly bottom: number
+}
+
+/** A sampling box in whole CSS pixels. */
+export interface Box {
+  readonly x: number
+  readonly y: number
+  readonly w: number
+  readonly h: number
+}
+
+/**
+ * The part of each painted line box a reader can actually see, as the boxes
+ * the backdrop is sampled under.
+ *
+ * ## Why this is here and not in `page.evaluate`
+ *
+ * The browser supplies the facts — each line box of the text, and `clip`,
+ * the intersection of every box that clips this element's overflow (the
+ * element's own included: a `text-overflow: ellipsis` span clips its own
+ * text). This decides what they mean. It used to be inline in the page, and
+ * it grew a clip when the gate stopped skipping `aria-hidden` text: the home
+ * page's reel rolls captions through an `overflow: clip` mask, and a caption
+ * rolled **out** of the mask was measured against the cover behind the spot
+ * it would have occupied — 4.28:1 for text nobody could see. Clipped text is
+ * no contrast claim; half-clipped text is measured by its visible half.
+ *
+ * A box is inset by a pixel horizontally and by up to two vertically,
+ * because glyph bodies do not reach the line box edge and the edge is where a
+ * neighbouring border or rule lands. Boxes under 4px, or under 3px once
+ * inset, carry too few pixels to mean anything and are dropped.
+ *
+ * An empty result for non-empty `painted` is a **clipped run**, and the gate
+ * counts those rather than letting them vanish (see `e2e/contrast-situ.e2e.ts`).
+ */
+export function paintedBoxes(
+  painted: readonly Rect[],
+  clip: Rect,
+  viewport: { readonly width: number; readonly height: number }
+): Box[] {
+  const boxes: Box[] = []
+  for (const line of painted) {
+    const left = Math.max(line.left, clip.left, 0)
+    const right = Math.min(line.right, clip.right, viewport.width)
+    const top = Math.max(line.top, clip.top, 0)
+    const bottom = Math.min(line.bottom, clip.bottom, viewport.height)
+    if (right - left < 4 || bottom - top < 4) continue
+
+    const pad = Math.min(2, (bottom - top) / 4)
+    const x = Math.ceil(left + 1)
+    const y = Math.ceil(top + pad)
+    const w = Math.floor(right - 1) - x
+    const h = Math.floor(bottom - pad) - y
+    if (w < 3 || h < 3) continue
+    boxes.push({ x, y, w, h })
+  }
+  return boxes
+}
+
+/**
+ * Below this effective opacity, text is a frame of an animation — a word
+ * mid-reveal — not a contrast claim.
+ */
+export const MID_REVEAL_OPACITY = 0.5
+
+/**
+ * How much of its ink a piece of text puts on screen: its colour's own alpha
+ * times the **effective** opacity — the product of `opacity` on the element
+ * and every ancestor. `undefined` for text under `MID_REVEAL_OPACITY`, which
+ * is not judged.
+ *
+ * ## Why ancestors, and what it cost not to
+ *
+ * The gate read only the element's own `opacity`, and only to decide whether
+ * to skip it. So a scrubbed statement's words at 0.55 were measured as full
+ * ink — about 15:1 where a reader gets about 5:1 — and a step receding to 0.7
+ * through its parent was never dimmed at all. A regression to 0.5 could not
+ * turn the gate red: `vault/motion/progress-text` records 0.33 measuring
+ * 2.78:1, and this gate would have called it clean.
+ *
+ * Compositing the text at the product over the sampled backdrop is exact when
+ * the faded group paints no ground of its own, and an approximation when it
+ * does — the backdrop screenshot then already carries the faded ground.
+ */
+export function inkAlpha(
+  colourAlpha: number,
+  opacity: number
+): number | undefined {
+  if (opacity < MID_REVEAL_OPACITY) return undefined
+  return colourAlpha * opacity
 }

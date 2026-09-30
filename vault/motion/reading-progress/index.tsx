@@ -12,7 +12,6 @@ import s from './reading-progress.module.css'
 // `components/effects/progress-text` records: `registerPlugin` is idempotent,
 // and this way the component is correct whatever order the Lenis bridge
 // happens to load in.
-// oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
 }

@@ -34,8 +34,22 @@ import { expect, test } from '@playwright/test'
  * over it.
  */
 
-/** The panel must be off the viewport by here — see TAHAP-48 §3. */
-const CEILING_MS = 1200
+/**
+ * How long the curtain is waited for before it is called **stuck** — the fork.
+ *
+ * This used to be a 1.2s ceiling, and it did two jobs at once: it was the wait,
+ * and it was a rule that the entrance be off the viewport within 1.2s. The rule
+ * is a budget on how theatrical an opening may be, and `docs/FORK.md` removes
+ * budgets on expression.
+ *
+ * What it protected underneath is real and stays: a curtain that never lifts
+ * is a page the reader cannot see. So the wait survives as a generous bound
+ * that only a genuinely stuck overlay reaches — ten seconds is longer than
+ * any entrance anyone would design on purpose — and nothing asserts how fast
+ * it has to be. The LCP gate below still catches an entrance that gates the
+ * content's paint, which was the reader-facing failure all along.
+ */
+const STUCK_MS = 10_000
 
 /**
  * Any LCP past this is the failure mode: content that paints only once the
@@ -178,14 +192,13 @@ test.describe('the entrance never becomes the obstacle', () => {
           }
           check()
         }),
-      CEILING_MS
+      STUCK_MS
     )
 
-    expect(gone, 'the curtain never cleared the viewport').toBeGreaterThan(-1)
     expect(
       gone,
-      `the curtain held the viewport for ${Math.round(gone)}ms`
-    ).toBeLessThanOrEqual(CEILING_MS)
+      `the curtain never cleared the viewport within ${STUCK_MS / 1000}s — it is stuck, and the page behind it is unreadable`
+    ).toBeGreaterThan(-1)
   })
 
   test('the content still paints early, measured not assumed', async ({

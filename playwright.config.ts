@@ -40,12 +40,6 @@ export default defineConfig({
       name: 'mobile',
       testMatch: [
         '**/route-sweep.e2e.ts',
-        // The hole this gate was written for is worse on a phone than on a
-        // desktop — 66% of the first screen against 57% — because the hero's
-        // index goes full width at `grid-column: 1 / -1` and the slack below
-        // it grows. A desktop-only run would under-report the one route it
-        // exists to catch (Tahap 74).
-        '**/first-screen-void.e2e.ts',
         // The defect this gate was written for exists ONLY below 800px.
         // `project-spine` is sticky with no ground of its own; at `--desktop`
         // it sits in column 2 and never meets artwork, so 759 desktop runs
@@ -68,12 +62,6 @@ export default defineConfig({
         // an occluder that only exists on a phone, which is precisely the
         // shape of the defect this gate was written for (Tahap 59).
         '**/material-occlusion.e2e.ts',
-        // Scroll-range overlap is a layout question before it is a motion
-        // one: cards that sit side by side at desktop stack at 390px, and a
-        // pinned sequence reserves a different amount of scroll at each
-        // width. So "two moments never share the same scroll" has to hold at
-        // both widths, not the one it was written at (Tahap 60).
-        '**/epic-sequence.e2e.ts',
         // Where a navigation lands is a viewport question: a destination
         // shorter than the offset the reader carried over clamps to its own
         // maximum, so the same link strands the heading by a different
@@ -86,10 +74,6 @@ export default defineConfig({
         // against the header's 14 on desktop and 17 on mobile — so checking
         // one width would have found half of it.
         '**/visual-substance.e2e.ts',
-        // The rhythm token resolves to a different number per breakpoint
-        // (32px mobile, 48px desktop), so "one rhythm per page" is a claim
-        // that has to hold at both widths, not just the one it was written at.
-        '**/spatial-rhythm.e2e.ts',
         // The entrance covers the whole viewport, and its first assertion —
         // that nothing is painted over the headline with JavaScript off —
         // reads the element stack at the headline's own centre. That point is
@@ -103,18 +87,19 @@ export default defineConfig({
         // is where that goes wrong first. The file is deliberately small so
         // adding it here costs three tests, not thirteen.
         '**/first-screen.e2e.ts',
-        // A held box is sized in `svh`, so how much of it the content fills is
-        // a different number at every width — measured on `/studio` before
-        // Tahap 69 fixed it: 35% empty at 390x844, 63% at 1440x900, 68% at
-        // 1728x1117. The defect grows with the screen, so the desktop run
-        // catches the worst case and the phone run is what proves the bound is
-        // not merely a desktop artefact.
-        '**/held-screen.e2e.ts',
         // The hairline is pinned to `--header-height`, which is a clamp that
         // resolves to 58px on a phone and 72 on this desktop — so where it
         // sits, and whether it lands on the header rather than under it, is a
         // different question at each width.
         '**/reading-progress.e2e.ts',
+        // The run lays out differently at each width — one height for every
+        // plate on desktop, one width and one centre line on a phone — and
+        // with scripting off a phone clipped three of its four plates where
+        // desktop clipped two. Each width is its own claim (the fork).
+        '**/gallery-strip.e2e.ts',
+        // The menu exists only below the desktop breakpoint, so this is the
+        // one project that can open it (the fork).
+        '**/phone-menu.e2e.ts',
       ],
       use: {
         browserName: 'chromium',

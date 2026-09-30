@@ -10,13 +10,13 @@ import { Horizontal } from './index'
  * rather than being squeezed to fit. Putting real cards in would make the
  * story about the cards.
  */
-function Plate({ index }: { index: number }) {
+function Plate({ index, ratio = 4 / 3 }: { index: number; ratio?: number }) {
   return (
     <div
       style={{
         display: 'grid',
         placeItems: 'center',
-        aspectRatio: '4 / 3',
+        aspectRatio: ratio,
         background:
           'linear-gradient(135deg, var(--color-secondary), var(--surface-2))',
         color: 'var(--color-primary)',
@@ -51,8 +51,12 @@ const meta = {
           '  `focusin` converts the focused item into a page scroll position',
           '  instead; here there is no pin, so focus simply stays put.',
           '- **Toggle reduced motion.** The track stops being a track and',
-          '  becomes a wrapping row with every item visible — the promise the',
+          '  wraps into rows with every item visible — the promise the',
           '  script cannot make, so the stylesheet makes it.',
+          '',
+          'The **Strip** story passes `ratios`: on desktop every plate takes',
+          'one height and the width its own shape asks for, so plates of',
+          'different shapes share a top, a bottom and a caption line.',
         ].join('\n'),
       },
     },
@@ -85,6 +89,29 @@ export const NothingToTravel: Story = {
     label: 'A run of two plates',
     items: Array.from({ length: 2 }, (_, index) => (
       <Plate key={index} index={index} />
+    )),
+  },
+}
+
+/**
+ * A film strip: mixed shapes at one height — the fork.
+ *
+ * The ratios are the four on `/en/work/pusat-beban` (3:4, just under
+ * square, 16:9, 5:4). On desktop they share a height, set by whichever is
+ * smaller: the screen under the header, or what lets the 16:9 take
+ * `STRIP_SHARE` of the frame. A phone keeps one width per plate.
+ */
+const STRIP_RATIOS = [0.75, 0.98, 16 / 9, 1.25, 0.75, 16 / 9]
+
+export const Strip: Story = {
+  args: {
+    name: 'story-run-strip',
+    label: 'A strip of six plates',
+    ratios: STRIP_RATIOS,
+    items: STRIP_RATIOS.map((ratio, index) => (
+      // A fixed list that never reorders.
+      // eslint-disable-next-line react/no-array-index-key
+      <Plate key={index} index={index} ratio={ratio} />
     )),
   },
 }

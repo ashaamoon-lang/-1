@@ -4,10 +4,21 @@ import { readFile } from 'node:fs/promises'
 import { Glob } from 'bun'
 
 /**
- * The motion rules, enforced.
+ * The motion rules that protect a reader, enforced.
  *
- * `CLAUDE.md` #1–#4 and #8 are this project's hard rules for animation, and
- * until this test **nothing checked any of them**. `bun run check` runs
+ * **Narrowed in the fork** (`docs/FORK.md` §2, step 3). This file used to
+ * enforce `CLAUDE.md` #1–#4 and #8 — easing only from `--ease-*` tokens, no
+ * bare `ease`, no literal durations, reveal knobs only from tokens, GSAP easing
+ * only from `easing.*.gsap`. Those were vocabulary: they decided which words a
+ * designer could use, not whether anyone could read the result. They are gone.
+ *
+ * What stays is what the history below was actually about. Three transitions
+ * animating layout properties are jank a reader feels (#4), and a stylesheet
+ * that animates without standing down under reduced motion is a reader who
+ * asked for stillness and did not get it (#5).
+ *
+ * The history, kept because it is still why #4 and #5 are checked here: until
+ * this test **nothing checked any of them**. `bun run check` runs
  * oxlint, oxfmt, tsc, unit tests and manifests; none of those parse CSS.
  * Roadmap §1.5 lists the token rule as "(enforced at review)", which is
  * another way of saying it was enforced by whoever remembered.
@@ -137,58 +148,11 @@ function report(offenders: Declaration[]): string {
     .join('\n')
 }
 
-describe('motion rules (CLAUDE.md #1-#4, #8)', () => {
+describe('motion that the compositor can run (CLAUDE.md #4)', () => {
   it('finds CSS to check at all', async () => {
     // A gate that examined nothing must not report success — the failure mode
     // this whole stage exists to remove.
     expect((await declarations()).length).toBeGreaterThan(10)
-  })
-
-  /**
-   * The first hard rule, and until Tahap 78 it could not fail here.
-   *
-   * `CLAUDE.md` #1 reads "never write a raw `cubic-bezier()` in a component".
-   * The only thing enforcing it was `vendor-rules.test.ts`, whose glob is
-   * `vault/magic/**` — **4 of this repo's 65 authored stylesheets.** Proved by
-   * swapping one token for a raw bezier in `vault/primitives/cursor`, changing
-   * nothing else: `bun run check` exited 0 with 534 tests passing.
-   *
-   * It belongs here because this file already walks every authored stylesheet
-   * and already owns #2, #4 and #8 — the three rules about the same
-   * declarations.
-   *
-   * **`vendor-rules` keeps its own copy, and that is not duplication.** The
-   * two cover different surfaces and neither contains the other: this one
-   * reads `transition`/`animation` declarations in all 65 authored
-   * stylesheets; that one reads every line of `vault/magic/` source,
-   * TypeScript included, where a curve can hide in a string that never
-   * reaches a stylesheet. Deleting either would open a hole. Checked before
-   * assuming, because the first draft of this note claimed the opposite.
-   *
-   * The token layer does not trip it. `easings.css` declares `--ease-*` as
-   * custom properties, and the scanner above only matches `transition*` and
-   * `animation` declarations, so the definitions are invisible to it by
-   * construction rather than by exemption.
-   */
-  it('#1: no raw `cubic-bezier()` — easing comes from an `--ease-*` token', async () => {
-    const offenders = (await declarations()).filter(
-      (d) => !d.exempt && d.text.includes('cubic-bezier(')
-    )
-
-    expect(offenders, report(offenders)).toEqual([])
-  })
-
-  it('#2: no bare `ease`, `ease-in`, `ease-out` or `ease-in-out`', async () => {
-    const offenders = (await declarations()).filter(
-      (d) =>
-        !d.exempt &&
-        !d.text.includes('var(--tw') &&
-        /(?:^|[\s,:])(ease|ease-in|ease-out|ease-in-out)(?:$|[\s,;])/.test(
-          d.text
-        )
-    )
-
-    expect(offenders, report(offenders)).toEqual([])
   })
 
   it('#4: animates only compositable properties', async () => {
@@ -196,17 +160,6 @@ describe('motion rules (CLAUDE.md #1-#4, #8)', () => {
       /\b(width|height|top|left|right|bottom|margin|padding|box-shadow|inset)\b/
     const offenders = (await declarations()).filter(
       (d) => !d.exempt && d.text.startsWith('transition') && layout.test(d.text)
-    )
-
-    expect(offenders, report(offenders)).toEqual([])
-  })
-
-  it('#8: durations come from tokens, not literals', async () => {
-    const offenders = (await declarations()).filter(
-      (d) =>
-        !d.exempt &&
-        !d.text.includes('var(--tw') &&
-        /\b\d+(?:\.\d+)?m?s\b/.test(d.text)
     )
 
     expect(offenders, report(offenders)).toEqual([])
@@ -231,9 +184,18 @@ describe('the reduced-motion contract reaches every stylesheet', () => {
 
     const offenders: string[] = []
     for (const [file, source] of files) {
-      const animates = /(^|\s)(transition|animation)(-[a-z-]+)?:/m.test(source)
+      /*
+       * Read the code, not the prose — the fork. This matched the raw source,
+       * so a comment that merely used the word ("layout, not animation: …")
+       * made a stylesheet with no animation at all an offender; it cost a
+       * rejected push before it was found. Comments are blanked for the two
+       * questions about code. `motion-exempt:` is itself a comment, so that
+       * one is still asked of the source.
+       */
+      const code = source.replace(/\/\*[\s\S]*?\*\//g, '')
+      const animates = /(^|\s)(transition|animation)(-[a-z-]+)?:/m.test(code)
       if (!animates) continue
-      if (/@media\s*\(--reduced-motion\)/.test(source)) continue
+      if (/@media\s*\(--reduced-motion\)/.test(code)) continue
       if (/\/\*\s*motion-exempt:/.test(source)) continue
       offenders.push(file)
     }
@@ -241,129 +203,6 @@ describe('the reduced-motion contract reaches every stylesheet', () => {
     expect(
       offenders,
       'add @media (--reduced-motion) — the global * rule loses to a component class'
-    ).toEqual([])
-  })
-})
-
-describe('reveal knobs carry tokens, not literals', () => {
-  /*
-   * `motion-rules` #8 rejects a millisecond literal inside a `transition` or
-   * `animation` declaration, and these are neither: they are custom
-   * properties the reveal contract reads. So `--reveal-stagger: 120ms` in the
-   * hero, `90ms` on the project hero and `70ms` twice went unseen — and
-   * three of those are not token values at all. `global.css` records having
-   * caught `--reveal-duration: 700ms` by hand, which is the same blind spot
-   * noticed and not closed.
-   */
-  it('no --reveal-* or --stagger-* property holds a raw duration', async () => {
-    const files = await collectDeclarationFiles()
-
-    const offenders: string[] = []
-    let properties = 0
-
-    for (const [file, source] of files) {
-      /*
-       * `lib/styles/css/` is where a value is allowed to be a value.
-       *
-       * `--stagger-words: 50ms` and its siblings are the definitions the rest
-       * of the repo points at; forbidding a literal there would leave nothing
-       * for a consumer to reference. The rule is about consumers, and this is
-       * the same boundary `motion-rules` #8 already draws by scanning
-       * declarations rather than the `:root` block that feeds them.
-       */
-      if (file.startsWith('lib/styles/css/')) continue
-
-      source.split('\n').forEach((line, index) => {
-        const code = line.split('/*')[0] ?? line
-        const match = code.match(/--(reveal|stagger)[a-z-]*:\s*([^;]+)/)
-        if (!match) return
-        properties += 1
-        if (/\b\d+(\.\d+)?m?s\b/.test(match[2] ?? '')) {
-          offenders.push(`${file}:${index + 1}  ${code.trim()}`)
-        }
-      })
-    }
-
-    expect(properties).toBeGreaterThan(3)
-    expect(
-      offenders,
-      'use var(--stagger-words|cards) or var(--duration-*)'
-    ).toEqual([])
-  })
-})
-
-/**
- * The same rule, in the dialect the other half of this site's motion speaks.
- *
- * Everything above reads CSS. But this site animates in two languages, and
- * `vault/motion/tokens.ts` says so in its own words: *"`cubic-bezier()`; GSAP
- * speaks named eases like `power3.out`"*. A tween written in TypeScript never
- * reaches a stylesheet, so every check above is blind to it.
- *
- * Measured before this was written — the surface is real and it is compliant:
- *
- * ```
- * raw GSAP ease strings outside the token layer    0
- * tokenised `easing.*.gsap`                        3
- * `ease: 'none'`                                  10   linear, for scrubs
- * ```
- *
- * So this gate is **green on the day it ships**, and that is said plainly
- * rather than dressed up: its worth is not a defect caught today but that the
- * fourth dialect-native curve somebody writes cannot land silently. `'none'`
- * is allowed because a scrubbed ScrollTrigger must be linear — the scroll
- * position *is* the easing, and curving it twice is the defect.
- */
-describe('CLAUDE.md #1 in the GSAP dialect', () => {
-  /** Named GSAP eases, as GSAP spells them. */
-  const RAW_GSAP_EASE =
-    /ease:\s*'(power\d|expo|circ|back|elastic|sine|quad|cubic|quart|quint|bounce|steps|rough|slow)/
-
-  const TS_GLOBS = [
-    'components/**/*.{ts,tsx}',
-    'vault/**/*.{ts,tsx}',
-    'app/**/*.{ts,tsx}',
-  ]
-
-  async function tweens() {
-    const found: string[] = []
-    for (const pattern of TS_GLOBS) {
-      for await (const scanned of new Glob(pattern).scan('.')) {
-        const file = posix(scanned)
-        if (file.includes('.test.') || file.includes('.stories.')) continue
-        /*
-         * The token layer is where a curve is allowed to be a curve — the
-         * same boundary `#8` draws at `lib/styles/css/`. Declared here rather
-         * than skipped silently, so removing it is a decision somebody makes
-         * on purpose.
-         */
-        if (file === 'vault/motion/tokens.ts') continue
-        const source = await readFile(file, 'utf8')
-        source.split('\n').forEach((line, index) => {
-          const code = line.split('//')[0] ?? line
-          if (code.includes('cubic-bezier(') || RAW_GSAP_EASE.test(code)) {
-            found.push(`${file}:${index + 1}  ${code.trim().slice(0, 90)}`)
-          }
-        })
-      }
-    }
-    return found
-  }
-
-  it('finds TypeScript to check at all', async () => {
-    let seen = 0
-    for (const pattern of TS_GLOBS) {
-      for await (const _ of new Glob(pattern).scan('.')) seen += 1
-    }
-    // Anti-vacuum: a gate that scanned nothing must not report success.
-    expect(seen).toBeGreaterThan(20)
-  })
-
-  it('#1: tweens take their easing from `easing.*.gsap`, not a literal', async () => {
-    const offenders = await tweens()
-    expect(
-      offenders,
-      `raw easing in a tween — use easing.*.gsap from vault/motion/tokens:\n${offenders.join('\n')}`
     ).toEqual([])
   })
 })

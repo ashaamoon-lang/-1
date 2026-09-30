@@ -65,10 +65,19 @@
  */
 @media (--desktop) {
   .eyebrow,
-  .name,
   .intro,
   .count {
     grid-column: 1;
+  }
+
+  /*
+   * The name spans the hero — the fork. It is a nameplate now, fitted to
+   * the hero's width (`.nameplate-title`, `lib/styles/css/global.css`), and
+   * the related-practice index moves down beside the intro and the count
+   * rather than beside the name.
+   */
+  .name {
+    grid-column: 1 / -1;
   }
 }
 

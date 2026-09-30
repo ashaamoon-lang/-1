@@ -1,11 +1,14 @@
 import { expect, test } from '@playwright/test'
 
 import {
+  type Rect,
   type Rgb,
   type TextRun,
   compositeOver,
   contrastFaults,
   contrastRatio,
+  inkAlpha,
+  paintedBoxes,
   worstContrast,
 } from './contrast-situ'
 
@@ -106,6 +109,28 @@ interface Collected {
   boxes: { x: number; y: number; w: number; h: number }[]
 }
 
+/** What the page reports about one run, before Node decides what it means. */
+interface Raw {
+  label: string
+  tag: string
+  sizePx: number
+  weight: number
+  fg: Rgb
+  /** The colour's own alpha. */
+  alpha: number
+  /** The product of `opacity` on the element and every ancestor. */
+  opacity: number
+  painted: Rect[]
+  clip: Rect
+}
+
+/** Every run on screen at one stop, and the viewport they were measured in. */
+interface Facts {
+  runs: Raw[]
+  width: number
+  height: number
+}
+
 interface Sampled extends Collected {
   candidates: Rgb[]
   /** The in-page search's own answer, used only to cross-check the module. */
@@ -125,12 +150,21 @@ const HIDE_GLYPHS = `*, *::before, *::after {
   caret-color: transparent !important;
 }`
 
-function collectRuns(): Collected[] {
+/**
+ * The facts about every text run on screen, and nothing else.
+ *
+ * What they mean — which part of each line box a reader can see, and how much
+ * ink reaches the screen — is decided in Node by `paintedBoxes()` and
+ * `inkAlpha()` in `contrast-situ.ts`, where it is unit-tested. This returns
+ * each run's line boxes, the clip every overflow-clipping box around it
+ * imposes, and its effective opacity.
+ */
+function collectRuns(): Facts {
   const canvas = document.createElement('canvas')
   canvas.width = 1
   canvas.height = 1
   const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  if (!ctx) return []
+  if (!ctx) return { runs: [], width: innerWidth, height: innerHeight }
 
   // Whatever colour space the stylesheet authored in, this is the sRGB the
   // compositor will paint. Parsing the string is what broke the first draft.
@@ -142,14 +176,23 @@ function collectRuns(): Collected[] {
     return { fg: { r: r ?? 0, g: g ?? 0, b: b ?? 0 }, alpha: (a ?? 255) / 255 }
   }
 
-  const out: Collected[] = []
+  const out: Raw[] = []
   for (const el of document.querySelectorAll('*')) {
     if (/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE|TITLE)$/.test(el.tagName)) continue
-    if (el.closest('[aria-hidden="true"]')) continue
+    /*
+     * `aria-hidden` text is measured too — the fork. It used to be skipped,
+     * with no reason recorded, and that hid two things. A chip's count
+     * (`aria-hidden`, because the chip's name already says it) sat at about
+     * 1:1 on the current chip and no gate saw it. And every heading split
+     * into lines by SplitText keeps its visible glyphs in `aria-hidden`
+     * masks, its name in `aria-label` — so the largest text on most routes
+     * was never measured at all. Contrast is a property of what a sighted
+     * reader sees, and WCAG 1.4.3 does not exempt text hidden from a screen
+     * reader; it exempts pure decoration, which is decided per element, not
+     * by an attribute.
+     */
     const style = getComputedStyle(el)
     if (style.display === 'none' || style.visibility === 'hidden') continue
-    // Mid-reveal text is not a contrast claim; it is a frame of an animation.
-    if (Number(style.opacity) < 0.5) continue
 
     // Only the element that directly owns the characters, so a wrapper is not
     // judged for text its child paints in another colour.
@@ -158,26 +201,48 @@ function collectRuns(): Collected[] {
     )
     if (texts.length === 0) continue
 
-    const boxes: Collected['boxes'] = []
+    const painted: Raw['painted'] = []
     for (const node of texts) {
       const range = document.createRange()
       range.selectNodeContents(node)
-      for (const rect of range.getClientRects()) {
-        if (rect.width < 4 || rect.height < 4) continue
-        if (rect.top >= innerHeight || rect.bottom <= 0) continue
-        if (rect.left >= innerWidth || rect.right <= 0) continue
-        // Glyph bodies do not reach the line box edge, and the edge is where a
-        // neighbouring border or rule lands.
-        const pad = Math.min(2, rect.height / 4)
-        const x = Math.max(0, Math.ceil(rect.left + 1))
-        const y = Math.max(0, Math.ceil(rect.top + pad))
-        const w = Math.floor(Math.min(rect.right - 1, innerWidth)) - x
-        const h = Math.floor(Math.min(rect.bottom - pad, innerHeight)) - y
-        if (w < 3 || h < 3) continue
-        boxes.push({ x, y, w, h })
+      for (const line of range.getClientRects()) {
+        // Off screen entirely: nothing to sample, and not a clipped run.
+        if (line.top >= innerHeight || line.bottom <= 0) continue
+        if (line.left >= innerWidth || line.right <= 0) continue
+        painted.push({
+          left: line.left,
+          top: line.top,
+          right: line.right,
+          bottom: line.bottom,
+        })
       }
     }
-    if (boxes.length === 0) continue
+    if (painted.length === 0) continue
+
+    /*
+     * One walk to the root for two facts: the clip every overflow-clipping
+     * box imposes (the element's own included), and the effective opacity —
+     * the product of `opacity` on the element and every ancestor.
+     */
+    const clip = { left: 0, top: 0, right: innerWidth, bottom: innerHeight }
+    let opacity = 1
+    for (let node: Element | null = el; node; node = node.parentElement) {
+      const own = getComputedStyle(node)
+      opacity *= Number(own.opacity)
+      if (node === document.documentElement) continue
+      const clipsX = own.overflowX !== 'visible'
+      const clipsY = own.overflowY !== 'visible'
+      if (!clipsX && !clipsY) continue
+      const edge = node.getBoundingClientRect()
+      if (clipsX) {
+        clip.left = Math.max(clip.left, edge.left)
+        clip.right = Math.min(clip.right, edge.right)
+      }
+      if (clipsY) {
+        clip.top = Math.max(clip.top, edge.top)
+        clip.bottom = Math.min(clip.bottom, edge.bottom)
+      }
+    }
 
     const { fg, alpha } = resolve(style.color)
     if (alpha === 0) continue
@@ -193,10 +258,12 @@ function collectRuns(): Collected[] {
       weight: Number(style.fontWeight) || 400,
       fg,
       alpha,
-      boxes,
+      opacity,
+      painted,
+      clip,
     })
   }
-  return out
+  return { runs: out, width: innerWidth, height: innerHeight }
 }
 
 /*
@@ -326,13 +393,51 @@ for (const route of ROUTES) {
           )
 
     const measured: TextRun[] = []
+    /** Runs on screen whose every line box was clipped away — counted, not lost. */
+    const clipped: string[] = []
     let drift = 0
 
     for (const stop of stops) {
       await page.evaluate((y) => window.scrollTo(0, y), stop)
       await page.waitForTimeout(1100)
 
-      const runs = await page.evaluate(collectRuns)
+      const facts = await page.evaluate(collectRuns)
+      const runs: Collected[] = []
+      for (const run of facts.runs) {
+        const alpha = inkAlpha(run.alpha, run.opacity)
+        // Mid-reveal: a frame of an animation, not a contrast claim.
+        if (alpha === undefined) continue
+        const boxes = paintedBoxes(run.painted, run.clip, facts)
+        if (boxes.length === 0) {
+          /*
+           * Only text an ancestor hid is a clipped run. A line whose last few
+           * pixels peek over the viewport's bottom edge is too thin to sample
+           * whatever clips it — measured on the first run of this counter:
+           * `/en/studio` and `/en/practice/consulting` at 1280x720 reported
+           * their bottom line, starting at y=715, as "clipped", which would
+           * have made the over-clip guard below count the viewport's own edge.
+           */
+          const edgeOnly = {
+            left: 0,
+            top: 0,
+            right: facts.width,
+            bottom: facts.height,
+          }
+          if (paintedBoxes(run.painted, edgeOnly, facts).length > 0) {
+            clipped.push(`"${run.label}" @${stop}`)
+          }
+          continue
+        }
+        runs.push({
+          label: run.label,
+          tag: run.tag,
+          sizePx: run.sizePx,
+          weight: run.weight,
+          fg: run.fg,
+          alpha,
+          boxes,
+        })
+      }
       if (runs.length === 0) continue
 
       const hidden = await page.addStyleTag({ content: HIDE_GLYPHS })
@@ -397,11 +502,28 @@ for (const route of ROUTES) {
     ).toBe(0)
 
     await testInfo.attach('contrast-situ', {
-      body: `${label}: ${measured.length} text runs, worst ${Math.min(
-        ...measured.map((run) => run.ratio)
-      ).toFixed(2)}:1`,
+      body: [
+        `${label}: ${measured.length} text runs, worst ${Math.min(
+          ...measured.map((run) => run.ratio)
+        ).toFixed(2)}:1`,
+        `${clipped.length} run(s) clipped out of sight: ${clipped.join(', ')}`,
+      ].join('\n'),
       contentType: 'text/plain',
     })
+
+    /*
+     * The clip must not become the way text escapes measurement. A future
+     * `overflow` on `body` or around `<main>` could clip everything below the
+     * first screen, and every later stop would measure only the fixed header
+     * — green on every route. Clipped runs are real (a reel's rolled-away
+     * captions, a marquee's off-edge copies), but on a page a reader can read
+     * they are the minority, so a route that clipped more than it measured is
+     * reported as broken rather than as clean.
+     */
+    expect(
+      clipped.length,
+      `${label} clipped ${clipped.length} run(s) out of sight and measured ${measured.length}: ${clipped.slice(0, 12).join(', ')}`
+    ).toBeLessThan(measured.length)
 
     expect(contrastFaults(measured), `contrast faults on ${label}`).toEqual([])
   })

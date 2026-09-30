@@ -44,13 +44,17 @@
    * The cost is honest and small: ~691px at desktop is about 70 characters
    * rather than 65. Still inside the 45–75 band that measure guidance
    * actually gives, and bought with an alignment the reader can see.
+   *
+   * Desktop only since the fork. On a phone six of twelve columns is half a
+   * 390px screen, and the notes ran about 26 characters to a line (the
+   * design-critique workflow); a phone's single column is the measure.
    */
-  max-width: calc((100% - var(--gap) * 11) / 12 * 6 + var(--gap) * 5);
   display: flex;
   flex-direction: column;
   gap: mobile-vw(16px);
 
   @media (--desktop) {
+    max-width: calc((100% - var(--gap) * 11) / 12 * 6 + var(--gap) * 5);
     gap: desktop-vw(20px);
   }
 
@@ -151,13 +155,25 @@
  * width from a measure argument and this one from an alignment argument, and
  * a shared token would hide that they can diverge.
  */
+/*
+ * The notes beside a half-width cover (`ProjectHero`'s `aside`) — the fork.
+ * That column is already the half track, so the six-of-twelve measure above
+ * would halve it again.
+ */
+.bodyBeside {
+  @media (--desktop) {
+    max-width: none;
+  }
+}
+
 .outcome {
-  max-width: calc((100% - var(--gap) * 11) / 12 * 6 + var(--gap) * 5);
   display: flex;
   flex-direction: column;
   gap: mobile-vw(12px);
 
+  /* Six columns on desktop only, for the reason `.body` gives. */
   @media (--desktop) {
+    max-width: calc((100% - var(--gap) * 11) / 12 * 6 + var(--gap) * 5);
     gap: desktop-vw(16px);
   }
 }
@@ -166,11 +182,10 @@
  * No `font-size` here, and that is the point.
  *
  * Both children take their scale from the `caption` and `h3` utilities in
- * `lib/styles/css/tailwind.css`, applied in the JSX through `cn()`. Declaring
- * a size here would need a `scale-exempt:` comment — `scale-rules.test.ts`
- * allows a component its own `font-size` only with a written reason — and
- * there is no reason to give: `step-sequence` already records that `h3` was
- * added precisely so later authors stop reaching for ad-hoc clamps.
+ * `lib/styles/css/tailwind.css`, applied in the JSX through `cn()`. The scale
+ * already has the step, so a size declared here would only be a second copy
+ * of it. (`scale-rules.test.ts` used to require a written reason for one; the
+ * fork deleted it.)
  */
 .outcomeLabel {
   color: var(--text-muted);

@@ -25,14 +25,20 @@
    */
   position: relative;
   padding-inline: var(--safe);
-  padding-block: mobile-vw(48px) mobile-vw(32px);
-  border-top: 1px solid var(--line);
+  /*
+   * No top padding and no top rule — the fork. The footer's own border and
+   * 96px of padding stacked on the wordmark strip's rule, so every page
+   * ended on two hairlines with ~97px of nothing between them (the
+   * design-critique workflow, in every route's last screenshot). The
+   * wordmark's rule is now the page's one seam.
+   */
+  padding-block: 0 mobile-vw(32px);
   display: flex;
   flex-direction: column;
   gap: mobile-vw(40px);
 
   @media (--desktop) {
-    padding-block: desktop-vw(96px) desktop-vw(40px);
+    padding-block: 0 desktop-vw(40px);
     gap: desktop-vw(64px);
   }
 }
@@ -41,8 +47,14 @@
   display: grid;
   /* minmax(0, 1fr), never bare 1fr — a long email address in a bare track
      refuses to shrink and pushes the page sideways on mobile. */
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: mobile-vw(32px);
+  /*
+   * Two columns on a phone — the fork. One column stacked four sections into
+   * a long list under a short screen; the index and the elsewhere links sit
+   * side by side, and the address and the colophon, which carry lines of
+   * their own, take the full row.
+   */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: mobile-vw(32px) var(--gap);
 
   @media (--desktop) {
     /*
@@ -56,10 +68,19 @@
 }
 
 .column {
+  /* The email is fitted to its column (`.email` below). */
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: mobile-vw(12px);
   min-width: 0;
+
+  @media (--mobile) {
+    &:first-child,
+    &:last-child {
+      grid-column: 1 / -1;
+    }
+  }
 
   @media (--desktop) {
     gap: desktop-vw(12px);
@@ -79,7 +100,25 @@
   font-weight: 400;
 }
 
+/*
+ * The address, fitted to its column on one line — the contact block's
+ * device (`vault/blocks/contact-block`): `100cqi / (chars × 0.58)`. It was
+ * 16px on a phone, the only conversion point off the home page, set like
+ * any other link.
+ */
 .email {
+  font-size: max(12px, calc(100cqi / (var(--email-chars, 20) * 0.58)));
+  line-height: 1.1;
+
+  /*
+   * A thumb-sized target too, like the index links: at one line of ~32px
+   * type the address measured 36px tall on a phone.
+   */
+  @media (pointer: coarse) {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--tap-target);
+  }
   text-decoration: none;
   color: var(--color-secondary);
   /* Long addresses break rather than widening the grid track. */
@@ -109,11 +148,26 @@
   @media (--desktop) {
     gap: desktop-vw(8px);
   }
+
+  /* The links carry their own 44px target on a touch screen; see `.link`. */
+  @media (pointer: coarse) {
+    gap: 0;
+  }
 }
 
 .link {
   text-decoration: none;
   color: var(--text-muted);
+
+  /*
+   * A thumb-sized target on a touch screen — the fork. The index links were
+   * text-height, ~14px tall, under a thumb (the design-critique workflow).
+   */
+  @media (pointer: coarse) {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--tap-target);
+  }
   transition: color var(--duration-fast) var(--ease-out-expo);
 
   @media (--hover) {

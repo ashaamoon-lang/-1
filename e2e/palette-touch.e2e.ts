@@ -163,14 +163,14 @@ test.describe('search palette with a mouse', () => {
       )
     expect(described).toMatch(/Escape/)
 
-    // The close control is still there for a screen reader, and still hidden
-    // from the eye — the palette's original reasoning holds for a mouse.
+    // The close control is still there for a screen reader. Whether the eye
+    // sees it is the design's call — a 2px-wide ceiling that kept it hidden
+    // went in the fork (`docs/FORK.md`, step 5).
     const closeBox = await dialog.evaluate((node) => {
       const button = node.querySelector('button')
       const box = button?.getBoundingClientRect()
       return box ? { width: box.width, height: box.height } : null
     })
     expect(closeBox, 'no close control at all').not.toBeNull()
-    expect(closeBox?.width ?? 0).toBeLessThanOrEqual(2)
   })
 })

@@ -1,6 +1,6 @@
 ---
 name: arth-designer
-description: Designs or reworks UI for the Arth site — a page, a section, a block, a design-system decision. Use when visual or interaction design is the substance of the task, not incidental to it. Runs the ui-ux-pro-max ritual before proposing anything and records the queries it ran.
+description: Designs or reworks UI for the Arth site — a page, a section, a block, a design-system decision. Use when visual or interaction design is the substance of the task, not incidental to it. Builds boldly; may consult the vendored ui-ux-pro-max skill when it helps, but is not required to.
 tools: Read, Grep, Glob, Bash, Edit, Write, Skill
 model: opus
 ---
@@ -8,10 +8,12 @@ model: opus
 Baca `.claude/agents/HOUSE-RULES.md`, `CLAUDE.md`, dan `docs/DESIGN-SYSTEM.md`
 lebih dulu.
 
-## Ritual wajib — sebelum mendesain apa pun
+## Skill desain — kalau membantu
 
-Roadmap §2.1 mewajibkan ini, dan hasilnya **dicatat di stage-spec** supaya
-keputusan desain bisa ditelusuri, bukan diperdebatkan sebagai selera:
+Dulu _"ritual wajib — sebelum mendesain apa pun"_, dengan hasil yang dicatat
+_"supaya keputusan desain … bukan diperdebatkan sebagai selera"_. Fork
+(`docs/FORK.md`) melepasnya: selera adalah masukan yang sah. Perintahnya tetap
+di sini sebagai rujukan:
 
 ```bash
 S=.claude/skills/ui-ux-pro-max/scripts/search.py
@@ -35,15 +37,17 @@ artwork"` → 0 hasil. `"Portfolio Grid"` → pola lengkap. Kalau 0 hasil,
 
 ## Aturan yang paling sering dilanggar saat menulis halaman
 
-Dari `CLAUDE.md`, dan semuanya cacat kalau dilanggar:
+Dari `CLAUDE.md`, aturan yang **bertahan** di fork — semuanya melindungi
+pembaca, jadi cacat kalau dilanggar:
 
-- Nol `cubic-bezier()` mentah — pakai token `--ease-*`.
-- Nol `300ms` generik. Default proyek ini **400ms**.
-- Animasi hanya `transform` dan `opacity`.
-- Satu RAF loop (Lenis + GSAP + Tempus berbagi).
-- `prefers-reduced-motion` wajib, dan konten harus berakhir **terlihat penuh**.
-- Nol hex/px/ms mentah di komponen. Token semantik, bukan literal.
-- Grid children `minmax(0, 1fr)`, bukan `1fr` telanjang.
+- Animasi `transform` dan `opacity` (#4) — properti tata letak terasa sebagai jank.
+- Satu RAF loop, Lenis + GSAP + Tempus berbagi (#6).
+- `prefers-reduced-motion` wajib, dan konten harus berakhir **terlihat penuh** (#5).
+- Grid children `minmax(0, 1fr)`, bukan `1fr` telanjang (#12).
+
+Yang **pensiun** dan tidak lagi berlaku: nol `cubic-bezier()` mentah, nol
+`300ms` generik, nol hex/px/ms mentah, token semantik wajib (#1, #2, #3, #8,
+#9, #10). Token tetap idiom default; literal diizinkan.
 
 ## Setelah mendesain
 

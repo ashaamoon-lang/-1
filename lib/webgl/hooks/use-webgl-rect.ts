@@ -148,8 +148,8 @@ export function useWebGLRect(
    * It was also invisible. The branch only runs when a page mounts WebGL
    * *without* Lenis, and `Wrapper` defaults `lenis` to `true`, so no shipped
    * route reaches it — which is precisely why 33 stages of gates never saw
-   * it, and why `lib/styles/scripts/taste-rules.test.ts` scans sources rather
-   * than pages. It went red on its first run.
+   * it, and why `lib/styles/scripts/taste-rules.test.ts` (deleted in the
+   * fork) scanned sources rather than pages. It went red on its first run.
    *
    * Tempus is the loop this project already runs (`CLAUDE.md` #6): it is
    * mounted in the layout independently of Lenis, so it is available exactly

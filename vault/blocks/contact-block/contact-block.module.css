@@ -7,27 +7,46 @@
   gap: var(--section-lead);
 }
 
+/*
+ * The address on its own row, the full width of the block — the fork.
+ *
+ * It sat at `h2` beside the socials, and the site's one conversion action
+ * took a third of the width with the rest of the row empty. It now runs edge
+ * to edge, and the socials sit under it at the right.
+ *
+ * `container-type` so the address can be sized against this box
+ * (`100cqi`) rather than the viewport, which also counts the page gutters.
+ */
 .actions {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: mobile-vw(32px);
 
   @media (--desktop) {
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: calc(var(--gap) * 2);
+    gap: desktop-vw(40px);
   }
 }
 
+/*
+ * Sized to fit on one line, whatever the address.
+ *
+ * `--email-chars` comes from the component. At this face an address
+ * measures about 0.55em per character — "studio@arth.example" is ~502px wide
+ * at 48px — so `100cqi / (chars × 0.58)` fills the block with a little room
+ * to spare: ~128px at 1440, ~32px on a 390px phone. A label that wraps is a
+ * broken button (`e2e/controls.e2e.ts`), which is why this computes rather
+ * than picks a size. The 12px floor only binds past ~50 characters, and
+ * `overflow-wrap: anywhere` keeps such an address inside the page rather
+ * than scrolling it sideways.
+ */
 .email {
-  /*
-   * Display scale, because it is the action. Sized by the `h2` type class so
-   * it sits on the locked scale rather than at a number chosen here.
-   */
+  display: inline-block;
+  font-size: max(12px, calc(100cqi / (var(--email-chars, 20) * 0.58)));
+  line-height: 1;
+  letter-spacing: -0.03em;
   text-decoration: none;
   color: var(--color-secondary);
-  /* A long address wraps rather than widening the page. */
   overflow-wrap: anywhere;
   min-width: 0;
   /* Underline on hover only, drawn from the text's own colour — a permanent
@@ -68,6 +87,7 @@
   flex-shrink: 0;
 
   @media (--desktop) {
+    align-self: flex-end;
     gap: desktop-vw(12px);
   }
 }

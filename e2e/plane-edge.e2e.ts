@@ -138,8 +138,8 @@ test.describe('a depth plane covers the frame that clips it', () => {
 
       /*
        * Anti-vacuum. A selector that stopped matching would report perfect
-       * coverage of nothing at all — the failure shape `design-scoreboard` and
-       * `stage-position` both carry their own guard against.
+       * coverage of nothing at all — the failure shape this suite's other
+       * anti-vacuum assertions exist for.
        */
       expect(
         measured,

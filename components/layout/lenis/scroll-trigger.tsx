@@ -4,7 +4,6 @@ import { useLenis } from 'lenis/react'
 import { useEffect } from 'react'
 
 // Register ScrollTrigger once
-// oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(GSAPScrollTrigger)
 }

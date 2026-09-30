@@ -11,6 +11,7 @@ import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
 import { featuredProjectsQuery } from '@/lib/integrations/sanity/queries'
+import { nameplateStyle } from '@/lib/utils/display-fit'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
@@ -194,16 +195,24 @@ export default async function StudioPage() {
           learn where the studio is or how many people are in it.
         */}
         <header className={s.hero}>
-          <div className={s.heroText}>
+          {/*
+            The nameplate spans the hero, above the lead and the facts — the
+            fork. One word, exactly as the catalogue's `h1` is "Work" with an
+            eyebrow framing it, and fitted the same way, so the three inner
+            routes share one opening rather than each having its own.
+          */}
+          <div className={cn('nameplate', s.heroTitle)}>
             <p className={cn('caption', s.eyebrow)}>{t('eyebrow')}</p>
-            {/*
-              One word, exactly as the catalogue's `h1` is "Work" with an
-              eyebrow framing it. Diverging here would make a third pattern out
-              of a page that should be reading from the same one.
-            */}
-            <TextReveal as="h1" split="lines" className={cn('h1', s.title)}>
+            <TextReveal
+              as="h1"
+              split="lines"
+              className={cn('h1', 'nameplate-title', s.title)}
+              style={nameplateStyle(t('title'))}
+            >
               {t('title')}
             </TextReveal>
+          </div>
+          <div className={s.heroText}>
             <Reveal>
               <p data-reveal-item className={cn('p-big', s.lead)}>
                 {t('lead')}
@@ -266,16 +275,17 @@ export default async function StudioPage() {
 
             Not spread, and not expanded: the block moves as it is. A hero
             that grew a twelve-item feature list would be the pattern
-            `e2e/taste-preflight.e2e.ts` exists to keep out.
+            `e2e/taste-preflight.e2e.ts` existed to keep out — a judgement the
+            fork (`docs/FORK.md`) returned to the designer with that file.
 
             **Tahap 77 turned the rest of this note into data.** It used to
             read that the rule "is scoped to `[data-epic="hero-arrival"]` and
             cannot see this header, which makes it guidance here rather than a
             gate". That was true, and two other stages wrote the same sentence
-            about other heroes. The scope now lives in `STACK_EXEMPT` in
-            `e2e/hero-stack.ts`, this header is an entry in it carrying the
-            measurement above as its reason, and a sweep fails if any hero on
-            the site is neither governed nor listed. Stack measured 8.
+            about other heroes. The scope then lived in `STACK_EXEMPT` in
+            `e2e/hero-stack.ts`, with this header as an entry carrying the
+            measurement above as its reason. The fork deleted that sweep and
+            its list: a hero's stack is a design choice again. Stack measured 8.
           */}
           {/*
             Capabilities, grouped by the three practices — and the grouping comes

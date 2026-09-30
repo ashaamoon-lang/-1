@@ -36,7 +36,6 @@ const Orchestra = createStore<OrchestraState>()(
     {
       name: storageKey,
       storage: createJSONStorage(() =>
-        // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
         typeof window === 'undefined' ? serverStorage : window.localStorage
       ),
     }
@@ -53,7 +52,6 @@ declare global {
 }
 
 if (
-  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   typeof window !== 'undefined' &&
   !globalThis.__satusOrchestraStorageRegistered
 ) {

@@ -4,7 +4,7 @@ import { useGSAP } from '@gsap/react'
 import cn from 'clsx'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import type { Ref, ReactNode } from 'react'
+import type { CSSProperties, Ref, ReactNode } from 'react'
 import { useRef } from 'react'
 
 import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
@@ -58,7 +58,8 @@ import s from './horizontal.module.css'
  *
  * So `if (reduced) return` is not sufficient here, and the promise is made in
  * CSS: under `@media (--reduced-motion)` the track stops being a track and
- * becomes an ordinary wrapping grid. This is the same contract
+ * wraps into rows in the document flow — justified rows, since the fork, each
+ * one height with every plate at its own ratio. This is the same contract
  * `vault/motion/use-active-in-sequence` demands of its consumers, and for the
  * same reason.
  *
@@ -81,14 +82,47 @@ import s from './horizontal.module.css'
  * `docs/DIREKSI.md` §4 rejects outright: nothing here intercepts a wheel or a
  * key. The page scrolls exactly as far as the reader asks; what changes is
  * what that scroll is spent on.
+ *
+ * ## Without JavaScript
+ *
+ * The same failure as reduced motion, for a different reason: no script, no
+ * ScrollTrigger, no travel — and on `/en/work/pusat-beban` two of four plates
+ * sat outside the clipped box where nothing could bring them in. So the
+ * stylesheet's reduced-motion unwrap is repeated in a `<noscript>` rule
+ * (`NOSCRIPT_STYLE`), the idiom `components/ui/command` and
+ * `vault/motion/curtain` already use, for the reason `curtain` writes down:
+ * `@media (scripting: none)` is not yet universal.
  */
+
+/**
+ * The share of the frame the strip's widest plate may take.
+ *
+ * Exported because the caller writes `sizes` from it: the stylesheet sizes
+ * the plates from this number (`--strip-share`), and a `sizes` written from a
+ * different one would ask for the wrong pixels. Below one so that at its
+ * widest a sliver of each neighbour stays in view — the strip reads as a
+ * strip rather than as one picture filling the box.
+ */
+export const STRIP_SHARE = 0.86
+
+/**
+ * The reduced-motion unwrap, for a reader with scripting off.
+ *
+ * Static and self-authored, with no interpolation — the same terms as the
+ * `<noscript>` rules in `components/ui/command` and `vault/motion/curtain`.
+ * It targets the markers below rather than the module's hashed class names,
+ * which a string written here cannot know.
+ */
+const NOSCRIPT_STYLE =
+  '[data-run-viewport]{display:block!important;block-size:auto!important;padding-block-start:0!important;overflow:visible!important}' +
+  '[data-run-track]{flex-wrap:wrap!important;align-items:start!important;inline-size:auto!important;transform:none!important}' +
+  '[data-run-item]{flex:var(--item-ratio,1) 1 calc(var(--row-block) * var(--item-ratio,1))!important;inline-size:auto!important;min-inline-size:0!important;max-inline-size:calc(var(--row-cap) * var(--item-ratio,1))!important}'
 
 interface HorizontalProps {
   /**
    * The moment's name. Becomes `data-epic`, which
-   * `e2e/interaction-grammar.e2e.ts` requires of any movement over 600ms and
-   * `e2e/epic-sequence.e2e.ts` uses to prove no two named moments share a
-   * scroll range.
+   * `e2e/interaction-grammar.e2e.ts` reads to name the moments it reports on
+   * every run.
    */
   name: string
   /**
@@ -110,6 +144,24 @@ interface HorizontalProps {
    * of that contract this component owns; the observer is the caller's.
    */
   listRef?: Ref<HTMLUListElement> | undefined
+  /**
+   * Each item's width ÷ height, in `items` order — a film strip (the fork).
+   *
+   * Given, the run holds every item at one shared height on desktop and each
+   * takes the width its own ratio asks for (`.strip` in the stylesheet).
+   * Omitted, every item takes one width, as before. A `null` entry is an item
+   * whose shape is unknown; it is laid out as a square.
+   *
+   * A set in which **no** shape is known stays a run of one width. A strip
+   * exists to hold different shapes at one height; with none known it only
+   * turned every item into a square at the full height budget — measured in
+   * the gallery's `Run` story, 531px plates where one width gives 435, and a
+   * fourth plate `gallery-run.e2e.ts` then found still waiting off-frame.
+   *
+   * Pass the ratio the item's own box is drawn at, or the heights will not
+   * agree.
+   */
+  ratios?: readonly (number | null)[] | undefined
   className?: string | undefined
 }
 
@@ -118,8 +170,12 @@ export function Horizontal({
   items,
   label,
   listRef,
+  ratios,
   className,
 }: HorizontalProps) {
+  const known = ratios?.filter((ratio): ratio is number => ratio !== null)
+  const widest = known && known.length > 0 ? Math.max(...known) : null
+  const strip = widest !== null
   const root = useRef<HTMLElement | null>(null)
   const prefersReducedMotion = usePreferredReducedMotion()
 
@@ -218,16 +274,43 @@ export function Horizontal({
       ref={root}
       data-epic={name}
       aria-label={label}
-      className={cn(s.root, className)}
+      className={cn(s.root, strip && s.strip, className)}
+      /*
+       * SAFETY: `CSSProperties` has no index signature for custom properties.
+       * Both values are numbers — a module constant and the largest of the
+       * caller's ratios — and React forwards unknown keys to
+       * `style.setProperty`, which is what a custom property needs.
+       */
+      style={
+        strip
+          ? ({
+              '--strip-share': STRIP_SHARE,
+              '--run-max-ratio': widest,
+            } as CSSProperties)
+          : undefined
+      }
     >
-      <div className={s.viewport}>
-        <ul ref={listRef} className={s.track}>
+      <noscript>
+        {/* oxlint-disable-next-line react/no-danger -- a static, self-authored string with no interpolation; `style-src` carries 'unsafe-inline' as the documented base policy (lib/integrations/csp.ts), and the rule must reach markup that no script will unwrap */}
+        <style dangerouslySetInnerHTML={{ __html: NOSCRIPT_STYLE }} />
+      </noscript>
+      <div className={s.viewport} data-run-viewport="">
+        <ul ref={listRef} className={s.track} data-run-track="">
           {items.map((item, index) => (
             <li
               // The run's order is the content's order and never reorders.
               // eslint-disable-next-line react/no-array-index-key
               key={index}
               className={s.item}
+              /*
+               * SAFETY: as on the section — a number from the caller's
+               * `ratios`, handed to CSS as a custom property.
+               */
+              style={
+                ratios?.[index] != null
+                  ? ({ '--item-ratio': ratios[index] } as CSSProperties)
+                  : undefined
+              }
               data-run-item=""
               /*
                * Marked here rather than by the caller, because it is half a

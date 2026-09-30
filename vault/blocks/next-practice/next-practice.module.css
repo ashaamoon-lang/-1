@@ -23,9 +23,13 @@
   --press-scale: 0.995;
   transition: transform var(--duration-micro) var(--ease-out-quart);
 
+  /*
+   * More room around a display-size name since the fork; the row was sized
+   * for an `h2`.
+   */
   @media (--desktop) {
-    gap: desktop-vw(8px);
-    padding-block: desktop-vw(24px);
+    gap: desktop-vw(12px);
+    padding-block: desktop-vw(40px);
   }
 }
 
@@ -41,23 +45,38 @@
 }
 
 .label {
-  /* INTENT — the name answers hover, `MOTION-SPEC.md` §9. */
-  transition: color var(--duration-fast) var(--ease-out-quart);
+  /*
+   * INTENT — the name answers hover, `MOTION-SPEC.md` §9: its colour, and
+   * since the fork a step toward the reader, the same gesture as the next
+   * project's name. Only `transform` moves (`CLAUDE.md` #4).
+   */
+  display: inline-block;
+  text-wrap: balance;
+  transition:
+    color var(--duration-fast) var(--ease-out-quart),
+    transform var(--duration-fast) var(--ease-out-quart);
 }
 
 @media (hover: hover) {
   .link:hover .label {
     color: var(--color-secondary);
+    transform: translate3d(desktop-vw(12px), 0, 0);
   }
 }
 
 .link:focus-visible .label {
   color: var(--color-secondary);
+  transform: translate3d(desktop-vw(12px), 0, 0);
 }
 
 @media (--reduced-motion) {
   .link,
   .label {
     transition: none;
+  }
+
+  .link:hover .label,
+  .link:focus-visible .label {
+    transform: none;
   }
 }

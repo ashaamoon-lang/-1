@@ -25,7 +25,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Container-level scroll entrance. `rootMargin` has a −25% bottom inset by default, which mirrors a ScrollTrigger `start: "top 75%"` — the block opens once it is a quarter of the way up the screen.',
+          'Container-level scroll entrance. `rootMargin` has a −8% bottom inset by default (−25% before the fork) — the block opens once its top is 8% up the screen.',
       },
     },
   },
@@ -81,12 +81,12 @@ export const Named: Story = {
 /**
  * A block that is already on the first screen when the page loads.
  *
- * The default `rootMargin` insets the observer's root by −25% at the bottom, so
- * a block opens once it is a quarter of the way up the screen. That is right
- * for everything a reader scrolls to, and wrong for anything sitting in the
- * lower quarter of the *first* screen: the trigger line is above it, the scroll
- * that would cross it never happens, and the block holds `opacity: 0` on a
- * screen the reader is looking at.
+ * The default `rootMargin` insets the observer's root at the bottom (−8% since
+ * the fork, −25% before), so a block opens once its top is that far up the
+ * screen. That is right for everything a reader scrolls to, and wrong for
+ * anything sitting below the line on the *first* screen: the scroll that would
+ * cross it never happens, and the block holds `opacity: 0` on a screen the
+ * reader is looking at.
  *
  * Measured on `/studio` in Tahap 69, moving the capability band into the foot
  * of a hero that holds `100svh`: band top **764** against a line at **675** of

@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { locale as localeRootParam } from 'next/root-params'
 
 import { Wrapper } from '@/components/layout/wrapper'
+import { SanityImage } from '@/components/ui/sanity-image'
 import { SectionHeader } from '@/components/ui/section-header'
 import { resolveHomeContent } from '@/lib/content/home-fallback'
 import { PRACTICES } from '@/lib/content/practices'
@@ -14,6 +15,7 @@ import {
   featuredProjectsQuery,
   studioSettingsQuery,
 } from '@/lib/integrations/sanity/queries'
+import { toImageSource } from '@/lib/integrations/sanity/utils/image'
 import { ContactBlock } from '@/vault/blocks/contact-block'
 import { Hero } from '@/vault/blocks/hero'
 import { Passage } from '@/vault/blocks/passage'
@@ -128,6 +130,42 @@ export default async function Home() {
 
   const content = resolveHomeContent(locale, settings)
   const hasWork = projects.length > 0
+
+  /*
+   * The passage's reel: the same works the grid below lays out, reduced to
+   * what a preview needs — a cover, a title, one line of facts. Nothing is
+   * written for it. `alt=""` because the reel is `aria-hidden`; the card
+   * that follows carries the work's real description.
+   */
+  const plates = projects.flatMap((project) =>
+    project.cover
+      ? [
+          {
+            id: project._id,
+            title: project.title ?? '',
+            meta:
+              [project.engagement, project.client, project.year]
+                .filter((part) => part !== null && String(part) !== '')
+                .join(' · ') || undefined,
+            /*
+             * `sizes` follows the frame, not the viewport. On a phone the
+             * frame is portrait (4:5, ~81vw wide), so a landscape cover
+             * *covering* it renders ~1.6 frame-heights wide — about 160vw.
+             * Measured: at `100vw` a 390px phone fetched a 390px image and
+             * stretched a landscape work to ~630px.
+             */
+            media: (
+              <SanityImage
+                image={toImageSource(project.cover)}
+                alt=""
+                maxWidth={1100}
+                sizes="(max-width: 799px) 170vw, 60vw"
+              />
+            ),
+          },
+        ]
+      : []
+  )
 
   return (
     /*
@@ -254,7 +292,7 @@ export default async function Home() {
               passage are two entrances competing for the same element, and
               `MOTION-SPEC.md` §9.4 rule 2 is that a thing arrives once.
             */}
-            <Passage>
+            <Passage plates={plates}>
               <SectionHeader
                 title={t('workTitle')}
                 aside={t('workCount', { count: projects.length })}
@@ -316,7 +354,10 @@ export default async function Home() {
               // it also accepts the fallback shape; the query types it as
               // `RichText`, and `RichText` renders nothing for a block it does
               // not know.
-              <RichText content={content.statement as never} />
+              <RichText
+                content={content.statement as never}
+                paragraphClassName="p-big"
+              />
             ) : (
               content.statementFallback.map((paragraph) => (
                 <p key={paragraph.slice(0, 32)} className="p-big">

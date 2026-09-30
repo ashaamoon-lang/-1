@@ -28,8 +28,8 @@
  * The e2e alternative — "the home page's first screen must fill N of 12
  * columns" — is a taste threshold wearing a number. It would pass a page that
  * filled its columns with the wrong thing and fail a deliberately spare one,
- * and picking N is exactly the arbitrary choice `taste-preflight` refuses to
- * make for `border-radius`. Whether a declared prop has a caller is not a
+ * and picking N is exactly the arbitrary choice the fork removed gates for
+ * making. Whether a declared prop has a caller is not a
  * matter of taste, needs no browser, and is the actual thing that went wrong.
  */
 

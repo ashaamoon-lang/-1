@@ -10,6 +10,12 @@ import { getLinkAttributes } from '../utils/link'
 
 interface RichTextProps {
   content: PortableTextBlock[]
+  /**
+   * The type class a paragraph is set in — `p` by default. A page whose prose
+   * is its argument (a case study's notes, the home statement) passes
+   * `p-big`, so the CMS text matches what the page sets around it.
+   */
+  paragraphClassName?: string | undefined
 }
 
 /**
@@ -22,7 +28,10 @@ interface RichTextProps {
  * params are server-only. That is already true of everything else it touches
  * (SanityImage, the CMS fetch), so it costs nothing here.
  */
-export async function RichText({ content }: RichTextProps) {
+export async function RichText({
+  content,
+  paragraphClassName = 'p',
+}: RichTextProps) {
   if (!content) return null
 
   const requested = await localeRootParam()
@@ -59,10 +68,18 @@ export async function RichText({ content }: RichTextProps) {
           h1: ({ children }) => <h1 className="h1">{children}</h1>,
           h2: ({ children }) => <h2 className="h2">{children}</h2>,
           h3: ({ children }) => <h3 className="h3">{children}</h3>,
-          h4: ({ children }) => <h4 className="h4">{children}</h4>,
-          h5: ({ children }) => <h5 className="h5">{children}</h5>,
-          h6: ({ children }) => <h6 className="h6">{children}</h6>,
-          normal: ({ children }) => <p className="p">{children}</p>,
+          /*
+           * `h4`–`h6` take the `h3` step: the type scale stops at `h3`, and
+           * the `h4`/`h5`/`h6` classes these used to carry do not exist, so a
+           * CMS heading at those levels rendered in no type style at all.
+           * The element keeps its level for the outline.
+           */
+          h4: ({ children }) => <h4 className="h3">{children}</h4>,
+          h5: ({ children }) => <h5 className="h3">{children}</h5>,
+          h6: ({ children }) => <h6 className="h3">{children}</h6>,
+          normal: ({ children }) => (
+            <p className={paragraphClassName}>{children}</p>
+          ),
         },
       }}
     />

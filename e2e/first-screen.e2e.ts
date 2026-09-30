@@ -1,9 +1,22 @@
 import { expect, test } from '@playwright/test'
 
 /**
- * A page shows its own subject on its first screen.
+ * What is on the first screen is not left waiting for a scroll.
  *
- * ## Why this file exists, and why it runs at two widths
+ * ## What changed in the fork
+ *
+ * This file used to require that a catalogue's first item start above 85% of
+ * the viewport — that a list page open on its list. Where a page puts its
+ * subject is composition, and the fork removed that clause (`docs/FORK.md`,
+ * step 5). A page may now open on a tall masthead, a statement, a void.
+ *
+ * What it still holds is the defect underneath the history below: an item
+ * that **is** on screen but sits at `opacity: 0`, because the reveal waits for
+ * its top to cross the reveal line (92% of the viewport since the fork, 75%
+ * before it) and the reader has not scrolled. That is a blank where content
+ * is, whatever the composition.
+ *
+ * ## The history, and why it runs at two widths
  *
  * Tahap 51 gave `/work` a masthead and measured `min-height: 60svh`. The
  * number is 60% of the screen only in isolation: in place the box sits below
@@ -11,8 +24,8 @@ import { expect, test } from '@playwright/test'
  * header) and above the filter and the count — 194px at 1440. The first cover
  * landed at 886px of a 900px screen.
  *
- * That is not only a proportion. `lib/hooks/use-reveal.ts` reveals a block
- * when its top passes 75% of the viewport, so a grid pushed past that line
+ * That is not only a proportion. `lib/hooks/use-reveal.ts` then revealed a
+ * block when its top passed 75% of the viewport, so a grid pushed past that line
  * never opens: every cover sat at `opacity: 0` until the reader scrolled, and
  * `catalogue-sift` — the animation that answers a chip press — played where
  * nobody could see it.
@@ -86,9 +99,11 @@ const SUBJECTS = [
   },
 ] as const
 
-test.describe('a page opens on its subject', () => {
+test.describe('nothing on the first screen waits for a scroll', () => {
   for (const { path, subject, what, one } of SUBJECTS) {
-    test(`${path} shows its ${what} on the first screen`, async ({ page }) => {
+    test(`${path} does not strand its first ${one} invisible`, async ({
+      page,
+    }) => {
       await page.goto(path)
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(900)
@@ -107,13 +122,17 @@ test.describe('a page opens on its subject', () => {
       expect(first, `no ${what} on ${path} at all`).not.toBeNull()
       if (!first) return
 
-      expect(
-        first.top,
-        `the first ${one} starts at ${first.top}px of a ${first.viewport}px screen — the page opens on nothing but its own title`
-      ).toBeLessThan(first.viewport * 0.85)
+      // Below the fold is the page's choice, and a reveal waiting there for
+      // the reader is the reveal working. Reported, not judged.
+      if (first.top >= first.viewport) {
+        console.log(
+          `FIRST-SCREEN ${path} first ${one} at ${first.top}px of ${first.viewport}px — below the fold`
+        )
+        return
+      }
 
-      // And it is not merely present: it is visible. An item parked at
-      // `opacity: 0` behind an unfired reveal is the same blank screen.
+      // On screen, it must be visible. An item parked at `opacity: 0` behind
+      // an unfired reveal is a blank where content is.
       expect(
         first.opacity,
         `the first ${one} is in the viewport but still waiting for a scroll to reveal it`

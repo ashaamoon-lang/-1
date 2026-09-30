@@ -10,10 +10,11 @@
  * own admission, and `DESIGN-SYSTEM.md` §7 described a system nobody had built
  * for twenty-six stages.
  *
- * So this is the third instance of a pattern that already works twice here, not
- * a new mechanism: `rule-coverage.ts` writes a block into `CLAUDE.md` and
- * `rule-coverage.test.ts` fails when it drifts; `design-debt.ts` does the same
- * for `DESIGN-SYSTEM.md` §7. This does it for `DIREKSI.md`.
+ * So this was the third instance of a pattern that already worked twice here:
+ * `rule-coverage.ts` wrote a block into `CLAUDE.md` and `design-debt.ts` does
+ * the same for `DESIGN-SYSTEM.md` §7. This does it for `DIREKSI.md`. The fork
+ * (`docs/FORK.md`, step 1) deleted `rule-coverage` and the drift tests of the
+ * other two: the scanners stay, as reports regenerated when wanted.
  *
  * ## What it can see, and what it cannot
  *
@@ -23,7 +24,8 @@
  * because an instrument that hides the edge of its own vision is exactly the
  * defect §7 of `DESIGN-SYSTEM.md` cost twenty-six stages to find.
  *
- *   - **moments per route** needs a render; that is `epic-sequence.e2e.ts`;
+ *   - **moments per route** needs a render; `interaction-grammar.e2e.ts`
+ *     prints them on every run;
  *   - **quality** is not countable at all. A count cannot tell a moment a page
  *     needed from one added to spend a budget, and `DIREKSI.md` §2.1 already
  *     names that failure: "hero lebih tinggi dengan isi yang sama bukan lebih
@@ -37,8 +39,9 @@
  * the same false positive `TAHAP-78.md` §1.3 recorded twice, so the rule here
  * is the narrow one.
  *
- * Run with `--write` to regenerate the block; `design-scoreboard.test.ts` fails
- * if the committed block has drifted from what this produces.
+ * Run with `--write` to regenerate the block. Nothing fails if it drifts any
+ * more — the fork deleted `design-scoreboard.test.ts` — so regenerate before
+ * quoting its numbers.
  */
 
 import { readFileSync } from 'node:fs'
@@ -240,8 +243,8 @@ export function renderScoreboard(board: Scoreboard): string {
     '',
     '**Yang angka-angka ini TIDAK bisa lihat.** Ia memindai sumber, bukan',
     'halaman yang dirender, jadi ia tidak tahu **berapa momen yang jatuh pada',
-    'satu rute** — itu pekerjaan `e2e/epic-sequence.e2e.ts`, yang menuntut dua',
-    'momen bernama beda tidak menempati rentang gulir yang sama.',
+    'satu rute** — angka itu dicetak `e2e/interaction-grammar.e2e.ts` pada',
+    'setiap run, sebagai laporan, bukan plafon.',
     '',
     'Dua baris terakhir **tidak dijumlahkan**, dan itu disengaja. Keduanya',
     'menahan section saat gulir lewat, jadi keduanya masuk anggaran yang sama —',

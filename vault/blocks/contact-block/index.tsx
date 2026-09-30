@@ -1,5 +1,5 @@
 import cn from 'clsx'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SectionHeader } from '@/components/ui/section-header'
@@ -59,6 +59,15 @@ export function ContactBlock({
   note,
   className,
 }: ContactBlockProps) {
+  /*
+   * How many characters the address has, for the stylesheet to size it by:
+   * the address runs the full width of the block at whatever size makes it
+   * fit on one line (`contact-block.module.css`, `.email`). A custom property
+   * is not in React's `CSSProperties`, so the object is widened — the same
+   * shape as `project-card`'s `parallaxStyle`.
+   */
+  const emailStyle = { '--email-chars': email.length } as CSSProperties
+
   return (
     <section id={id} className={cn(s.section, className)}>
       <SectionHeader reveal eyebrow={eyebrow} title={title} />
@@ -94,6 +103,7 @@ export function ContactBlock({
               href={`mailto:${email}`}
               aria-label={emailLabel}
               className={cn('h2', s.email)}
+              style={emailStyle}
               // `MOTION-SPEC.md` §9.
               data-press="email"
               data-intent=""

@@ -121,8 +121,13 @@ jobs:
 
       # Separate from `check` purely for the --format=github annotations, which
       # surface findings inline on the PR diff. `check` re-runs oxlint anyway.
+      #
+      # No --max-warnings=0 (the fork, docs/FORK.md). The seven anti-slop rules
+      # kept as `warn` still annotate the diff here, which is the point of this
+      # step; they no longer fail the run. This was the third copy of that flag
+      # - package.json and lefthook.yml each had their own.
       - name: Lint
-        run: bun oxlint --format=github --max-warnings=0
+        run: bun oxlint --format=github
 
       - name: Run checks
         run: bun run check

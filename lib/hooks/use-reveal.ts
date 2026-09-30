@@ -49,16 +49,21 @@ import { useEffect, useLayoutEffect, useRef } from 'react'
 // Layout effect on the client (avoids a hidden→visible flash for elements
 // already in view on mount), plain effect on the server (no-op, no SSR warning).
 const useIsomorphicLayoutEffect =
-  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 interface UseRevealOptions {
   /** IntersectionObserver threshold (0–1). Default 0. */
   threshold?: number
   /**
-   * IntersectionObserver rootMargin. The default bottom inset of -25% mirrors
-   * a GSAP ScrollTrigger `start: 'top 75%'` — reveal once the element is a
-   * quarter into the viewport.
+   * IntersectionObserver rootMargin. The default bottom inset is -8%: a block
+   * reveals once its top is 8% into the viewport.
+   *
+   * It was -25% until the fork — a ScrollTrigger `start: 'top 75%'` — and
+   * that left anything resting in the lower quarter of a screen at
+   * `opacity: 0` until the reader scrolled: the home page's studio note
+   * below y≈510 at 1440x900, the catalogue's first cards on a phone, found by
+   * the design-critique workflow in the screenshots. It also capped how tall
+   * a masthead could be before it pushed a page's subject past the line.
    */
   rootMargin?: string
   /** Reveal only once, then disconnect. Default true. */
@@ -87,7 +92,7 @@ interface UseRevealOptions {
 
 export function useReveal<T extends HTMLElement = HTMLElement>({
   threshold = 0,
-  rootMargin = '0px 0px -25% 0px',
+  rootMargin = '0px 0px -8% 0px',
   once = true,
   perItem = false,
 }: UseRevealOptions = {}) {
@@ -146,14 +151,14 @@ export function useReveal<T extends HTMLElement = HTMLElement>({
     /*
      * The safety net, and it is geometry rather than a timer.
      *
-     * `rootMargin`'s -25% bottom inset means the root is the viewport shrunk
-     * from below, so a block can sit **on screen and still not intersect**.
+     * `rootMargin`'s bottom inset means the root is the viewport shrunk from
+     * below, so a block can sit **on screen and still not intersect**.
      * On a page too short to scroll it never will, and the reader is left
      * looking at the space where the content is.
      *
      * `entry.rootBounds` is the observer's own root, margins already applied,
-     * so this asks the exact question rather than re-deriving 75% from the
-     * option string: at maximum scroll, is the element's top still past the
+     * so this asks the exact question rather than re-deriving the line from
+     * the option string: at maximum scroll, is the element's top still past the
      * root's bottom edge? If it is, no amount of scrolling reveals it, and
      * the block is shown now.
      */

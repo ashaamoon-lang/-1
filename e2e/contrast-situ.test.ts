@@ -5,6 +5,9 @@ import {
   compositeOver,
   contrastFaults,
   contrastRatio,
+  inkAlpha,
+  MID_REVEAL_OPACITY,
+  paintedBoxes,
   relativeLuminance,
   wcagFloor,
   worstContrast,
@@ -174,5 +177,94 @@ describe('the verdict', () => {
 
   it('says nothing about an empty page', () => {
     expect(contrastFaults([])).toEqual([])
+  })
+})
+
+/*
+ * What part of a line box a reader can see — the fork's clip.
+ *
+ * Every expected box below is worked by hand from the rule stated on
+ * `paintedBoxes`: intersect with the clip and the viewport, inset 1px
+ * horizontally and min(2, height / 4) vertically, drop slivers.
+ */
+describe('the part of a line a reader can see', () => {
+  const PHONE = { width: 390, height: 844 }
+  const OPEN = { left: 0, top: 0, right: 390, bottom: 844 }
+  const LINE = { left: 10, top: 100, right: 200, bottom: 120 }
+
+  it('keeps an unclipped line, inset from its edges', () => {
+    // x = ceil(10 + 1) = 11, w = floor(200 - 1) - 11 = 188
+    // pad = min(2, 20 / 4) = 2: y = 102, h = floor(118) - 102 = 16
+    expect(paintedBoxes([LINE], OPEN, PHONE)).toEqual([
+      { x: 11, y: 102, w: 188, h: 16 },
+    ])
+  })
+
+  it('drops a line clipped entirely out of sight — the rolled-away caption', () => {
+    const mask = { left: 0, top: 0, right: 390, bottom: 90 }
+    expect(paintedBoxes([LINE], mask, PHONE)).toEqual([])
+  })
+
+  it('measures the visible half of a half-clipped line', () => {
+    const tall = { left: 10, top: 100, right: 200, bottom: 140 }
+    const mask = { left: 0, top: 0, right: 390, bottom: 120 }
+    // Visible 100..120, which is the same box as the unclipped 20px line.
+    expect(paintedBoxes([tall], mask, PHONE)).toEqual([
+      { x: 11, y: 102, w: 188, h: 16 },
+    ])
+  })
+
+  it('clips on one axis without touching the other', () => {
+    const column = { left: 50, top: 0, right: 100, bottom: 844 }
+    // x = 51, w = floor(99) - 51 = 48; vertical as before.
+    expect(paintedBoxes([LINE], column, PHONE)).toEqual([
+      { x: 51, y: 102, w: 48, h: 16 },
+    ])
+  })
+
+  it('treats an inverted clip as nothing visible', () => {
+    const inverted = { left: 300, top: 0, right: 100, bottom: 844 }
+    expect(paintedBoxes([LINE], inverted, PHONE)).toEqual([])
+  })
+
+  it('stops at the viewport edge even when the clip does not', () => {
+    const overhang = { left: 300, top: 100, right: 500, bottom: 120 }
+    // right clamps to 390: x = 301, w = floor(389) - 301 = 88
+    expect(paintedBoxes([overhang], OPEN, PHONE)).toEqual([
+      { x: 301, y: 102, w: 88, h: 16 },
+    ])
+  })
+
+  it('drops a sliver too thin to sample', () => {
+    const sliver = { left: 10, top: 100, right: 200, bottom: 103 }
+    expect(paintedBoxes([sliver], OPEN, PHONE)).toEqual([])
+  })
+})
+
+/*
+ * How much ink reaches the screen — the fork's effective opacity.
+ */
+describe('ink that reaches the screen', () => {
+  it('leaves opaque ink under an opaque tree unchanged', () => {
+    expect(inkAlpha(1, 1)).toBe(1)
+  })
+
+  it('keeps a colour’s own alpha — the page index at 0.75', () => {
+    expect(inkAlpha(0.75, 1)).toBe(0.75)
+  })
+
+  it('dims a scrubbed word by its opacity rather than measuring full ink', () => {
+    expect(inkAlpha(1, 0.55)).toBe(0.55)
+  })
+
+  it('multiplies an ancestor’s recede into the colour’s alpha', () => {
+    // A receding step (0.7) holding --text-muted (alpha 0.75).
+    expect(inkAlpha(0.75, 0.7)).toBeCloseTo(0.525, 10)
+  })
+
+  it('judges text at the mid-reveal threshold, and skips it just below', () => {
+    expect(MID_REVEAL_OPACITY).toBe(0.5)
+    expect(inkAlpha(1, 0.5)).toBe(0.5)
+    expect(inkAlpha(1, 0.49)).toBeUndefined()
   })
 })

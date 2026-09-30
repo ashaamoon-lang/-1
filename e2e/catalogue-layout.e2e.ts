@@ -1,10 +1,19 @@
 import { expect, test } from '@playwright/test'
 
-import { PRACTICES } from '../lib/content/practices'
-import { routing } from '../lib/i18n/routing'
-
 /**
- * The catalogue lays out as a catalogue.
+ * The catalogue's filter, and the motion that answers it.
+ *
+ * ## What left this file in the fork, and why
+ *
+ * It opened with two layout assertions: every card on `/work` shares one
+ * column span, and the home page keeps a mix of spans. Both pinned a
+ * composition — the first forbade a catalogue with an editorial rhythm, the
+ * second forbade a home page without one — so the fork (`docs/FORK.md`, step
+ * 5) removed them. The history that produced them is kept below, because the
+ * defect it describes (rows of dead space) is still worth knowing about when
+ * the catalogue is redesigned; it is no longer enforced as one layout.
+ *
+ * ## The layout history
  *
  * ## What this caught, and why nothing else could
  *
@@ -26,67 +35,8 @@ import { routing } from '../lib/i18n/routing'
  * a screenshot — which is the point `docs/AUDIT-2026-08.md` keeps making
  * about this project, that a green gate is not a correct page.
  *
- * The fix is `layout="catalogue"`, which gives every card the same column.
- * This asserts that, because the failure mode is silent: reverting the prop
- * changes no test, no type, and no lint rule.
+ * The fix was `layout="catalogue"`, which gives every card the same column.
  */
-
-const CATALOGUE_ROUTES = [
-  ...routing.locales.map((locale) => `/${locale}/work`),
-  ...PRACTICES.map((value) => `/en/work/practice/${value}`),
-]
-
-test.describe('catalogue layout', () => {
-  for (const path of CATALOGUE_ROUTES) {
-    test(`${path} gives every work the same column`, async ({ page }) => {
-      await page.goto(path)
-
-      const cards = page.locator('article[data-span]')
-      const count = await cards.count()
-      test.skip(count === 0, `${path} has no published work to lay out`)
-
-      const spans = await cards.evaluateAll((nodes) =>
-        nodes.map((node) => node.getAttribute('data-span'))
-      )
-
-      // Not "every span is 6" — that would pin the design. The invariant is
-      // that a catalogue has one rhythm, whatever it is.
-      expect(
-        new Set(spans).size,
-        `${path} mixes column spans: ${spans.join(', ')}`
-      ).toBe(1)
-    })
-  }
-
-  test('the home page keeps its editorial spans', async ({ page }) => {
-    /*
-     * The other half of the same decision, and the reason the fix is a prop
-     * rather than a change to `ProjectGrid`'s default.
-     *
-     * The home page shows a *selection*, and a full-width piece among
-     * half-width neighbours is how the studio composes it. If someone
-     * "simplifies" this by making the uniform layout unconditional, the home
-     * page loses its composition silently — so this test fails only when the
-     * seeded data actually contains a mix, and skips honestly when it does
-     * not, rather than asserting something the fixtures cannot support.
-     */
-    await page.goto('/en')
-
-    const spans = await page
-      .locator('article[data-span]')
-      .evaluateAll((nodes) => nodes.map((n) => n.getAttribute('data-span')))
-
-    test.skip(
-      new Set(spans).size < 2,
-      'seeded home selection has no span variety to preserve'
-    )
-
-    expect(
-      new Set(spans).size,
-      'home page flattened to one span'
-    ).toBeGreaterThan(1)
-  })
-})
 
 /**
  * The filter filters — Tahap 39.

@@ -84,10 +84,11 @@ yang membuat hero tinggi terbaca mahal alih-alih penuh.
 
 ### 2.2 Journey scrolling animation lebih banyak
 
-Plafon momen berkoreografi naik dari **3 ke 12** di empat rute merek, 6 di
-`/journal` dan `/work/<slug>`, **3** di `/journal/<slug>`.
-
-Tapi angkanya bukan lagi alat utamanya — lihat §3.2.
+**Tidak ada lagi plafon momen** — fork (`docs/FORK.md`). Plafonnya pernah
+naik dari 3 ke 12 di empat rute merek, 6 di `/journal` dan `/work/<slug>`, 3 di
+`/journal/<slug>`, dan ditegakkan oleh `interaction-grammar.e2e.ts`. Kini
+jumlahnya **dilaporkan** per rute pada setiap run, tidak dibatasi. Arah §2.2
+tetap: lebih banyak journey, bukan lebih sedikit.
 
 ### 2.3 Pendekatan informasi yang kreatif
 
@@ -103,17 +104,24 @@ gulir sehingga membaca dan menggulir jadi satu gerakan.
 
 ## 3. Batas: yang tetap, dan yang dilebarkan
 
-### 3.1 TETAP — ini alat presisi, bukan rem
+### 3.1 TETAP — karena ia melindungi pembaca
 
-Tidak satu pun dari daftar ini pernah dilonggarkan, di rute mana pun,
-termasuk `/lab`:
+Daftar ini dulu berbunyi _"tidak satu pun pernah dilonggarkan"_. Fork
+melonggarkan dua butirnya, dan mengatakannya di sini alih-alih membiarkan
+judulnya berbohong:
 
-- **Disiplin penamaan** — tiap gerakan >600ms wajib berada di dalam
-  `[data-epic="<nama>"]`. Gerakan tanpa nama tidak bisa didebug, dianggarkan,
-  atau dimatikan di reduced motion.
-- **Token** — nol hex mentah, nol durasi telanjang, nol `cubic-bezier`
-  mentah. Warna di `oklch()`, turunan lewat `color-mix(in oklab, …)`. Inilah
-  yang membuat situs ini bisa disesuaikan tema.
+- ~~**Disiplin penamaan**~~ — gerakan >600 ms tidak lagi **wajib** berada di
+  dalam `[data-epic]`. `interaction-grammar.e2e.ts` kini melaporkan gerakan
+  panjang tanpa nama, tidak menolaknya. Alasan lamanya bahwa gerakan tanpa nama
+  "tidak bisa dimatikan di reduced motion" tidak berlaku: reduced motion
+  ditegakkan terpisah, oleh `motion-rules.test.ts` dan `motion.e2e.ts`.
+- ~~**Token**~~ — nol hex mentah, nol durasi telanjang, nol `cubic-bezier`
+  mentah, warna hanya `oklch()`. Pensiun sebagai aturan (`CLAUDE.md` #1, #2,
+  #3, #8, #9, #10). Token tetap idiom default karena itulah yang membuat tema
+  bisa berganti; literal kini diizinkan.
+
+Yang **tetap**, di rute mana pun termasuk `/lab`:
+
 - **Satu RAF loop** — Lenis, GSAP, Tempus berbagi satu. Dua loop = jitter.
 - **`prefers-reduced-motion`**, dan isi harus berakhir **terlihat penuh**.
 - **axe WCAG 2.2**, keyboard, no-JS.
@@ -132,23 +140,29 @@ adalah cara kasar mencapainya. Pada halaman 110svh dengan passage 300vh, itu
 instrumen yang salah: halaman seperti itu bisa memuat banyak momen **berurutan**
 tanpa satu pun bersaing, dan sebuah hitungan tidak bisa membedakannya.
 
-Jadi invariannya pindah ke `e2e/epic-sequence.e2e.ts`:
+Jadi di Tahap 60 invariannya pindah ke `e2e/epic-sequence.e2e.ts`:
 
 > Dua momen dengan **nama berbeda**, yang **tidak bersarang** satu sama lain,
 > tidak boleh menempati rentang gulir yang sama.
 
 **Lebih ketat soal kualitas, jauh lebih longgar soal kuantitas.** Hitungannya
-tetap ada di `interaction-grammar.e2e.ts`, tapi sekarang cuma kawat pemicu
-untuk kebablasan.
+dulu tetap ada di `interaction-grammar.e2e.ts` sebagai _"kawat pemicu untuk
+kebablasan"_ — dan ternyata masih menegakkan plafon, bertentangan dengan
+kalimat di atas. Fork mengubahnya jadi laporan, lalu menghapus
+`epic-sequence.e2e.ts` juga (`docs/FORK.md` §2, langkah 5): dua momen yang
+menumpuk di satu rentang gulir adalah pilihan komposisi, bukan cacat yang
+diderita pembaca. Kalimat "satu hal memukau pada satu waktu" tetap nasihat
+yang baik — ia hanya tidak lagi ditegakkan.
 
 ### 3.2b Papan skor — angka yang di-generate, bukan diingat
 
 `HANDOFF.md` §4 pernah menghitung belanja momen dengan tangan, dan angka yang
 tidak bisa dibuat ulang adalah angka yang hanyut. Blok di bawah ditulis oleh
-`lib/scripts/design-scoreboard.ts` dan dijaga `design-scoreboard.test.ts`, pola
-yang sama dengan blok `rule-coverage` di `CLAUDE.md` dan blok utang desain di
-`DESIGN-SYSTEM.md` §7. **Jangan sunting dengan tangan** — jalankan
-`bun lib/scripts/design-scoreboard.ts --write`.
+`lib/scripts/design-scoreboard.ts`. Ia **tidak lagi dijaga uji**: fork menghapus
+`design-scoreboard.test.ts` bersama kunci pembukuan lainnya, jadi blok ini
+bisa tertinggal dari kode. Ia laporan yang dibuat ulang saat ingin melihat
+angkanya — jalankan `bun lib/scripts/design-scoreboard.ts --write` — dan
+angka di dalamnya **lantai, bukan plafon**.
 
 <!-- design-scoreboard:start -->
 
@@ -186,8 +200,8 @@ section tertahan (position: sticky)   4
 
 **Yang angka-angka ini TIDAK bisa lihat.** Ia memindai sumber, bukan
 halaman yang dirender, jadi ia tidak tahu **berapa momen yang jatuh pada
-satu rute** — itu pekerjaan `e2e/epic-sequence.e2e.ts`, yang menuntut dua
-momen bernama beda tidak menempati rentang gulir yang sama.
+satu rute** — angka itu dicetak `e2e/interaction-grammar.e2e.ts` pada
+setiap run, sebagai laporan, bukan plafon.
 
 Dua baris terakhir **tidak dijumlahkan**, dan itu disengaja. Keduanya
 menahan section saat gulir lewat, jadi keduanya masuk anggaran yang sama —
@@ -203,11 +217,13 @@ Angka naik bukan bukti situsnya membaik.
 
 <!-- design-scoreboard:end -->
 
-### 3.3 Plafon KB
+### 3.3 Plafon KB — dihapus
 
-Dinaikkan **di tahap yang menambah bobotnya**, dengan pengukuran tahap itu —
-bukan dinaikkan di muka. Plafon yang naik sebelum bobotnya datang adalah
-gerbang yang berhenti bekerja selama rentang itu.
+Fork menghapus plafon KB per rute dan daftar-izin pustakanya.
+`e2e/route-budget.e2e.ts` kini **mencetak** berat dan pustaka tiap rute, dan
+hanya gagal pada satu hal yang merupakan cacat, bukan pilihan: **byte yang sama
+tiba di bawah dua URL** — bentuk duplikasi chunk yang pernah ditangkap plafon
+lama di Tahap 28, kini ditangkap tanpa membatasi berat yang disengaja.
 
 ---
 
