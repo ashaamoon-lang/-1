@@ -144,6 +144,21 @@ memerahkan `bun test`.** Jadi ia dibongkar lebih dulu.
 Baris terakhir menyangkut **lisensi**, jadi ia tidak saya sentuh. Ia
 diserahkan ke pemilik repo.
 
+> **Diputuskan dan diselesaikan (pemilik repo, saat membawa fork ke `main`).**
+> `vault/PROVENANCE-NOTE.md` dikoreksi agar sesuai fakta; `vault/magic/*` dan
+> `docs/PROVENANCE.md` tidak disunting. Syaratnya diperiksa lebih dulu:
+> pemberitahuan lisensi Magic UI ada di `vault/magic/README.md` (MIT, Copyright
+> (c) Magic UI, sumber dan cara verifikasinya), dengan catatan per komponen
+> apakah kodenya disalin. Koreksi itu menemukan kontradiksi **kedua** yang
+> audit tidak lihat: `vault/primitives/icon/` menyalin path data dari Phosphor
+> Icons (MIT) — tercatat benar di header berkasnya dan di `docs/PROVENANCE.md`,
+> salah hanya di catatan ini. Catatan kini memisahkan asal per direktori:
+> karya asli (`blocks`, `motion`, `webgl`, `primitives/cursor`,
+> `primitives/magnetic`), dan dua salinan MIT (`magic`, `primitives/icon`).
+> Tiga berkas tanpa header provenance dan satu selisih hitungan glyph
+> (header ikon menyebut delapan, berkasnya tujuh) dicatat di sana, tidak
+> disunting.
+
 ---
 
 ## 2. Rencana, dalam urutan yang bisa dijalankan

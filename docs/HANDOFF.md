@@ -12,18 +12,30 @@
 ## 1. Posisi
 
 ```
-branch    claude/arth-unbound      ← fork, bercabang dari claude/arth-design di 22136de
-induk     claude/arth-design       PR #16, base `main`
+kerja baru   main                   ← mulai dari sini, di branch baru
+fork         claude/arth-unbound    ← digabung ke claude/arth-design lewat PR #17
+induk        claude/arth-design     ← digabung ke main lewat PR #16
 ```
 
-**Ini fork.** `docs/FORK.md` adalah dokumen pendiriannya dan dibaca lebih dulu:
-aturan yang membatasi ekspresi desain dilepas — anggaran, dial, kosakata gaya,
-ritual skill, spec-sebelum-kode, gerbang selera e2e — dan yang melindungi
-pembaca dipertahankan: axe, kontras terukur, reduced motion, keyboard, jalur
-tanpa JS, kebocoran GPU, header/CSP, penjaga token, dan kejujuran. Prinsipnya:
-**ukur, jangan veto.** Tidak ada lagi nomor tahap.
+**Fork ini dibawa ke `main` atas keputusan pemilik repo**: PR #17
+(`claude/arth-unbound` → `claude/arth-design`), lalu PR #16
+(`claude/arth-design` → `main`), keduanya dengan **merge commit** — bukan
+squash, bukan rebase, karena `docs/FORK.md` merujuk hash commit-nya. Kedua
+branch **tidak dihapus**; riwayatnya tetap bisa dibaca di sana. Pekerjaan baru
+dimulai dari `main`, di branch baru, lewat PR ke `main`.
 
-Branch induk tidak disentuh dan tetap membawa PR-nya sendiri.
+`docs/FORK.md` tetap dokumen pendirinya dan dibaca lebih dulu: aturan yang
+membatasi ekspresi desain dilepas — anggaran, dial, kosakata gaya, ritual
+skill, spec-sebelum-kode, gerbang selera e2e — dan yang melindungi pembaca
+dipertahankan: axe, kontras terukur, reduced motion, keyboard, jalur tanpa JS,
+kebocoran GPU, header/CSP, penjaga token, dan kejujuran. Prinsipnya: **ukur,
+jangan veto.** Tidak ada lagi nomor tahap. §0.1 di sana menjawab apa yang
+dicabut, apa yang dipertahankan, dan aset kurasi mana yang tidak disentuh.
+
+**Satu hal tentang repo ini yang mudah terlewat:** default branch-nya di
+GitHub **bukan** `main`, melainkan `claude/satus-award-website-foundation-r6o5cf`
+(PR #9). Menggabungkan ke `main` tidak mengubahnya; mengganti default branch
+adalah keputusan pemilik repo.
 
 Dua track berjalan paralel di repo ini dan keduanya nyata.
 `claude/satus-award-website-foundation-r6o5cf` (PR #9) membawa portabilitas
@@ -35,9 +47,9 @@ riwayatnya sendiri.
 percaya dokumen:
 
 ```bash
-git rev-parse --short HEAD
-git log --oneline 22136de..HEAD      # apa yang fork lakukan sejauh ini
-gh run list --branch claude/arth-unbound --limit 5
+git rev-parse --short origin/main
+git log --oneline 22136de..origin/claude/arth-unbound   # apa yang fork lakukan
+gh run list --branch main --limit 5
 ```
 
 > **Kenapa dihapus, bukan diperbarui.** Blok ini pernah berbunyi `af1f499` /
@@ -69,7 +81,7 @@ bun run check              # unit, lint, tipe, aset
 bun run build              # produksi
 bun run build-storybook    # SEBELUM suite e2e, bukan sesudah
 bunx playwright test       # terhadap server produksi yang sudah menyala
-gh run list --branch claude/arth-unbound --limit 5  # angka CI yang mengikat
+gh run list --branch main --limit 5  # angka CI yang mengikat
 ```
 
 Angka per tahap ada di entri `ROADMAP.md` masing-masing, **bersama tahapnya**,
@@ -101,7 +113,8 @@ termasuk tiga nilai publiknya. **Nilai rahasia tidak ada di repo ini dan tidak
 boleh masuk** — ambil dari dashboard Sanity.
 
 ```bash
-git checkout claude/arth-unbound
+git checkout main && git pull
+git checkout -b <branch-baru>   # pekerjaan baru: branch baru, PR ke main
 bun install
 # buat .env.local — lihat MENJALANKAN-LOKAL.md §4
 bun run check
@@ -222,18 +235,20 @@ workflow itu tidak ada di repo — tabel ini adalah catatannya.
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
-| butir                                     | status                                                                                                                 |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Menyemai dataset Sanity                   | `bun --env-file .env.local lib/scripts/seed-fixtures.ts` — tulisan ke CMS Anda                                         |
-| Rotasi kredensial Sanity                  | **wajib sebelum domain publik** (JEDA 4); produksi memakai token role Viewer. Dicatat sekali, jangan diungkit berulang |
-| `/lab` + hosting                          | terblokir menunggu domain                                                                                              |
-| Merge PR #17 (fork `claude/arth-unbound`) | draft, base `claude/arth-design` — **jangan di-merge tanpa keputusan pemilik repo**                                    |
-| Merge PR #9                               | keputusan pemilik repo                                                                                                 |
-| Email kontak placeholder                  | `studio@arth.example`, berlabel placeholder di markup; `SITE.email` kosong supaya JSON-LD tidak menerbitkannya         |
-| Mayor `three` 0.186, `@sanity/client` 8   | belum dinaikkan                                                                                                        |
-| Tiga token kontras tak terukur            | `hero-wash-mid`, `line`, `line-strong` — tercatat di `contrast.test.ts`, belum diputuskan                              |
-| Kontradiksi provenance `vault/`           | `vault/PROVENANCE-NOTE.md` vs `vault/magic/README.md` — lisensi, keputusan pemilik (`FORK.md` §1.4)                    |
-| Typeface berlisensi                       | biaya pemilik repo                                                                                                     |
+| butir                                        | status                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Merge fork ke `main`                         | **Diputuskan** oleh pemilik repo: PR #17 lalu PR #16, merge commit, branch tidak dihapus (§1)                                                                                                                                                                                                                                                                          |
+| Kontradiksi provenance `vault/`              | **Selesai.** `vault/PROVENANCE-NOTE.md` dikoreksi sesuai fakta; `vault/magic/*` dan `docs/PROVENANCE.md` tidak disunting. Koreksinya juga menemukan salinan kedua yang tercatat benar di tempat lain: path ikon Phosphor (MIT) di `vault/primitives/icon` (`FORK.md` §1.4)                                                                                             |
+| Tiga token kontras                           | **Diukur**, palet tidak diubah (keputusan pemilik). `hero-wash-mid`: tinta 14,93:1 (terang) / 15,70:1 (gelap), teks muted 8,60 / 8,62 — lulus 4,5:1; teks muted di titik wash paling terang 7,76 / 7,90. `line`/`line-strong`: dikecualikan dari WCAG 1.4.11 per pemakaian, alasannya di `contrast.test.ts`                                                            |
+| Thumb scrollbar palette — **temuan terbuka** | Satu-satunya tempat `line`/`line-strong` menjadi satu-satunya visual sebuah kontrol, dan ia **gagal** 3:1: 1,97 / 2,15 di atas track, 2,07 / 2,01 di atas ground (model oklab gerbang; dicat sRGB 1,83–2,34 — kesimpulan sama). Tercatat sebagai lantai di `contrast-baseline.json`; memperbaikinya berarti mengubah palet atau warna thumb, dan itu keputusan pemilik |
+| Rotasi kredensial Sanity                     | **Tetap terbuka** (JEDA 4): **wajib sebelum domain publik**; produksi memakai token role Viewer. Terbuka karena belum ada domain publik. Dicatat sekali, jangan diungkit berulang                                                                                                                                                                                      |
+| Email kontak placeholder                     | **Tetap terbuka**, atas keputusan pemilik: `studio@arth.example`, berlabel placeholder di markup; `SITE.email` kosong supaya JSON-LD tidak menerbitkannya. Alamat nyata tidak dikarang                                                                                                                                                                                 |
+| Default branch GitHub                        | `claude/satus-award-website-foundation-r6o5cf`, bukan `main` — keputusan pemilik repo (§1)                                                                                                                                                                                                                                                                             |
+| PR #9                                        | seluruh commit-nya termuat di `claude/arth-design`, jadi ikut ke `main` lewat #16; ditutup sesudahnya bila `main` memuatnya                                                                                                                                                                                                                                            |
+| Menyemai dataset Sanity                      | `bun --env-file .env.local lib/scripts/seed-fixtures.ts` — tulisan ke CMS Anda                                                                                                                                                                                                                                                                                         |
+| `/lab` + hosting                             | terblokir menunggu domain                                                                                                                                                                                                                                                                                                                                              |
+| Mayor `three` 0.186, `@sanity/client` 8      | belum dinaikkan                                                                                                                                                                                                                                                                                                                                                        |
+| Typeface berlisensi                          | biaya pemilik repo                                                                                                                                                                                                                                                                                                                                                     |
 
 ### 5.1 Gerbang kanvas yang melewati dirinya sendiri — ditutup di Tahap 90
 

@@ -67,19 +67,45 @@ describe('WCAG 2.1 AA contrast (blocking)', () => {
    * conscious decision per token, which is what the old list was reaching for.
    * A measured token passes on its own; nobody re-types anything.
    *
-   * The three below are **not** declared safe. They are the gap this fork
-   * surfaced, recorded honestly rather than papered over with a justification
-   * nobody verified. Deciding whether a hairline needs a 3:1 non-text pair
-   * (WCAG 1.4.11) is still open.
+   * **Decided, on the repo owner's decision, when the fork went to `main`.**
+   * All three are now measured by pairs in `contrast.ts`, so none is listed
+   * below:
+   *
+   *   - `hero-wash-mid` — ink and muted text on it, both above 4.5:1 in both
+   *     themes (and muted text on the wash's lightest stop, which no pair
+   *     covered).
+   *   - `line`, `line-strong` — held to 3:1 where one is a control's only
+   *     visual: the command palette's scrollbar thumb, on its track and on
+   *     the palette's ground. Both pairs **fail** (about 2:1) and ship as a
+   *     recorded floor in `contrast-baseline.json`; the owner's decision was
+   *     to measure and record, not to change the palette.
+   *
+   * Every other use of `--line` / `--line-strong` is **exempt from WCAG
+   * 1.4.11**, and why, use by use — checked against each rule, not assumed:
+   *
+   *   - **Separators**: the hairlines between sections and rows (pages,
+   *     footer, spine rows, lists, the palette's head and footer). They mark
+   *     layout, not a component; what they separate is identified by its
+   *     own text.
+   *   - **Region edges**: the palette popup, the 404 panel, the dev-only
+   *     not-configured page. Boundaries of regions, not of controls.
+   *   - **Controls identified by their text**: the filter chips and the
+   *     project page's practice chips (links), the search trigger, the
+   *     palette's close button, the studio's closing action. 1.4.11 does not
+   *     require a boundary where the text identifies the control, and the
+   *     selected chip is shown by fill, not by its border.
+   *   - **Controls identified by an icon**: the lightbox actions. The icon,
+   *     in `--text-muted`, is what identifies each, and that token is
+   *     measured above 4.5:1 on the ground.
+   *   - **Decoration**: the breadcrumb separator glyph (the list and the
+   *     link texts carry the structure), the ⌘K key frame (`aria-hidden`),
+   *     the spine's rail, and the dot and grid textures in `vault/magic`.
+   *
+   * A new use of either token as a control's only visual belongs in
+   * `contrast.ts`, as the scrollbar does.
    */
   it('accounts for every derived token — measured, or unmeasured on the record', async () => {
-    const UNMEASURED = {
-      'hero-wash-mid':
-        'no pair measures it; surfaced by the fork, not yet decided',
-      line: 'no pair measures it; surfaced by the fork, not yet decided',
-      'line-strong':
-        'no pair measures it; surfaced by the fork, not yet decided',
-    } satisfies Record<string, string>
+    const UNMEASURED = {} satisfies Record<string, string>
 
     const derived = await readDerivedTokens()
     expect(

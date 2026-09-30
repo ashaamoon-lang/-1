@@ -1,4 +1,9 @@
 {
-  "accepted": {},
+  "accepted": {
+    "dark/palette scrollbar thumb on its track": 2.15,
+    "dark/palette scrollbar thumb on the ground": 2.01,
+    "light/palette scrollbar thumb on its track": 1.97,
+    "light/palette scrollbar thumb on the ground": 2.07
+  },
   "apcaAccepted": {}
 }
