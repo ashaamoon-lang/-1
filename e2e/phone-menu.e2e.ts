@@ -300,31 +300,64 @@ test.describe('the phone menu', () => {
     page,
   }) => {
     await page.goto('/en', { waitUntil: 'networkidle' })
+
+    /*
+     * The race, inside one task — on the way to `main`.
+     *
+     * CI flagged this test flaky once: the sheet stayed open five seconds after
+     * a Shift+Tab out of MENU. The listener that closes it, and the `inert` on
+     * what it covers, were attached by an effect that ran only after the
+     * popover's queued `toggle` event, and a key press landing before that
+     * task found nothing in place.
+     *
+     * The first fix "sharpened" the keyboard test by dropping its wait — and
+     * review showed that changed nothing: the dropped wait was itself a single
+     * one-shot check, so the old wiring still passed it almost every time.
+     * Opening the sheet and moving focus out of it **in one task** leaves no
+     * gap at all for wiring that waits on `toggle`. On that wiring this reads
+     * the covered content not inert and the sheet still open — red, every
+     * time; on the current wiring, inert and closed. Derived from the code by
+     * review, not run against the old build: local builds are stopped.
+     */
+    const sameTask = await page.evaluate(() => {
+      const menu = document.querySelector<HTMLElement>(
+        'header button[aria-controls="header-nav"]'
+      )
+      const nav = document.querySelector('#header-nav')
+      const search = document.querySelector<HTMLElement>(
+        '[data-search-trigger]'
+      )
+      if (!menu || !nav || !search) return null
+      menu.click()
+      const opened = nav.matches(':popover-open')
+      const covered = [
+        ...document.querySelectorAll<HTMLElement>('main, footer'),
+      ].filter((node) => node.getClientRects().length > 0)
+      const inert = covered.length > 0 && covered.every((node) => node.inert)
+      search.focus()
+      return { opened, inert, stillOpen: nav.matches(':popover-open') }
+    })
+    expect(sameTask, 'the header controls were not found').not.toBeNull()
+    expect(sameTask?.opened, 'MENU did not open the sheet').toBe(true)
+    expect(
+      sameTask?.inert,
+      'what the sheet covers was not inert the moment it opened'
+    ).toBe(true)
+    expect(
+      sameTask?.stillOpen,
+      'focus left the sheet and the sheet stayed open'
+    ).toBe(false)
+
+    /*
+     * And the same path from the keyboard, as a reader takes it. Shift+Tab
+     * from MENU never passes through the sheet — review found this path left
+     * it open over whatever took focus next, and search opened its palette
+     * underneath it.
+     */
     const menu = page.getByRole('button', { name: 'Menu' })
     await menu.focus()
     await page.keyboard.press('Enter')
-
-    /*
-     * Shift+Tab from MENU never passes through the sheet — review found this
-     * path left it open over whatever took focus next, and search opened its
-     * palette underneath it.
-     *
-     * Pressed at once, with no wait for the sheet to look visible: that wait
-     * was long enough, most of the time, for a listener attached after the
-     * popover's queued `toggle` to be in place — and once on CI it was not,
-     * and the sheet stayed open (flaky, on the way to `main`). The popover is
-     * open the moment Enter's default action has run; the check below reads
-     * that directly, and the Shift+Tab lands inside the gap the old wiring
-     * left.
-     */
-    // Read from the DOM, not through a role locator, which would wait for the
-    // nav to become accessible — the very wait this test removes. A fresh load
-    // holds exactly one `#header-nav`.
-    const openedAtOnce = await page.evaluate(
-      () =>
-        document.querySelector('#header-nav')?.matches(':popover-open') ?? false
-    )
-    expect(openedAtOnce, 'Enter on MENU did not open the sheet').toBe(true)
+    await expect(menuOf(page)).toBeVisible()
     await page.keyboard.press('Shift+Tab')
     await expect(menuOf(page)).toBeHidden()
 

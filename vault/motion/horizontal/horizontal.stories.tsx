@@ -2,6 +2,13 @@ import type { Meta, StoryObj } from '@storybook/react'
 
 import { Horizontal } from './index'
 
+/*
+ * A named constant, not `ratio = 4 / 3` in the signature: the React Compiler
+ * cannot reorder a computed default parameter, and React Doctor reported it
+ * as the one error on PR #16 — the fork's, from the film strip.
+ */
+const DEFAULT_RATIO = 4 / 3
+
 /**
  * A plate, so the run has something with width to carry.
  *
@@ -10,13 +17,6 @@ import { Horizontal } from './index'
  * rather than being squeezed to fit. Putting real cards in would make the
  * story about the cards.
  */
-/*
- * A named constant, not `ratio = 4 / 3` in the signature: the React Compiler
- * cannot reorder a computed default parameter, and React Doctor reported it
- * as the one error on PR #16 — the fork's, from the film strip.
- */
-const DEFAULT_RATIO = 4 / 3
-
 function Plate({
   index,
   ratio = DEFAULT_RATIO,

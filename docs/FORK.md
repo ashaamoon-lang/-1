@@ -742,9 +742,22 @@ menemukan pendengar. Aturan fork menyebut kegagalan akibat perubahan fork
 diperbaiki, bukan dilabeli — jadi ia diperbaiki sebelum merge ke `main`, lewat
 branch sendiri dan PR ke `claude/arth-design`: pendengar kini dipasang sejak
 mount dan membaca keadaan popover dari elemennya, dan `inert` diterapkan di
-`beforetoggle`, yang dikirim sinkron sebelum sheet tampil. Tesnya ditajamkan:
-ia menekan Shift+Tab seketika sesudah Enter, tanpa menunggu sheet terlihat —
-tepat di celah yang dulu kosong.
+`beforetoggle`, yang dikirim sinkron sebelum sheet tampil.
+
+**Dan klaim pertama saya tentang tesnya salah, dikoreksi di sini.** Perbaikan
+awal "menajamkan" tes keyboard — menekan Shift+Tab tanpa menunggu sheet
+terlihat — dan catatan ini menyebutnya mendarat "tepat di celah yang dulu
+kosong". Review baca-saja menunjukkan itu tidak benar: penantian yang dibuang
+hanya satu pemeriksaan sekali-jalan, sebiaya `page.evaluate` yang
+menggantikannya, jadi jaraknya tak berubah dan pengkabelan lama tetap lulus
+hampir setiap kali. Kini tesnya membuka sheet dan memindahkan fokus keluar
+**dalam satu task**, lalu membaca dua hal: apakah yang tertutup sudah `inert`,
+dan apakah sheet masih terbuka. Pengkabelan yang menunggu `toggle` tak punya
+celah untuk lolos di situ — merah setiap kali (tidak `inert`, sheet tetap
+terbuka) — dan pengkabelan kini hijau. Kemerahan itu **diturunkan dari kode
+oleh review, tidak dijalankan** di build lama, karena build lokal dihentikan;
+ia ditulis di sini sebagai utang, bukan sebagai bukti. Jalur keyboardnya tetap
+diuji di sampingnya, sebagai jalan yang diambil pembaca.
 
 ---
 
