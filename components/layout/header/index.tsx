@@ -143,6 +143,22 @@ function supportsPopover() {
   )
 }
 
+/** Marks or releases nodes as `inert` — the page under the open sheet. */
+function setInert(nodes: readonly HTMLElement[], inert: boolean) {
+  for (const node of nodes) node.inert = inert
+}
+
+/**
+ * Whether the nav is open as a sheet right now, read from the element — in
+ * whichever way this browser opens it. Never from React state, which lags
+ * the popover by a queued `toggle` event.
+ */
+function isOpen(nav: HTMLElement) {
+  return supportsPopover()
+    ? nav.matches(':popover-open')
+    : nav.hasAttribute('data-open')
+}
+
 /**
  * A store that never changes, for a value read once on the client — the
  * shape `lib/hooks/use-device-detection.ts` uses for the same need.
@@ -219,6 +235,28 @@ export function Header() {
 
   const open = menuOpen || fallbackOpen
 
+  /*
+   * What the sheet covers is out of reach while it covers it, for a screen
+   * reader's cursor as much as for Tab: a swipe past the last route read the
+   * page underneath.
+   *
+   * The nodes this marks are remembered, so closing gives back exactly those
+   * — never one something else had made `inert` — and marking twice is a
+   * no-op rather than a second list that forgets the first.
+   */
+  const covered = useRef<HTMLElement[]>([])
+  const cover = useCallback(() => {
+    if (covered.current.length > 0) return
+    covered.current = [
+      ...document.querySelectorAll<HTMLElement>('main, footer'),
+    ].filter((node) => node.getClientRects().length > 0 && !node.inert)
+    setInert(covered.current, true)
+  }, [])
+  const uncover = useCallback(() => {
+    setInert(covered.current, false)
+    covered.current = []
+  }, [])
+
   useEffect(() => {
     const element = nav.current
     const button = menuButton.current
@@ -233,22 +271,22 @@ export function Header() {
      */
     if ('popoverTargetElement' in button) button.popoverTargetElement = element
 
-    // Crossing into desktop, the sheet becomes the row: close it first.
-    const desktop = window.matchMedia('(min-width: 800px)')
-    const onBreakpoint = () => {
-      if (desktop.matches) closeMenu()
+    /*
+     * What has to hold the instant the sheet opens is wired to the element,
+     * from mount, and reads the element's own state — not React's `open`.
+     * That follows the popover's `toggle` event, which the browser queues,
+     * and the effect that used to attach these listeners ran after it: a
+     * Shift+Tab inside that gap found nothing listening, and the sheet stayed
+     * open over whatever took focus. CI caught it, once, as a flaky
+     * `phone-menu` run on the way to `main`.
+     *
+     * `beforetoggle` is dispatched synchronously, before the sheet shows, so
+     * what it covers is `inert` from the first frame the sheet is on screen.
+     */
+    const onBeforeToggle = (event: Event) => {
+      if ('newState' in event && event.newState === 'open') cover()
+      else uncover()
     }
-    desktop.addEventListener('change', onBreakpoint)
-    return () => {
-      desktop.removeEventListener('change', onBreakpoint)
-      // Hidden with its page, the sheet is not left open behind it.
-      closeMenu()
-    }
-  }, [closeMenu])
-
-  useEffect(() => {
-    if (!open) return
-    const element = nav.current
 
     /*
      * Focus landing anywhere outside the open sheet closes it — the fork,
@@ -260,48 +298,61 @@ export function Header() {
      * that never pass through the sheet at all.
      */
     const onFocusIn = (event: FocusEvent) => {
+      if (!isOpen(element)) return
       const target = event.target
       if (!(target instanceof Node)) return
-      if (element?.contains(target) || target === menuButton.current) return
+      if (element.contains(target) || target === button) return
       closeMenu()
     }
 
-    /*
-     * What the sheet covers is out of reach while it covers it, for a
-     * screen reader's cursor as much as for Tab: a swipe past the last route
-     * read the page underneath.
-     */
-    const covered = [
-      ...document.querySelectorAll<HTMLElement>('main, footer'),
-    ].filter((node) => node.getClientRects().length > 0 && !node.inert)
-    for (const node of covered) node.inert = true
+    // Crossing into desktop, the sheet becomes the row: close it first.
+    const desktop = window.matchMedia('(min-width: 800px)')
+    const onBreakpoint = () => {
+      if (desktop.matches) closeMenu()
+    }
+
+    // A tap before hydration may have opened it with nothing listening.
+    if (isOpen(element)) cover()
+
+    element.addEventListener('beforetoggle', onBeforeToggle)
+    document.addEventListener('focusin', onFocusIn)
+    desktop.addEventListener('change', onBreakpoint)
+    return () => {
+      element.removeEventListener('beforetoggle', onBeforeToggle)
+      document.removeEventListener('focusin', onFocusIn)
+      desktop.removeEventListener('change', onBreakpoint)
+      // Hidden with its page, the sheet is not left open behind it.
+      closeMenu()
+      uncover()
+    }
+  }, [closeMenu, cover, uncover])
+
+  useEffect(() => {
+    if (!fallbackOpen) return
+    cover()
 
     // The fallback has neither the browser's Escape nor its light dismiss.
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !supportsPopover()) {
-        closeMenu()
-        menuButton.current?.focus()
-      }
+      if (event.key !== 'Escape') return
+      closeMenu()
+      menuButton.current?.focus()
     }
     const onPointerDown = (event: PointerEvent) => {
-      if (supportsPopover()) return
       const target = event.target
       if (!(target instanceof Node)) return
-      if (element?.contains(target) || menuButton.current?.contains(target))
+      if (nav.current?.contains(target) || menuButton.current?.contains(target))
         return
       closeMenu()
     }
 
-    document.addEventListener('focusin', onFocusIn)
     document.addEventListener('keydown', onKeyDown)
     document.addEventListener('pointerdown', onPointerDown)
     return () => {
-      document.removeEventListener('focusin', onFocusIn)
       document.removeEventListener('keydown', onKeyDown)
       document.removeEventListener('pointerdown', onPointerDown)
-      for (const node of covered) node.inert = false
+      uncover()
     }
-  }, [open, closeMenu])
+  }, [fallbackOpen, closeMenu, cover, uncover])
 
   const onRouteClick = (event: MouseEvent<HTMLElement>) => {
     // A modified click opens a new tab and leaves the reader here, menu and
