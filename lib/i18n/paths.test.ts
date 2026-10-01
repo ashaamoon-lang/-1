@@ -26,14 +26,14 @@ describe('localizedPath', () => {
   })
 
   it('prefixes a nested template', () => {
-    expect(localizedPath('en', '/ai')).toBe('/en/ai')
+    expect(localizedPath('en', '/studio')).toBe('/en/studio')
     expect(localizedPath('id', '/work/mural')).toBe('/id/work/mural')
   })
 })
 
 describe('templateFromLocalizedPath', () => {
   it('round-trips every locale against localizedPath', () => {
-    const templates = ['/', '/ai', '/work/mural']
+    const templates = ['/', '/studio', '/work/mural']
 
     for (const locale of routing.locales) {
       for (const template of templates) {
@@ -62,7 +62,7 @@ describe('templateFromLocalizedPath', () => {
 
 describe('localeFromPath', () => {
   it('reads the active locale from the prefix', () => {
-    expect(localeFromPath('/en/ai')).toBe('en')
+    expect(localeFromPath('/en/studio')).toBe('en')
     expect(localeFromPath('/id')).toBe('id')
   })
 

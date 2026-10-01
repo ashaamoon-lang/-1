@@ -1,5 +1,6 @@
 import cn from 'clsx'
 import { useTranslations } from 'next-intl'
+import type { CSSProperties } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { Marquee } from '@/components/ui/marquee'
@@ -65,6 +66,13 @@ const YEAR = new Date().getFullYear()
  */
 const { name: SITE_NAME, email: EMAIL, socials: SOCIAL } = FALLBACK_CONTACT
 
+/*
+ * The address's length, for the stylesheet to fit it to its column
+ * (`footer.module.css`, `.email`). A custom property is not in React's
+ * `CSSProperties`, so the object is widened — the contact block's shape.
+ */
+const EMAIL_STYLE = { '--email-chars': EMAIL.length } as CSSProperties
+
 export function Footer() {
   const t = useTranslations('footer')
   /*
@@ -111,7 +119,15 @@ export function Footer() {
       */}
       <Marquee
         className={s.wordmark}
-        repeat={4}
+        /*
+         * Eight copies, from the arithmetic — the fork. The strip translates
+         * by one copy and wraps, so it needs `ceil(strip / copy) + 1` copies
+         * to stay full at the worst offset: 5 at 390px, 6 at 1440, 7 at 2560.
+         * Four left 210-480px of the signature row empty on every page (the
+         * design-critique workflow); eight covers to ~3400px. The copies are
+         * `aria-hidden` with the strip, so this costs assistive tech nothing.
+         */
+        repeat={8}
         speed={0.4}
         aria-hidden="true"
         data-nosnippet=""
@@ -122,7 +138,11 @@ export function Footer() {
       <div className={s.columns}>
         <section className={s.column}>
           <h2 className={cn('caption', s.heading)}>{t('contact')}</h2>
-          <Link href={`mailto:${EMAIL}`} className={cn('p-big', s.email)}>
+          <Link
+            href={`mailto:${EMAIL}`}
+            className={cn('p-big', s.email)}
+            style={EMAIL_STYLE}
+          >
             {EMAIL}
           </Link>
         </section>

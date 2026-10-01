@@ -69,6 +69,7 @@
  */
 
 import cn from 'clsx'
+import { useRect } from 'hamo'
 import { type ComponentType, useCallback, useEffect, useState } from 'react'
 
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -100,6 +101,13 @@ interface MaterialImageProps {
    * photographs an empty box.
    */
   released?: boolean | undefined
+  /**
+   * The owner's parallax travel as a fraction of the frame's height, so the
+   * drawn plate moves the way the hidden DOM image would. 0 or omitted: none.
+   */
+  travel?: number | undefined
+  /** INTENT from the owner — hovered, or focused from the keyboard. */
+  intent?: boolean | undefined
   /**
    * Applied to the `<img>`, not to the wrapper.
    *
@@ -168,6 +176,8 @@ export function MaterialImage({
   sizes,
   preload = false,
   released = false,
+  travel = 0,
+  intent = false,
   className,
   'data-intent': dataIntent,
 }: MaterialImageProps) {
@@ -187,7 +197,25 @@ export function MaterialImage({
    * image, which is the fallback the component already promises.
    */
   const [drew, setDrew] = useState(false)
-  const { setRef, rect, isVisible } = useWebGLElement<HTMLDivElement>()
+  const { setRef, isVisible } = useWebGLElement<HTMLDivElement>()
+  /*
+   * The box the mesh is drawn into: the owner's frame, measured without
+   * transforms — the fork.
+   *
+   * It used to be this wrapper's own `getBoundingClientRect`. In a project
+   * card the wrapper sits inside the parallax layer, which is taller than the
+   * frame by the travel plus headroom and translated by the scrub, so the
+   * mesh was scaled to the oversized layer, frozen at whatever offset the
+   * layer had when measured, and drawn with nothing to clip it: the plate
+   * spilled past its frame and under its own caption — 40–90px on `/work`
+   * at 1440, found by an adversarial design review and seen on screen.
+   *
+   * `closest('[data-plate-frame]')` is the frame when an owner marks one,
+   * and this wrapper otherwise. `ignoreTransform` reads offsets rather than
+   * the transformed box, so neither the parallax nor a reveal's translate
+   * is ever frozen into the rect.
+   */
+  const [setFrameRef, frameRect] = useRect({ ignoreTransform: true })
   const { isWebGL } = useDeviceDetection()
   const prefersReducedMotion = usePreferredReducedMotion()
 
@@ -207,7 +235,11 @@ export function MaterialImage({
 
   return (
     <div
-      ref={setRef}
+      ref={(element) => {
+        setRef(element)
+        const frame = element?.closest('[data-plate-frame]')
+        setFrameRef(frame instanceof HTMLElement ? frame : element)
+      }}
       className={s.root}
       /*
        * Two attributes, because identity and state are different questions.
@@ -235,7 +267,9 @@ export function MaterialImage({
               three.js out of the initial graph. */}
           <Scene
             src={src}
-            rect={rect}
+            rect={frameRect}
+            travel={travel}
+            intent={intent}
             displacement={material.displacement}
             drift={material.drift}
             driftPeriod={material.driftPeriod}

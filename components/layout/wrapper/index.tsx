@@ -13,7 +13,7 @@ import type { LenisOptions } from 'lenis'
 import dynamic from 'next/dynamic'
 
 import { Footer } from '@/components/layout/footer'
-import { Header, type SectionLink } from '@/components/layout/header'
+import { Header } from '@/components/layout/header'
 import { Lenis } from '@/components/layout/lenis'
 import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
@@ -66,17 +66,6 @@ interface WrapperProps extends React.HTMLAttributes<HTMLDivElement> {
    * page actually reads — `['flowmap']` for `vault/webgl/material-image`.
    */
   simTypes?: ('fluid' | 'flowmap')[] | undefined
-  /**
-   * In-page sections this page rendered, in document order, for the header's
-   * anchor nav.
-   *
-   * Omit it on pages that have none — the header then shows just the wordmark
-   * and the language switcher, which is the correct header for a project
-   * detail page or a 404, not a degraded one. A hardcoded anchor list in the
-   * header would put `#work` on every page, including the ones with no work
-   * section to reach.
-   */
-  sections?: readonly SectionLink[] | undefined
   /**
    * Composite this page's canvas through the postprocessing chain.
    *
@@ -167,13 +156,12 @@ export function Wrapper({
   simTypes,
   postprocessing = false,
   gsap = false,
-  sections,
   ...props
 }: WrapperProps) {
   return (
     <Theme theme={theme} global>
       {/* Header is rendered here - do NOT add another in layout.tsx */}
-      <Header {...(sections && { sections })} />
+      <Header />
       <Canvas
         root={webgl}
         {...(simTypes && { simTypes })}
@@ -192,6 +180,14 @@ export function Wrapper({
            * of the tab order while allowing programmatic and fragment focus.
            */
           tabIndex={-1}
+          /*
+           * This route mounts a WebGL root — said in the server HTML, so a
+           * gate can tell "no canvas here by design" from "the canvas is
+           * late". Before Tahap 90 five gates guessed that from a timeout and
+           * skipped themselves when it ran out, which reported success on a
+           * route whose canvas never arrived. `e2e/webgl-intent.ts` reads it.
+           */
+          data-webgl-root={webgl ? '' : undefined}
           className={cn('relative flex grow flex-col', className)}
           {...props}
         >
@@ -210,14 +206,22 @@ export function Wrapper({
            *
            * `syncScrollTrigger` imports GSAP so Lenis can drive ScrollTrigger,
            * and it was passed unconditionally — so 26.8KB gzipped of GSAP core
-           * reached `/en/work/*`, a route that opts into neither `gsap` nor
-           * `webgl`. `lib/features/index.tsx` states the principle in its own
-           * doc comment ("a site that never animates should not pay for it")
-           * and this line was quietly contradicting it
-           * (`docs/AUDIT-2026-08.md` §Tier 4).
+           * reached routes that animate nothing. `lib/features/index.tsx`
+           * states the principle in its own doc comment ("a site that never
+           * animates should not pay for it") and this line was quietly
+           * contradicting it (`docs/AUDIT-2026-08.md` §Tier 4).
            *
            * Nothing is lost when it is off: without ScrollTrigger there is no
            * ScrollTrigger to keep in sync.
+           *
+           * **The corollary is a rule, and Tahap 54 found it broken.** A page
+           * that renders *any* ScrollTrigger consumer must pass `gsap`, or it
+           * gets the worst of both: GSAP in the bundle anyway (its components
+           * import it), a second RAF loop because `GSAPRuntime` never mounts
+           * to hand the ticker to Tempus, and triggers reading native scroll
+           * while Lenis animates. `/en/work/<slug>` shipped in exactly that
+           * state from Tahap 40 until Tahap 54 — the example this comment
+           * used to cite as the route that needed nothing.
            */
           syncScrollTrigger={gsap}
         />

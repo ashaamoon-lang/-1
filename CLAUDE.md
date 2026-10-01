@@ -2,89 +2,74 @@
 
 ## Read first
 
-**Engineering standards live in [AGENTS.md](./AGENTS.md).** Code style,
-React 19 / Next.js 16 / Tailwind v4 specifics, lint and type rules,
-integrations, commands. That file is the single source of truth for _how to
-write code here_ and this file does not restate it.
+**This branch is a fork, and [`docs/FORK.md`](./docs/FORK.md) governs it.**
+It removed the rules that constrained design and kept the ones that protect a
+reader. Where anything below or in an older document disagrees with it, the
+fork document wins.
 
-This file adds the rules specific to **this project**: a commissioned-artwork
-studio site that must read as expensive from the first frame.
+**Engineering standards live in [AGENTS.md](./AGENTS.md).** React 19 /
+Next.js 16 / Tailwind v4 specifics, integrations, commands.
 
-Supporting documents, in the order they usually matter:
+This is **an agency site** whose motion is what brings a client in. Build it
+boldly. The layer that used to decide in advance how much a page could do —
+budgets, quotas, token-only vocabulary, mandatory rituals — is gone. What is
+left is short, and every line of it protects a reader or keeps a claim honest.
 
-| Document                                           | Covers                                                                                     |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`docs/ROADMAP.md`](./docs/ROADMAP.md)             | **What we build, and in what order.** Each stage must be deepened into its own spec first. |
-| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)       | Shipping it. Env vars, hosts, and the security checklist.                                  |
-| [`docs/MOTION-SPEC.md`](./docs/MOTION-SPEC.md)     | Every animation. Binding.                                                                  |
-| [`docs/DESIGN-SYSTEM.md`](./docs/DESIGN-SYSTEM.md) | Colour, type, spacing, grid.                                                               |
-| [`docs/TEARDOWN.md`](./docs/TEARDOWN.md)           | Measured evidence behind both.                                                             |
-| [`docs/PROVENANCE.md`](./docs/PROVENANCE.md)       | Licensing. Read before copying anything.                                                   |
-| [`references/`](./references/)                     | Architecture notes on code we may **not** copy.                                            |
+| Document                                           | Covers                                                                |
+| -------------------------------------------------- | --------------------------------------------------------------------- |
+| [`docs/FORK.md`](./docs/FORK.md)                   | **What this fork removed, what it kept, and why.** Read this first.   |
+| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)       | Shipping it. Env vars, hosts, and the security checklist.             |
+| [`docs/PROVENANCE.md`](./docs/PROVENANCE.md)       | Licensing. Read before copying anything.                              |
+| [`docs/MOTION-SPEC.md`](./docs/MOTION-SPEC.md)     | How existing motion was built. Reference, not law.                    |
+| [`docs/DESIGN-SYSTEM.md`](./docs/DESIGN-SYSTEM.md) | The tokens that exist. A default idiom, not a requirement.            |
+| [`docs/TEARDOWN.md`](./docs/TEARDOWN.md)           | Measured evidence from ten award sites. Inspiration, not a ceiling.   |
+| [`docs/stages/`](./docs/stages/)                   | The history of the first hundred stages. Archive; no longer added to. |
+| [`references/`](./references/)                     | Architecture notes on code we may **not** copy.                       |
 
-A design skill is vendored at `.claude/skills/ui-ux-pro-max/` and is
-available without any install step.
-
-Three project agents live in `.claude/agents/`, and they share one set of
-working rules in [`.claude/agents/HOUSE-RULES.md`](./.claude/agents/HOUSE-RULES.md):
-
-| Agent           | For                                                                 |
-| --------------- | ------------------------------------------------------------------- |
-| `arth-auditor`  | Read-only audit of one domain. Evidence required; does not edit.    |
-| `arth-designer` | UI work. Runs the `ui-ux-pro-max` ritual before proposing anything. |
-| `arth-stage`    | A whole roadmap stage: spec first, then code, then every gate.      |
-
-They encode what this project keeps re-learning — that a green gate is not a
-correct site — so a fresh agent does not have to discover it again.
+Two design skills are vendored at `.claude/skills/` (`ui-ux-pro-max`,
+`taste-skill`). They are curated assets and they stay. **Consulting them is
+optional** — the old rule that no UI could be designed before running them is
+gone, and so is the rule that a decision only counted if a pattern database
+already contained it.
 
 ---
 
 ## Hard rules
 
-These are not preferences. Violating one is a defect.
+These protect a reader or keep a claim honest. They keep their **original
+numbers** because the code cites them — `#5` alone is referenced 33 times —
+so a gap in the numbering is deliberate.
 
 ### Motion
 
-1. **Never write a raw `cubic-bezier()` in a component.** Use an `--ease-*`
-   token from `lib/styles/css/easings.css`.
-2. **Never use bare `ease`, `ease-in-out`, or the browser default** for
-   meaningful motion. The default curve is the clearest amateur tell there
-   is; across ten measured award sites it is effectively absent.
-   `ease-in-out` is permitted only for a move that leaves _and returns_.
-3. **Never use 300 ms as a generic default.** The default here is **400 ms** —
-   the most-declared duration on the sites measured. Bands: 150–250 ms micro,
-   300–600 ms standard, 800–1200 ms choreographed.
-4. **Animate only `transform` and `opacity`.** Never `width`, `height`,
-   `top`/`left`, `margin`, or `box-shadow`.
+4. **Animate `transform` and `opacity`.** Animating `width`, `height`,
+   `top`/`left`, `margin` or `box-shadow` forces layout on every frame, and a
+   reader feels that as jank.
 5. **`prefers-reduced-motion` is mandatory**, and under it content must end
    **fully visible** — never stranded at `opacity: 0` because an animation was
-   skipped. Seven of ten award sites ship none of this; we are better here.
-6. **One RAF loop.** Lenis, GSAP and Tempus share it. Never add a second
-   `requestAnimationFrame` loop — desynchronised loops produce jitter that
-   reads as cheap even at 60fps.
+   skipped.
+6. **One RAF loop.** Lenis, GSAP and Tempus share it. A second
+   `requestAnimationFrame` loop produces jitter that reads as broken even at
+   60fps.
 7. **Always clean up.** `kill()` ScrollTriggers and revert GSAP contexts on
    unmount.
 
-### Tokens
+### Colour and layout
 
-8. **No hardcoded design values.** No raw hex, no `16px`, no `400ms` in a
-   component. Colour, spacing, duration, easing, and type come from tokens.
-9. **Semantic tokens, not literals.** `var(--color-primary)`, never
-   `var(--color-black)` — otherwise theming breaks.
-10. **Author colour in `oklch()`** and derive variants with
-    `color-mix(in oklab, …)`. Never hand-pick a hex for a tint.
 11. **Never silence `contrast.test.ts`.** Fix the colour, or record a
-    deliberate baseline with `bun run contrast:accept`.
-12. **Grid children use `minmax(0, 1fr)`**, never bare `1fr`.
+    deliberate baseline with `bun run contrast:accept`. Text contrast on the
+    rendered page is also measured by `e2e/contrast-situ.e2e.ts`, whatever the
+    colour was written as.
+12. **Grid children use `minmax(0, 1fr)`**, never bare `1fr` — a bare `1fr`
+    lets long content overflow its track.
 
 ### WebGL
 
-13. **3D is an accent.** It stays behind the feature flag (`lib/features` +
-    `lib/webgl`). No page may depend on WebGL to be usable or readable.
-14. **Always ship a non-WebGL path** — and it must look intentional, not
-    broken.
+14. **Always ship a non-WebGL path**, and no page may depend on WebGL to be
+    usable or readable. The fallback should look intentional, not broken.
 15. **Dispose geometries, materials, and textures** on unmount. Leaked GPU
-    memory is the standard R3F failure.
+    memory is the standard R3F failure, and `e2e/webgl-lifecycle.e2e.ts` checks
+    that no live context is ever orphaned.
 
 ### Licensing
 
@@ -94,18 +79,33 @@ These are not preferences. Violating one is a defect.
 17. **Every file in `vault/` carries a provenance header** — origin, licence,
     and whether code was copied or the file is original.
 18. **Verify licences by reading the source's own `LICENSE`**, never a badge,
-    an article, or a search result. This project already caught one
-    widely-repeated false MIT claim that way (`PROVENANCE.md` §5).
+    an article, or a search result.
 
 ### Honesty
 
-19. **Never claim a performance number you did not measure.** Say "budget" or
-    "estimate" unless a profiler produced it. No browser profiling has been
-    possible in this environment.
+19. **Never claim a performance number you did not measure.** Say "estimate"
+    unless a profiler produced it. The container renders WebGL through
+    SwiftShader with no GPU, so a WebGL frame time is a software floor, never a
+    user-facing number.
 20. **Never claim accessibility you did not test.** `@axe-core/playwright` is
     installed; run it.
 21. **If something was skipped or failed, say so explicitly** rather than
     quietly narrowing scope.
+
+### Retired in the fork
+
+Kept here only so that an old citation still resolves. None of these is a
+rule any more.
+
+| #   | was                                                                                         |
+| --- | ------------------------------------------------------------------------------------------- |
+| 1   | no raw `cubic-bezier()` — easing only from `--ease-*` tokens                                |
+| 2   | no bare `ease` / `ease-in-out`                                                              |
+| 3   | "never 300 ms as a default; the default is 400 ms", and fixed duration bands                |
+| 8   | no hardcoded design values — no raw hex, no `16px`, no `400ms`                              |
+| 9   | semantic tokens only, never literals                                                        |
+| 10  | colour authored only in `oklch()`                                                           |
+| 13  | "3D is an accent", kept behind a feature flag — its reader-protecting half now lives in #14 |
 
 ---
 
@@ -116,30 +116,29 @@ bun install
 bun dev                # dev server
 bun run build          # production build
 bun run typecheck      # tsc --noEmit
-bun run lint           # oxlint, --max-warnings=0
+bun run lint           # oxlint — warnings report, they do not fail
 bun test               # unit tests
 bun run test:e2e       # Playwright + axe-core
 bun run storybook      # component catalogue
 bun run check          # everything CI runs
 ```
 
-`lefthook` runs oxlint and typecheck on every commit. A commit that trips
-them is not ready.
+`lefthook` runs oxfmt, oxlint and typecheck on every commit. An **error** stops
+the commit; a **warning** is reported and does not.
 
-### `vault/` — what it is and is not
+### `vault/` — what it is
 
-`vault/` is a library of **installable, tokenised patterns**: motion wiring,
-WebGL shells, primitives, and blocks. It is deliberately deep rather than
-broad. Every file must typecheck, use tokens, honour reduced motion, and
-carry a provenance header. Primitives carry a Storybook story.
+`vault/` is a library of motion wiring, WebGL shells, primitives and blocks.
+Every file typechecks, honours reduced motion, and carries a provenance header.
+Tokens are the default idiom there, not a requirement.
 
-It is **not** the website. Pages are built after the foundation is reviewed.
+### What matters here
 
-### The standard that matters
+This fork exists because the old closing line of this file was _"when in doubt,
+do less"_, and the site had become careful where it was supposed to be
+arresting. The measured award sites in `docs/TEARDOWN.md` are evidence of what
+works, not a limit on what may be tried.
 
-The measured difference between a competent site and an award site is not
-component count or effect novelty. It is **restraint applied consistently**:
-two typefaces, three weights, one accent colour, three durations, four
-easing curves — chosen once and never violated.
-
-When in doubt, do less, and do it more precisely.
+Try the bigger idea. Look at it on a real screen. Keep what earns its place,
+cut what does not — and let that be judged by looking, not by a quota decided
+in advance.

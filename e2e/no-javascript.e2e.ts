@@ -152,12 +152,4 @@ test.describe('readable without JavaScript', () => {
     )
     expect(rendered.headings, 'exactly one h1').toBe(1)
   })
-
-  test('/en/ai renders its content server-side', async ({ browser }) => {
-    const rendered = await renderWithoutJavaScript(browser, '/en/ai')
-
-    // The machine view is the site's AEO surface. If anything must survive
-    // without a JavaScript runtime it is this.
-    expect(rendered.chars).toBeGreaterThan(MIN_CHARS)
-  })
 })

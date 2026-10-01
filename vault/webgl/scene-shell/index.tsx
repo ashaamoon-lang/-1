@@ -27,13 +27,23 @@
  *
  * ## Exactly one root canvas — do not add another
  *
- * `<WebGLTunnel>` portals into whichever `<Canvas root>` is mounted. In this
- * project that canvas is **already mounted, site-wide**, by `lib/features`
- * (`OptionalFeatures` renders `<LazyWebGLCanvas root />` unconditionally) from
- * `app/[locale]/layout.tsx`. So this component works with no setup.
+ * `<WebGLTunnel>` portals into whichever `<Canvas root>` is mounted. **A
+ * route that wants a scene mounts that canvas by passing `webgl` to
+ * `<Wrapper>`** — `app/[locale]/page.tsx`, `app/[locale]/work/catalogue.tsx`
+ * and `app/[locale]/work/[slug]/page.tsx` are the three that do.
  *
- * **Do not also pass `webgl` to `<Wrapper>`.** That mounts a second root
- * canvas. The two instances then race to claim "primary" during render —
+ * This paragraph used to say the opposite: that `OptionalFeatures` mounted
+ * the canvas site-wide from `app/[locale]/layout.tsx`, so no route needed to
+ * ask. That was true until `webgl` moved onto `<Wrapper>` so that only the
+ * pages with a scene pay for 859KB of three.js — `app/[locale]/layout.tsx`
+ * records the move, and it now renders `<OptionalFeatures />` with no `webgl`
+ * prop at all. Corrected in Tahap 85, which had to establish where the canvas
+ * really lived in order to explain why navigating away and back left a dead
+ * one behind.
+ *
+ * **Do not mount two.** Passing `webgl` to `<Wrapper>` on a page that already
+ * has a root canvas above it mounts a second one. The two instances then race
+ * to claim "primary" during render —
  * including during a background prefetch render of another route — which
  * produces a setState-during-render error and can break an unrelated page's
  * console-error assertions. Verified the hard way: it turned
@@ -56,6 +66,7 @@
 import cn from 'clsx'
 import {
   type ComponentType,
+  useCallback,
   useEffect,
   useState,
   useSyncExternalStore,
@@ -147,12 +158,37 @@ function washSnapshot(
   colorA: string,
   colorB: string
 ): { a: string; b: string } | null {
-  const key = `${colorA}|${colorB}`
+  /*
+   * Resolved inside the themed ground, not on `document.body` — Tahap 54.
+   *
+   * This runs from `getSnapshot`, during render, and `components/layout/theme`
+   * puts `data-theme` on `<html>` from an effect. So a probe on `body` reads
+   * the *un-themed* cascade at exactly the moment this asks, which on a
+   * `theme="dark"` route is the light palette. The ground element carries
+   * `data-theme` in the server HTML and is therefore correct on the first
+   * read.
+   *
+   * Measured before the fix, on `/en`: the hero band rendered at luminance
+   * **194** against a ground of 50 — a near-white wash under paper-coloured
+   * text, which is the "one theme merges into its own background" the owner
+   * reported. `e2e/visual-substance.e2e.ts` could not see it: its accent gate
+   * asks whether the wash *adds* light, and this added far too much.
+   */
+  const ground = document.querySelector('[data-theme]:not(html)')
+
+  /*
+   * The theme is part of the key, not just the two CSS strings.
+   *
+   * The same `var(--hero-wash-from)` resolves to ink on one route and paper on
+   * the next, and this cache outlives the remount the comment above relies on.
+   */
+  const theme = ground?.getAttribute('data-theme') ?? 'unthemed'
+  const key = `${theme}|${colorA}|${colorB}`
   const cached = washCache.get(key)
   if (cached !== undefined) return cached
 
-  const a = resolveColorToHex(colorA)
-  const b = resolveColorToHex(colorB)
+  const a = resolveColorToHex(colorA, ground)
+  const b = resolveColorToHex(colorB, ground)
   const value = a && b ? { a, b } : null
   washCache.set(key, value)
   return value
@@ -212,6 +248,19 @@ export function SceneShell({
   // this component must render the fallback instead of an empty box.
   const canRenderWebGL = isWebGL && !prefersReducedMotion
   const GradientScene = useGradientScene(canRenderWebGL === true)
+  /*
+   * Whether a frame has actually been drawn — Tahap 91.
+   *
+   * `data-accent-live` used to be raised the moment this component chose the
+   * mesh branch, while its own note beside it said the attribute meant "a mesh
+   * is drawing it right now". Those are different moments, and a gate that
+   * believed the note measured `/en` before the wash painted: it read 18.6
+   * with the accent and 18.6 without, because there was nothing to hide yet.
+   * The same split `material-image` draws between `data-material-shell` and
+   * `data-material`.
+   */
+  const [drew, setDrew] = useState(false)
+  const handleFirstFrame = useCallback(() => setDrew(true), [])
 
   if (!canRenderWebGL || !GradientScene || !resolved) {
     return (
@@ -243,7 +292,7 @@ export function SceneShell({
     <div
       className={cn(s.shell, className)}
       data-accent-region=""
-      data-accent-live=""
+      {...(drew && { 'data-accent-live': '' })}
       aria-hidden="true"
     >
       <WebGLTunnel>
@@ -255,6 +304,7 @@ export function SceneShell({
           colorA={resolved.a}
           colorB={resolved.b}
           grain={grain}
+          onFirstFrame={handleFirstFrame}
           // Belt and braces: the canvas already declines to mount under
           // reduced motion, but a scene must never assume its host checked.
           animate={!prefersReducedMotion}

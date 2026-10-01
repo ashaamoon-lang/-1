@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import type { Browser } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
@@ -51,7 +53,9 @@ import { expect, test } from '@playwright/test'
  * | `/en/work`                |  871 KB  |  900   | 29       |
  * | `/en/work/arus-balik`     |  866 KB  |  900   | 34       |
  * | `/en/practice/consulting` |  874 KB  |  900   | **26**   |
- * | `/en/ai`                  |  706 KB  |  850   | 144      |
+ *
+ * `/en/ai` (706 KB against 850) was measured here until Tahap 84 removed
+ * the route; its row and its budget entry went with it.
  *
  * `/en/work` and its project page were 751/746 KB before Tahap 23 added the
  * shared heading entrance; the +120 KB each is GSAP arriving. **No ceiling
@@ -87,9 +91,9 @@ import { expect, test } from '@playwright/test'
  */
 
 /** Byte totals are uncompressed response bodies, not transfer size. */
-const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
+const ROUTES: { path: string }[] = [
   // The page with a scene, and the one that animates.
-  { path: '/en', allow: ['three', 'gsap'], maxKb: 2100 },
+  { path: '/en' },
   /*
    * The Indonesian home page, which was **not measured at all** until Tahap
    * 22 added it.
@@ -99,7 +103,7 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * in this list was an `/en` one, and a bilingual site whose gate only reads
    * one language is checking half of what it ships.
    */
-  { path: '/id', allow: ['three', 'gsap'], maxKb: 2100 },
+  { path: '/id' },
   /*
    * The catalogue and a project page opt into `gsap` as of Tahap 23.
    *
@@ -140,7 +144,7 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * reduced motion still download no engine at all — `webgl-budget` proves
    * that separately, and it did not move.
    */
-  { path: '/en/work', allow: ['three', 'gsap'], maxKb: 2100 },
+  { path: '/en/work' },
   /*
    * The project page opts into `three` as of Tahap 45 — the material layer's
    * third route — and its ceiling is raised **deliberately**, with the
@@ -161,7 +165,7 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * stops meaning "what this surface costs" and starts meaning "what this
    * page happened to weigh on the day it was measured".
    */
-  { path: '/en/work/arus-balik', allow: ['three', 'gsap'], maxKb: 2100 },
+  { path: '/en/work/arus-balik' },
   /*
    * A practice page opts into `gsap` and nothing else.
    *
@@ -171,7 +175,7 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * nothing on this route has asked for one yet. When a stage wants it, it
    * adds `three` here and says why.
    */
-  { path: '/en/practice/consulting', allow: ['gsap'], maxKb: 900 },
+  { path: '/en/practice/consulting' },
   /*
    * The studio page (Tahap 24) opts into `gsap` and nothing else.
    *
@@ -180,16 +184,14 @@ const ROUTES: { path: string; allow: string[]; maxKb: number }[] = [
    * which is a scroll scrub and therefore needs ScrollTrigger. No three.js:
    * nothing on this route has asked for a scene.
    */
-  { path: '/en/studio', allow: ['gsap'], maxKb: 900 },
+  { path: '/en/studio' },
   /*
    * The journal, index and entry. Both opt into `gsap` for one thing only:
    * `TextReveal` on their `h1`, which is the entrance vocabulary every route
    * with a heading now speaks. Neither carries a choreographed moment.
    */
-  { path: '/en/journal', allow: ['gsap'], maxKb: 900 },
-  { path: '/en/journal/scope-is-the-deliverable', allow: ['gsap'], maxKb: 900 },
-  // The machine view. Its layout comment promises zero client components.
-  { path: '/en/ai', allow: [], maxKb: 850 },
+  { path: '/en/journal' },
+  { path: '/en/journal/scope-is-the-deliverable' },
 ]
 
 /** Identify a library by something only that library contains. */
@@ -256,6 +258,7 @@ async function measure(browser: Browser, path: string) {
 
   let bytes = 0
   const libraries = new Set<string>()
+  const byContent = new Map<string, string[]>()
 
   page.on('response', async (response) => {
     const url = response.url()
@@ -264,6 +267,8 @@ async function measure(browser: Browser, path: string) {
     try {
       const body = await response.body()
       bytes += body.length
+      const digest = createHash('sha256').update(body).digest('hex')
+      byContent.set(digest, [...(byContent.get(digest) ?? []), url])
       if (body.length < SCAN_FLOOR_BYTES) return
 
       const text = body.toString('latin1')
@@ -281,24 +286,75 @@ async function measure(browser: Browser, path: string) {
   await page.waitForTimeout(1500)
 
   await context.close()
-  return { kb: Math.round(bytes / 1024), libraries: [...libraries].sort() }
+  const duplicated = [...byContent.values()].filter((urls) => urls.length > 1)
+  return {
+    kb: Math.round(bytes / 1024),
+    libraries: [...libraries].sort(),
+    duplicated,
+  }
 }
 
-test.describe('per-route budget', () => {
+/*
+ * A reporter, not a gate — the fork.
+ *
+ * This file used to fail a route for two reasons: exceeding a KB ceiling, and
+ * loading a library it had not declared in an allow-list. Both are gone.
+ *
+ * The allow-list was the sharper of the two. It meant a route could not use
+ * `three` until someone edited a list here, so the answer to "what if the
+ * studio page had a mesh in it" was a red test rather than a look at the
+ * screen. `docs/FORK.md` §1.1 records that, and the ceilings with it.
+ *
+ * What is kept is the measurement. The numbers still print on every run, so a
+ * route that grows from 300KB to 1.4MB is visible — it is just no longer
+ * forbidden. `docs/FORK.md` §0: measure, do not veto.
+ *
+ * One assertion survives, and it is not a budget: a route must load
+ * *something*. A measurement of zero means the probe broke, not that the page
+ * got smaller, and a reporter that silently reports nothing is worse than no
+ * reporter at all.
+ */
+test.describe('per-route weight, reported', () => {
   for (const route of ROUTES) {
-    test(`${route.path} ships only what it opted into`, async ({ browser }) => {
-      const { kb, libraries } = await measure(browser, route.path)
+    test(`${route.path} reports its weight`, async ({ browser }) => {
+      const { kb, libraries, duplicated } = await measure(browser, route.path)
 
-      const unexpected = libraries.filter((name) => !route.allow.includes(name))
-      expect(
-        unexpected,
-        `${route.path} loaded ${unexpected.join(', ')} without opting in`
-      ).toEqual([])
+      console.log(
+        `WEIGHT ${route.path.padEnd(38)} ${String(kb).padStart(5)} KB  ${
+          libraries.length > 0 ? libraries.join(' + ') : 'no tracked library'
+        }`
+      )
 
       expect(
         kb,
-        `${route.path} is ${kb}KB, budget ${route.maxKb}KB`
-      ).toBeLessThan(route.maxKb)
+        `${route.path} measured 0KB — the probe is broken, not the page`
+      ).toBeGreaterThan(0)
+
+      /*
+       * The one thing the old ceiling caught that was a defect, not a choice.
+       *
+       * Tahap 28: three routes jumped over the ceiling for code nobody had
+       * opened. One import inside the search palette put a module in both the
+       * eager and the async graph, and the bundler shipped ~43KB of
+       * already-downloaded code a second time. The ceiling is what made it
+       * visible — and removing the ceiling removed that, which the fork's own
+       * re-audit caught.
+       *
+       * But what went wrong there was weight nobody wrote, and that is
+       * catchable without capping weight anybody chose: the same bytes arriving
+       * under two URLs. This checks exactly that and nothing about size.
+       *
+       * Honest about its reach: it catches byte-identical duplication. A module
+       * copied into two *different* chunks alongside other code will not hash
+       * the same and is not caught here — the weight report above is what
+       * shows that, as a number rather than a failure.
+       */
+      expect(
+        duplicated,
+        `${route.path} downloaded the same chunk under more than one URL: ${duplicated
+          .map((urls) => urls.join(' = '))
+          .join('; ')}`
+      ).toEqual([])
     })
   }
 })

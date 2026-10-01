@@ -50,7 +50,7 @@ import {
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
 import { transitionName } from '@/lib/motion/transition-name'
-import { useParallax } from '@/vault/motion/parallax'
+import { PARALLAX_PLANES, useParallax } from '@/vault/motion/parallax'
 import { MaterialImage } from '@/vault/webgl/material-image'
 
 import s from './project-card.module.css'
@@ -169,6 +169,12 @@ export function ProjectCard({
    * conditional.
    */
   const [released, setRelease] = useState(false)
+  /*
+   * INTENT for the drawn plate — the fork. `:hover` scales the DOM image,
+   * which is hidden while the material is live, so the plate is told
+   * directly: pointer over the card, or keyboard focus on it.
+   */
+  const [intent, setIntent] = useState(false)
 
   /*
    * Depth on the plate, which is what stops a grid of them being a still
@@ -282,15 +288,39 @@ export function ProjectCard({
          * — a right-click, a drag that ends elsewhere, a cancelled tap —
          * would otherwise leave the plate inert for the rest of the visit.
          */
-        onPointerLeave={material ? () => setRelease(false) : undefined}
-        onBlur={material ? () => setRelease(false) : undefined}
+        onPointerLeave={
+          material
+            ? () => {
+                setRelease(false)
+                setIntent(false)
+              }
+            : undefined
+        }
+        onPointerEnter={material ? () => setIntent(true) : undefined}
+        onFocus={
+          material
+            ? (event) => {
+                if (event.currentTarget.matches(':focus-visible')) {
+                  setIntent(true)
+                }
+              }
+            : undefined
+        }
+        onBlur={
+          material
+            ? () => {
+                setRelease(false)
+                setIntent(false)
+              }
+            : undefined
+        }
       >
         <ViewTransition
           name={transitionName(slug)}
           share="morph"
           default="none"
         >
-          <div className={s.media}>
+          <div className={s.media} data-plate-frame="">
             {/*
               The parallax lives on an inner wrapper, not on `.media`.
               `.media` is the element `<ViewTransition>` photographs for the
@@ -319,6 +349,8 @@ export function ProjectCard({
                     data-intent=""
                     preload={preload}
                     released={released}
+                    travel={(drift ?? PARALLAX_PLANES.mid) / 100}
+                    intent={intent}
                   />
                 ) : (
                   <SanityImage

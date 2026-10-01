@@ -76,7 +76,7 @@ function findPageFiles(dir: string, base = dir): string[] {
 }
 
 /**
- * `/[locale]/ai/page.tsx` -> `['/en/ai', '/id/ai']`; returns `[]` for a route
+ * `/[locale]/studio/page.tsx` -> `['/en/studio', '/id/studio']`; returns `[]` for a route
  * with any other dynamic segment.
  *
  * `[locale]` is expanded rather than skipped. Every page in this app now lives
@@ -224,6 +224,36 @@ test.describe('route sweep', () => {
         results.violations.map(
           (v) => `${v.impact}: ${v.id} (${v.nodes.length} node(s))`
         )
+      ).toEqual([])
+
+      /*
+       * `incomplete` is where axe says "I could not decide" — and until Tahap
+       * 72 nothing in this suite read it. All 11 `new AxeBuilder` call sites
+       * across 10 files read `violations` only, while `incomplete` carried
+       * **185 serious `color-contrast` nodes** across seven routes, judged by
+       * nobody, on pages this gate reported clean.
+       *
+       * Inside that silence was a real defect: `project-spine` is sticky with
+       * no ground of its own, so below 800px the gallery scrolled under the
+       * page index and "Images" measured 1.48:1. `docs/stages/TAHAP-72.md`.
+       *
+       * `color-contrast` stays non-blocking here, deliberately. axe genuinely
+       * cannot resolve a backdrop of grain, wash and pseudo-element layers,
+       * and failing seven routes for a limitation of the tool is noise, not a
+       * gate — `e2e/contrast-situ.e2e.ts` measures those pixels directly
+       * instead, which is the honest answer to "we do not know".
+       *
+       * What must never happen quietly is a **new kind** of blindness: a rule
+       * that starts coming back undecided without anyone choosing that. So
+       * the list of rules allowed to be incomplete is exactly one, and it is
+       * named here rather than implied by an empty check.
+       */
+      const undecided = [
+        ...new Set(results.incomplete.map((entry) => entry.id)),
+      ].filter((id) => id !== 'color-contrast')
+      expect(
+        undecided,
+        `axe could not decide ${undecided.join(', ')} on ${route} — a new blind spot nobody chose. Either fix what makes it undecidable, or measure it directly the way contrast-situ does and add it here on purpose`
       ).toEqual([])
     })
   }

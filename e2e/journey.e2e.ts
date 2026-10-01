@@ -523,9 +523,18 @@ test.describe('the pinned passage never takes the page away', () => {
      * document must be shorter than the animated one by about the pin's own
      * length, and carry no spacer at all.
      */
-    const plain = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
-    })
+    /*
+     * The project's own device, not a fixed 1440x900 — the fork. A context
+     * made here inherits the project's `use`, so under `mobile` a 1440x900
+     * viewport ran at DPR 3 with `isMobile`: a device no reader owns, and one
+     * whose page screenshot on every context close (`screenshot:
+     * 'only-on-failure'` takes it pre-emptively) was 4320x2700 of WebGL.
+     * Measured: ~5-7s per close, 39-41s for the test against a 30s budget;
+     * the page itself loaded, settled and measured in ~2.5s. Each project now
+     * measures its own layout — which is also the first time the mobile pin
+     * has been held to this.
+     */
+    const plain = await browser.newContext()
     const plainPage = await plain.newPage()
     await plainPage.goto('/en')
     await plainPage.waitForTimeout(SETTLED)
@@ -534,10 +543,7 @@ test.describe('the pinned passage never takes the page away', () => {
     )
     await plain.close()
 
-    const quiet = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
-      reducedMotion: 'reduce',
-    })
+    const quiet = await browser.newContext({ reducedMotion: 'reduce' })
     const quietPage = await quiet.newPage()
     await quietPage.goto('/en')
     await quietPage.waitForTimeout(SETTLED)

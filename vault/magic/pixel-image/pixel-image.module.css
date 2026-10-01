@@ -1,0 +1,70 @@
+/*
+ * The veil, and the tiles that go away.
+ *
+ * Geometry only; the dissolve order is an inline custom property written by
+ * `index.tsx`, because it is a function of the tile's index and CSS has no
+ * way to know that.
+ */
+.veil {
+  position: absolute;
+  inset: 0;
+  /* Above the plate, below anything the caller puts on top of it. */
+  z-index: 1;
+  pointer-events: none;
+  /* A veil is never selectable — it is not there for the reader. */
+  user-select: none;
+}
+
+.tile {
+  position: absolute;
+  inset: 0;
+  /*
+   * The ground, so a tile that has not gone yet is indistinguishable from the
+   * page behind the plate. `--pixel-ground` exists for the one caller that
+   * sits over something other than the page ground — the same escape hatch
+   * `vault/magic/noise-texture` needed, and for the same reason.
+   */
+  background-color: var(--pixel-ground, var(--color-primary));
+  opacity: 1;
+  /*
+   * `opacity` named explicitly, not `all`. Upstream ships `transition-all`,
+   * which animates whatever else happens to change — including the
+   * `clip-path` above, if a resize ever recomputed it.
+   */
+  transition: opacity var(--duration-choreographed) var(--ease-out-quart);
+  /*
+   * The stagger. `--stagger-items` is 40ms, so a 6x4 grid finishes arriving
+   * 920ms after the first tile and the whole dissolve runs a little over two
+   * seconds — the choreographed band (`MOTION-SPEC.md` §9), which is what
+   * this is.
+   */
+  transition-delay: calc(var(--pixel-order, 0) * var(--stagger-items));
+}
+
+/*
+ * The trigger is the site's own reveal contract, not a timer.
+ *
+ * `lib/hooks/use-reveal.ts` stamps `visible` on a block or an item when it
+ * crosses the reveal line, and the whole site's arrival grammar already keys
+ * off that. Reusing it means the plate assembles where the reader actually
+ * reaches it, on a page that has been scrolled halfway and reloaded as
+ * readily as on a fresh one — and it means this component adds no observer,
+ * no timer, and no frame loop of its own.
+ */
+:where([data-reveal='visible'], [data-reveal-item='visible']) .tile {
+  opacity: 0;
+}
+
+/*
+ * Reduced motion: the veil is not rendered.
+ *
+ * Not "revealed instantly" — absent. `CLAUDE.md` #5 asks that content end
+ * fully visible, and the strongest way to satisfy that is for the thing that
+ * could cover it never to exist. The plate underneath is complete and correct
+ * on its own; this layer has always been the optional half.
+ */
+@media (--reduced-motion) {
+  .veil {
+    display: none;
+  }
+}

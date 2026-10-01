@@ -84,6 +84,9 @@ export const fragmentShader = /* glsl */ `
   uniform float uShear;
   uniform float uTime;
   uniform vec2 uResolution;
+  uniform vec2 uCover;
+  uniform float uZoom;
+  uniform float uShift;
 
   varying vec2 vUv;
 
@@ -108,6 +111,22 @@ export const fragmentShader = /* glsl */ `
     vec2 edge = smoothstep(0.0, 0.12, vUv) * smoothstep(0.0, 0.12, 1.0 - vUv);
     float edgeFalloff = edge.x * edge.y;
 
-    gl_FragColor = texture2D(uTexture, vUv + offset * edgeFalloff);
+    // Displace in the plate's own space, then crop into the texture the way
+    // \`object-fit: cover\` does — centred, uCover of each axis visible. The
+    // order matters: displacing after the crop would scale the motion by the
+    // crop, so a squarer picture would ripple less than a wide one. Tahap 86.
+    vec2 plateUv = vUv + offset * edgeFalloff;
+
+    // The card's parallax and its hover, drawn — the fork. The DOM image both
+    // move is hidden while this plate is live, so they happen here: uZoom
+    // narrows the crop (the parallax layer's overshoot, times the 1.03 of
+    // INTENT), and uShift slides it within the room that leaves. Both are
+    // computed on the JS side against the frame, so the window never samples
+    // past the covered part of the texture. See scene.tsx.
+    vec2 cover = uCover / uZoom;
+    gl_FragColor = texture2D(
+      uTexture,
+      (plateUv - 0.5) * cover + 0.5 + vec2(0.0, uShift)
+    );
   }
 `

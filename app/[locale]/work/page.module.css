@@ -43,7 +43,8 @@
    * the first cover at 66-70% — inside the reveal line at every width, with
    * room to spare. That is the ceiling this layout allows, not a preference:
    * 194px of filter and count plus a line at 75% leaves the masthead the
-   * rest.
+   * rest. (Since the fork the line is at 92%, which is what lets the
+   * nameplate below grow the masthead — see `--fit-cap`.)
    *
    * `svh` for the reason `vault/blocks/hero` records: `vh` includes the
    * collapsing mobile toolbar, so a `vh` block is taller than the visible
@@ -51,6 +52,14 @@
    */
   min-height: calc(48svh - var(--header-height) - mobile-vw(48px));
   justify-content: end;
+  /*
+   * The nameplate's cap on this route — the fork. Lower than the default
+   * 34svh because the first cover still has to open on the first screen:
+   * at 28svh the name is ~252px at 1440x900, the masthead grows by ~90px,
+   * and the first cover lands near 76% of the screen, inside the reveal line
+   * (`lib/hooks/use-reveal.ts`, 92% since the fork).
+   */
+  --fit-cap: 28svh;
   gap: mobile-vw(16px);
   margin-block-end: mobile-vw(32px);
 
@@ -68,6 +77,17 @@
  * no stacking context of their own, so the pattern needs to go behind the
  * line box rather than merely earlier in paint order.
  */
+/*
+ * The eyebrow in the site's eyebrow voice — the fork. It was the one eyebrow
+ * set in full ink and sentence case, found by the design-critique workflow;
+ * every other route's is muted, uppercase and tracked.
+ */
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-muted);
+}
+
 .ground {
   z-index: -1;
   opacity: 0.6;

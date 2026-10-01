@@ -48,7 +48,7 @@ bun lint             # oxlint
 bun lint:fix         # oxlint, auto-fix
 bun lint:types       # type-aware rules (not in the pre-commit hook)
 bun run format       # oxfmt, writes in place
-bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + manifest:check + check:assets (must pass before pushing)
+bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + check:assets (must pass before pushing)
 ```
 
 **Why?**

@@ -22,63 +22,54 @@ defect, not a shortcut.
 
 ---
 
-## 0. The dials, and the design read
+## 0. The dials are retired — the fork
 
-Added in Tahap 34, from `.claude/skills/taste-skill/` (MIT, provenance in
-`docs/PROVENANCE.md` §3). Everything below §1 is a token contract; this
-section is the _intent_ those tokens serve, and it exists because "make it
-more exploratory" is a feeling until it has a number.
+Tahap 34 took three numbers from `.claude/skills/taste-skill/` (MIT, provenance
+in `docs/PROVENANCE.md` §3) and made them gate every layout, motion and
+density decision: `DESIGN_VARIANCE 7`, `MOTION_INTENSITY 9`,
+`VISUAL_DENSITY 3`. VARIANCE was held below 8 specifically to exclude
+masonry; DENSITY was held at 3.
 
-### The design read
+This section's own text conceded the problem: the numbers were **"intent, not
+measurement. No gate can prove a page 'is at VARIANCE 7'."** A ceiling nobody
+can measure is a ceiling on imagination and nothing else, so under
+`docs/FORK.md` they no longer gate anything. Masonry is not excluded. Density is
+not held at 3. The skill stays vendored and may be consulted; it has no
+authority.
 
-> Reading this as: a commissioned-work studio site for clients and curators,
-> in a monochrome gallery language, leaning on its own system (`vault/` +
-> Base UI) rather than a third-party design system.
+What the dials were reaching for still matters, and it is judged the way the
+fork judges everything: by looking at the page.
 
-### The three dials
+### The design read, corrected
 
-`taste-skill` SKILL.md §1 and §7 gate every layout, motion and density
-decision on three values. Its baseline is `8 / 6 / 4`. Arth runs **`7 / 9 / 3`**.
+The old read described _"a commissioned-work studio site for clients and
+curators, in a monochrome gallery language."_ That is what the site began as.
+It is now **an agency site whose motion is what brings a client in** —
+`CLAUDE.md` says so, and the three practices (consulting, AI and data,
+commissioned work) are the subject. The monochrome palette is still the
+default; it is not a law.
 
-| Dial               | Was |    Is | Why                                                                                                                                                                                                                                                                                                                   |
-| ------------------ | --: | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DESIGN_VARIANCE`  |   3 | **7** | §7 calls 1–3 "predictable: symmetrical CSS Grid, 12-col, equal fr-units", which described `project-grid.module.css` exactly. 7 buys asymmetric offsets and varied ratios. Not 8: §7 puts masonry and `padding-left: 20vw` there, and a grid that stays legible as a grid is how six works get compared to each other. |
-| `MOTION_INTENSITY` |   4 | **9** | §7 defines 8–10 as scroll-triggered reveals, parallax and scroll-driven animation via ScrollTrigger — the architecture this repo already had and barely spent. The preset for a studio portfolio is 7; 9 is deliberate, and the owner asked for it.                                                                   |
-| `VISUAL_DENSITY`   |   2 | **3** | The one dial that barely moves, on purpose. §7 puts 8–10 at "cockpit: tight paddings, no card boxes, mandatory `font-mono` for all numbers", which would bury the subject. A work site is an art gallery, and 3 keeps it one.                                                                                         |
+### A result worth keeping — Tahap 43
 
-The numbers are **intent, not measurement**. No gate can prove a page "is at
-VARIANCE 7". What is gated is the mechanical half of the skill —
-`e2e/taste-preflight.e2e.ts` and `lib/styles/scripts/taste-rules.test.ts` —
-and every stage from 34 on names the dial it is spending in its §Hasil.
+Where `DESIGN_VARIANCE` was actually spent, it was measurable even though the
+dial was not. At 1440x900 the six works sat at **two** distinct `x` values and
+**three** distinct `y` values, every card 691 x 919 to the pixel.
+`work-constellation` gave the catalogue three editorial offsets cycled by index
+and two parallax distances (4 and 9), and the page went to **six** distinct tops
+with the columns drifting against each other.
 
-**Where `DESIGN_VARIANCE` was actually spent — Tahap 43.** The dial was set
-to 7 in Tahap 34 and the catalogue went on running at 3 for nine stages. That
-is measurable even though the dial is not: at 1440x900 the six works sat at
-**two** distinct `x` values and **three** distinct `y` values, with a row
-pitch of 935px three times running and three of three rows sharing an
-identical top. Every card was 691 x 919 to the pixel.
+`e2e/exploratory-layer.e2e.ts` still asserts that no two cards ever overlap at
+any of twelve scroll positions. That one stays: overlapping cards hide the work,
+which is a reader problem, not a taste one. Its clauses that _mandated_ variance
+are a separate matter (`docs/FORK.md` §2, step 5).
 
-`work-constellation` gives the catalogue three editorial offsets cycled by
-index, so no row runs level, and gives the two columns different parallax
-distances (4 and 9) so their relationship changes as the page is read. After:
-**six** distinct tops rather than three, and a per-column drift difference
-where there was none — measured at `1.863183333333333` against
-`1.863183333333333` before, identical to thirteen decimal places.
+### On the skill's own example
 
-The ceiling in the same row of the table still holds: the offsets are three
-fixed values from the grid step, not masonry, and
-`e2e/exploratory-layer.e2e.ts` asserts no two cards ever overlap at any of
-twelve scroll positions. A grid that stays legible as a grid is still how six
-works get compared to each other.
-
-### What was adopted, and what was refused
-
-`docs/stages/TAHAP-34.md` §5 lists the thirteen rules adopted and the defect
-each one closed; §6 lists the five refused. The refusal that matters most
-here: §7's own example of fluid motion is
-`transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1)`, which breaks three of
-this project's hard rules at once — `all`, a 300ms default, and a raw bezier.
-Where the skill and `CLAUDE.md` disagree, `CLAUDE.md` wins.
+Tahap 34 refused the skill's example `transition: all 0.3s cubic-bezier(0.16,
+1, 0.3, 1)` for breaking three rules at once. Two of them — the 300ms default
+and the raw bezier — are retired. The third still holds, for a reader's
+reason rather than a taste one: `transition: all` can animate layout
+properties, and `CLAUDE.md` #4 is about the jank that causes.
 
 ---
 
@@ -94,6 +85,25 @@ version: every site in the measured set is a creative or technology studio
 whose content — code, type, 3D — carries no colour of its own, so the accent
 _is_ the identity. This site shows commissioned artwork. The work is the
 colour, and an accent beside it competes with every image on the page.
+
+> **The rule stands; half of the sentence above expired. Tahap 66.**
+>
+> "This site shows commissioned artwork" stopped being the whole truth at
+> Tahap 60: ARTH is an agency (`DIREKSI.md` §1), which puts it in **the same
+> category as all seven sites `TEARDOWN.md` §3 measured** — and every one of
+> them ships exactly one accent. On basement.studio it is the most-declared
+> colour on the site. So the argument as written no longer separates this
+> project from the set it was arguing against.
+>
+> Put to the repo owner at Tahap 66 with that correction, and **re-affirmed:
+> strict monochrome stays.** The half of the reason that survives is the half
+> that was always the stronger one — every project plate still carries its own
+> colour, so an accent beside them competes with every image on the page,
+> whatever sector the studio is in.
+>
+> Recorded rather than quietly edited, so the next reader does not re-open a
+> settled decision on finding its stated premise out of date. Zero tokens
+> changed; `contrast.test.ts` untouched.
 
 Two independent sources in this repo say the same thing:
 
@@ -132,8 +142,11 @@ theme no page applied, and with no chromatic accent it described nothing.
 | `light` | paper     | ink         | ink        |
 | `dark`  | ink       | paper       | paper      |
 
-Components must reference the semantic role (`var(--color-primary)`), never a
-literal. **There is no longer any literal to reference:** `--color-black`,
+Semantic roles (`var(--color-primary)`) are the default, because they are what
+theming switches — a literal stays the same colour in both themes. That was
+`CLAUDE.md` #9; it is retired as a rule in the fork, and a literal is allowed
+when a design wants one. One fact stands regardless: **there is no longer any
+palette literal to reference by name:** `--color-black`,
 `--color-white`, `--color-red`, `--color-blue` and `--color-green` no longer
 exist, so `bg-black` and friends are dead classes that silently do nothing.
 Tahap 1 §3 lists every component that had to be corrected because of it.
@@ -151,8 +164,10 @@ place without touching every component.
 `lib/styles/colors.ts` uses `oklch()`. darkroom's production site uses `lab()`
 with `color-mix(in oklab, …)`. Perceptual colour space is not theoretical:
 tints and shades derived in sRGB lose chroma and go muddy, while oklch keeps
-them consistent. Derive every variation with `color-mix(in oklab, …)`, never
-by hand-picking a hex. Six tokens in `global.css` are derived this way — `--surface`,
+them consistent. That is why the existing variations are derived with
+`color-mix(in oklab, …)` — it is good advice rather than a requirement since
+the fork retired `CLAUDE.md` #10, and a hand-picked colour is allowed when it is
+the right one. Six tokens in `global.css` are derived this way — `--surface`,
 `--surface-2`, `--line`, `--line-strong`, `--text-muted` and `--hero-wash-to`
 — every one of them a `color-mix(in oklab, …)`. `contrast.test.ts` parses
 those recipes out of the stylesheet and pins the list, so a seventh cannot
@@ -186,6 +201,38 @@ It goes in `themes.*.contrast`, in one place. Before it ships, it must clear
 4.5:1 as text on **both** grounds or be restricted to non-text use — the
 previous accent failed that test at every lightness of its hue (peak 4.19:1
 on these grounds, 4.41:1 even on pure white), which is why it is gone.
+
+### 1.4 The one material: grain
+
+The system has exactly one texture, and it exists because a large flat field
+of a single colour is the cheapest-looking thing a screen can show — and this
+site has several by design. It is `vault/magic/noise-texture`, rendered once
+per page by `components/layout/theme` and again inside the hero, over the
+WebGL wash.
+
+**The rule that makes it a material rather than a tint: it must not move the
+ground.** Grain is variance around the declared colour; a layer whose mean
+differs from the ground is a wash wearing a texture's name. Tahap 55 found
+exactly that defect shipped — the layer was a #4d4d4d veil, and it pulled
+paper down 11 levels and lifted ink 4.5, which on a two-neutral palette means
+the two colour modes were sliding toward each other.
+
+| what           | measured                                       |
+| -------------- | ---------------------------------------------- |
+| mean shift     | **0 by construction**, ±2 enforced by the gate |
+| texture, light | sd **2.4** of 255 (`opacity: 0.7`)             |
+| texture, dark  | sd **1.6** of 255 (`opacity: 0.45`)            |
+| gate           | `e2e/palette-integrity.e2e.ts`                 |
+
+The two opacities differ because the amplitude is in absolute levels and the
+same absolute step reads harder on ink than on paper. They are texture
+strengths and nothing else: `opacity` cannot move the ground here, which is
+what "one material" is supposed to mean.
+
+Adding a second texture is a design-system change, not a page decision.
+Restraint is what `docs/TEARDOWN.md` measured as the difference between a
+competent site and an award one, and a second grain would make this one
+decoration.
 
 ---
 
@@ -314,8 +361,9 @@ the whole rule. Tahap 37 read the histogram before enforcing it:
 36 stages, repeatedly needing the step between 8 and 16 and between 16 and 24,
 which the named ladder cannot express. Forcing 69 of those to move would have
 shifted real pixels on real pages to satisfy a ladder written before the site
-existed. The multiple-of-4 rule still rejects the twenty-nine-arbitrary-values
-problem outright, and `lib/styles/scripts/scale-rules.test.ts` enforces it.
+existed. The multiple-of-4 rule rejected the twenty-nine-arbitrary-values
+problem outright, enforced by `lib/styles/scripts/scale-rules.test.ts` until the
+fork deleted it (`docs/FORK.md`). The ladder is now the default, not a gate.
 
 **Below one step is not spacing.** 1, 2 and 3px are hairline alignment and
 optical inset — a switch's inner padding, a tab's baseline nudge. Rounding a
@@ -334,6 +382,73 @@ Generous vertical rhythm between sections costs nothing and does more for
 perceived quality than any component.
 
 ---
+
+### Hero height, per route — and the rule that decides it
+
+Measured on the production build at 1440×900, after Tahap 49–52:
+
+| Route             | Declared                                  | Measured | Of the screen |
+| ----------------- | ----------------------------------------- | -------: | ------------: |
+| `/`               | `100svh`                                  |    900px |          100% |
+| `/studio`         | `calc(100svh - var(--header-height))`     |    780px |           87% |
+| `/practice/<v>`   | `70svh`                                   |    630px |           70% |
+| `/work/<slug>`    | content                                   |    857px |           95% |
+| `/journal`        | `calc(56svh - --header-height - padding)` |    352px |           39% |
+| `/work`           | `calc(48svh - --header-height - padding)` |    280px |           31% |
+| `/journal/<slug>` | none                                      |        — |             — |
+
+**The last column is not the rule.** Two of these numbers look small and are
+not: on `/work` and `/journal` the height is written as a _subtraction_, and
+the thing being measured is where the page's subject lands, not how tall its
+masthead box is.
+
+#### The rule
+
+> A hero's height is a share of the **screen**, and the page's own top padding
+> is inside that share. Where the page's subject is a list, the height is
+> chosen so the first item crosses `useReveal`'s line — 75% of the viewport —
+> on load.
+
+It is written that way because the naive spelling was shipped twice and
+measured wrong twice. `min-height: 60svh` on `/work` (Tahap 51) put the first
+cover at **98%** of a 900px screen; the same value on `/journal` (Tahap 52) put
+the first entry at **84%**. Both sat below the page's top padding
+(`--header-height` + 80px, clearing the fixed header) and above whatever the
+page puts between the masthead and its subject — 194px of filter and count on
+`/work`, 48px of section lead on `/journal`. `60svh` was 60% of the screen only
+in isolation.
+
+So the two routes carry different numbers — 48 and 56 — and that is not an
+inconsistency: what they have in common is the outcome, the first cover at 66%
+and the first entry at 60–62%. `e2e/first-screen.e2e.ts` holds it, at both
+widths, and it asks whether the page opens on **what it is about**: only a
+route whose subject is its list belongs there. `/practice/<v>` has a grid and
+is not about it — its subject is the statement, which is why that route is
+absent from the gate and its 70% hero is correct.
+
+#### Two more holders, and they are easy to miss
+
+`first-screen.e2e.ts` is the loudest but not the only one. Tahap 60 swept the
+e2e suite for height limits, read only that file, and wrote down "no gate
+limits hero height" — which is false, and `docs/stages/TAHAP-61.md` §4.1
+records the correction. Two others bind:
+
+| gate                               | holds                           | what it demands                                          |
+| ---------------------------------- | ------------------------------- | -------------------------------------------------------- |
+| `e2e/project-detail.e2e.ts:100`    | `/work/<slug>`                  | the fact `<dl>` intersects an **800px** fold at 1280×800 |
+| `e2e/navigation-landing.e2e.ts:95` | `/practice/<v>`, `/work/<slug>` | the `h1` lands on the first screen after a navigation    |
+
+The first is why `/work/<slug>`'s 95% is a ceiling and not a starting point: a
+hero grown past it pushes the facts below an 800px fold, and the reader who
+never scrolls is no longer told who the work was for. The second is a rule
+about a tall hero's _contents_ rather than its height — grow the hero all you
+like, but the headline cannot ride down with it, or a morph arriving from
+another page has nothing on screen to morph into.
+
+Neither is taste. Both stay.
+
+`svh` and never `vh`, everywhere: `vh` includes the collapsing mobile toolbar,
+so a `vh` block is taller than the visible viewport on first paint.
 
 ## 4. Motion
 
@@ -371,19 +486,81 @@ by band, easing from `--ease-*` tokens only, `transform` and `opacity` only,
 5. **Accessibility is not a later pass.** Focus states visible, targets
    ≥44×44px, contrast checked. `@axe-core/playwright` is already installed —
    there is no excuse for guessing.
+6. **A sticky or fixed element carries its own ground.** Anything that leaves
+   the flow and sits over the page must set a `background-color` from a token,
+   because what scrolls under it is not knowable from the component. A
+   transparent sticky element has the contrast of whatever happens to pass
+   behind it, which on this site includes photographs.
+
+   This is not hypothetical: `project-spine` shipped `position: sticky` with
+   no background for thirty stages. At `--desktop` it sits in column 2 and
+   never meets artwork, so it measured clean; below 800px the grid collapses,
+   the gallery scrolls beneath it, and the page index read **1.48:1** against
+   an AA floor of 4.5. Tahap 72.
+
+   The blindness matters as much as the defect. `contrast.test.ts` measures
+   token _pairs_ and cannot see composition; axe reports these nodes as
+   `incomplete` — not a violation — because it genuinely cannot resolve a
+   backdrop of grain, wash and pseudo-elements. So a transparent sticky
+   element is invisible to both guards by construction.
+   `e2e/contrast-situ.e2e.ts` samples the painted pixels instead.
 
 ---
 
 ## 7. Where this document and the code still disagree
 
 Kept here rather than quietly fixed in prose, because a design document that
-describes a system nobody built is worse than no document. Each line names the
-stage that closes it; until then, the code is the truth and this is the debt.
+describes a system nobody built is worse than no document.
 
-| This document says                            | The code does                                                                                                                                                                                                                                                                              | Closes in |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| §2 the seven-class scale                      | `h3` now fills the 20→48 gap and the 404's parallel scale is gone. **Seven stylesheets still hand-write their type** under a `scale-exempt-file:` marker naming the reason: every one has zero consumers and is deleted in Tahap 45c. Six per-line exemptions remain, each with its reason | Tahap 45c |
-| §6.4 "every primitive gets a Storybook story" | **25 component directories have none**, including five vault blocks, `parallax`, both `vault/webgl/*` and the lightbox                                                                                                                                                                     | Tahap 46  |
+**The counts below are generated, not written.** `lib/scripts/design-debt.ts`
+scans the repository. `design-debt.test.ts` used to fail `bun run check` when
+this block and the code disagreed; the fork deleted that lock, so the block can
+now fall behind. Regenerate before quoting it:
 
-The measurements behind every row are in the curator audit that opened Tahap
-34; none of them is an estimate.
+```bash
+bun lib/scripts/design-debt.ts --write
+```
+
+That machinery is Tahap 73, and it exists because of what happened without it.
+This section previously claimed seven hand-written stylesheets (there was one),
+six per-line exemptions (there are seven), twenty-five component directories
+without a story (there were fifteen), and named "five vault blocks" among them
+when **all sixteen** had stories. It also pointed both rows at Tahap 45c and
+Tahap 46 — stages that had shipped twenty-six and twenty-seven stages earlier.
+
+Nothing had gone wrong in the code. Nothing ever read the numbers again: no
+test, gate or script in the repository mentioned `stories.tsx`, and
+`manifest:check` counts components, not stories. §6.4 was a rule with no
+instrument and this was its debt note with no instrument, in the one document
+whose stated job is not to drift.
+
+<!-- design-debt:start -->
+
+```
+scale-exempt-file       1 stylesheet(s) hand-write their type
+scale-exempt (per line) 7 exemption(s) across 6 file(s)
+                        9 marker site(s); 2 cross-reference(s) to another marker
+no Storybook story      0 of 55 component directories
+                        13 exempt by rule, each with a reason in lib/scripts/design-debt.ts
+```
+
+<!-- design-debt:end -->
+
+### What each number means
+
+| Number                    | The debt behind it                                                                                                                                                                                                    |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scale-exempt-file`       | A stylesheet that hand-writes type instead of taking §2's scale. The one that remains is `components/ui/not-configured`, which has zero consumers and is scheduled for deletion — the marker names that reason itself |
+| `scale-exempt` (per line) | A single declaration off the scale, each carrying its own reason. Most are marks rather than text — a wordmark, a step numeral, the 404's figure                                                                      |
+| `no Storybook story`      | §6.4's rule, now with a scope. The directories exempt from it are listed **with a reason each** in `lib/scripts/design-debt.ts`; an exemption that stops being true fails the gate                                    |
+
+### The counting rules
+
+They are in the scanner, and they are there because the old "six" could not be
+checked against anything. Nine `scale-exempt:` sites exist. Two read "see the
+note on the mobile size above" — the mobile half of one decision, not a second
+one. One more is prose _about_ the escape hatch, in backticks, mid-sentence. So
+six, seven and nine were all defensible readings of the same repository.
+
+A number with no counting rule cannot be wrong, which is exactly why it cannot
+be right either.

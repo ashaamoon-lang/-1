@@ -30,7 +30,7 @@ function alternates(path: string) {
 describe('routeAlternates', () => {
   it('is self-referential — canonical is the path passed in', () => {
     expect(alternates('/en').canonical).toBe('/en')
-    expect(alternates('/id/ai').canonical).toBe('/id/ai')
+    expect(alternates('/id/studio').canonical).toBe('/id/studio')
   })
 
   it('matches the URL the sitemap submits, for every advertised route', () => {
@@ -43,17 +43,17 @@ describe('routeAlternates', () => {
   })
 
   it('advertises every locale plus x-default, keyed by BCP 47 tag', () => {
-    const languages = alternates('/en/ai').languages
+    const languages = alternates('/en/studio').languages
 
     // BCP 47 tags, not the URL segment: hreflang is a language declaration,
     // and `en` and `en-US` are not interchangeable to a search engine.
     for (const locale of routing.locales) {
-      expect(languages?.[LOCALE_TAGS[locale]]).toBe(`/${locale}/ai`)
+      expect(languages?.[LOCALE_TAGS[locale]]).toBe(`/${locale}/studio`)
     }
 
     // Without x-default, engines guess which version to serve a visitor whose
     // language matches neither.
-    expect(languages?.['x-default']).toBe('/en/ai')
+    expect(languages?.['x-default']).toBe('/en/studio')
   })
 
   it('points every locale at the same template, not at itself', () => {

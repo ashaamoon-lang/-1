@@ -74,7 +74,7 @@ describe('getLinkIntent active state', () => {
 
 describe('which hrefs take a locale prefix', () => {
   it('prefixes real routes', () => {
-    for (const href of ['/', '/work', '/work/practice/ai-data', '/ai']) {
+    for (const href of ['/', '/work', '/work/practice/ai-data', '/studio']) {
       expect(isLocalizableRoute(href), `${href} should be localized`).toBe(true)
     }
   })
@@ -134,7 +134,7 @@ describe('never double-prefixes an already-localized href', () => {
     // catch-all rather than the work route, so every card in the grid led to
     // a not-found page — served with a 200 status, because Cache Components
     // flushes the shell before `notFound()` resolves. Nothing failed.
-    for (const href of ['/en', '/id', '/en/work/panas-sore', '/id/ai']) {
+    for (const href of ['/en', '/id', '/en/work/panas-sore', '/id/studio']) {
       expect(
         isLocalizableRoute(href) && localeFromPath(href) === null,
         `${href} would be prefixed twice`
@@ -143,7 +143,7 @@ describe('never double-prefixes an already-localized href', () => {
   })
 
   it('still prefixes a template', () => {
-    for (const href of ['/', '/work/panas-sore', '/ai']) {
+    for (const href of ['/', '/work/panas-sore', '/studio']) {
       expect(
         isLocalizableRoute(href) && localeFromPath(href) === null,
         `${href} should be prefixed`

@@ -42,7 +42,27 @@
  * which React does not run on the server. `lib/motion/navigation-signal.ts`
  * documents the same reasoning for the same reason.
  */
-export function resolveColorToHex(value: string): string | null {
+export function resolveColorToHex(
+  value: string,
+  /**
+   * Where the probe is mounted, and it decides the answer.
+   *
+   * A custom property is resolved against the element it is read on. The theme
+   * tokens live on `[data-theme]`, which `components/layout/theme` renders as
+   * an element **in the server HTML** — while `<html>` only gets its copy from
+   * an effect, after the first client render.
+   *
+   * So probing `document.body` reads the *un-themed* cascade for exactly as
+   * long as it takes that effect to land, and anything that resolves during
+   * render — `useSyncExternalStore`'s `getSnapshot`, for one — gets the
+   * default palette instead of the page's. Tahap 54 measured the cost: the
+   * home hero's WebGL wash resolved to the light palette on a `theme="dark"`
+   * route and rendered at luminance **194** under paper-coloured text, then
+   * cached that answer for the life of the tab.
+   */
+  host: Element | null = document.body
+): string | null {
+  const parent = host ?? document.body
   const probe = document.createElement('span')
   probe.style.color = value
   // Out of flow and invisible: this must never affect layout or paint, and it
@@ -50,7 +70,7 @@ export function resolveColorToHex(value: string): string | null {
   probe.style.position = 'absolute'
   probe.style.pointerEvents = 'none'
   probe.style.opacity = '0'
-  document.body.append(probe)
+  parent.append(probe)
   const computed = getComputedStyle(probe).color
   probe.remove()
 

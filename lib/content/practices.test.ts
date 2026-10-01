@@ -32,7 +32,7 @@ import { readFileSync } from 'node:fs'
 
 import { SITE } from '@/lib/seo/site'
 
-import { PRACTICES } from './practices'
+import { capabilityItems, PRACTICES } from './practices'
 
 /**
  * Read from disk, not imported.
@@ -56,6 +56,33 @@ function labelsFor(locale: string): Record<string, string | undefined> {
   // than passing quietly.
   const index = parsed as Record<string, Record<string, string | undefined>>
   return index.workIndex ?? {}
+}
+
+/**
+ * The capability lines, read from the same dictionaries.
+ *
+ * Separate from `labelsFor` rather than generalised: that one reaches
+ * `workIndex`, this one reaches `studio.capabilities`, and a single helper
+ * taking a path would be a small parser standing between the test and the
+ * thing it is asserting about.
+ */
+function capabilityLinesFor(
+  locale: string
+): Record<string, string | undefined> {
+  const parsed: unknown = JSON.parse(
+    readFileSync(`messages/${locale}.json`, 'utf8')
+  )
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error(`messages/${locale}.json is not an object`)
+  }
+  // SAFETY: established as a non-null object immediately above. Every value
+  // read below is either split as a string or treated as missing, so a wrong
+  // shape reads as "no capabilities" and fails loudly.
+  const index = parsed as Record<
+    string,
+    Record<string, Record<string, string | undefined> | undefined> | undefined
+  >
+  return index.studio?.capabilities ?? {}
 }
 
 const LOCALES = ['en', 'id'] as const
@@ -105,5 +132,57 @@ describe('the work vocabulary agrees with itself', () => {
     // edited and the other forgotten.
     expect(SITE.services.en.length).toBe(SITE.services.id.length)
     expect(SITE.knowsAbout.en.length).toBe(SITE.knowsAbout.id.length)
+  })
+
+  /*
+   * `vault/blocks/capability-set` renders these as four separate statements a
+   * reader moves through, and `/studio` renders the same line joined by the
+   * same dot. Both read the dictionary through `capabilityItems`, so the
+   * count is load-bearing in two places and authored in neither.
+   *
+   * What this catches: a translator who drops a dot (four items become three
+   * in one language and stay four in the other), and a practice added to
+   * `PRACTICES` with no capability line at all — which would render an empty
+   * pinned section rather than failing.
+   */
+  for (const locale of LOCALES) {
+    it(`gives every practice its capabilities in ${locale}`, () => {
+      const lines = capabilityLinesFor(locale)
+
+      const missing = PRACTICES.filter(
+        (key) => (lines[key] ?? '').trim() === ''
+      )
+
+      expect(
+        missing,
+        `${locale}: practices with no capability line — the section would render empty`
+      ).toEqual([])
+    })
+  }
+
+  it('splits into the same number of capabilities in both languages', () => {
+    const counts = Object.fromEntries(
+      LOCALES.map((locale) => {
+        const lines = capabilityLinesFor(locale)
+        return [
+          locale,
+          PRACTICES.map((key) => capabilityItems(lines[key] ?? '').length),
+        ]
+      })
+    )
+
+    // Nothing above proves an item survived the split: a line of only
+    // separators passes "not empty" and yields zero items.
+    for (const locale of LOCALES) {
+      expect(
+        Math.min(...(counts[locale] ?? [0])),
+        `${locale}: a practice split into no capabilities at all`
+      ).toBeGreaterThan(1)
+    }
+
+    expect(
+      counts.id,
+      'the two dictionaries disagree on how many capabilities a practice has'
+    ).toEqual(counts.en)
   })
 })

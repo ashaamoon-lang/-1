@@ -42,6 +42,31 @@
   .item[data-span='half'] {
     grid-column: span 6;
   }
+
+  /*
+   * A half that would otherwise stand alone in its row, and the note that
+   * fills the row with it.
+   *
+   * **The plate does not get wider.** The item takes all twelve columns and
+   * then splits them back into two equal tracks with the same `--gap`, which
+   * reproduces the half's width exactly — measured 1161px full, 572px half,
+   * gap 17px, and (1161 − 17) ÷ 2 = 572. That arithmetic is the whole point:
+   * `e2e/media-edge.e2e.ts` requires artwork to sit on **at most two widths**
+   * and requires the track to follow the picture's shape, and a spread that
+   * stretched the portrait would break both while looking like an
+   * improvement.
+   *
+   * `align-items: end` sets the note on the plate's baseline rather than its
+   * top. A caption hanging from the top of a 715px-tall portrait belongs to
+   * nothing; sitting at its foot, it reads as that plate's line.
+   */
+  .item[data-spread] {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--gap);
+    align-items: end;
+  }
 }
 
 .figure {
@@ -157,8 +182,28 @@
 .parallax {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: -4%;
-  block-size: 108%;
+  /*
+   * The overshoot follows the travel — Tahap 57.
+   *
+   * `useParallax` moves this layer by `distance / 2` percent of its own
+   * height in each direction, so the layer has to be taller than its frame by
+   * exactly that much on each side or the frame shows its own background at
+   * the ends of every pass.
+   *
+   * It was written as a fixed `-4%` / `108%` against the hook's default of 6,
+   * with nothing tying the two together. That is precisely the shape of
+   * failure `vault/blocks/project-card` carried until Tahap 43, where
+   * `e2e/continuous-motion.e2e.ts` caught 2 exposed plates at three of four
+   * scroll positions the moment one number changed and the other did not.
+   *
+   * `--plate-drift` is set by `GalleryMedia` from the same constant it hands
+   * the hook, so there is now one number rather than two that have to agree.
+   * The `+ 2` is headroom for sub-pixel rounding — a layer sized to exactly
+   * its own travel lands flush with the frame edge and shows a hairline on
+   * fractional device pixel ratios.
+   */
+  inset-block-start: calc((var(--plate-drift, 6) + 2) * -0.5%);
+  block-size: calc(100% + (var(--plate-drift, 6) + 2) * 1%);
 }
 
 .parallax .image {
@@ -184,5 +229,36 @@
 
   @media (--desktop) {
     margin-block-start: desktop-vw(8px);
+  }
+}
+
+/*
+ * The mosaic veil's ground — Tahap 56.
+ *
+ * `--surface-2` rather than `--color-primary`, because that is what `.media`
+ * above paints while the picture is still arriving. A tile the colour of the
+ * page would read as a tile laid on the box; one the colour of the box reads
+ * as the box, right up until it is gone.
+ */
+.pixels {
+  --pixel-ground: var(--surface-2);
+}
+
+/*
+ * The plate's own line, in the column the row was leaving empty.
+ *
+ * Mobile keeps it under the picture — there is no second column to move it
+ * into, and the item grid above collapses to one track — so the rule that
+ * matters at every width is the measure, not the position.
+ */
+.note {
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 30ch;
+  padding-block-start: mobile-vw(12px);
+
+  @media (--desktop) {
+    padding-block-start: 0;
+    padding-block-end: desktop-vw(8px);
   }
 }

@@ -273,12 +273,14 @@ Tailwind v4 conventions:
 - Container queries are built-in (no plugin)
 - Opacity via slash syntax: `bg-black/50`
 
-### Colors: always oklch (oklab for interpolation)
+### Colors: oklch by default (oklab for interpolation)
 
-ALL color values are authored in `oklch()` — palette entries in `lib/styles/colors.ts`, CSS module values, inline style strings, SVG fills. No hex, `rgb()`, or `hsl()` literals. Alpha uses slash syntax: `oklch(0 0 0 / 0.5)`, never `rgba()`.
+`oklch()` is the default idiom for authored colour, and the existing palette is written in it. **The fork (`docs/FORK.md`) retired it as a rule** — this used to read "ALL color values … No hex, `rgb()`, or `hsl()` literals", enforced by tests that are now gone. A literal is allowed when a design wants one. Rendered text contrast is still measured on the page by `e2e/contrast-situ.e2e.ts`, whatever the colour was written as.
+
+What below is **not** a style preference and still holds:
 
 - Palette source of truth is `lib/styles/colors.ts`; the theme CSS is generated from it by `bun run setup:styles`. Never hand-edit `lib/styles/css/tailwind.css` / `root.css`.
-- All color mixing happens in `oklab`: `color-mix(in oklab, ...)` always (never `in srgb`), and gradients that blend across hues take an interpolation hint (`linear-gradient(to top in oklab, ...)`). Hard-stop gradients (adjacent stops at the same position) don't need one. Any future JS color-mixing utility must mix in OKLab/OKLCH and return oklch strings.
+- Mixing in `oklab` is the recommendation, for a measurable reason: tints mixed in sRGB lose chroma and go muddy. `color-mix(in oklab, ...)` rather than `in srgb`, and gradients that blend across hues take an interpolation hint (`linear-gradient(to top in oklab, ...)`). Hard-stop gradients (adjacent stops at the same position) don't need one. Any future JS color-mixing utility must mix in OKLab/OKLCH and return oklch strings.
 - CSS keywords (`transparent`, `currentColor`, system colors) remain fine.
 - Sanctioned exceptions, each for a non-CSS parser or spec that cannot use oklch: `.storybook/manager.ts` (storybook/theming → polished), GLSL in `lib/webgl/` (shader math is linear RGB, not CSS — and the blend modes in `lib/webgl/utils/blend.ts` are ports of the compositing spec's sRGB/HSL definitions, so rewriting them in OKLab would change standard blend-mode output). Anything new that must stay non-oklch needs a comment stating which parser or spec forces it.
 
@@ -308,7 +310,7 @@ All integrations are optional and self-contained in `lib/integrations/{name}/`. 
 ```bash
 bun dev              # Dev server (Turbopack)
 bun run build        # Production build (runs setup:styles first)
-bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + manifest:check + check:assets (must pass before pushing)
+bun run check        # oxlint + oxfmt --check + lint:types + ensure:typegen + tsc --noEmit + bun test + test:oxlint-plugin + check:assets (must pass before pushing)
 bun lint             # oxlint
 bun lint:fix         # oxlint with auto-fix
 bun run lint:types   # oxlint type-aware rules (no-floating-promises, no-misused-promises)
@@ -322,6 +324,17 @@ bun run setup:project  # Strip unused integrations (non-interactive: --preset/--
 bun run doctor       # Diagnose setup issues
 ```
 
+**`playwright-core` is pinned by an `overrides` entry in `package.json`, and
+`@playwright/test` must move with it or not at all.** Measured 2026-09-12
+(Tahap 61): bumping the runner alone to 1.63.0 left `playwright-core` at
+1.62.1, and every one of the 656 tests died in under 10ms with
+`TypeError: browserType.launch: renderParamsForCall is not a function` — a
+protocol mismatch, not a test failure. A Playwright bump is therefore a
+two-line change (`@playwright/test` **and** the override), and it has to be
+validated where browsers can be downloaded: this container ships only the
+1.62.x revisions under `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers`, and
+`playwright install` is not available here.
+
 Pre-commit hook (lefthook) runs on staged files: oxfmt + oxlint --fix (sequential, one command), in parallel with tsc typecheck. Type-aware linting is excluded from the hook to keep commits fast.
 
 `next-env.d.ts` (gitignored) is what makes tsc resolve the ambient `.svg`/`.css` module declarations in `lib/utils/types.d.ts` — it's listed first in `tsconfig.json`'s `include`, and tsc needs that entry to exist for the rest of `include` to take effect. A byte-fresh clone has no `next-env.d.ts` (`next dev`/`next build` normally generate it), so `ensure:typegen` backfills it with `next typegen` — a route-type generation step, not a full build — before `typecheck`/`check` run. It's a no-op once the file exists, so `bun run check` is order-independent: run it before or after `bun run build`, doesn't matter.
@@ -334,37 +347,37 @@ When verifying behavior that depends on env vars being _absent_ (e.g. an integra
 
 ## Documentation Map
 
-| Document                                | Purpose                                                                     |
-| --------------------------------------- | --------------------------------------------------------------------------- |
-| `README.md`                             | Project overview, setup, project structure                                  |
-| `PROD-README.md`                        | Production deployment notes                                                 |
-| `ARCHITECTURE.md`                       | Architectural decisions, patterns, and customization boundaries             |
-| `COMPONENTS.md`                         | Auto-generated component / hook / utility inventory                         |
-| `CHANGELOG.md`                          | Release history and versioning policy                                       |
-| `SECURITY.md`                           | Security policy and vulnerability reporting                                 |
-| `THIRD-PARTY-NOTICES.md`                | Third-party license attributions                                            |
-| `app/README.md`                         | App Router structure, page patterns, Wrapper props                          |
-| `app/api/README.md`                     | API route conventions and inventory                                         |
-| `components/README.md`                  | Component inventory and conventions                                         |
-| `components/layout/README.md`           | Header, footer, and page wrapper architecture                               |
-| `components/effects/README.md`          | Animation component docs                                                    |
-| `components/ui/image/README.md`         | Image component API and WebGL integration                                   |
-| `components/ui/real-viewport/README.md` | Real viewport unit hook and CSS variables                                   |
-| `lib/README.md`                         | Library structure overview                                                  |
-| `lib/seo/README.md`                     | AEO/SEO module: entity facts, JSON-LD, `/llms.txt`, `/ai`, markdown mirrors |
-| `lib/integrations/README.md`            | Integration index, `setup:project` flags, adding a new integration          |
-| `lib/integrations/sanity/README.md`     | Sanity CMS integration docs                                                 |
-| `lib/integrations/shopify/README.md`    | Shopify integration docs                                                    |
-| `lib/integrations/hubspot/README.md`    | HubSpot integration docs                                                    |
-| `lib/integrations/mailchimp/README.md`  | Mailchimp integration docs                                                  |
-| `lib/integrations/turnstile/README.md`  | Turnstile integration docs                                                  |
-| `lib/styles/README.md`                  | Design system and style generation                                          |
-| `lib/styles/scripts/README.md`          | Style generation scripts                                                    |
-| `lib/utils/README.md`                   | Shared utility inventory                                                    |
-| `lib/webgl/README.md`                   | WebGL/R3F architecture, tunnel system, device gating                        |
-| `lib/hooks/README.md`                   | Custom hook inventory                                                       |
-| `lib/dev/README.md`                     | Debug tools suite (Orchestra)                                               |
-| `lib/features/README.md`                | Optional feature loading for the app layout                                 |
+| Document                                | Purpose                                                              |
+| --------------------------------------- | -------------------------------------------------------------------- |
+| `README.md`                             | Project overview, setup, project structure                           |
+| `PROD-README.md`                        | Production deployment notes                                          |
+| `ARCHITECTURE.md`                       | Architectural decisions, patterns, and customization boundaries      |
+| `COMPONENTS.md`                         | Auto-generated component / hook / utility inventory                  |
+| `CHANGELOG.md`                          | Release history and versioning policy                                |
+| `SECURITY.md`                           | Security policy and vulnerability reporting                          |
+| `THIRD-PARTY-NOTICES.md`                | Third-party license attributions                                     |
+| `app/README.md`                         | App Router structure, page patterns, Wrapper props                   |
+| `app/api/README.md`                     | API route conventions and inventory                                  |
+| `components/README.md`                  | Component inventory and conventions                                  |
+| `components/layout/README.md`           | Header, footer, and page wrapper architecture                        |
+| `components/effects/README.md`          | Animation component docs                                             |
+| `components/ui/image/README.md`         | Image component API and WebGL integration                            |
+| `components/ui/real-viewport/README.md` | Real viewport unit hook and CSS variables                            |
+| `lib/README.md`                         | Library structure overview                                           |
+| `lib/seo/README.md`                     | AEO/SEO module: entity facts, JSON-LD, `/llms.txt`, markdown mirrors |
+| `lib/integrations/README.md`            | Integration index, `setup:project` flags, adding a new integration   |
+| `lib/integrations/sanity/README.md`     | Sanity CMS integration docs                                          |
+| `lib/integrations/shopify/README.md`    | Shopify integration docs                                             |
+| `lib/integrations/hubspot/README.md`    | HubSpot integration docs                                             |
+| `lib/integrations/mailchimp/README.md`  | Mailchimp integration docs                                           |
+| `lib/integrations/turnstile/README.md`  | Turnstile integration docs                                           |
+| `lib/styles/README.md`                  | Design system and style generation                                   |
+| `lib/styles/scripts/README.md`          | Style generation scripts                                             |
+| `lib/utils/README.md`                   | Shared utility inventory                                             |
+| `lib/webgl/README.md`                   | WebGL/R3F architecture, tunnel system, device gating                 |
+| `lib/hooks/README.md`                   | Custom hook inventory                                                |
+| `lib/dev/README.md`                     | Debug tools suite (Orchestra)                                        |
+| `lib/features/README.md`                | Optional feature loading for the app layout                          |
 
 ---
 

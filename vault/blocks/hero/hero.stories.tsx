@@ -38,11 +38,25 @@ const action = (
   </button>
 )
 
+/**
+ * The shipped shape, and it did not used to be.
+ *
+ * `index` is the counterweight this block was built with in Tahap 12d, and
+ * for fifty-five stages **nothing passed it** — not the home page, and not
+ * this story, so the catalogue showed the same staircase down the left edge
+ * that the prop's own doc records Tahap 12 removing. Tahap 67 wired both. A
+ * story that omits the argument a block was designed around documents the
+ * block wrong.
+ */
 export const Default: Story = {
   args: {
     headline: 'Commissioned work for people who notice',
     subline:
       'Consulting, AI and data, and commissioned build, scoped to a brief and delivered against it.',
+    index: {
+      label: 'Practice',
+      items: ['Consulting', 'AI & Data', 'Commission'],
+    },
     action,
   },
 }

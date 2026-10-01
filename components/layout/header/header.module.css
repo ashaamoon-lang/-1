@@ -16,16 +16,105 @@
    */
   height: var(--header-height);
   padding-inline: var(--safe);
+
   /*
-   * A translucent ground rather than a solid bar. The header sits over
-   * artwork, and a solid strip cuts the top off every image behind it;
-   * a blur keeps the work continuous while the type stays legible.
+   * Three zones on desktop, with the nav on the centre — Tahap 87.
+   *
+   * This was `space-between` on four items, which is not a layout but a
+   * division of leftover space: each item sat wherever the others' widths
+   * pushed it. Measured on the production build, the nav's centre ran 138px
+   * left of the header's at 800 and 313px left at 1920, its start wandered
+   * across columns 4 and 5, and the Indonesian labels moved it again. The
+   * repo owner reported it from `/studio` as not symmetric and not placed.
+   *
+   * Two equal outer tracks put the `auto` middle track on the header's centre
+   * at every width and in every language — and the header's centre is the
+   * page grid's, because both are inset by the same `--safe`. The wordmark
+   * holds the left edge and the search + language group the right, mirrored.
+   *
+   * Not the 12-column page grid, which was checked first: at 800px a column
+   * is 33px, the language switcher is 88px and the nav 187px, and columns
+   * 5–8 together are 180px. The content does not fit the columns it would be
+   * asked to sit in; three zones give the symmetry without the squeeze.
+   * `docs/stages/TAHAP-87.md` §2.
+   *
+   * `minmax(max-content, 1fr)` on the outer tracks, and the floor was
+   * measured, not assumed. The first shape was `minmax(0, 1fr)`, and in
+   * `next dev` — where the nav carries a fourth link, Storybook, as it also
+   * does in any build with `NEXT_PUBLIC_STORYBOOK_URL` set — the search and
+   * language group (220.5px) outgrew its 219px track at 800px and spilled
+   * left, leaving the nav and the search trigger **1px apart**. A zero floor
+   * lets a track shrink under content that cannot wrap, and the overflow
+   * lands in the gap. With the content as the floor, the two tracks stay
+   * equal whenever everything fits, and when it does not the short one gives
+   * up only the difference: the nav moves off centre by exactly what the
+   * group needs — 14.6px at `/en` 800 with four links, measured; 0.00px at
+   * 1024 and above, and with the three links production ships — and the
+   * `--gap` between items is never eaten.
    */
+  @media (--desktop) {
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(
+        max-content,
+        1fr
+      );
+  }
+  /*
+   * The ground is a pseudo-element now — Tahap 53.
+   *
+   * It was `background-color` + `backdrop-filter` + `border-bottom` on this
+   * element. Two of those were right and one was the thing being fixed: a
+   * hairline is a *cut*, and the header sits over artwork, so the bar
+   * announced itself as a strip laid on top of the work.
+   *
+   * Masking has to happen on a layer of its own because a mask applies to the
+   * element's content as well — masking `.header` itself would fade the
+   * wordmark and the nav along with the ground.
+   *
+   * No `isolation` needed to keep that layer in: `position: fixed` with a
+   * `z-index` already makes this element a stacking context, so the ground's
+   * `z-index: -1` lands behind the header's own content and no further.
+   */
+}
+
+/*
+ * The translucent ground, and its edge.
+ *
+ * A blur rather than a solid strip for the reason this bar has always
+ * carried: the header sits over artwork, and a solid band cuts the top off
+ * every image behind it, while a blur keeps the work continuous and the type
+ * legible.
+ *
+ * The mask is what Tahap 53 adds. Magic UI's `progressive-blur` gets this
+ * effect by stacking **eight** `backdrop-filter` layers with rising radii; on
+ * a fixed bar hanging over a scrolling page that is eight composite passes a
+ * frame, and its cost cannot be profiled in this environment — `CLAUDE.md`
+ * #19 forbids shipping "that is cheap" as a claim. The technique is taken and
+ * the code is not: one layer, one mask, one pass. `docs/PROVENANCE.md` records
+ * the distinction.
+ *
+ * It extends past the bar so the fade finishes *below* the header rather than
+ * inside it, which is the difference between a soft edge and a bar with a
+ * blurry bottom.
+ */
+.header::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block: 0 calc(-1 * mobile-vw(16px));
+  z-index: -1;
+  pointer-events: none;
   background-color: color-mix(in oklab, var(--color-primary) 82%, transparent);
   backdrop-filter: blur(mobile-vw(12px));
-  border-bottom: 1px solid var(--line);
+  /*
+   * `black`/`transparent` keywords, not a hex: a mask reads only the alpha
+   * channel, so the colour is structural rather than a design value, and
+   * `lib/styles/scripts/token-rules.test.ts` bans the hex spelling of it.
+   */
+  mask-image: linear-gradient(to bottom, black 62%, transparent);
 
   @media (--desktop) {
+    inset-block: 0 calc(-1 * desktop-vw(24px));
     backdrop-filter: blur(desktop-vw(12px));
   }
 }
@@ -53,6 +142,13 @@
   @media (--desktop) {
     /* scale-exempt: see the note on the mobile size above. */
     font-size: desktop-vw(20px);
+    /*
+     * Tahap 87: the left track, held at its start. Without `justify-self` a
+     * grid item stretches, and this link's hit area would have grown across
+     * the whole left third of the header.
+     */
+    grid-column: 1;
+    justify-self: start;
   }
 
   &:focus-visible {
@@ -61,28 +157,65 @@
   }
 }
 
+/*
+ * One nav, two shapes — the fork. It is a `popover="auto"` (`index.tsx` has
+ * why): on desktop the header's row, on a phone a sheet MENU opens.
+ *
+ * The browser's `[popover]` rule hides a popover that is not open and dresses
+ * an open one as a centred dialog — `inset: 0`, `margin: auto`, a border, a
+ * padding, `Canvas` colours, `fit-content` sizes. Every one of those is undone
+ * here, because in both shapes this is a surface of the page.
+ */
 .nav {
+  inset: auto;
+  inline-size: auto;
+  block-size: auto;
+  max-inline-size: none;
+  max-block-size: none;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  overflow: visible;
+
+  /* The middle track — the header's centre. Tahap 87. */
+  @media (--desktop) {
+    grid-column: 2;
+    display: block;
+    position: static;
+  }
+
+  /*
+   * Shut on a phone until MENU opens it: the author default, which also keeps
+   * it shut in a browser without `popover`, where the attribute means nothing
+   * and the browser's own rule is absent.
+   */
   @media (--mobile) {
-    /*
-     * `display: none` removes the list from the tab order and the
-     * accessibility tree while collapsed, which is what a disclosure should
-     * do — the toggle button carries `aria-expanded` and `aria-controls`, so
-     * the state is announced rather than merely visible.
-     */
     display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: var(--color-primary);
-    border-bottom: 1px solid var(--line);
-    padding: mobile-vw(8px) var(--safe) mobile-vw(16px);
   }
 }
 
-.navOpen {
-  @media (--mobile) {
-    display: block;
+/*
+ * The phone's sheet. It starts under the bar and fills the rest of the
+ * screen, so the header — and MENU, now reading "Close" — stays where it was.
+ * `:is()` lets one rule serve the popover and the no-`popover` fallback
+ * (`data-open`): it forgives the selector it cannot parse, where a plain list
+ * would be dropped whole.
+ */
+@media (--mobile) {
+  :is(.nav:popover-open, .nav[data-open]) {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    inset: var(--header-height) 0 0;
+    /* Above the page when it is not in the top layer (`data-open`). */
+    z-index: 1;
+    padding: mobile-vw(16px) var(--safe) mobile-vw(40px);
+    background-color: var(--color-primary);
+    color: var(--color-secondary);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 
@@ -98,6 +231,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
+    /* The sheet's words are fitted to this column (`.navLink`). */
+    container-type: inline-size;
+    inline-size: 100%;
   }
 
   @media (--desktop) {
@@ -157,6 +293,52 @@
     outline-offset: 4px;
     border-radius: var(--radius-hairline);
   }
+
+  /*
+   * On a phone the same links are the sheet's words — the fork: display
+   * type, one size, fitted to the longest of them in this language
+   * (`--fit-chars`, set by `index.tsx`) with the nameplate's 0.72em per
+   * character. "Journal" is 71px on a 390px phone, "Jurnal" 83; `14svh` caps
+   * a phone on its side, where width is plentiful and height is not.
+   *
+   * `12vw` for a browser with neither `cqi` nor `svh` — behind `@supports`,
+   * because a declaration that holds a `var()` is never dropped at parse
+   * time: written as two lines, the fitted one always won and, invalid only
+   * later, fell to body size (found in review).
+   */
+  @media (--mobile) {
+    display: block;
+    padding-block: mobile-vw(4px);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 12vw;
+
+    @supports (width: 1cqi) and (height: 1svh) {
+      font-size: min(calc(100cqi / (var(--fit-chars, 7) * 0.72)), 14svh);
+    }
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    text-transform: none;
+
+    /*
+     * "You are here" by more than a step of ink. Review measured the muted
+     * and full inks at about 1.8:1 against each other — under the 3:1 a
+     * state change should carry — and in forced colours they are one colour.
+     * An underline survives both.
+     */
+    &[aria-current] {
+      text-decoration-line: underline;
+      text-decoration-thickness: 0.06em;
+      text-underline-offset: 0.12em;
+    }
+  }
+}
+
+/* The development-only Storybook link stays off the phone's sheet. */
+.navAside {
+  @media (--mobile) {
+    display: none;
+  }
 }
 
 .externalMark {
@@ -190,18 +372,41 @@
 }
 
 .language {
+  /* Outside the sheet on purpose: a preference, reachable while it is shut. */
   flex-shrink: 0;
+}
 
-  @media (--mobile) {
-    /* Order matters on mobile: wordmark, language, menu toggle. The language
-       control is a preference, so it sits before the disclosure rather than
-       inside it, where it would be unreachable while the menu is closed. */
-    order: 1;
+/*
+ * The words arrive in order when the sheet opens: each rises from below and
+ * fades in, one `--stagger-items` apart. `@starting-style` is the state they
+ * transition from, so this needs no script and no frame loop — only
+ * `transform` and `opacity` move. Closing is instant: the exit is faster than
+ * the entrance (`MOTION-SPEC.md`), and here it is the fastest there is.
+ */
+@media (--mobile) {
+  :is(.nav:popover-open, .nav[data-open]) .navItem {
+    transition:
+      opacity var(--duration) var(--ease-out-expo),
+      transform var(--duration) var(--ease-out-expo);
+    transition-delay: calc(var(--item, 0) * var(--stagger-items));
+  }
+
+  @starting-style {
+    :is(.nav:popover-open, .nav[data-open]) .navItem {
+      opacity: 0;
+      transform: translate3d(0, mobile-vw(24px), 0);
+    }
   }
 }
 
 @media (--reduced-motion) {
-  .navLink {
+  /*
+   * The open-state selector, repeated: at `.navItem` alone this would lose to
+   * the rule above, and so does `global.css`'s kill switch, which sets a
+   * duration the shorthand above overrides.
+   */
+  .navLink,
+  :is(.nav:popover-open, .nav[data-open]) .navItem {
     transition: none;
   }
 }
@@ -216,4 +421,30 @@
  */
 .search {
   flex-shrink: 0;
+}
+
+/*
+ * Search and language, placed as one group — Tahap 87.
+ *
+ * On desktop it takes the right track and sits against its end, mirroring
+ * the wordmark at the opposite `--safe` edge. The space inside it is the
+ * nav's own rhythm (`.navList`), so the header carries one spacing rather
+ * than two.
+ *
+ * Below the breakpoint it is `display: contents`: its two children stay the
+ * header's flex items exactly as they were before the group existed, with the
+ * menu button after them in the markup (the fork; it used to sit before them,
+ * moved past by an `order` on the language switcher). A `<div>` has no role
+ * for `contents` to strip.
+ */
+.tools {
+  display: contents;
+
+  @media (--desktop) {
+    grid-column: 3;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: desktop-vw(28px);
+  }
 }

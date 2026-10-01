@@ -121,7 +121,7 @@ test.describe('the reading progress reports the reading', () => {
     ).toBeGreaterThan(0.98)
   })
 
-  test('it is a hairline, and never in the way', async ({ page }) => {
+  test('it is never in the way', async ({ page }) => {
     await page.goto(LONG_READS[0] ?? '/en')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
@@ -142,8 +142,8 @@ test.describe('the reading progress reports the reading', () => {
     expect(track, 'no track').not.toBeNull()
     if (!track) return
 
-    // A hairline, not a band. Four pixels is already a stripe.
-    expect(track.height, 'the track is thicker than a hairline').toBeLessThan(4)
+    // It also required a hairline (under 4px). How thick the bar is, is the
+    // design's call; the fork removed that (`docs/FORK.md`, step 5).
     expect(track.pointerEvents, 'the track can swallow a click').toBe('none')
     // It reports; it does not announce. A `progressbar` role here would put a
     // decoration into the accessibility tree.

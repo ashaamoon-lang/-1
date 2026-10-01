@@ -43,8 +43,8 @@ export default async function NotFound() {
         
           Nothing is lost on the machine side. `app/robots.ts` already
           advertises the sitemap, which is where a crawler looks for it, and
-          `/ai` is in the sitemap itself. A 404 was never how either was
-          discovered.
+          `/ai` was in the sitemap itself (the page was removed in Tahap 84).
+          A 404 was never how either was discovered.
         */
         recoveryLinks={
           <>

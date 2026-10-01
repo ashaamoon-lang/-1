@@ -102,14 +102,14 @@ periksa yang ini.
 
 ## 6. Yang layak dibuka
 
-| Alamat                      | Kenapa                                                                                                             |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `/en` dan `/id`             | Beranda. Komposisi hero Tahap 12d — index praktik kanan-atas, judul kiri-bawah, isyarat gulir kanan-bawah          |
-| `/en/work`                  | Katalog, dengan chip **All · Consulting · AI & Data · Commission**                                                 |
-| `/en/work/practice/ai-data` | Rute praktik dari Tahap 13 — filternya berjalan di server, bukan di browser                                        |
-| `/en/work/arus-balik`       | Halaman detail. Klik sebuah kartu dari katalog: sampulnya **berpindah** ke halaman ini, tidak sekadar dimuat ulang |
-| `/llms.txt` dan `/en/ai`    | Yang dibaca mesin jawaban tentang Arth                                                                             |
-| `/cms`                      | Sanity Studio. Butuh login akun Sanity Anda; dari sini kontennya bisa disunting                                    |
+| Alamat                   | Kenapa                                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `/en` dan `/id`          | Beranda. Komposisi hero Tahap 12d — index praktik kanan-atas, judul kiri-bawah, isyarat gulir kanan-bawah          |
+| `/en/work`               | Katalog, dengan chip **All · Consulting · AI & Data · Commission**                                                 |
+| `/en/practice/ai-data`   | Halaman praktik. Alamat lamanya, `/en/work/practice/ai-data`, masih dialihkan ke sini (308)                        |
+| `/en/work/arus-balik`    | Halaman detail. Klik sebuah kartu dari katalog: sampulnya **berpindah** ke halaman ini, tidak sekadar dimuat ulang |
+| `/llms.txt` dan `/en.md` | Yang dibaca mesin jawaban tentang Arth. (`/en/ai` dihapus di Tahap 84 dan kini menjawab halaman tidak ditemukan)   |
+| `/cms`                   | Sanity Studio. Butuh login akun Sanity Anda; dari sini kontennya bisa disunting                                    |
 
 ---
 
@@ -162,6 +162,71 @@ CI=true bun run test:e2e
 Tanpa itu, tesnya berjalan di dev server dan kadang gagal karena kompilasi
 on-demand berlomba dengan validasi prefetch. `CI=true` menjalankannya lewat
 build produksi — itu sinyal yang menentukan.
+
+**Perubahan Anda tidak muncul, atau `bun run start` menolak jalan.** Hampir
+selalu port 3000 masih dipegang proses lama — seringnya `next start` dari sesi
+sebelumnya atau dari worktree lain. Repo ini punya tiga worktree dan satu port,
+jadi ini bukan kejadian langka.
+
+```bash
+bun run doctor     # memeriksanya, dan mencetak perintah untuk menemukan pemegangnya
+```
+
+**Dua perintahnya berbeda sikap, dan yang lebih tenang justru yang berbahaya** —
+diukur, bukan dikira:
+
+| perintah        | saat port 3000 sibuk                                      |
+| --------------- | --------------------------------------------------------- |
+| `bun run start` | **gagal keras**: `EADDRINUSE`, exit 1                     |
+| `bun run dev`   | **diam-diam pindah**: `using available port 3001 instead` |
+
+Jadi `dev` tetap jalan, sementara alamat yang Anda bookmark terus menyajikan
+build lama. Buka `localhost:3000` karena kebiasaan, dan Anda membaca build
+sebelumnya tanpa ada yang memberi tahu.
+
+Ini juga menyentuh gerbang: `playwright.config.ts` memaku `localhost:3000` dan
+memakai `reuseExistingServer` saat `CI` tidak diset, jadi suite lokal akan
+menempel ke server basi itu — laporan tentang pohon yang tidak sedang Anda
+kerjakan.
+
+Menjalankannya di port lain kalau Anda memang butuh dua sekaligus:
+
+```bash
+PORT=3001 bun run start
+```
+
+**`CI=1` membangun ulang, dan di mesin kecil itu yang sebenarnya gagal.**
+Bacalah `playwright.config.ts` baris demi baris — `CI` mengubah tiga hal
+sekaligus, bukan satu:
+
+| dengan `CI`                      | tanpa `CI`    |
+| -------------------------------- | ------------- |
+| `bun run build && bun run start` | `bun run dev` |
+| `reuseExistingServer: false`     | `true`        |
+| timeout 300 detik                | 120 detik     |
+
+Jadi `CI=1` menjalankan **build kedua** — build di repo ini memuncak 3,35 GB
+RSS — dan menolak memakai server yang sudah hidup. Di laptop 7,79 GB, build itu
+melewati 300 detik dan suite mati sebelum tes pertama, dengan pesan yang
+berbunyi seperti masalah port padahal itu masalah memori.
+
+Yang memberi sinyal sama tanpa membangun dua kali:
+
+```bash
+bun run build                  # sekali
+bun run start                  # port 3000, biarkan hidup
+bunx playwright test --workers=2
+```
+
+Tanpa `CI`, `reuseExistingServer` menempel ke server **produksi** yang sudah
+Anda jalankan — yang persis dimaksud komentar config itu ("CI runs against a
+real production build"). Satu syaratnya sudah diperiksa: nol spec e2e bercabang
+pada `process.env.CI`, jadi tak ada tes yang berubah perilaku karenanya. Yang
+hilang hanya `retries` gaya CI, bukan kebenaran sinyalnya.
+
+Peringatan yang mengikat: tanpa `CI`, `reuseExistingServer` juga akan menempel
+ke server **basi** kalau Anda lupa membangun ulang — itu bahaya yang tabel di
+atas sebutkan. Bangun dulu, baru jalankan.
 
 **Storybook tidak ada di port 3000.** Ia terpisah:
 

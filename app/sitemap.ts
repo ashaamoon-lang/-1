@@ -5,10 +5,10 @@ import { BASE_URL } from '@/lib/seo/site'
 
 /**
  * Static routes are listed in `lib/seo/routes.ts` (`STATIC_ROUTES`) —
- * shared with `/llms.txt` so the two surfaces can't drift. New static
- * routes must be added there and to `PAGES` in `app/[locale]/ai/page.tsx`;
- * the machine view (`/ai`) has no link from the design, so crawlers only
- * discover it here.
+ * shared with `/llms.txt` so the two surfaces can't drift. A new static
+ * route is added there and nowhere else — the catalog is the single source.
+ * (Until Tahap 84 it also had to be added to `PAGES` in the `/ai` machine
+ * view, a second list that could drift; that route was removed.)
  *
  * Everything past the static catalogue — the journal's entries, and the CMS's
  * pages and projects when Sanity is configured — arrives already expanded
@@ -27,8 +27,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // and the bare template is not a page — it 307s to whichever locale the
   // fetcher's `Accept-Language` implies — so a sitemap that emitted it would
   // submit a URL that only ever redirects, and one that disagrees with the
-  // page's own canonical. `/llms.txt` and `/ai` do the expansion through the
-  // same accessor, because for a while they each did their own and drifted.
+  // page's own canonical. `/llms.txt` does the expansion through the same
+  // accessor — as the `/ai` machine view did until Tahap 84 removed it —
+  // because for a while each surface did its own and they drifted.
   const cmsEntries: MetadataRoute.Sitemap = (await getAdvertisedRoutes()).map(
     (route) => ({
       url: `${BASE_URL}${route.path}`,

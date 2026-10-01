@@ -87,6 +87,24 @@ html {
     var(--color-secondary) 12%,
     var(--color-primary)
   );
+  /*
+   * The wash's own middle — Tahap 55.
+   *
+   * `vault/magic/noise-texture` adds grain around a base colour, and over the
+   * hero that base cannot be the ground: `SceneShell` paints the wash on top
+   * of it. Handing the grain the wash's midpoint keeps the layer's mean
+   * inside the range it actually sits on, so the worst error is half the
+   * wash's amplitude instead of all of it.
+   *
+   * 6% is the halfway point of `--hero-wash-to`'s 12%, written as its own
+   * mix rather than as a `color-mix` of two `color-mix`es, which resolves to
+   * the same colour and reads.
+   */
+  --hero-wash-mid: color-mix(
+    in oklab,
+    var(--color-secondary) 6%,
+    var(--color-primary)
+  );
   --line: color-mix(in oklab, var(--color-secondary) 14%, transparent);
   --line-strong: color-mix(in oklab, var(--color-secondary) 28%, transparent);
   /*
@@ -256,6 +274,25 @@ html.overflow-hidden {
   touch-action: none;
 }
 
+/*
+ * The page holds still under the phone menu's open sheet — the fork
+ * (`components/layout/header`). The sheet is a popover, so this is `:has()`
+ * rather than a class a script toggles, and it holds with scripting off.
+ * `overscroll-behavior` on the sheet was the first attempt; review measured
+ * the sheet's content at ~473px of a 786px box, so it had nothing to scroll
+ * and every drag went to the document. Two rules, not one list: an engine
+ * without `:popover-open` would drop a list that named it.
+ */
+@media (--mobile) {
+  html:has(#header-nav:popover-open) {
+    overflow: hidden;
+  }
+
+  html:has(#header-nav[data-open]) {
+    overflow: hidden;
+  }
+}
+
 body {
   /*
    * The document's default face.
@@ -394,6 +431,21 @@ html.screenshot {
 }
 
 [data-reveal='visible'] [data-reveal-item] {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * Per-item arrival — Tahap 54, `useReveal({ perItem: true })`.
+ *
+ * The container stays `hidden` in that mode, so the rule above never fires and
+ * the base rule keeps hiding whatever has not arrived yet. Each item flips its
+ * own attribute as it crosses the line.
+ *
+ * Same declarations and the same specificity as the container rule: a list is
+ * not a different animation, it is the same one asked at a different moment.
+ */
+[data-reveal] [data-reveal-item='visible'] {
   opacity: 1;
   transform: none;
 }
@@ -550,4 +602,39 @@ html.screenshot {
        project's fast duration". */
     animation-duration: 0.01ms;
   }
+}
+
+/*
+ * Nameplates — the fork (`docs/FORK.md` §3.2).
+ *
+ * The inner routes' one-word names (Work, Studio, Journal, a practice) sat at
+ * the `h1` size in the left third of the first screen, every route opening on
+ * the same composition. A nameplate is fitted to its container instead: the
+ * contact email's device (`vault/blocks/contact-block`), generalised.
+ *
+ * `.nameplate` marks the container the name is fitted to. `.nameplate-title`
+ * on the `h1`, with `--fit-chars` set inline by `nameplateStyle()`
+ * (`lib/utils/display-fit.ts`), sizes it:
+ *
+ * - `100cqi / (chars × 0.72)` fills the container on one line. 0.72em per
+ *   character is the widest of every nameplate string in both locales,
+ *   measured in Syne 700 at -0.04em: "Work" 0.707, "Pesanan" 0.652,
+ *   "Commission" 0.650 … "Konsultasi" 0.523. A narrower word underfills
+ *   rather than any word overflowing.
+ * - capped at `--fit-cap` (default 34svh), so a four-letter word does not
+ *   become a wall.
+ * - never smaller than the `h1` curve — copied from the `h1` utility in
+ *   `tailwind.css`, which `lib/styles/typography.ts` generates; if that curve
+ *   changes, this line must follow. A string long enough to fit smaller than
+ *   the `h1` simply wraps at the `h1` size, as it always did.
+ */
+.nameplate {
+  container-type: inline-size;
+}
+
+.nameplate-title {
+  font-size: max(
+    clamp(38px, calc(9.127px + 7.7vw), 156.958px),
+    min(calc(100cqi / (var(--fit-chars, 12) * 0.72)), var(--fit-cap, 34svh))
+  );
 }

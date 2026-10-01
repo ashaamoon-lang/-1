@@ -25,6 +25,7 @@ import { JsonLd } from '@/lib/seo/json-ld'
 import { articleSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { NextPractice } from '@/vault/blocks/next-practice'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
 import { Reveal } from '@/vault/motion/reveal'
 
@@ -124,7 +125,10 @@ async function coverForPractice(locale: string, practice: string | null) {
   // `workIndexQuery` is ordered `order asc, publishedAt desc`, so the same
   // entry gets the same cover on every render rather than one that moves
   // between builds.
-  return projects.data[0] ?? null
+  // `?? []` before the index: `data` is null when Sanity is unconfigured or
+  // the query failed, and indexing null throws during prerender. The same
+  // defect the first CI run found on `/en/studio` — Tahap 53.
+  return (projects.data ?? [])[0] ?? null
 }
 
 export default async function JournalEntryPage({ params }: EntryPageProps) {
@@ -321,48 +325,58 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
           nothing a screen reader uses anyway — the image carries its own
           description.
         */}
-        {work?.cover && (
-          <Reveal className={s.opening}>
-            <SanityImage
-              data-reveal-item
-              image={toImageSource(work.cover)}
-              alt={work.coverAlt ?? ''}
-              /*
-                The reading column, which this page caps at a measure rather
-                than running to the full grid — so the request is the column
-                it lands in, not the viewport.
-              */
-              maxWidth={720}
-              sizes="(max-width: 800px) 100vw, 48vw"
-              className={s.openingImage}
-            />
-          </Reveal>
-        )}
+        {/*
+          The plate and the essay share a box of their own — the fork. The
+          plate is sticky beside the text, and a sticky element is held by its
+          box: inside the article directly, it held until the article ended and
+          slid over the next-entry link. Measured and seen, first build.
+        */}
+        <div className={s.reading}>
+          {work?.cover && (
+            <Reveal className={s.opening}>
+              <SanityImage
+                data-reveal-item
+                image={toImageSource(work.cover)}
+                alt={work.coverAlt ?? ''}
+                /*
+                  The reading column, which this page caps at a measure rather
+                  than running to the full grid — so the request is the column
+                  it lands in, not the viewport.
+                */
+                maxWidth={720}
+                sizes="(max-width: 799px) 100vw, 42vw"
+                className={s.openingImage}
+              />
+            </Reveal>
+          )}
 
-        <Reveal as="section" className={s.body}>
-          {entry.body.map((paragraph) => (
-            <p data-reveal-item className={s.paragraph} key={paragraph}>
-              {paragraph}
-            </p>
-          ))}
-        </Reveal>
-
-        {next && next.slug !== entry.slug ? (
-          <Reveal as="aside" className={s.next}>
-            <p data-reveal-item className={cn('caption', s.nextEyebrow)}>
-              {t('nextEyebrow')}
-            </p>
-            <p data-reveal-item className={cn('h3', s.nextTitle)}>
-              <Link
-                href={`/journal/${next.slug}`}
-                className={s.nextLink}
-                data-press="next-entry"
-                data-intent=""
+          <Reveal as="section" className={s.body}>
+            {entry.body.map((paragraph) => (
+              <p
+                data-reveal-item
+                className={cn('p', s.paragraph)}
+                key={paragraph}
               >
-                {next.title}
-              </Link>
-            </p>
+                {paragraph}
+              </p>
+            ))}
           </Reveal>
+        </div>
+
+        {/*
+          The same onward link the practice pages end on — the fork. It was
+          markup of its own (an `h3` in the left third, the design-critique
+          workflow found), so the site ended three different ways; it is now
+          one component at `h2`, the journal's quieter scale.
+        */}
+        {next && next.slug !== entry.slug ? (
+          <NextPractice
+            href={`/journal/${next.slug}`}
+            eyebrow={t('nextEyebrow')}
+            label={next.title}
+            press="next-entry"
+            size="h2"
+          />
         ) : null}
       </article>
     </Wrapper>

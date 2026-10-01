@@ -9,7 +9,6 @@ import { expect, test } from '@playwright/test'
  * means the suite was holding the *wrong* identity in place rather than
  * guarding the right one.
  */
-import { isLocalizableRoute } from '../lib/i18n/paths'
 import { SITE } from '../lib/seo/site'
 const NEXT_VARY_FIELDS = [
   'rsc',
@@ -216,7 +215,7 @@ test.describe('Markdown content negotiation', () => {
     const body = await response.text()
 
     expect(response.status()).toBe(404)
-    expect(body).toContain('/ai')
+    expect(body).toContain('/llms.txt')
   })
 
   test('the HTML format override wins even when Accept still prefers Markdown, breaking the negotiation loop', async ({
@@ -250,7 +249,7 @@ test.describe('Markdown content negotiation', () => {
   }) => {
     // Aliases follow the localized routes: markdownPathForRoute('/en') is
     // '/en.md'. '/index.md' only ever existed for the unprefixed root.
-    for (const path of ['/en.md', '/en/ai.md', '/id.md', '/id/ai.md']) {
+    for (const path of ['/en.md', '/en/studio.md', '/id.md', '/id/studio.md']) {
       const response = await request.get(path)
       expect(response.status(), path).toBe(200)
       expect(response.headers()['content-type'], path).toBe(
@@ -276,7 +275,6 @@ test.describe('Markdown content negotiation', () => {
       expect(response.headers()['content-type']).toBe(
         'text/markdown; charset=utf-8'
       )
-      expect(body).toContain('/ai')
       expect(body).toContain('/llms.txt')
       expect(body).toContain('/sitemap.xml')
     }
@@ -338,41 +336,18 @@ test.describe('machine-readable discovery files', () => {
       expect(path).toMatch(/^\/(en|id)(\/|$)/)
     }
 
-    const ai = await request.get('/ai')
-    const aiBody = await ai.text()
-    expect(ai.status()).toBe(200)
-    expect(ai.headers()['content-type']).toContain('text/html')
-    expect(aiBody).toContain('When to use')
-    expect(aiBody).toContain('How to use')
-    expect(aiBody).toContain(SITE.name)
-
     /*
-     * Same rule as /llms.txt above, for the HTML machine view: no internal
-     * link may skip the locale prefix.
-     *
-     * Anchors only. A bare `href="…"` match also picks up the stylesheet
-     * `<link>` in the head (`/_next/static/chunks/*.css`), which is neither
-     * internal navigation nor localizable.
+     * The HTML machine view used to be asserted here — `/ai`, removed in
+     * Tahap 84. The rule that block enforced (no internal link may skip the
+     * locale prefix) is already held above against `/llms.txt`, on the same
+     * catalog, so nothing moved out with it.
      */
-    const aiLinks = [...aiBody.matchAll(/<a[^>]+href="(\/[^"#]*)"/g)].map(
-      (match) => match[1] ?? ''
-    )
-    // `isLocalizableRoute` is the app's own rule for which paths take a
-    // prefix — it excludes `/robots.txt`, `/sitemap.xml` and friends because
-    // a dotted last segment is a file, not a page. Reusing it beats keeping
-    // a second exclusion list here that could disagree with the first.
-    const internal = aiLinks.filter(isLocalizableRoute)
-    expect(internal.length).toBeGreaterThan(0)
-    for (const href of internal) {
-      expect(href).toMatch(/^\/(en|id)(\/|$)/)
-    }
 
     const sitemap = await request.get('/sitemap.xml')
     const sitemapBody = await sitemap.text()
     expect(sitemap.status()).toBe(200)
     expect(sitemap.headers()['content-type']).toContain('application/xml')
     expect(sitemapBody).toContain('<urlset')
-    expect(sitemapBody).toContain('/ai</loc>')
 
     const robots = await request.get('/robots.txt')
     const robotsBody = await robots.text()

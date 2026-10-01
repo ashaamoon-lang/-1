@@ -10,8 +10,10 @@ NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
 
 # Required for Visual Editing & Live Preview
-NEXT_PUBLIC_SANITY_API_READ_TOKEN="your-viewer-token"
-SANITY_PRIVATE_TOKEN="your-editor-token"
+SANITY_API_READ_TOKEN="your-viewer-token"        # server-only; prefer this
+SANITY_PRIVATE_TOKEN="your-editor-token"         # server-only, never inlined
+# NEXT_PUBLIC_SANITY_API_READ_TOKEN — Viewer token ONLY, and only if you need
+# browser-side draft preview. The prefix inlines it into every visitor bundle.
 
 # Optional
 NEXT_PUBLIC_SANITY_API_VERSION="2024-03-15"
@@ -22,8 +24,21 @@ SANITY_REVALIDATE_SECRET="your-webhook-secret"
 
 > **Note**: Create tokens in [Sanity Dashboard](https://sanity.io/manage) → Your Project → API → Tokens.
 >
-> - **Viewer** token → `NEXT_PUBLIC_SANITY_API_READ_TOKEN`
-> - **Editor** token → `SANITY_PRIVATE_TOKEN`
+> - **Editor** token → `SANITY_PRIVATE_TOKEN` (server-only, never inlined)
+> - **Viewer** token → `SANITY_API_READ_TOKEN` — prefer this one.
+>   `NEXT_PUBLIC_SANITY_API_READ_TOKEN` reads the same value and is the only
+>   form that reaches the browser, which is what `browserToken` in `defineLive`
+>   needs for **browser-side** draft preview. Use it only when you need that,
+>   and only ever with a **Viewer** token.
+>
+> **The cost of the `NEXT_PUBLIC_` form, stated plainly:** that prefix inlines
+> the value into the JavaScript served to every visitor. It is not a leak you
+> would notice — the site works perfectly while publishing the credential. A
+> Viewer token can only read, so publishing one is a deliberate trade; a
+> developer or editor token in that variable would publish the ability to
+> **delete your entire content library**. `lib/env.ts` now refuses to start if
+> that variable holds the same string as a write token, and
+> `lib/env-guard.test.ts` proves that refusal fires.
 >
 > With only `NEXT_PUBLIC_SANITY_PROJECT_ID` and `NEXT_PUBLIC_SANITY_DATASET`
 > set, published content still renders — `sanityFetch` falls back to a plain,

@@ -25,6 +25,15 @@ interface GradientSceneProps {
    * for pausing off-screen work.
    */
   animate: boolean
+  /**
+   * Called once, on the first frame this scene takes part in — Tahap 91.
+   *
+   * `vault/webgl/material-image` has had the same callback since Tahap 14,
+   * for the same reason: "the component decided to draw" and "something is
+   * on screen" are different moments, and only the second one is safe to
+   * announce. The shell raises `data-accent-live` from this.
+   */
+  onFirstFrame?: (() => void) | undefined
 }
 
 export function GradientScene({
@@ -32,8 +41,10 @@ export function GradientScene({
   colorB,
   grain,
   animate,
+  onFirstFrame,
 }: GradientSceneProps) {
   const materialRef = useRef<ShaderMaterial>(null)
+  const announced = useRef(false)
   const viewport = useThree((state) => state.viewport)
 
   // Uniforms are created once and mutated in place. Rebuilding this object on
@@ -60,16 +71,25 @@ export function GradientScene({
   }, [colorA, colorB, grain, uniforms])
 
   useFrame((_, delta) => {
-    if (!animate) return
     const material = materialRef.current
     if (!material) return
-    // `uniforms` is indexed as a loose record by three's types, so the entry
-    // is optional as far as TS is concerned even though we authored it above.
-    const time = material.uniforms.uTime
-    if (!time) return
-    // Accumulate delta rather than reading absolute clock time: pausing and
-    // resuming then continues from where it stopped instead of jumping.
-    time.value += delta
+
+    if (animate) {
+      // `uniforms` is indexed as a loose record by three's types, so the entry
+      // is optional as far as TS is concerned even though we authored it above.
+      const time = material.uniforms.uTime
+      // Accumulate delta rather than reading absolute clock time: pausing and
+      // resuming then continues from where it stopped instead of jumping.
+      if (time) time.value += delta
+    }
+
+    // The material exists and this frame is running, so the wash has a frame
+    // to be in — announced once, and announced even when the clock is held
+    // still, because a still wash is still drawn.
+    if (!announced.current) {
+      announced.current = true
+      onFirstFrame?.()
+    }
   })
 
   // Three disposes geometries and materials created via JSX when the element

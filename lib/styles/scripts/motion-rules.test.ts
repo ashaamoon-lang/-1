@@ -4,10 +4,21 @@ import { readFile } from 'node:fs/promises'
 import { Glob } from 'bun'
 
 /**
- * The motion rules, enforced.
+ * The motion rules that protect a reader, enforced.
  *
- * `CLAUDE.md` #1–#4 and #8 are this project's hard rules for animation, and
- * until this test **nothing checked any of them**. `bun run check` runs
+ * **Narrowed in the fork** (`docs/FORK.md` §2, step 3). This file used to
+ * enforce `CLAUDE.md` #1–#4 and #8 — easing only from `--ease-*` tokens, no
+ * bare `ease`, no literal durations, reveal knobs only from tokens, GSAP easing
+ * only from `easing.*.gsap`. Those were vocabulary: they decided which words a
+ * designer could use, not whether anyone could read the result. They are gone.
+ *
+ * What stays is what the history below was actually about. Three transitions
+ * animating layout properties are jank a reader feels (#4), and a stylesheet
+ * that animates without standing down under reduced motion is a reader who
+ * asked for stillness and did not get it (#5).
+ *
+ * The history, kept because it is still why #4 and #5 are checked here: until
+ * this test **nothing checked any of them**. `bun run check` runs
  * oxlint, oxfmt, tsc, unit tests and manifests; none of those parse CSS.
  * Roadmap §1.5 lists the token rule as "(enforced at review)", which is
  * another way of saying it was enforced by whoever remembered.
@@ -76,11 +87,21 @@ function isExempt(before: string): boolean {
  * reduced-motion rule asks whether a *file* that animates also stands down,
  * and the reveal-knob rule reads custom properties, which are neither.
  */
+/**
+ * `Bun.Glob` emits backslash paths on Windows, which is enough to switch off
+ * every forward-slash boundary in this file: `lib/styles/css/` below, and
+ * `vault/motion/tokens.ts` in the GSAP dialect further down. Both are
+ * exemptions, so losing them turns the gate red on its own token layer rather
+ * than blind — two false failures on every Windows checkout, green on CI.
+ * Same hazard, same fix, as `lib/scripts/generate-manifest.ts`.
+ */
+const posix = (file: string) => file.replaceAll('\\', '/')
+
 async function collectDeclarationFiles(): Promise<[string, string][]> {
   const files: [string, string][] = []
   for (const pattern of CSS_GLOBS) {
-    for await (const file of new Glob(pattern).scan('.')) {
-      files.push([file, await readFile(file, 'utf8')])
+    for await (const scanned of new Glob(pattern).scan('.')) {
+      files.push([posix(scanned), await readFile(scanned, 'utf8')])
     }
   }
   return files
@@ -90,8 +111,11 @@ async function declarations(): Promise<Declaration[]> {
   const found: Declaration[] = []
 
   for (const pattern of CSS_GLOBS) {
-    for await (const file of new Glob(pattern).scan('.')) {
-      const source = await readFile(file, 'utf8')
+    for await (const scanned of new Glob(pattern).scan('.')) {
+      // Normalised so a failure message names the same path on either
+      // platform — which is what makes two machines' gate output comparable.
+      const file = posix(scanned)
+      const source = await readFile(scanned, 'utf8')
 
       for (const match of source.matchAll(
         /(transition(?:-property|-timing-function|-duration)?|animation)\s*:\s*([^;}]*)/g
@@ -124,24 +148,11 @@ function report(offenders: Declaration[]): string {
     .join('\n')
 }
 
-describe('motion rules (CLAUDE.md #1-#4, #8)', () => {
+describe('motion that the compositor can run (CLAUDE.md #4)', () => {
   it('finds CSS to check at all', async () => {
     // A gate that examined nothing must not report success — the failure mode
     // this whole stage exists to remove.
     expect((await declarations()).length).toBeGreaterThan(10)
-  })
-
-  it('#2: no bare `ease`, `ease-in`, `ease-out` or `ease-in-out`', async () => {
-    const offenders = (await declarations()).filter(
-      (d) =>
-        !d.exempt &&
-        !d.text.includes('var(--tw') &&
-        /(?:^|[\s,:])(ease|ease-in|ease-out|ease-in-out)(?:$|[\s,;])/.test(
-          d.text
-        )
-    )
-
-    expect(offenders, report(offenders)).toEqual([])
   })
 
   it('#4: animates only compositable properties', async () => {
@@ -149,17 +160,6 @@ describe('motion rules (CLAUDE.md #1-#4, #8)', () => {
       /\b(width|height|top|left|right|bottom|margin|padding|box-shadow|inset)\b/
     const offenders = (await declarations()).filter(
       (d) => !d.exempt && d.text.startsWith('transition') && layout.test(d.text)
-    )
-
-    expect(offenders, report(offenders)).toEqual([])
-  })
-
-  it('#8: durations come from tokens, not literals', async () => {
-    const offenders = (await declarations()).filter(
-      (d) =>
-        !d.exempt &&
-        !d.text.includes('var(--tw') &&
-        /\b\d+(?:\.\d+)?m?s\b/.test(d.text)
     )
 
     expect(offenders, report(offenders)).toEqual([])
@@ -184,9 +184,18 @@ describe('the reduced-motion contract reaches every stylesheet', () => {
 
     const offenders: string[] = []
     for (const [file, source] of files) {
-      const animates = /(^|\s)(transition|animation)(-[a-z-]+)?:/m.test(source)
+      /*
+       * Read the code, not the prose — the fork. This matched the raw source,
+       * so a comment that merely used the word ("layout, not animation: …")
+       * made a stylesheet with no animation at all an offender; it cost a
+       * rejected push before it was found. Comments are blanked for the two
+       * questions about code. `motion-exempt:` is itself a comment, so that
+       * one is still asked of the source.
+       */
+      const code = source.replace(/\/\*[\s\S]*?\*\//g, '')
+      const animates = /(^|\s)(transition|animation)(-[a-z-]+)?:/m.test(code)
       if (!animates) continue
-      if (/@media\s*\(--reduced-motion\)/.test(source)) continue
+      if (/@media\s*\(--reduced-motion\)/.test(code)) continue
       if (/\/\*\s*motion-exempt:/.test(source)) continue
       offenders.push(file)
     }
@@ -194,53 +203,6 @@ describe('the reduced-motion contract reaches every stylesheet', () => {
     expect(
       offenders,
       'add @media (--reduced-motion) — the global * rule loses to a component class'
-    ).toEqual([])
-  })
-})
-
-describe('reveal knobs carry tokens, not literals', () => {
-  /*
-   * `motion-rules` #8 rejects a millisecond literal inside a `transition` or
-   * `animation` declaration, and these are neither: they are custom
-   * properties the reveal contract reads. So `--reveal-stagger: 120ms` in the
-   * hero, `90ms` on the project hero and `70ms` twice went unseen — and
-   * three of those are not token values at all. `global.css` records having
-   * caught `--reveal-duration: 700ms` by hand, which is the same blind spot
-   * noticed and not closed.
-   */
-  it('no --reveal-* or --stagger-* property holds a raw duration', async () => {
-    const files = await collectDeclarationFiles()
-
-    const offenders: string[] = []
-    let properties = 0
-
-    for (const [file, source] of files) {
-      /*
-       * `lib/styles/css/` is where a value is allowed to be a value.
-       *
-       * `--stagger-words: 50ms` and its siblings are the definitions the rest
-       * of the repo points at; forbidding a literal there would leave nothing
-       * for a consumer to reference. The rule is about consumers, and this is
-       * the same boundary `motion-rules` #8 already draws by scanning
-       * declarations rather than the `:root` block that feeds them.
-       */
-      if (file.startsWith('lib/styles/css/')) continue
-
-      source.split('\n').forEach((line, index) => {
-        const code = line.split('/*')[0] ?? line
-        const match = code.match(/--(reveal|stagger)[a-z-]*:\s*([^;]+)/)
-        if (!match) return
-        properties += 1
-        if (/\b\d+(\.\d+)?m?s\b/.test(match[2] ?? '')) {
-          offenders.push(`${file}:${index + 1}  ${code.trim()}`)
-        }
-      })
-    }
-
-    expect(properties).toBeGreaterThan(3)
-    expect(
-      offenders,
-      'use var(--stagger-words|cards) or var(--duration-*)'
     ).toEqual([])
   })
 })

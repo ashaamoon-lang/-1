@@ -50,6 +50,28 @@ import s from './command.module.css'
  * without it, which is what `e2e/no-javascript.e2e.ts` protects.
  */
 
+/**
+ * Anything open in the top layer yields to the palette — the fork.
+ *
+ * The phone menu is a `popover` (`components/layout/header`), and the top
+ * layer paints over any `z-index`. A keystroke does not light-dismiss a
+ * popover, so ⌘K with the menu open put the palette underneath it, with focus
+ * trapped in a search field nobody could see (found in review). A pointer
+ * press on this button closes the menu the browser's own way, but Enter,
+ * Space or a screen reader's activation sends a click with no pointer down —
+ * review found that path too — so both the shortcut and the button call this.
+ */
+function yieldTopLayer() {
+  if (
+    typeof HTMLElement === 'undefined' ||
+    !Object.hasOwn(HTMLElement.prototype, 'popover')
+  )
+    return
+  for (const open of document.querySelectorAll<HTMLElement>(':popover-open')) {
+    open.hidePopover()
+  }
+}
+
 export function CommandTrigger({
   className,
 }: {
@@ -91,6 +113,7 @@ export function CommandTrigger({
       if (event.key !== 'k' || !(event.metaKey || event.ctrlKey)) return
 
       event.preventDefault()
+      yieldTopLayer()
       setReturnToTrigger(document.activeElement === document.body)
       void load()
       setOpen((previous) => !previous)
@@ -121,6 +144,7 @@ export function CommandTrigger({
         data-intent=""
         className={cn('caption', s.trigger, className)}
         onClick={() => {
+          yieldTopLayer()
           setReturnToTrigger(false)
           void load()
           setOpen(true)

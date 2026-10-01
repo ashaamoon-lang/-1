@@ -31,11 +31,23 @@ export const projectId =
   process.env.SANITY_STUDIO_PROJECT_ID ??
   ''
 
-/** Sanity Studio URL for visual editing */
+/**
+ * Sanity Studio URL for visual editing.
+ *
+ * `/cms`, not `/studio`. Tahap 38 moved the Studio off `/studio` because that
+ * path collided with the brand page of the same name and was already sending
+ * readers to a login screen; `app/(chrome)/cms/[[...tool]]/` is where it lives
+ * now, and `/[locale]/studio` is the agency's own page.
+ *
+ * This constant kept the old path for forty stages. It feeds `stega.studioUrl`
+ * in `./client.ts`, which is the href behind every visual-editing overlay, so
+ * the cost of the stale value was an overlay that opens the wrong page —
+ * silent, because a wrong URL still renders something.
+ */
 export const studioUrl =
   process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000/studio'
-    : `${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/studio`
+    ? 'http://localhost:3000/cms'
+    : `${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/cms`
 
 /**
  * Public read token — supports both Satus and Vercel Marketplace conventions.

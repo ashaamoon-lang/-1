@@ -19,8 +19,8 @@
  * ## Why the paths and not the package
  *
  * `@phosphor-icons/react` is a fine package and adding it would be the
- * ordinary answer. It is the wrong answer here: `e2e/route-budget.e2e.ts`
- * allows `/en/work`, `/en/work/[slug]` and `/en/ai` **no** JavaScript beyond
+ * ordinary answer. It was the wrong answer here: `e2e/route-budget.e2e.ts`
+ * then allowed `/en/work`, `/en/work/[slug]` and `/en/ai` (removed in Tahap 84) **no** JavaScript beyond
  * the framework, and pulling an icon library onto those routes to draw five
  * glyphs would spend a budget the project spent two stages defending. MIT
  * permits the copy as long as the notice travels with it, and the notice is
@@ -55,8 +55,9 @@
  * That rule already cost this file a glyph. The plan for Tahap 43 listed an
  * external-link marker as the fifth site, and `arrow-up-right` was fetched
  * for it. Measured, the site renders **no external links**: the only
- * `target="_blank"` outside `components/ui/link` is on `/ai`, inside
- * `SITE.sameAs.length > 0`, and Tahap 35 emptied `sameAs` rather than keep
+ * `target="_blank"` outside `components/ui/link` was on `/ai`, inside
+ * `SITE.sameAs.length > 0` — and that route is gone since Tahap 84, so none
+ * remain at all. Tahap 35 had already emptied `sameAs` rather than keep
  * publishing accounts the studio does not have. A marker for a link nothing
  * renders is the same defect as a token nothing consumes — three of which
  * this project has already caught — so the glyph was dropped instead of

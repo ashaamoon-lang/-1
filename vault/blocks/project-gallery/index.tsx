@@ -2,7 +2,7 @@
 
 import cn from 'clsx'
 import { useTranslations } from 'next-intl'
-import type { ComponentType } from 'react'
+import type { ComponentType, CSSProperties, ReactNode } from 'react'
 import { useCallback, useRef, useState } from 'react'
 
 import type { LightboxProps } from '@/components/ui/lightbox'
@@ -13,7 +13,14 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
-import { ratioStyle, trackImageSizes } from '@/lib/utils/image-sizes'
+import { isFullWidth, loneHalves } from '@/lib/utils/grid-flow'
+import {
+  boundedRatio,
+  ratioStyle,
+  trackImageSizes,
+} from '@/lib/utils/image-sizes'
+import { PixelImage } from '@/vault/magic/pixel-image'
+import { Horizontal, STRIP_SHARE } from '@/vault/motion/horizontal'
 import { useParallax } from '@/vault/motion/parallax'
 
 import s from './project-gallery.module.css'
@@ -89,9 +96,16 @@ export interface GalleryImage extends ImageSource {
  * A missing ratio (`null`) takes the full track: without dimensions there is
  * nothing to reason about, and full width is the safe default for artwork.
  */
-export function isFullWidth(ratio: number | null): boolean {
-  return ratio === null || ratio >= 1
-}
+export { isFullWidth }
+
+/*
+ * `loneHalves` lives in `lib/utils/grid-flow` since Tahap 86, which needed it
+ * for the home page's project grid. Importing it from here would have made
+ * that grid depend on this module's gallery, lightbox and parallax imports for
+ * the sake of one pure function. Re-exported so the tests and callers written
+ * against this path keep working unchanged.
+ */
+export { loneHalves }
 
 interface ProjectGalleryProps {
   /**
@@ -105,6 +119,16 @@ interface ProjectGalleryProps {
   'data-region'?: string | undefined
   images: readonly GalleryImage[]
   className?: string | undefined
+  /**
+   * Render the plates as a pinned horizontal run rather than a column.
+   *
+   * Opt-in rather than the default because `vault/` is a library and a
+   * gallery in a Storybook frame has no scroll container to pin against.
+   * `/work/<slug>` is the one caller that turns it on — see
+   * `docs/stages/TAHAP-64.md` §1.2 for why that route and not `/` or
+   * `/work`, both of which a gate rules out.
+   */
+  run?: boolean | undefined
 }
 
 /*
@@ -118,6 +142,87 @@ interface ProjectGalleryProps {
 type LightboxComponent = ComponentType<LightboxProps>
 
 /**
+ * How far a gallery plate's picture travels across its own pass, as a
+ * percentage of its height — Tahap 57.
+ *
+ * Inside the 5-15 the parallax preset names, and above the hook's quiet
+ * default of 6 because these plates are the whole middle of the longest inner
+ * route: `docs/stages/TAHAP-56.md` measured that middle as two of twelve
+ * scroll steps carrying any event at all.
+ *
+ * One constant, read by both the hook and the stylesheet, so the travel and
+ * the overshoot that has to cover it cannot come apart.
+ */
+const PLATE_DRIFT = 10
+
+/**
+ * The share of the viewport the run's frame takes on `/work/<slug>`, the one
+ * route that runs it — measured, not derived: 0.784 at 800px, 0.802 at 1280,
+ * 0.806 at 1440, 0.818 at 2560. It grows with the screen, so the widest
+ * measured share is the one used, and `sizes` errs wide rather than asking for
+ * too few pixels.
+ */
+const RUN_FRAME_SHARE = 0.82
+
+/**
+ * How much wider than its box a plate's picture is drawn.
+ *
+ * `.parallax` is taller than `.media` by `PLATE_DRIFT + 2` percent (the `+ 2`
+ * is sub-pixel headroom, written in `project-gallery.module.css`), and the
+ * picture covers it with `object-fit: cover` — so it is scaled by that
+ * height and drawn 12% wider than the box, cropped at the sides. A `sizes`
+ * equal to the box asks for 12% too few pixels (found in review).
+ */
+const PLATE_OVERSCAN = 1 + (PLATE_DRIFT + 2) / 100
+
+/**
+ * `sizes` and the source cap for one plate of the run — the fork.
+ *
+ * Three layouts, one `<img>`, and `sizes` has to cover whichever the reader
+ * gets, because the server writes it before it knows:
+ *
+ *   - **The pinned strip, desktop.** Every plate shares a height and its width
+ *     follows its ratio, so the widest plate takes `STRIP_SHARE` of the frame
+ *     and each other plate that share scaled by its ratio against the widest.
+ *     The screen's height can hold the strip lower, which only makes a plate
+ *     narrower — so this can overstate, never understate.
+ *   - **The pinned run, phone:** one width, 78vw (`horizontal.module.css`).
+ *   - **The unwrapped rows** — reduced motion, or no script. A row grows until
+ *     it fills its line, so any plate can be as wide as the line: 82% of the
+ *     viewport on desktop, about 92% on a phone. Review measured the first
+ *     version of this, which described only the strip, at 0.84–0.91 of the
+ *     pixels a row plate needed.
+ *
+ * Mobile is the default and desktop starts at `800px`, mirroring the
+ * stylesheet's own breakpoints — a `(max-width: 799px)` left a fractional
+ * viewport between the two with the layout on one side and `sizes` on the
+ * other. Every width is multiplied by `PLATE_OVERSCAN`.
+ *
+ * `maxWidth` 1440 for every plate, whatever its shape: at 2560 the widest
+ * strip plate is ~1800px, far past the 704 a half-track grid plate is capped
+ * at.
+ */
+function stripSizing(ratio: number | null, widest: number | null) {
+  const share = ratio !== null && widest !== null ? ratio / widest : 1
+  const vw = (fraction: number) =>
+    `${Math.ceil(100 * fraction * PLATE_OVERSCAN)}vw`
+  const strip = vw(RUN_FRAME_SHARE * STRIP_SHARE * share)
+  const rowDesktop = vw(RUN_FRAME_SHARE)
+  const rowPhone = vw(0.92)
+  return {
+    maxWidth: 1440,
+    sizes: [
+      `(prefers-reduced-motion: reduce) and (min-width: 800px) ${rowDesktop}`,
+      `(prefers-reduced-motion: reduce) ${rowPhone}`,
+      `(scripting: none) and (min-width: 800px) ${rowDesktop}`,
+      `(scripting: none) ${rowPhone}`,
+      `(min-width: 800px) ${strip}`,
+      vw(0.78),
+    ].join(', '),
+  }
+}
+
+/**
  * One figure's picture, in its own component so it can hold its own ref.
  *
  * A hook cannot be called inside a `map`, and the alternative — one ref array
@@ -127,17 +232,52 @@ type LightboxComponent = ComponentType<LightboxProps>
 function GalleryMedia({
   image,
   ratio,
-  full,
+  maxWidth,
+  sizes,
 }: {
   image: GalleryImage
   ratio: number | null
-  full: boolean
+  maxWidth: number
+  sizes: string
 }) {
   const parallaxRef = useRef<HTMLDivElement>(null)
-  useParallax(parallaxRef)
+  /*
+   * Explicit, and matched to the stylesheet — Tahap 57.
+   *
+   * This called the hook with no arguments, so the travel was the hook's own
+   * default of 6, while `project-gallery.module.css` wrote the overshoot as a
+   * hardcoded `-4%` / `108%`. Those two numbers have to agree — the layer has
+   * to be taller than its frame by exactly the travel it is given, or the
+   * frame shows its own background at the ends of the pass — and nothing
+   * connected them.
+   *
+   * That is the same failure `vault/blocks/project-card` had before Tahap 43,
+   * where `e2e/continuous-motion.e2e.ts` caught 2 exposed plates at three of
+   * four scroll positions once `work-constellation` changed one number and
+   * not the other. The card's fix was to derive the CSS from a custom
+   * property set here; the gallery now does the same, and the distance is
+   * stated once rather than inherited from a default nobody was reading.
+   */
+  useParallax(parallaxRef, { distance: PLATE_DRIFT })
 
   return (
-    <div className={s.media} style={ratioStyle(ratio)}>
+    <div
+      className={s.media}
+      /*
+       * SAFETY: `CSSProperties` has no index signature for custom properties,
+       * so an object carrying `--plate-drift` cannot be typed without this
+       * cast. The value is `PLATE_DRIFT`, a module constant declared in this
+       * file — not anything from the CMS or from a caller — and React
+       * forwards unknown keys straight to `style.setProperty`, which is what
+       * a custom property needs.
+       */
+      style={
+        {
+          ...ratioStyle(ratio),
+          '--plate-drift': PLATE_DRIFT,
+        } as CSSProperties
+      }
+    >
       {/*
         The travelling layer sits inside the ratio box, which clips it, so the
         picture moves against a frame that holds the grid still.
@@ -147,16 +287,33 @@ function GalleryMedia({
           image={toImageSource(image)}
           alt={image.alt ?? ''}
           className={s.image}
-          maxWidth={full ? 1440 : 704}
+          maxWidth={maxWidth}
           /*
-           * Matched to the grid track, which the box now actually fills. The
-           * derived default assumes an image fills the viewport, so a
-           * half-width figure asked for 1440px to render 691 — twice the
-           * pixels on the heaviest thing on the page.
+           * Matched to the box the plate actually fills — the grid track, or
+           * its width in the strip (`stripSizing`). The derived default
+           * assumes an image fills the viewport, so a half-width figure asked
+           * for 1440px to render 691 — twice the pixels on the heaviest thing
+           * on the page.
            */
-          sizes={trackImageSizes(full ? 92 : 48)}
+          sizes={sizes}
         />
       </div>
+      {/*
+        The plate assembles out of blocks — Tahap 56.
+
+        `vault/magic/pixel-image` renders a veil of ground-coloured tiles over
+        this box; they dissolve on a staggered delay when the figure's own
+        `[data-reveal-item]` turns `visible`. It sits *outside* `.parallax` on
+        purpose: the veil is a property of the frame, not of the picture
+        travelling inside it, so it must not drift with the parallax or the
+        seams would slide across the plate.
+
+        `--pixel-ground` is `--surface-2` rather than the page ground because
+        that is what `.media` paints while the image is still arriving. A tile
+        the colour of the page would announce itself as a tile against the
+        box; one the colour of the box is invisible until it goes.
+      */}
+      <PixelImage className={s.pixels} />
     </div>
   )
 }
@@ -165,9 +322,24 @@ export function ProjectGallery({
   images,
   id,
   'data-region': region,
+  run = false,
   className,
 }: ProjectGalleryProps) {
-  const ref = useReveal<HTMLUListElement>()
+  /*
+   * Per item — Tahap 56.
+   *
+   * The gallery is the middle of the longest inner route, and the census that
+   * opened `docs/stages/TAHAP-56.md` measured that middle as dead: two of
+   * twelve scroll steps on `/en/work/<slug>` produced any arrival at all. One
+   * `useReveal` on the `<ul>` is one event for every plate below it, which
+   * means the whole gallery had already arrived before the reader reached the
+   * second picture.
+   *
+   * `perItem` is the mode Tahap 54 added for exactly this shape, and it is
+   * what turns the mosaic below into one arrival per plate rather than one
+   * for the set.
+   */
+  const ref = useReveal<HTMLUListElement>({ perItem: true })
   const t = useTranslations('lightbox')
   const [Lightbox, setLightbox] = useState<LightboxComponent | null>(null)
   const [open, setOpen] = useState(false)
@@ -192,17 +364,186 @@ export function ProjectGallery({
 
   if (images.length === 0) return null
 
-  return (
-    <>
+  /*
+   * A run has to have somewhere to run — measured, 2026-09-13.
+   *
+   * The first wiring enabled the track unconditionally on this route, and the
+   * production build reported: `items: 2, trackWidth: 1027,
+   * viewportWidth: 1161, travel: -134`. Every one of the six seeded projects
+   * carries exactly two gallery images, so on all of them the track is
+   * *narrower than its own viewport*: `travel()` clamps to zero, and what
+   * ships is a pin that holds a full screen and never moves.
+   *
+   * `vault/blocks/step-sequence`'s doc already names that failure — "a held
+   * note that resolves inside one screen is not held; it is a coincidence" —
+   * and a pin with zero travel is the same defect with the volume up.
+   *
+   * So the shape is a property of the **content**, not of the route. Four is
+   * the floor because at `34vw` per item a run needs to out-measure its box
+   * by about a screen to read as travel rather than as a nudge: three items
+   * clear the viewport by roughly 320px, four by roughly 800px.
+   *
+   * Consequence, stated rather than hidden: **on today's fixtures the run
+   * never appears.** Every project falls back to the grid, which is the
+   * correct, already-measured design. The moment arrives with the first real
+   * project that has a real set of images — which is the fixture-content debt
+   * `docs/ROADMAP.md` already carries, not a new one.
+   */
+  const RUN_MINIMUM = 4
+  const travels = run && images.length >= RUN_MINIMUM
+
+  /*
+   * Each plate's shape, bounded exactly as `ratioStyle` bounds the box it is
+   * drawn in — the strip sets a plate's width from this number and the box
+   * sets its height from that width, so the two must be the same number or
+   * the heights will not agree.
+   */
+  const ratios = images.map((image) => boundedRatio(aspectRatioFor(image)))
+  const known = ratios.filter((ratio): ratio is number => ratio !== null)
+  const widest = known.length > 0 ? Math.max(...known) : null
+
+  /**
+   * Wraps the plates in whichever container this gallery is being.
+   *
+   * Both branches carry `data-reveal-item` on each item and hand the same
+   * `useReveal` ref to the list, so the veil in `GalleryMedia` — which keys
+   * off `[data-reveal-item='visible']` — dissolves either way. That is the
+   * detail most likely to be lost by a change like this, and it is why the
+   * marker is asserted in both branches rather than assumed from one.
+   */
+  const plates = (
+    entries: {
+      key: string
+      full: boolean
+      figure: ReactNode
+      note: string | null
+    }[]
+  ) => {
+    /*
+     * Only the grid needs this. The run lays its plates out horizontally, so
+     * no plate is ever alone in a row there, and asking the question would
+     * produce an answer that describes a layout the reader is not looking at.
+     */
+    const lone = loneHalves(entries.map((entry) => entry.full))
+
+    return travels ? (
+      <Horizontal
+        name="project-run"
+        label={t('run', { count: images.length })}
+        listRef={ref}
+        items={entries.map((entry) => entry.figure)}
+        ratios={ratios}
+        className={className}
+      />
+    ) : (
       <ul
         ref={ref}
         className={cn(s.gallery, className)}
         {...(id && { id })}
         {...(region !== undefined && { 'data-region': region })}
       >
-        {images.map((image, position) => {
+        {entries.map((entry, position) => {
+          /*
+           * A spread needs both halves of itself: a row with a hole in it and
+           * something true to put in the hole. A plate with no description —
+           * the schema allows it — gets the plain half it has always had,
+           * because an empty column beside a picture is the defect this is
+           * here to remove, not a smaller version of it worth shipping.
+           */
+          const spread = lone[position] === true && entry.note !== null
+
+          return (
+            <li
+              key={entry.key}
+              data-reveal-item
+              className={s.item}
+              data-span={entry.full ? 'full' : 'half'}
+              {...(spread && { 'data-spread': '' })}
+            >
+              {entry.figure}
+              {spread && (
+                /*
+                 * `aria-hidden`, for the reason the position label above is:
+                 * this text is already the image's `alt`, so a screen reader
+                 * has heard it from the picture itself. Rendering it again in
+                 * the tree would read one plate's description twice.
+                 *
+                 * It is the description Tahap 44 wrote *per plate*, and the
+                 * reason it wrote them is the reason this column is worth
+                 * having: the gallery plates are not the cover, and until now
+                 * the only person told what they were was one using a screen
+                 * reader.
+                 *
+                 * `p-big`, not `caption`, and the two voices are assigned the
+                 * way the rest of the site assigns them: mono carries what a
+                 * reader *scans* — the `02 / 02` still sitting under the
+                 * picture — and the display face carries what a reader
+                 * *reads*. At `caption` this column measured 245px of 11px
+                 * mono in a 572px track and read as a footnote for a picture
+                 * 786px tall.
+                 */
+                <p aria-hidden="true" className={cn('p-big', s.note)}>
+                  {entry.note}
+                </p>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    )
+  }
+
+  return (
+    <>
+      {/*
+        No script, no veil — the fork.
+
+        The tiles dissolve when `useReveal` marks a plate `visible`, and with
+        scripting off nothing ever does: measured on `/en/work/pusat-beban`,
+        every plate at full opacity and every picture under 24 opaque tiles
+        (`e2e/gallery-strip.e2e.ts`). A plate that passes a visibility check
+        while showing nothing.
+
+        A `<noscript>` rule and not a selector on the reveal's own attribute.
+        `.pixels:not([data-reveal] *)` was the first fix, and review caught
+        what it cost readers *with* a script: `data-reveal` is written at
+        hydration, so the server-rendered page showed the picture, and then
+        the veil snapped back over it, opaque and with no transition (a box
+        leaving `display: none` has nothing to transition from), before
+        dissolving again — on any reload that restores the scroll position.
+        The rule below reaches only a reader whose page no script will touch.
+
+        Here and not in `vault/magic/pixel-image`, which is curated and stays
+        as vendored; `next-project` and `studio-note` carry the same rule.
+      */}
+      <noscript>
+        <style
+          // oxlint-disable-next-line react/no-danger -- a static, self-authored rule whose only interpolation is this module's own hashed class name, a build-time constant; `style-src` carries 'unsafe-inline' as the documented base policy (lib/integrations/csp.ts)
+          dangerouslySetInnerHTML={{
+            __html: `.${s.pixels}{display:none!important}`,
+          }}
+        />
+      </noscript>
+      {/*
+        Two shapes, one set of plates — Tahap 64.
+
+        The `<figure>` below is byte-identical in both: same trigger, same
+        `GalleryMedia`, same veil, same caption. What differs is only what
+        holds it — a twelve-column grid the reader scrolls down, or a pinned
+        track the reader scrolls sideways. Keeping the plate out of that
+        decision is what makes the run an addition rather than a rewrite of
+        three stages of measured work.
+      */}
+      {plates(
+        images.map((image, position) => {
           const ratio = aspectRatioFor(image)
           const full = isFullWidth(ratio)
+          const sizing = travels
+            ? stripSizing(ratios[position] ?? null, widest)
+            : {
+                maxWidth: full ? 1440 : 704,
+                sizes: trackImageSizes(full ? 92 : 48),
+              }
           /*
            * `01 / 04`, padded, so the counter is the same width on every
            * plate and the column edge below the images stays straight.
@@ -211,15 +552,9 @@ export function ProjectGallery({
             images.length
           ).padStart(2, '0')}`
 
-          return (
-            <li
-              key={image._key}
-              data-reveal-item
-              className={s.item}
-              data-span={full ? 'full' : 'half'}
-            >
-              <figure className={s.figure}>
-                {/*
+          const figure = (
+            <figure className={s.figure}>
+              {/*
                   A real button, not a div with a click handler: it is
                   reachable by Tab, activates on Enter and Space, and
                   announces itself as something that does a thing. The
@@ -227,50 +562,63 @@ export function ProjectGallery({
                   because "image" alone tells a screen reader nothing about
                   the difference between three of them.
                 */}
-                <button
-                  type="button"
-                  className={s.trigger}
-                  data-gallery-trigger=""
-                  data-press="nav"
-                  data-intent=""
-                  aria-label={t('openImage', { position: position + 1 })}
-                  /*
-                   * The plate's place in the set, carried in the ring —
-                   * Tahap 43. Where it is in a sequence is the one thing a
-                   * reader cannot see from the picture itself, and until now
-                   * it existed only in the `aria-label` above: announced to a
-                   * screen reader, invisible to everyone else.
-                   *
-                   * The same string is rendered below, because
-                   * `vault/primitives/cursor` never mounts on a coarse
-                   * pointer and information that lives only in the ring does
-                   * not exist on a phone.
-                   */
-                  data-cursor="view"
-                  data-cursor-label={positionLabel}
-                  onClick={(event) => {
-                    void openAt(position, event.currentTarget)
-                  }}
-                >
-                  <GalleryMedia image={image} ratio={ratio} full={full} />
-                </button>
-                {/*
+              <button
+                type="button"
+                className={s.trigger}
+                data-gallery-trigger=""
+                data-press="nav"
+                data-intent=""
+                aria-label={t('openImage', { position: position + 1 })}
+                /*
+                 * The plate's place in the set, carried in the ring —
+                 * Tahap 43. Where it is in a sequence is the one thing a
+                 * reader cannot see from the picture itself, and until now
+                 * it existed only in the `aria-label` above: announced to a
+                 * screen reader, invisible to everyone else.
+                 *
+                 * The same string is rendered below, because
+                 * `vault/primitives/cursor` never mounts on a coarse
+                 * pointer and information that lives only in the ring does
+                 * not exist on a phone.
+                 */
+                data-cursor="view"
+                data-cursor-label={positionLabel}
+                onClick={(event) => {
+                  void openAt(position, event.currentTarget)
+                }}
+              >
+                <GalleryMedia
+                  image={image}
+                  ratio={ratio}
+                  maxWidth={sizing.maxWidth}
+                  sizes={sizing.sizes}
+                />
+              </button>
+              {/*
                   `aria-hidden`, because the button above already announces
                   "Open image 2 of 4" as its accessible name. Announcing the
                   figure's number again would have a screen reader read the
                   position twice for one plate.
                 */}
-                <figcaption
-                  aria-hidden="true"
-                  className={cn('caption', s.position)}
-                >
-                  {positionLabel}
-                </figcaption>
-              </figure>
-            </li>
+              <figcaption
+                aria-hidden="true"
+                className={cn('caption', s.position)}
+              >
+                {positionLabel}
+              </figcaption>
+            </figure>
           )
-        })}
-      </ul>
+
+          /*
+           * Trimmed to `null` rather than passed through: the schema marks
+           * `alt` required, but a whitespace-only string satisfies that and
+           * would open a spread column holding nothing.
+           */
+          const note = image.alt?.trim() ? image.alt.trim() : null
+
+          return { key: image._key, full, figure, note }
+        })
+      )}
 
       {Lightbox && (
         <Lightbox

@@ -1,7 +1,5 @@
-import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
-import { PRACTICES, practiceTemplate } from '../lib/content/practices'
 import { FEATURED_WORK } from './fixtures'
 
 /**
@@ -24,68 +22,15 @@ import { FEATURED_WORK } from './fixtures'
  * likely to be a landing page, from a search result or a shared link, and it
  * offered a reader exactly one way onward.
  *
- * ## Why this asserts reachability rather than a count
+ * ## What left this file in the fork
  *
- * "At least three links" is a magic number that a page could satisfy while
- * still stranding someone. This asserts the two destinations that actually
- * matter — the catalogue, and every practice — so it stays true whatever the
- * page's composition becomes.
+ * Two assertions answered that table: every route had to link the catalogue
+ * and every practice, and every page had to offer at least three onward
+ * links from its own content. Both fixed the site's information architecture,
+ * and the fork removed them (`docs/FORK.md`, step 5). What stays: the header
+ * is not a dead end, a guessed URL goes somewhere, the 404 offers a way on,
+ * machines are told what exists, and Studio does not sit on a public path.
  */
-
-/*
- * `/ai` is excluded, and the exemption is deliberate rather than an oversight:
- * `app/[locale]/ai/layout.tsx` bypasses the app layout on purpose because the
- * route is a plain-HTML index for crawlers and agents. It has no header and no
- * footer by design, and a rule about the site's chrome cannot apply to the one
- * page that has none.
- */
-const ROUTES = [
-  '/en',
-  '/en/work',
-  `/en/work/${FEATURED_WORK}`,
-  ...PRACTICES.map((value) => `/en/practice/${value}`),
-  '/id',
-]
-
-/** Every internal destination the page links to, hrefs only. */
-async function destinations(page: Page): Promise<string[]> {
-  return page.evaluate(() =>
-    [...document.querySelectorAll<HTMLAnchorElement>('a[href]')]
-      .map((anchor) => anchor.getAttribute('href') ?? '')
-      .filter((href) => href.startsWith('/'))
-  )
-}
-
-test.describe('every page offers a way into the rest of the site', () => {
-  for (const route of ROUTES) {
-    test(`${route} reaches the catalogue and every practice`, async ({
-      page,
-    }) => {
-      await page.goto(route)
-      await page.waitForTimeout(1800)
-
-      const hrefs = await destinations(page)
-      const locale = route.startsWith('/id') ? 'id' : 'en'
-
-      // The catalogue. Matched by suffix so it holds whether the link is
-      // written localized (`/en/work`) or as a template next-intl prefixes.
-      expect(
-        hrefs.some((href) => href === '/work' || href === `/${locale}/work`),
-        `${route} offers no link to the work index; internal links seen: ${hrefs.join(' ')}`
-      ).toBe(true)
-
-      for (const value of PRACTICES) {
-        const template = practiceTemplate(value)
-        expect(
-          hrefs.some(
-            (href) => href === template || href === `/${locale}${template}`
-          ),
-          `${route} offers no link to ${value}; internal links seen: ${hrefs.join(' ')}`
-        ).toBe(true)
-      }
-    })
-  }
-})
 
 /**
  * A URL guessed from a nav label, and where it lands.
@@ -187,7 +132,7 @@ const HUMAN_ROUTES = [
 ] as const
 
 /** Paths a person can act on. `/llms.txt` is not one of them. */
-const MACHINE_ONLY = /^\/(llms\.txt|sitemap\.xml|robots\.txt)|\/ai$/
+const MACHINE_ONLY = /^\/(llms\.txt|sitemap\.xml|robots\.txt)/
 
 test.describe('every page offers a way onward', () => {
   for (const route of HUMAN_ROUTES) {
@@ -208,45 +153,18 @@ test.describe('every page offers a way onward', () => {
         }
       })
 
-      // Anti-vacuum: a header with no links at all must not pass.
-      expect(nav.hrefs.length).toBeGreaterThan(2)
-
-      for (const destination of ['/work', '/studio', '/journal']) {
-        expect(
-          nav.hrefs.some((href) => href.endsWith(destination)),
-          `no header link to ${destination}`
-        ).toBe(true)
-      }
+      /*
+       * Not a dead end. This used to name the destinations — `/work`,
+       * `/studio`, `/journal` — which fixed the site's information
+       * architecture; the fork removed that list (`docs/FORK.md`, step 5).
+       */
+      expect(
+        nav.hrefs.length,
+        `${route}: the header offers ${nav.hrefs.length} link(s)`
+      ).toBeGreaterThan(2)
 
       // At most one, and exactly one wherever the header names this page.
       expect(nav.current).toBeLessThanOrEqual(1)
-    })
-  }
-
-  for (const route of HUMAN_ROUTES) {
-    test(`${route} offers three ways onward from its own content`, async ({
-      page,
-    }) => {
-      await page.goto(route)
-      await page.waitForLoadState('networkidle')
-
-      const onward = await page.evaluate((from: string) => {
-        const here = new URL(from, location.origin).pathname
-        return [
-          ...new Set(
-            [...document.querySelectorAll('main a[href^="/"]')]
-              .map((a) => a.getAttribute('href') ?? '')
-              .filter((href) => href !== '' && !href.startsWith('#'))
-              .map((href) => new URL(href, location.origin).pathname)
-              .filter((path) => path !== here)
-          ),
-        ]
-      }, route)
-
-      expect(
-        onward.length,
-        `${route} offers ${onward.length}: ${onward.join(' ')}`
-      ).toBeGreaterThanOrEqual(3)
     })
   }
 

@@ -52,9 +52,41 @@ interface MaterialUniforms {
   uDrift: IUniform<number>
   uDriftPeriod: IUniform<number>
   uShear: IUniform<number>
+  uZoom: IUniform<number>
+  uShift: IUniform<number>
   uTime: IUniform<number>
   uResolution: IUniform<Vector2>
+  /** How much of the texture each plate axis shows — `object-fit: cover`. */
+  uCover: IUniform<Vector2>
 }
+
+/**
+ * Width ÷ height of whatever a loader put in `texture.image`, or 0 when it is
+ * a kind this cannot read — in which case the plate keeps the old full-texture
+ * mapping rather than cropping by a guess. Tahap 86.
+ */
+function aspectOf(image: Texture['image']): number {
+  if (image instanceof HTMLImageElement && image.naturalHeight > 0) {
+    return image.naturalWidth / image.naturalHeight
+  }
+  if (image instanceof ImageBitmap && image.height > 0) {
+    return image.width / image.height
+  }
+  return 0
+}
+
+/**
+ * The parallax layer's headroom beyond its travel, as a fraction of the frame
+ * — the `+ 2` in `project-card.module.css`, kept so the drawn plate crops
+ * exactly as the DOM one does.
+ */
+const PARALLAX_HEADROOM = 0.02
+
+/** INTENT's zoom — the DOM card's `.link:hover .image { scale: 1.03 }`. */
+const INTENT_ZOOM = 0.03
+
+/** How quickly INTENT arrives and leaves, in seconds (a time constant). */
+const INTENT_TAU = 0.12
 
 interface MaterialImageSceneProps {
   /** The already-decoded source the DOM `<img>` settled on. */
@@ -73,6 +105,13 @@ interface MaterialImageSceneProps {
   shearVelocity: number
   /** Exponential decay time constant, in seconds, for the shear. */
   shearTau: number
+  /**
+   * The card's parallax travel, as a fraction of the frame's height — the
+   * `distance` its `useParallax` scrubs, over 100. 0 draws no parallax.
+   */
+  travel: number
+  /** INTENT: the card is hovered, or has keyboard focus. */
+  intent: boolean
   /** False when the element is outside the viewport — skips all per-frame work. */
   visible: boolean
   /**
@@ -162,6 +201,8 @@ export function MaterialImageScene({
   shear,
   shearVelocity,
   shearTau,
+  travel,
+  intent,
   visible,
   onFirstFrame,
 }: MaterialImageSceneProps) {
@@ -169,6 +210,13 @@ export function MaterialImageScene({
   const materialRef = useRef<ShaderMaterial>(null)
   const size = useThree((state) => state.size)
   const announced = useRef(false)
+  /**
+   * The loaded texture's own width ÷ height, or 0 before one has loaded.
+   *
+   * Read once when the texture arrives rather than every frame: it cannot
+   * change for a given texture, and the frame loop only needs the number.
+   */
+  const textureAspect = useRef(0)
 
   /*
    * The scroll offset the previous drawn frame stood at, and the shear
@@ -183,6 +231,8 @@ export function MaterialImageScene({
    */
   const lastScroll = useRef<number | null>(null)
   const shearValue = useRef(0)
+  /** INTENT, eased toward 0 or 1 — the same exponential approach as the shear. */
+  const intentValue = useRef(0)
 
   /*
    * `null` whenever the root canvas did not opt into the flowmap sim.
@@ -217,6 +267,9 @@ export function MaterialImageScene({
       uShear: { value: 0 },
       uTime: { value: 0 },
       uResolution: { value: new Vector2(1, 1) },
+      uCover: { value: new Vector2(1, 1) },
+      uZoom: { value: 1 },
+      uShift: { value: 0 },
     }),
     // Intentionally built once; the effects below push prop changes into the
     // existing uniform objects.
@@ -252,6 +305,7 @@ export function MaterialImageScene({
   useTexture(src, (texture) => {
     texture.magFilter = texture.minFilter = LinearFilter
     texture.generateMipmaps = false
+    textureAspect.current = aspectOf(texture.image)
     uniformsOf(materialRef.current, uniforms).uTexture.value = texture
   })
 
@@ -262,6 +316,9 @@ export function MaterialImageScene({
     const live = uniformsOf(materialRef.current, uniforms)
     return () => {
       live.uTexture.value = null
+      // The next texture sets its own; a stale ratio must not crop it first.
+      textureAspect.current = 0
+      live.uCover.value.set(1, 1)
     }
   }, [src, uniforms])
 
@@ -380,6 +437,72 @@ export function MaterialImageScene({
       )
       mesh.scale.set(rect.width, rect.height, 1)
       mesh.updateMatrix()
+
+      /*
+       * Crop the texture the way the `<img>` it replaces crops itself —
+       * Tahap 86.
+       *
+       * The DOM image carries `object-fit: cover`; this mesh used to map the
+       * whole texture onto the plate, so a picture whose shape differed from
+       * its box was **stretched** rather than cropped. It never showed while
+       * every cover happened to match its card. It showed everywhere else:
+       * on `/en/work`, where the catalogue gives every card a 4:5 box, five
+       * of six covers were drawn at the wrong shape — Pusat Beban's 16:9
+       * plate squeezed to 45% of its width, its round dome drawn as a tall
+       * narrow ellipse. Readers without WebGL never saw it; the `<img>`
+       * fallback was right all along.
+       *
+       * Computed against the same rect the mesh was just scaled to, and
+       * centred, because that is `object-fit: cover` with the default
+       * `object-position`. Before a texture has loaded the factor stays at
+       * `(1, 1)`, and nothing is drawn yet anyway.
+       */
+      const imageAspect = textureAspect.current
+      if (imageAspect > 0 && rect.height > 0) {
+        const plateAspect = rect.width / rect.height
+        const wider = plateAspect > imageAspect
+        live.uCover.value.set(
+          wider ? 1 : plateAspect / imageAspect,
+          wider ? imageAspect / plateAspect : 1
+        )
+      }
+
+      /*
+       * The card's parallax and its INTENT, drawn here — the fork.
+       *
+       * While this plate is live the DOM image is at opacity 0, so the card's
+       * `useParallax` tween and its `:hover` scale both moved something no one
+       * could see: desktop covers had no depth and no hover response. The
+       * same geometry is reproduced against the frame:
+       *
+       * - zoom `1 + travel + 0.02` — the parallax layer's overshoot, the
+       *   `(drift + 2)%` in `project-card.module.css`;
+       * - a shift from `+room` to `−room` as the frame crosses the viewport,
+       *   bottom edge in to top edge out — the scrub's `start: 'top bottom'`
+       *   to `end: 'bottom top'` — scaled by `travel / overshoot`, as the DOM
+       *   layer never uses its headroom. `+` samples higher in the picture,
+       *   which is what the layer's `+yPercent` shows at the start;
+       * - INTENT's 1.03, eased over ~120ms.
+       *
+       * Computed from `scrollY`, not read off the GSAP tween: GSAP runs later
+       * in the same Tempus tick and would lag a frame.
+       */
+      const overshoot = travel > 0 ? travel + PARALLAX_HEADROOM : 0
+      const zoom = 1 + overshoot
+      const room = (live.uCover.value.y - live.uCover.value.y / zoom) / 2
+      const progress = Math.min(
+        1,
+        Math.max(
+          0,
+          (scroll + size.height - rect.top) / (size.height + rect.height)
+        )
+      )
+      live.uShift.value =
+        overshoot > 0 ? (1 - 2 * progress) * room * (travel / overshoot) : 0
+      intentValue.current +=
+        ((intent ? 1 : 0) - intentValue.current) *
+        (1 - Math.exp(-seconds / INTENT_TAU))
+      live.uZoom.value = zoom * (1 + INTENT_ZOOM * intentValue.current)
 
       /*
        * Everything this mesh needs in order to be visible now holds: it has a

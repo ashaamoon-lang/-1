@@ -51,7 +51,8 @@ Two rules explain most of the structure:
 
 - **Every page URL carries a locale prefix** (`/en/…`, `/id/…`). A bare `/work/x`
   is not a page; it redirects. Anything that _advertises_ a URL — sitemap,
-  `/llms.txt`, `/ai`, canonical tags — must emit the prefixed form.
+  `/llms.txt`, the Markdown mirrors, canonical tags — must emit the prefixed
+  form.
 - **Nothing hardcodes a design value.** Colour, spacing, duration and easing all
   come from tokens in `lib/styles/`. See `CLAUDE.md` for the full list.
 

@@ -106,8 +106,17 @@
 }
 
 .title {
-  /* Size, family and leading come from the `p-big` type class. */
+  /*
+   * Family from the `p-big` type class; size on its own curve — the fork.
+   * `p-big` set a work's name at 16px on a phone under a 448px picture (the
+   * design-critique workflow). One continuous curve, larger at every width
+   * and never smaller as the viewport grows: 20px on a phone, ~24px at the
+   * 800px breakpoint, 30px at 1440 — no step down where the layout changes.
+   */
   margin: 0;
+  font-size: clamp(20px, calc(14px + 1.2vw), 30px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
 }
 
 .meta {

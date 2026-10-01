@@ -1,0 +1,221 @@
+/*
+ * The run, and the box it travels inside.
+ *
+ * Geometry only. Every transform is written by `index.tsx` from the scroll
+ * position, because the distance is a function of the track's own width and
+ * CSS has no way to know that.
+ */
+
+.root {
+  position: relative;
+
+  /*
+   * The unwrapped run's rows — the reduced-motion block below, and the
+   * `<noscript>` rule in `index.tsx`. A row starts at `--row-block` tall and
+   * grows until it fills the line; `--row-cap` stops a plate left alone on its
+   * line from growing taller than the screen under the header. On a phone a
+   * row starts a frame wide, so every plate takes its own row at full width.
+   * `cqi` resolves on the item, against `.viewport`.
+   */
+  --row-block: 100cqi;
+  --row-cap: calc(100svh - var(--header-height) - 2 * var(--section-lead));
+
+  @media (--desktop) {
+    --row-block: 30cqi;
+  }
+}
+
+/*
+ * The pinned box.
+ *
+ * `overflow: clip` and never `auto` — this is half of the keyboard contract
+ * the component's doc comment sets out. A scrollable ancestor is what lets a
+ * browser reveal a focused child by scrolling it, and that is exactly the
+ * movement that would fight the pin's transform. With nothing scrollable,
+ * there is nothing to fight, and `focusin` moves the page instead.
+ */
+.viewport {
+  /* The frame a strip's widest plate is measured against (`.strip`). */
+  container-type: inline-size;
+  block-size: 100svh;
+  /*
+   * Centred in the part of the screen the reader can see — the fork. The
+   * header stays over the top of the pinned box, so centring in the whole
+   * `100svh` set every plate half a header above the middle of what is
+   * visible.
+   */
+  padding-block-start: var(--header-height);
+  display: flex;
+  align-items: center;
+  overflow: clip;
+}
+
+.track {
+  display: flex;
+  gap: var(--gap);
+  /*
+   * One centre line — the fork. It was `stretch`, which hung every plate from
+   * the tallest one's top: on a phone, where one plate fills the screen at a
+   * time, a 16:9 plate sat in the upper third with the lower 60% of the screen
+   * empty under it. A strip (`.strip`) holds one height, so there this changes
+   * nothing.
+   */
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  /*
+   * The run starts and ends at the page's own gutter rather than at the
+   * viewport edge, so a card at rest lines up with the columns above and
+   * below it. A run that begins flush to the screen edge reads as a different
+   * grid rather than as the same page continuing sideways.
+   */
+  padding-inline: var(--safe);
+  /*
+   * Wider than its box on purpose: `min-content` lets the flex line keep each
+   * item's declared width instead of squeezing them all to fit, which is what
+   * gives the track something to travel across.
+   */
+  inline-size: max-content;
+  will-change: transform;
+}
+
+/*
+ * One card. Sized as a share of the screen rather than of the track, because
+ * what the reader judges is how much of *their* viewport one work occupies.
+ */
+.item {
+  flex: 0 0 auto;
+  inline-size: 78vw;
+  min-inline-size: 0;
+
+  @media (--desktop) {
+    inline-size: 34vw;
+  }
+}
+
+/*
+ * A film strip — the fork, from the design-critique workflow.
+ *
+ * With one width for every plate, each height followed its picture: on
+ * `/en/work/pusat-beban` at 1440×900 the four plates ended at 765, 612, 388
+ * and 504px, and the lower third of the pinned screen held nothing. A run of
+ * pictures of different shapes reads as a strip when they share a height and
+ * each takes the width its own ratio asks for — so every plate shares one top,
+ * one bottom and one caption line.
+ *
+ * The height is the smaller of two budgets:
+ *
+ *   - what the screen has under the header, less a lead above and below and a
+ *     line for the `01 / 04` caption;
+ *   - what lets the **widest** plate (`--run-max-ratio`) take `--strip-share`
+ *     of the frame — so every plate can be seen whole at some point in the
+ *     pass, and at its widest a sliver of each neighbour stays in view.
+ *
+ * `--strip-share` is set by `index.tsx` from the constant the gallery also
+ * reads to write `sizes`, so there is one number rather than two that have to
+ * agree. `100cqi` resolves on the item against `.viewport`, the frame.
+ *
+ * Desktop only. A phone is a portrait frame, and one shared height there is
+ * set by the widest plate: measured, a 16:9 in the set held every plate at
+ * 173px on a 390×844 screen — smaller than the width-led plates it would
+ * replace. A phone shows one plate at a time, so it keeps one width and the
+ * centre line above.
+ *
+ * `:where()` keeps this at the specificity of `.item`, so the reduced-motion
+ * block below — later in the file — still wins without an `!important`.
+ */
+@media (--desktop) {
+  .strip {
+    --plate-block: min(
+      calc(
+        100svh - var(--header-height) - 2 * var(--section-lead) -
+          desktop-vw(32px)
+      ),
+      calc(100cqi * var(--strip-share) / var(--run-max-ratio, 1))
+    );
+  }
+
+  :where(.strip) .item {
+    inline-size: calc(var(--plate-block) * var(--item-ratio, 1));
+  }
+}
+
+@media (--reduced-motion) {
+  /*
+   * The promise the script cannot make.
+   *
+   * `index.tsx` returns before creating any ScrollTrigger under this
+   * preference, so there is no pin, no spacer and no tween — the same shape
+   * `vault/blocks/passage` uses. But a passage with no animation is still
+   * readable prose, and a *track* with no animation is work the reader can
+   * never reach: everything past the first screen would sit outside the
+   * viewport permanently.
+   *
+   * So the track stops being a track. It wraps into rows, every card in the
+   * document flow and fully visible, and the section takes whatever height
+   * that needs instead of one screen.
+   *
+   * `vault/motion/use-active-in-sequence` states this contract in its own
+   * doc — the stylesheet has to promise it — and this is the same case.
+   *
+   * A reader with scripting off is the same case again — no ScrollTrigger, so
+   * no travel — and gets the same unwrap from the `<noscript>` rule in
+   * `index.tsx` (the fork). Keep the two in step.
+   */
+  .viewport {
+    /*
+     * Block, not flex — the fork. As a flex item of the viewport the track
+     * shrank to its content: measured in the catalogue built before this
+     * change, a 208px track inside a 1430px box, six plates stacked at 176px.
+     * The wrap below never wrapped; reduced motion got a column.
+     */
+    display: block;
+    block-size: auto;
+    padding-block-start: 0;
+    overflow: visible;
+  }
+
+  /*
+   * Wrapping flex, not a grid, and that is deliberate rather than incidental.
+   *
+   * The obvious spelling here is
+   * `grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr))`.
+   * It is correct CSS and it satisfies `CLAUDE.md` #12 — its minimum is
+   * capped at 100%, so the track shrinks. But `scale-rules.test.ts`'s
+   * bare-`1fr` check strips well-formed tracks with `minmax\([^)]*\)`, which
+   * stops at the *first* `)` — so a nested `min()` leaves `, 1fr)` behind and
+   * the line reads as a bare `1fr`.
+   *
+   * Taking the documented `scale-exempt:` escape hatch would have worked and
+   * would have been a lie by omission: the rule is not being opted out of
+   * here, it is being satisfied in a spelling the checker cannot parse.
+   * Wrapping flex needs no track list at all, behaves identically for this
+   * content, and leaves the gate reading real code rather than an exemption.
+   */
+  .track {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: start;
+    inline-size: auto;
+    transform: none;
+    will-change: auto;
+  }
+
+  /*
+   * Justified rows: the strip, wrapped — the fork.
+   *
+   * Each plate's basis is the row height times its ratio, and it grows in
+   * proportion to that same ratio, so every plate on a line gains the same
+   * height and the line keeps one top and one bottom while it fills the
+   * width. Measured on `/en/work/pusat-beban` at 1440: two full rows of two,
+   * 643 and 367px tall, where the column was four plates at 246px wide.
+   *
+   * Without `ratios` (`--item-ratio` unset) every item counts as square.
+   */
+  .item {
+    flex: var(--item-ratio, 1) 1 calc(var(--row-block) * var(--item-ratio, 1));
+    inline-size: auto;
+    min-inline-size: 0;
+    max-inline-size: calc(var(--row-cap) * var(--item-ratio, 1));
+  }
+}

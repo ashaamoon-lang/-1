@@ -32,9 +32,7 @@
     "practiceLink": "See work in this practice"
   },
   "work": {
-    "sectionTitle": "Selected work",
-    "viewProject": "View",
-    "nextProject": "Next project"
+    "viewProject": "View"
   },
   "workIndex": {
     "title": "Work",
@@ -59,11 +57,6 @@
     "relatedPractice": "Related practice",
     "aboutPractice": "About {practice}"
   },
-  "meta": {
-    "client": "Client",
-    "year": "Year",
-    "medium": "Medium"
-  },
   "language": {
     "label": "Language",
     "switchTo": "Switch to {language}"
@@ -86,7 +79,10 @@
     "overview": "Overview",
     "notes": "Notes",
     "images": "Images",
-    "onward": "Next"
+    "onward": "Next",
+    "arc": "How it ran",
+    "arcLabel": "The engagement, in order",
+    "outcome": "Outcome"
   },
   "notFound": {
     "label": "Error",
@@ -197,6 +193,7 @@
     "placeholder": "Search work, practices and writing",
     "empty": "Nothing matches that.",
     "hint": "Enter to open, Escape to close.",
+    "hintTouch": "Tap a result to open.",
     "close": "Close search",
     "groups": {
       "page": "Pages",
@@ -215,6 +212,7 @@
     "zoom": "Zoom",
     "close": "Close",
     "goTo": "Go to image {position}",
-    "openImage": "Open image {position} full screen"
+    "openImage": "Open image {position} full screen",
+    "run": "The work, {count} images, travelling sideways as you scroll"
   }
 }

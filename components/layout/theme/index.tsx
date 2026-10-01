@@ -4,6 +4,7 @@ import { createContext, use, useEffect, useState } from 'react'
 
 import type { Themes } from '@/styles/colors'
 import { type ThemeName, themes } from '@/styles/config'
+import { NoiseTexture } from '@/vault/magic/noise-texture'
 
 import s from './theme.module.css'
 
@@ -125,14 +126,35 @@ export function Theme({
    * route's markup, already behind the page-transition overlay, so nothing
    * cross-fades and no element animates its own colour.
    *
-   * `<html>` deliberately carries no `data-theme` any more:
-   * `e2e/taste-preflight.e2e.ts` asserts exactly one distinct value per page,
-   * and a stale default on the document element would be a second one.
+   * `<html>` deliberately carries no `data-theme` any more: a stale default
+   * on the document element would be a second, contradicting value beside the
+   * one this ground carries. (`e2e/taste-preflight.e2e.ts` used to assert one
+   * value per page; the fork deleted it, and a page may now turn its theme on
+   * purpose — but a leftover default is a bug either way.)
    */
   if (!global) return provided
 
   return (
     <div data-theme={currentTheme} className={s.ground}>
+      {/*
+        The paper — Tahap 53.
+
+        Third category (`MOTION-SPEC.md` §0): no duration, no easing, nothing
+        that moves, and so not counted by §9.5. It sits here rather than being
+        repeated per route because it is one surface, and three copies of one
+        surface is how a site ends up with grain over grain on the two pages
+        that matter most.
+
+        First child on purpose: it and the hero washes all sit at `z-index:
+        -1` inside this stacking context, so paint order is DOM order and the
+        washes stay above the paper.
+
+        `vault/blocks/hero` keeps a grain of its own, and that is not a
+        duplicate: it sits over the WebGL wash, which is drawn above every
+        negative `z-index` and is therefore the one surface this layer cannot
+        reach.
+      */}
+      <NoiseTexture className={s.grain} />
       {provided}
     </div>
   )

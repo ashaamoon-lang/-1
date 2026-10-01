@@ -242,6 +242,25 @@ export const projectQuery = defineQuery(`
       "lqip": asset->metadata.lqip,
       "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)
     },
+    // The arc. Projected inline for the same reason gallery is: the shape is
+    // used by exactly one query, so a shared constant would buy nothing.
+    // The _key taken here is the chapter's own -- the _key inside each
+    // coalesce scopes to the localized array being filtered, not to this one
+    // -- and it is what StepSequence takes as its stable key.
+    //
+    // No backticks in this comment, and that is not style. Everything from
+    // the opening backtick of defineQuery to its close is one JS template
+    // literal, so a backtick here ends the string early. Typegen then exits
+    // 0, reports "0 queries and 27 schema types", and every query type in
+    // sanity.types.ts silently disappears. The note above this query warns
+    // about block comments for the same reason; this is the neighbouring
+    // hazard, found by walking into it.
+    chapters[]{
+      _key,
+      "heading": coalesce(heading[_key == $locale][0].value, heading[_key == "en"][0].value),
+      "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)
+    },
+    "outcome": coalesce(outcome[_key == $locale][0].value, outcome[_key == "en"][0].value),
     // Metadata-only projections. See the note above this query.
     "excerpt": pt::text(
       coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)

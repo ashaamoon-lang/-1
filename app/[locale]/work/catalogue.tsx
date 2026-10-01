@@ -14,6 +14,7 @@ import {
 import { JsonLd } from '@/lib/seo/json-ld'
 import { collectionPageSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
+import { nameplateStyle } from '@/lib/utils/display-fit'
 import { PracticeFilter } from '@/vault/blocks/practice-filter'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
 import { GridPattern } from '@/vault/magic/grid-pattern'
@@ -209,7 +210,7 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
           together — eyebrow, title, then the sentence that explains what the
           list is — which is the order they are read in.
         */}
-        <Reveal as="header" className={s.header}>
+        <Reveal as="header" className={cn('nameplate', s.header)}>
           {/*
             The catalogue's ground — Tahap 51, third category, not counted by
             §9.5 because it never moves.
@@ -221,7 +222,7 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
             "surface" — and `/studio` took the other half of it.
           */}
           <GridPattern width={48} height={48} className={s.ground} />
-          <p data-reveal-item className="caption">
+          <p data-reveal-item className={cn('caption', s.eyebrow)}>
             {t('eyebrow')}
           </p>
           {/*
@@ -240,7 +241,10 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
             key={practice ?? 'all'}
             as="h1"
             split="lines"
-            className="h1"
+            className="nameplate-title h1"
+            style={nameplateStyle(
+              practice ? t(`${practice}Title`) : t('title')
+            )}
           >
             {practice ? t(`${practice}Title`) : t('title')}
           </TextReveal>

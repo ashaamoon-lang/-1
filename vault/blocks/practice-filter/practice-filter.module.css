@@ -8,6 +8,12 @@
    * — "Force all chips into one clipped row". So: no fixed height, no
    * horizontal overflow, no truncation. At 320px with four Indonesian labels
    * this wraps to three rows and every label stays readable.
+   *
+   * On a phone it is a two-by-two grid — the fork. Wrapping left the four
+   * chips 3 + 1, "Commission" alone on its own row (the design-critique
+   * workflow, in the 390px screenshots). Two equal columns keep every label
+   * whole: the longest chip is ~120px with its padding, against a 140px
+   * column at 320px, and `minmax(0, 1fr)` (`CLAUDE.md` #12).
    */
   display: flex;
   flex-wrap: wrap;
@@ -15,6 +21,11 @@
   list-style: none;
   margin: 0;
   padding: 0;
+
+  @media (--mobile) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
   @media (--desktop) {
     gap: desktop-vw(8px);
@@ -32,9 +43,17 @@
   color: var(--text-muted);
   text-decoration: none;
   white-space: nowrap;
-  /* INTENT already in band; `transform` added for COMMIT (§9). */
+  /*
+   * INTENT already in band; `transform` added for COMMIT (§9).
+   *
+   * `background-color` eases with `color` — the fork. It used to change
+   * instantly while the ink eased, so a chip leaving the current state
+   * showed dark ink on the dark page for most of the fade. Moving together,
+   * the fill and the ink cross-fade as one.
+   */
   transition:
     color var(--duration-fast) var(--ease-out-quart),
+    background-color var(--duration-fast) var(--ease-out-quart),
     border-color var(--duration-fast) var(--ease-out-quart),
     transform var(--duration-micro) var(--ease-out-quart);
 
@@ -63,6 +82,12 @@
     color: var(--color-primary);
     background: var(--color-secondary);
     border-color: var(--color-secondary);
+    /*
+     * Arriving here is instant. With the ink easing from light to dark while
+     * the fill turned light at once, the label and count read light-on-light
+     * for the length of the fade. `transform` stays, for COMMIT.
+     */
+    transition: transform var(--duration-micro) var(--ease-out-quart);
   }
 
   /* INTENT from the keyboard — same state as hover. See `header.module.css`. */
@@ -71,6 +96,18 @@
     border-color: var(--color-secondary);
     outline: 2px solid var(--color-contrast);
     outline-offset: 2px;
+  }
+
+  /*
+   * The current chip keeps its dark ink under keyboard focus — the fork.
+   * The rule above sets the ink to `--color-secondary`, which is exactly the
+   * current chip's fill, so a keyboard reader who tabbed onto the selected
+   * filter saw an empty pill: label and count at 1:1. The outline still
+   * marks focus; the fill already marks the selection.
+   */
+  &[aria-current]:focus-visible {
+    color: var(--color-primary);
+    border-color: var(--color-secondary);
   }
 }
 
@@ -91,9 +128,20 @@
  * widths, which on a wrapping chip row is what makes a line re-break as the
  * catalogue is filtered.
  */
+/*
+ * `inherit`, so the count follows the chip through every state. It was
+ * pinned to `--text-muted` — a light ink — and on the current chip, whose
+ * ground turns light, it measured about 1:1: "All" rendered with no number
+ * under it at all. Found in the fork by looking. No gate had seen it because
+ * the count is `aria-hidden` (the chip's name already says it): the route
+ * sweep's axe run passed `/en/work` with it on screen, and `contrast-situ`
+ * skipped `aria-hidden` text. The fork made that gate measure it — proved
+ * red on this count at 1.00:1 before this rule was fixed. On an inactive
+ * chip nothing changes, since the chip's own colour is `--text-muted`.
+ */
 .count {
   font-size: 0.75em;
   font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
+  color: inherit;
   margin-inline-start: 0.5ch;
 }

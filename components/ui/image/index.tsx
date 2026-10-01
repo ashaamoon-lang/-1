@@ -110,7 +110,6 @@ export type ImageProps = Omit<
 
 // Base64 encoding for blur placeholders (works in browser and Node.js)
 function toBase64(str: string): string {
-  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- SSR guard; literal typeof enables bundler dead-code elimination
   return typeof window === 'undefined'
     ? Buffer.from(str).toString('base64')
     : btoa(str)

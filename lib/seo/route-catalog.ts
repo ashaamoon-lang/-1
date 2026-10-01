@@ -13,10 +13,10 @@ export interface StaticRoute {
   path: string
   /**
    * Both localized, because these strings are read by people and by answer
-   * engines: they are what `/llms.txt`, `/[locale]/ai` and the Markdown
-   * representations print next to each link. Leaving them English-only made
-   * `/id/ai` an Indonesian page listing English descriptions of its own
-   * pages — see `lib/seo/site.ts` for the same split applied to entity copy.
+   * engines: they are what `/llms.txt` and the Markdown representations
+   * print next to each link. Leaving them English-only once made `/id/ai` —
+   * a machine view removed in Tahap 84 — an Indonesian page listing English
+   * descriptions of its own pages — see `lib/seo/site.ts` for the same split applied to entity copy.
    */
   label: Localized<string>
   description: Localized<string>
@@ -34,7 +34,7 @@ export interface LocalizedStaticRoute extends Omit<
 > {
   label: string
   description: string
-  /** The locale-free path this entry was expanded from (`/`, `/ai`). */
+  /** The locale-free path this entry was expanded from (`/`, `/studio`). */
   template: string
   locale: Locale
 }
@@ -51,7 +51,8 @@ export interface LocalizedStaticRoute extends Omit<
  * Labels and descriptions for the practice views.
  *
  * Deliberately not read from `messages/*.json`. This catalogue feeds
- * `/llms.txt`, `/ai` and the sitemap, all of which are assembled outside any
+ * `/llms.txt`, the Markdown representations and the sitemap, all of which are
+ * assembled outside any
  * request and therefore outside next-intl's locale context; `SITE` in
  * `lib/seo/site.ts` is hardcoded for the same reason and says so. The rendered
  * page's own `<h1>` does come from the message files, which is why these read
@@ -85,16 +86,6 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
     description: SITE.description,
     changeFrequency: 'daily',
     priority: 1,
-  },
-  {
-    path: '/ai',
-    label: { en: 'Agent index', id: 'Indeks untuk agen' },
-    description: {
-      en: 'Server-rendered agency facts, every page link, and guidance for agents handling an enquiry.',
-      id: 'Fakta agency yang dirender di server, tautan ke seluruh halaman, dan panduan untuk agen yang menangani permintaan masuk.',
-    },
-    changeFrequency: 'monthly',
-    priority: 0.5,
   },
   {
     path: '/journal',
@@ -148,11 +139,11 @@ export const STATIC_ROUTE_TEMPLATES: readonly StaticRoute[] = [
 ]
 
 /**
- * Every static route, expanded across every locale — `/en`, `/id`, `/en/ai`,
- * `/id/ai`.
+ * Every static route, expanded across every locale — `/en`, `/id`,
+ * `/en/studio`, `/id/studio`.
  *
- * This is what gets *advertised*: the sitemap, `/llms.txt`, the machine view,
- * and the Markdown-representation lookup in `lib/seo/alternates.ts` all read
+ * This is what gets *advertised*: the sitemap, `/llms.txt`, and the
+ * Markdown-representation lookup in `lib/seo/alternates.ts` all read
  * it. Because `localePrefix` is 'always', each entry is also the page's one
  * canonical URL, which is the invariant `alternates.ts` requires — a canonical
  * that disagrees with the sitemap asks a search engine to crawl one URL and

@@ -77,6 +77,7 @@ __pycache__/
 # no install step. Provenance and licence: docs/PROVENANCE.md section 3.
 .claude/*
 !.claude/skills/
+!.claude/agents/
 .claude/settings.local.json
 plans
 

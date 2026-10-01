@@ -26,6 +26,7 @@ import { describe, expect, it } from 'bun:test'
 import {
   AA_TEXT,
   APCA_MIN,
+  MEASURED_TOKENS,
   measureContrast,
   readBaseline,
   readDerivedTokens,
@@ -46,21 +47,92 @@ describe('WCAG 2.1 AA contrast (blocking)', () => {
     )
   })
 
-  it('parses the derived tokens out of global.css', async () => {
+  /*
+   * Every derived token is accounted for — replaced in the fork.
+   *
+   * This used to pin the exact list of derived token **names**, so a new token
+   * failed the build until someone re-typed the list. Its stated purpose was
+   * that "a new derived token cannot arrive without" a contrast decision, and
+   * its own comment claimed `--hero-wash-mid` "is measured here anyway, and
+   * deliberately."
+   *
+   * It was not. A name list proves a token was **parsed**, not **measured** —
+   * a token is only measured when some entry in `PAIRS` uses it. Checked in
+   * the fork, three of the seven were read and never compared against
+   * anything: `hero-wash-mid`, `line`, `line-strong`. The pinned list had been
+   * reporting a guarantee it did not provide.
+   *
+   * So this now asks the real question. Every derived token must be either
+   * measured by a pair, or named below with the reason it is not — a
+   * conscious decision per token, which is what the old list was reaching for.
+   * A measured token passes on its own; nobody re-types anything.
+   *
+   * **Decided, on the repo owner's decision, when the fork went to `main`.**
+   * All three are now measured by pairs in `contrast.ts`, so none is listed
+   * below:
+   *
+   *   - `hero-wash-mid` — ink and muted text on it, both above 4.5:1 in both
+   *     themes (and muted text on the wash's lightest stop, which no pair
+   *     covered).
+   *   - `line`, `line-strong` — held to 3:1 where one is a control's only
+   *     visual: the command palette's scrollbar thumb, on its track and on
+   *     the palette's ground. Both pairs **fail** (about 2:1) and ship as a
+   *     recorded floor in `contrast-baseline.json`; the owner's decision was
+   *     to measure and record, not to change the palette.
+   *
+   * Every other use of `--line` / `--line-strong` is **exempt from WCAG
+   * 1.4.11**, and why, use by use — checked against each rule, not assumed:
+   *
+   *   - **Separators**: the hairlines between sections and rows (pages,
+   *     footer, spine rows, lists, the palette's head and footer). They mark
+   *     layout, not a component; what they separate is identified by its
+   *     own text.
+   *   - **Region edges**: the palette popup, the 404 panel, the dev-only
+   *     not-configured page. Boundaries of regions, not of controls.
+   *   - **Controls identified by their text**: the filter chips and the
+   *     project page's practice chips (links), the search trigger, the
+   *     palette's close button, the studio's closing action. 1.4.11 does not
+   *     require a boundary where the text identifies the control, and the
+   *     selected chip is shown by fill, not by its border.
+   *   - **Controls identified by an icon**: the lightbox actions. The icon,
+   *     in `--text-muted`, is what identifies each, and that token is
+   *     measured above 4.5:1 on the ground.
+   *   - **Decoration**: the breadcrumb separator glyph (the list and the
+   *     link texts carry the structure), the ⌘K key frame (`aria-hidden`),
+   *     the spine's rail, and the dot and grid textures in `vault/magic`.
+   *
+   * A new use of either token as a control's only visual belongs in
+   * `contrast.ts`, as the scrollbar does.
+   */
+  it('accounts for every derived token — measured, or unmeasured on the record', async () => {
+    const UNMEASURED = {} satisfies Record<string, string>
+
     const derived = await readDerivedTokens()
-    expect(derived.map((d) => d.token).sort()).toEqual([
-      // `--hero-wash-to` joined the list in Tahap 17, when the hero's gradient
-      // stopped being two hex literals in a component and became a token. It
-      // belongs here rather than being filtered out: the wash is what the hero
-      // headline sits on, so brightening it is a contrast decision, and this
-      // list exists so a new derived token cannot arrive without one.
-      'hero-wash-to',
-      'line',
-      'line-strong',
-      'surface',
-      'surface-2',
-      'text-muted',
-    ])
+    expect(
+      derived.length,
+      'no derived tokens parsed — the reader is broken'
+    ).toBeGreaterThan(0)
+
+    const unaccounted = derived
+      .map(({ token }) => token)
+      .filter((token) => !MEASURED_TOKENS.has(token) && !(token in UNMEASURED))
+
+    expect(
+      unaccounted,
+      'a derived token is neither measured by a pair in contrast.ts nor recorded as unmeasured here'
+    ).toEqual([])
+
+    // And the record cannot rot: a token listed as unmeasured that a pair now
+    // measures, or that no longer exists, is stale and must leave it.
+    const stale = Object.keys(UNMEASURED).filter(
+      (token) =>
+        MEASURED_TOKENS.has(token) ||
+        !derived.some((entry) => entry.token === token)
+    )
+    expect(
+      stale,
+      'UNMEASURED lists a token that is now measured or gone'
+    ).toEqual([])
   })
 
   it('introduces no contrast failure outside the accepted baseline', () => {

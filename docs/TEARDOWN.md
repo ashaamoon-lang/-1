@@ -122,6 +122,13 @@ level of rigour worth keeping.
 > studios measured here, whose content carries no colour of its own. This site
 > shows artwork, so it ships **no chromatic accent at all**. The reasoning is
 > in `docs/stages/TAHAP-1.md` §0; rule 2 survives unchanged.
+>
+> **Tahap 66 — the sector moved and the decision did not.** ARTH became an
+> agency at Tahap 60, which is the same category as every studio in the table
+> above, so "it holds for the studios measured here" no longer excludes this
+> project. Put to the owner with that correction and re-affirmed: **no
+> chromatic accent**, on the reason that survives — the plates carry their own
+> colour. `DESIGN-SYSTEM.md` §1 holds the full note.
 
 ---
 

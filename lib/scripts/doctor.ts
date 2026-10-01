@@ -63,9 +63,33 @@ const colors = {
 
 const checks: Check[] = [
   {
+    /*
+     * Asks the `node` binary, not the runtime this script happens to run in.
+     *
+     * This read `process.versions.node`, and `bun run doctor` runs it under
+     * **Bun** — where that value is Bun's Node *compatibility* version, not the
+     * Node on PATH. Measured on a machine with Node 26.7.0 installed:
+     *
+     *   node -e 'console.log(process.versions.node)'   26.7.0
+     *   bun  -e 'console.log(process.versions.node)'   24.3.0
+     *
+     * Against `>=24.20.0` the second fails, so `bun run doctor` reported a
+     * missing Node upgrade on a machine three majors past the requirement —
+     * and exited 1 while doing it. A tool that fails on a correct setup is one
+     * nobody runs, which costs every other check in this list.
+     *
+     * The binary is what the requirement is actually about: `ci.yml` installs
+     * Node separately from Bun because `test:oxlint-plugin` spawns `node` per
+     * ruletest — oxlint's RuleTester refuses the Bun runtime.
+     */
     name: `Node.js version >= ${requiredNodeVersion}`,
     check: () => {
-      const [major = 0, minor = 0] = process.versions.node
+      const probe = Bun.spawnSync(['node', '--version'])
+      if (!probe.success) return false
+
+      const reported = new TextDecoder().decode(probe.stdout).trim()
+      const [major = 0, minor = 0] = reported
+        .replace(/^v/, '')
         .split('.')
         .map((part) => Number.parseInt(part, 10))
       const [requiredMajor = 0, requiredMinor = 0] = requiredNodeVersion
@@ -177,6 +201,82 @@ const checks: Check[] = [
     fix: 'Run: bunx lefthook install',
     skipReason:
       'not applicable — no git repo, or a linked worktree where hooks are shared with the main checkout',
+  },
+  {
+    /*
+     * Port 3000 is free.
+     *
+     * ## Why a stale listener is worse than a busy port
+     *
+     * The two commands disagree about it, and the quieter one is the dangerous
+     * one. Measured on this machine, with something already on 3000:
+     *
+     *   bun run start   EADDRINUSE, exit 1                    — fails loudly
+     *   bun run dev     "using available port 3001 instead"   — a warning
+     *
+     * So `dev` keeps working while the address a reader has bookmarked keeps
+     * serving whatever stale process still holds it. Open `localhost:3000` out
+     * of habit and you are reading the previous build with none of your
+     * changes, and nothing says so.
+     *
+     * It reaches the gates too. `playwright.config.ts` hardcodes
+     * `localhost:3000` and sets `reuseExistingServer: !process.env.CI`, so a
+     * local suite attaches to that stale server rather than the one it meant
+     * to test — a run that reports on a tree nobody is looking at.
+     *
+     * This repository has three worktrees against one port, which is the
+     * arrangement that makes it likely rather than rare.
+     */
+    name: 'Port 3000 is free (dev server, and the e2e suite, both want it)',
+    check: async () => {
+      /*
+       * It asks whether anything **answers**, not whether it can bind —
+       * corrected in Tahap 82, and the correction was earned.
+       *
+       * The first version bound `127.0.0.1:3000` and called a successful bind
+       * proof of a free port. Measured on this machine: this check printed
+       * "Port 3000 is free", and `bun run start` on the very next line died
+       * with `EADDRINUSE: :::3000`. `next start` binds the IPv6 wildcard, and
+       * Windows let a bind to the specific IPv4 loopback succeed beside it.
+       *
+       * An instrument that reports green while the thing it measures is red is
+       * worse than no instrument, because it is believed. A connect probe
+       * cannot disagree with the server that way: whatever address a listener
+       * holds, if it accepts a connection on loopback then the port is taken
+       * for everyone who will try to use it.
+       *
+       * Both loopback families are tried, because a listener may hold only
+       * one, and either one is enough to break the reader's `localhost:3000`.
+       */
+      const answers = async (hostname: string) => {
+        try {
+          const socket = await Bun.connect({
+            hostname,
+            port: 3000,
+            socket: {
+              data(client) {
+                client.end()
+              },
+            },
+          })
+          socket.end()
+          return true
+        } catch {
+          // Refused, unreachable, or no such address family — nothing is
+          // serving there, which is what this check is asking.
+          return false
+        }
+      }
+
+      const held = (await answers('127.0.0.1')) || (await answers('::1'))
+      return !held
+    },
+    fix:
+      'Something is already serving :3000 — often a `next start` left running by ' +
+      'another worktree or an earlier session. Stop it, or start yours elsewhere ' +
+      'with `PORT=3001 bun run start`. Windows: ' +
+      '`Get-NetTCPConnection -LocalPort 3000 -State Listen | %{ Get-CimInstance Win32_Process -Filter "ProcessId=$($_.OwningProcess)" | Select ProcessId,CommandLine }`. ' +
+      'macOS/Linux: `lsof -nP -iTCP:3000 -sTCP:LISTEN`.',
   },
 ]
 

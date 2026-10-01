@@ -40,6 +40,13 @@ export default defineConfig({
       name: 'mobile',
       testMatch: [
         '**/route-sweep.e2e.ts',
+        // The defect this gate was written for exists ONLY below 800px.
+        // `project-spine` is sticky with no ground of its own; at `--desktop`
+        // it sits in column 2 and never meets artwork, so 759 desktop runs
+        // across seven full pages came back clean while "Images" measured
+        // 1.48:1 over a photograph at 390px. A desktop-only run would report
+        // this page green forever (Tahap 72).
+        '**/contrast-situ.e2e.ts',
         '**/responsive.e2e.ts',
         '**/project-detail.e2e.ts',
         '**/image-resolution.e2e.ts',
@@ -47,6 +54,14 @@ export default defineConfig({
         '**/promises.e2e.ts',
         '**/no-javascript.e2e.ts',
         '**/route-budget.e2e.ts',
+        // A plate's placeholder is a `background-color`, and a
+        // `background-color` can be declared inside a breakpoint — both
+        // `project-hero` and `project-card` already carry `@media (--desktop)`
+        // blocks. So "nothing opaque is painted over a handed-over plate" is a
+        // claim that has to hold at both widths: a desktop-only run would miss
+        // an occluder that only exists on a phone, which is precisely the
+        // shape of the defect this gate was written for (Tahap 59).
+        '**/material-occlusion.e2e.ts',
         // Where a navigation lands is a viewport question: a destination
         // shorter than the offset the reader carried over clamps to its own
         // maximum, so the same link strands the heading by a different
@@ -59,10 +74,6 @@ export default defineConfig({
         // against the header's 14 on desktop and 17 on mobile — so checking
         // one width would have found half of it.
         '**/visual-substance.e2e.ts',
-        // The rhythm token resolves to a different number per breakpoint
-        // (32px mobile, 48px desktop), so "one rhythm per page" is a claim
-        // that has to hold at both widths, not just the one it was written at.
-        '**/spatial-rhythm.e2e.ts',
         // The entrance covers the whole viewport, and its first assertion —
         // that nothing is painted over the headline with JavaScript off —
         // reads the element stack at the headline's own centre. That point is
@@ -81,6 +92,14 @@ export default defineConfig({
         // sits, and whether it lands on the header rather than under it, is a
         // different question at each width.
         '**/reading-progress.e2e.ts',
+        // The run lays out differently at each width — one height for every
+        // plate on desktop, one width and one centre line on a phone — and
+        // with scripting off a phone clipped three of its four plates where
+        // desktop clipped two. Each width is its own claim (the fork).
+        '**/gallery-strip.e2e.ts',
+        // The menu exists only below the desktop breakpoint, so this is the
+        // one project that can open it (the fork).
+        '**/phone-menu.e2e.ts',
       ],
       use: {
         browserName: 'chromium',

@@ -48,3 +48,26 @@ export const Single: Story = { args: { images: images(1) } }
 
 /** An empty gallery renders nothing at all — no heading, no empty grid. */
 export const Empty: Story = { args: { images: [] } }
+
+/**
+ * The horizontal run — and until Tahap 70 **nothing drew it**.
+ *
+ * Tahap 64 built the pinned sideways track: tokenised, reduced-motion aware,
+ * with an epic marker and an accessible label in both dictionaries, and the
+ * project page passes `run`. But the mode only engages at `RUN_MINIMUM`, and
+ * three separate things had to be true for that — none of them were. Every one
+ * of the six seeded projects carries exactly two plates; no story passed `run`;
+ * and the unit tests cover plate widths and `loneHalves`, not the condition.
+ *
+ * `Five` above is the sharpest version of it: five images, clear of the
+ * minimum with room to spare, still drawing a grid — because the prop that
+ * chooses the mode was never handed over. A catalogue that demonstrates the
+ * wrong mode at exactly the count built for the other one documents the block
+ * wrong, which is the lesson Tahap 67 paid fifty-five stages for.
+ *
+ * Four, not five, because four is the floor the block argues for: at `34vw`
+ * per item a run has to out-measure its own box by about a screen to read as
+ * travel rather than as a nudge, and three items clear the viewport by roughly
+ * 320px against four's 800px. This story is the smallest honest run.
+ */
+export const Run: Story = { args: { images: images(4), run: true } }

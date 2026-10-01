@@ -67,7 +67,6 @@ No Markdown representation is available for \`${path}\`. The starter currently p
 
 ## Where to look next
 
-- [Agent index](${absoluteSiteUrl('/ai')})
 - [llms.txt](${absoluteSiteUrl('/llms.txt')})
 - [Sitemap](${absoluteSiteUrl('/sitemap.xml')})
 `,

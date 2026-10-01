@@ -205,6 +205,13 @@ export type Project = {
   engagement?: InternationalizedArrayString;
   scope?: string;
   body?: InternationalizedArrayRichText;
+  chapters?: Array<{
+    heading?: InternationalizedArrayString;
+    body?: InternationalizedArrayText;
+    _type: "chapter";
+    _key: string;
+  }>;
+  outcome?: InternationalizedArrayString;
   order?: number;
   featured?: boolean;
   listed?: boolean;
@@ -563,7 +570,7 @@ export type PracticesQueryResult = Array<
 
 // Source: queries.ts
 // Variable: projectQuery
-// Query: *[_type == "project" && slug.current == $slug][0] {      _id,  slug,  year,  client,  span,  featured,  practice,  cover{ ..., "lqip": asset->metadata.lqip },  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value),    scope,    publishedAt,    metadata,    _updatedAt,    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{      ...,      markDefs[]{        ...,        _type == "link" => {          ...,          internalLink->{_type, slug, title}        }      }    },    gallery[]{      ...,      "lqip": asset->metadata.lqip,      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)    },    // Metadata-only projections. See the note above this query.    "excerpt": pt::text(      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)    ),    "ogImage": cover.asset->{      url,      "width": metadata.dimensions.width,      "height": metadata.dimensions.height    }  }
+// Query: *[_type == "project" && slug.current == $slug][0] {      _id,  slug,  year,  client,  span,  featured,  practice,  cover{ ..., "lqip": asset->metadata.lqip },  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value),    scope,    publishedAt,    metadata,    _updatedAt,    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{      ...,      markDefs[]{        ...,        _type == "link" => {          ...,          internalLink->{_type, slug, title}        }      }    },    gallery[]{      ...,      "lqip": asset->metadata.lqip,      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)    },    // The arc. Projected inline for the same reason gallery is: the shape is    // used by exactly one query, so a shared constant would buy nothing.    // The _key taken here is the chapter's own -- the _key inside each    // coalesce scopes to the localized array being filtered, not to this one    // -- and it is what StepSequence takes as its stable key.    //    // No backticks in this comment, and that is not style. Everything from    // the opening backtick of defineQuery to its close is one JS template    // literal, so a backtick here ends the string early. Typegen then exits    // 0, reports "0 queries and 27 schema types", and every query type in    // sanity.types.ts silently disappears. The note above this query warns    // about block comments for the same reason; this is the neighbouring    // hazard, found by walking into it.    chapters[]{      _key,      "heading": coalesce(heading[_key == $locale][0].value, heading[_key == "en"][0].value),      "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)    },    "outcome": coalesce(outcome[_key == $locale][0].value, outcome[_key == "en"][0].value),    // Metadata-only projections. See the note above this query.    "excerpt": pt::text(      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)    ),    "ogImage": cover.asset->{      url,      "width": metadata.dimensions.width,      "height": metadata.dimensions.height    }  }
 export type ProjectQueryResult = {
   _id: string;
   slug: Slug | null;
@@ -645,6 +652,12 @@ export type ProjectQueryResult = {
     _key: string;
     lqip: string | null;
   }> | null;
+  chapters: Array<{
+    _key: string;
+    heading: string | null;
+    body: string | null;
+  }> | null;
+  outcome: string | null;
   excerpt: string;
   ogImage: {
     url: string | null;
@@ -686,8 +699,7 @@ export type StudioSettingsQueryResult = {
 } | null;
 
 // Query TypeMap
-import "@sanity/client";
-declare module "@sanity/client" {
+declare global {
   interface SanityQueries {
     '\n  *[_type == "page" && slug.current == $slug][0] {\n    _id,\n    title,\n    slug,\n    \n  content[]{\n    ...,\n    markDefs[]{\n      ...,\n      _type == "link" => {\n        ...,\n        internalLink->{_type, slug, title}\n      }\n    }\n  }\n,\n    \n  link {\n    ...,\n    internalLink->{_type, slug, title}\n  }\n,\n    metadata,\n    publishedAt,\n    _updatedAt\n  }\n': PageQueryResult;
     '\n  *[_type == "journalEntry" && listed != false] | order(date desc) {\n    \n  _id,\n  "slug": slug.current,\n  date,\n  practice,\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "summary": coalesce(summary[_key == $locale][0].value, summary[_key == "en"][0].value)\n\n  }\n': JournalEntriesQueryResult;
@@ -697,8 +709,12 @@ declare module "@sanity/client" {
     '\n  *[_type == "project" && listed != false && featured == true] | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  practice,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': FeaturedProjectsQueryResult;
     '\n  *[_type == "project" && listed != false && ($practice == null || practice == $practice)]\n    | order(order asc, publishedAt desc) {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  practice,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n\n  }\n': WorkIndexQueryResult;
     '\n  *[_type == "project" && listed != false].practice\n': PracticesQueryResult;
-    '\n  *[_type == "project" && slug.current == $slug][0] {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  practice,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n,\n    scope,\n    publishedAt,\n    metadata,\n    _updatedAt,\n    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          ...,\n          internalLink->{_type, slug, title}\n        }\n      }\n    },\n    gallery[]{\n      ...,\n      "lqip": asset->metadata.lqip,\n      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)\n    },\n    // Metadata-only projections. See the note above this query.\n    "excerpt": pt::text(\n      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)\n    ),\n    "ogImage": cover.asset->{\n      url,\n      "width": metadata.dimensions.width,\n      "height": metadata.dimensions.height\n    }\n  }\n': ProjectQueryResult;
+    '\n  *[_type == "project" && slug.current == $slug][0] {\n    \n  _id,\n  slug,\n  year,\n  client,\n  span,\n  featured,\n  practice,\n  cover{ ..., "lqip": asset->metadata.lqip },\n  "title": coalesce(title[_key == $locale][0].value, title[_key == "en"][0].value),\n  "engagement": coalesce(engagement[_key == $locale][0].value, engagement[_key == "en"][0].value),\n  "coverAlt": coalesce(cover.alt[_key == $locale][0].value, cover.alt[_key == "en"][0].value)\n,\n    scope,\n    publishedAt,\n    metadata,\n    _updatedAt,\n    "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)[]{\n      ...,\n      markDefs[]{\n        ...,\n        _type == "link" => {\n          ...,\n          internalLink->{_type, slug, title}\n        }\n      }\n    },\n    gallery[]{\n      ...,\n      "lqip": asset->metadata.lqip,\n      "alt": coalesce(alt[_key == $locale][0].value, alt[_key == "en"][0].value)\n    },\n    // The arc. Projected inline for the same reason gallery is: the shape is\n    // used by exactly one query, so a shared constant would buy nothing.\n    // The _key taken here is the chapter\'s own -- the _key inside each\n    // coalesce scopes to the localized array being filtered, not to this one\n    // -- and it is what StepSequence takes as its stable key.\n    //\n    // No backticks in this comment, and that is not style. Everything from\n    // the opening backtick of defineQuery to its close is one JS template\n    // literal, so a backtick here ends the string early. Typegen then exits\n    // 0, reports "0 queries and 27 schema types", and every query type in\n    // sanity.types.ts silently disappears. The note above this query warns\n    // about block comments for the same reason; this is the neighbouring\n    // hazard, found by walking into it.\n    chapters[]{\n      _key,\n      "heading": coalesce(heading[_key == $locale][0].value, heading[_key == "en"][0].value),\n      "body": coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)\n    },\n    "outcome": coalesce(outcome[_key == $locale][0].value, outcome[_key == "en"][0].value),\n    // Metadata-only projections. See the note above this query.\n    "excerpt": pt::text(\n      coalesce(body[_key == $locale][0].value, body[_key == "en"][0].value)\n    ),\n    "ogImage": cover.asset->{\n      url,\n      "width": metadata.dimensions.width,\n      "height": metadata.dimensions.height\n    }\n  }\n': ProjectQueryResult;
     '\n  *[_type == "project" && defined(slug.current)].slug.current\n': ProjectSlugsQueryResult;
     '\n  *[_type == "studioSettings"][0] {\n    _id,\n    name,\n    email,\n    socials,\n    portrait,\n    metadata,\n    "headline": coalesce(headline[_key == $locale][0].value, headline[_key == "en"][0].value),\n    "subline": coalesce(subline[_key == $locale][0].value, subline[_key == "en"][0].value),\n    "portraitAlt": coalesce(portrait.alt[_key == $locale][0].value, portrait.alt[_key == "en"][0].value),\n    "statement": coalesce(statement[_key == $locale][0].value, statement[_key == "en"][0].value)\n  }\n': StudioSettingsQueryResult;
   }
+}
+// Lets @sanity/client releases that predate the global registry read it too
+declare module "@sanity/client" {
+  interface SanityQueries extends globalThis.SanityQueries {}
 }

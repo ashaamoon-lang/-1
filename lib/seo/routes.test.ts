@@ -84,27 +84,6 @@ describe('buildRoutesFromDocuments', () => {
     expect(buildRoutesFromDocuments('not an array')).toEqual([])
   })
 
-  it('drops a document whose slug resolves to an already-listed static route', () => {
-    // `/ai` is a static route, so a page named `ai` collides with it.
-    const docs = [
-      {
-        _type: 'page',
-        title: 'AI',
-        slug: { current: 'ai' },
-        _updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    ]
-
-    const routes = buildRoutesFromDocuments(docs)
-    // Dedup compares locale-free TEMPLATES, because a CMS slug is locale-free
-    // too — matching against the expanded '/en/ai' would never collide and the
-    // guard below would silently stop working.
-    expect(STATIC_ROUTE_TEMPLATES.some((route) => route.path === '/ai')).toBe(
-      true
-    )
-    expect(routes.some((route) => route.path === '/ai')).toBe(false)
-  })
-
   it('drops a document slugged `studio` — the studio page owns that path', () => {
     /*
      * The reason changed in Tahap 38, so the comment does too.
@@ -162,7 +141,7 @@ describe('buildRoutesFromDocuments', () => {
 
   it('drops a document slugged `agent-content` — the Markdown negotiation handler owns that path', () => {
     // Without RESERVED_PATHS excluding it, a CMS page slugged `agent-content`
-    // would be advertised in the sitemap/`/ai` while proxy.ts's
+    // would be advertised in the sitemap/`/llms.txt` while proxy.ts's
     // MACHINE_PATHS still 404s direct requests to it.
     const docs = [
       {

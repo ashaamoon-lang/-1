@@ -796,6 +796,23 @@ test.describe('motion', () => {
     expect(parked, 'overlay did not park after going back').toBe(true)
 
     await expect(page.locator('h1').first()).toBeVisible()
+
+    /*
+     * Scrolled before the stranding check — Tahap 54.
+     *
+     * This asserted at scroll 0, which was valid only while every reveal on
+     * `/en/work` fired as one container event. It now arrives per item
+     * (`lib/hooks/use-reveal.ts`, `perItem`), so a card below the reveal line
+     * is legitimately still at `opacity: 0` — that is the animation working,
+     * not content stranded by the back navigation this test is about.
+     *
+     * It does not weaken the assertion: an item that really was stranded —
+     * revealed once and then stuck at zero — stays stuck through the scroll,
+     * because `once: true` unobserves it. The three sibling tests above take
+     * the same walk for the same reason.
+     */
+    await scrollThrough(page)
+
     expect(
       await strandedItems(page),
       'going back left content at opacity 0'
@@ -834,9 +851,18 @@ test.describe('motion', () => {
 })
 
 /**
- * One way in, spoken on every page that is allowed to speak it.
+ * A split heading keeps its name.
  *
- * ## What this holds
+ * ## What changed in the fork
+ *
+ * This asserted that the `h1` on six routes enters line by line behind a mask
+ * — one entrance, spoken the same way everywhere. That is a uniformity
+ * mandate, and the fork removed it (`docs/FORK.md`, step 5): a page may enter
+ * however its design wants. What the test also held is an accessibility
+ * defect that has shipped here once, and that stays: a heading split for
+ * motion must not lose its accessible name.
+ *
+ * ## The history of the line reveal
  *
  * The `h1` is the first thing read on any page, and until Tahap 23 it entered
  * two different ways: the home hero rose line-by-line behind a mask
@@ -865,7 +891,7 @@ test.describe('motion', () => {
  * and the test above (`a journal row morphs into its entry`) is what stops
  * the route quietly ending up with neither entrance.
  */
-const SPLIT_HEADING_ROUTES = [
+const HEADING_ROUTES = [
   '/en',
   '/id',
   '/en/journal',
@@ -874,9 +900,9 @@ const SPLIT_HEADING_ROUTES = [
   `/en/work/${FEATURED_WORK}`,
 ]
 
-test.describe('every page enters the same way', () => {
-  for (const route of SPLIT_HEADING_ROUTES) {
-    test(`${route} reveals its h1 line by line`, async ({ page }) => {
+test.describe('a split heading keeps its name', () => {
+  for (const route of HEADING_ROUTES) {
+    test(`${route} names its h1 by the words it shows`, async ({ page }) => {
       await page.goto(route)
       await page.waitForTimeout(2600)
 
@@ -905,13 +931,15 @@ test.describe('every page enters the same way', () => {
 
       expect(heading, `${route} rendered no h1`).not.toBeNull()
 
-      expect(
-        heading?.masks ?? 0,
-        `${route}: the h1 has no masked lines — it is entering with the generic block reveal while the home hero rises line by line`
-      ).toBeGreaterThan(0)
+      // Whether to split is the page's choice. An unsplit heading is named by
+      // its own text, which only has to exist.
+      if ((heading?.masks ?? 0) === 0) {
+        expect(heading?.text, `${route}: the h1 is empty`).toBeTruthy()
+        return
+      }
 
       /*
-       * And the split must not cost the heading its name. SplitText's
+       * A split must not cost the heading its name. SplitText's
        * `aria: 'auto'` writes the original string back as an `aria-label`;
        * with `'hidden'` instead, the element keeps its heading role and loses
        * its accessible name — an `<h1>` that both screen readers and
@@ -942,13 +970,13 @@ test.describe('every page enters the same way', () => {
  * it had happened — the same class of defect as Tahap 21's material, which
  * moved correctly and was never met.
  *
- * So this measures the two things a held index has to be true of: that it is
- * held for longer than a screen, and that being held is doing something.
+ * It also required the pin to outlast a screen. How long a section holds is
+ * a design decision, and the fork removed that floor (`docs/FORK.md`, step 5);
+ * the length is now printed. What stays is the claim the label makes about
+ * itself: it is an index of the step being read, so it has to change.
  */
 test.describe('the studio process is a held index', () => {
-  test('the pin outlasts a screen, and reports the step being read', async ({
-    page,
-  }) => {
+  test('the held index reports the step being read', async ({ page }) => {
     test.setTimeout(120_000)
     await page.setViewportSize({ width: 1280, height: 800 })
     await page.goto('/en/studio')
@@ -1005,10 +1033,7 @@ test.describe('the studio process is a held index', () => {
       }
     }
 
-    expect(
-      Math.round(held),
-      `the label held for ${Math.round(held)}px against a 800px viewport — a held note that resolves inside one screen is not held, it is a coincidence`
-    ).toBeGreaterThan(800)
+    console.log(`HELD /en/studio step index held for ${Math.round(held)}px`)
 
     expect(
       reported.size,

@@ -27,7 +27,6 @@ test.describe('response headers', () => {
     const paths = [
       '/en',
       '/id',
-      '/en/ai',
       /*
        * The practice views. `/en/work` and `/id/work` are **not** here any
        * more, and that is a deliberate move rather than an omission.

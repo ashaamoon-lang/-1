@@ -6,6 +6,14 @@ import { routing } from '../lib/i18n/routing'
 /**
  * Each practice has a page, and exactly one URL.
  *
+ * ## What left this file in the fork
+ *
+ * The page test also required a `[data-practice-statement]` ("a statement —
+ * the thing that makes this a page and not a listing") and a
+ * `[data-next-practice]` link. Both fixed what a practice page is made of,
+ * and the fork removed them (`docs/FORK.md`, step 5). That the page exists,
+ * names itself, filters to its own work, and has one URL all stay.
+ *
  * ## Why a page and not a filter
  *
  * Consulting, AI & Data and Commission have been structural vocabulary since
@@ -47,19 +55,6 @@ test.describe('practice pages', () => {
           (await h1.textContent())?.trim().length ?? 0,
           'the h1 is empty'
         ).toBeGreaterThan(0)
-
-        // A statement — the thing that makes this a page and not a listing.
-        const statement = page.locator('[data-practice-statement]')
-        await expect(
-          statement,
-          'the page carries no statement, so it is a filtered listing wearing a heading'
-        ).toHaveCount(1)
-
-        // Somewhere to go next, so the three pages form a circuit.
-        await expect(
-          page.locator('[data-next-practice]'),
-          'the page is a dead end — no route to the next practice'
-        ).toHaveCount(1)
       })
     }
   }

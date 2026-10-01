@@ -55,7 +55,7 @@ type OptionalFeaturesProps = {
    * Off by default, and that default is a measured decision. It used to be
    * mounted unconditionally, which put three.js and react-three-fiber into
    * every page's graph — **859KB uncompressed** downloaded by `/en/ai`, a
-   * page of plain text with no canvas on it.
+   * page of plain text with no canvas on it (the route was removed in Tahap 84).
    *
    * Two strategies, and only one may be used at a time (two root canvases
    * race to claim primary — see `lib/webgl/store.ts`):

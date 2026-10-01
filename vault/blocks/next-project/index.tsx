@@ -1,5 +1,5 @@
 import cn from 'clsx'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SanityImage } from '@/components/ui/sanity-image'
@@ -7,6 +7,7 @@ import {
   type ImageSource,
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
+import { PixelImage } from '@/vault/magic/pixel-image'
 import { Reveal } from '@/vault/motion/reveal'
 
 import s from './next-project.module.css'
@@ -51,14 +52,14 @@ export function NextProject({
 }: NextProjectProps) {
   return (
     /*
-     * Revealed by hand, not by the coverage gate.
+     * Revealed by hand.
      *
-     * `e2e/reveal-coverage.e2e.ts` walks headings, and this block has none:
+     * `e2e/reveal-coverage.e2e.ts` (deleted in the fork) walked headings, and
+     * this block has none:
      * its title is a `<span>` inside the link so the link's accessible name is
      * the work's title alone (see the note below). It is still a full-width
      * block that arrives as the reader reaches the end of a project page, so
-     * it gets the same entrance as everything else — and the gate's own doc
-     * comment names it as the one thing it cannot see.
+     * it gets the same entrance as everything else.
      */
     <Reveal as="aside" className={cn(s.next, className)}>
       <Link
@@ -76,11 +77,39 @@ export function NextProject({
             <SanityImage
               image={toImageSource(cover)}
               alt=""
-              maxWidth={704}
+              maxWidth={840}
               className={s.image}
               data-intent=""
-              sizes="(max-width: 800px) 100vw, 33vw"
+              sizes="(max-width: 799px) 100vw, 58vw"
             />
+            {/*
+              The next work assembles rather than fades — Tahap 63.
+
+              This is one of only two image surfaces on the site that carry no
+              WebGL material layer (the other is `studio-note`), which is why
+              the veil belongs here and not on a catalogue cover: a plate
+              already running `MaterialImage` would be two reveals arguing over
+              one object.
+
+              `--pixel-ground` is `--surface-2` because that is what `.media`
+              paints while the asset is arriving, so an undissolved tile is
+              indistinguishable from the empty box rather than announcing
+              itself against it. Same reasoning as `project-gallery`.
+
+              The dissolve keys off the ancestor `<Link data-reveal-item>`
+              turning `visible`, so it is already inside this block's entrance
+              rather than a second, competing one.
+            */}
+            <PixelImage className={s.pixels} />
+            {/* No script, no veil — the fork; the reason is in `project-gallery`. */}
+            <noscript>
+              <style
+                // oxlint-disable-next-line react/no-danger -- a static, self-authored rule whose only interpolation is this module's own hashed class name, a build-time constant
+                dangerouslySetInnerHTML={{
+                  __html: `.${s.pixels}{display:none!important}`,
+                }}
+              />
+            </noscript>
           </div>
         )}
         <span className={s.text}>
@@ -91,7 +120,18 @@ export function NextProject({
             image description. The cover is `aria-hidden` and its `alt` empty
             for the same reason: it repeats the title, it does not add to it.
           */}
-          <span className={cn('h2', s.title)}>{title}</span>
+          <span
+            className={cn('h1', s.title)}
+            style={
+              {
+                '--fit-word': Math.max(
+                  ...title.split(/\s+/).map((word) => Array.from(word).length)
+                ),
+              } as CSSProperties
+            }
+          >
+            {title}
+          </span>
         </span>
       </Link>
     </Reveal>
