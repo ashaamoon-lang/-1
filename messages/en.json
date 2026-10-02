@@ -189,6 +189,7 @@
     "title": "Journal",
     "intro": "Notes on how the work gets scoped, decided and delivered. Method rather than announcements.",
     "nextEyebrow": "Next entry",
+    "workInPractice": "Work in {practice}",
     "emptyTitle": "Nothing published here yet.",
     "emptyBody": "The studio writes when there is something worth writing down, which is not every week."
   },

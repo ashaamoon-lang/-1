@@ -1,0 +1,39 @@
+/*
+ * Level — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token: the beam is the palette's `--line-strong`, its sag
+ * is the grid's gap, the beat is the slow duration band after the fast one,
+ * and the curve is the house settle. Only `transform` moves.
+ */
+
+/* The beam's own length is what the tilt is measured against. */
+.level {
+  container-type: inline-size;
+}
+
+/* Fixed at its start, so it pivots there and only the free end travels. */
+.beam {
+  border-block-start: thin solid var(--line-strong);
+  transform-origin: left center;
+  transition: transform var(--duration-slow) var(--ease-out-expo)
+    var(--duration-fast);
+}
+
+/* Before the reveal: the free end one gutter low, over the beam's length. */
+[data-reveal='hidden'] .beam {
+  transform: rotate(atan2(var(--gap), 100cqi));
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the beam is level at once.
+ */
+@media (--reduced-motion) {
+  .beam {
+    transition: none;
+  }
+
+  [data-reveal] .beam {
+    transform: none;
+  }
+}

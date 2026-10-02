@@ -189,6 +189,7 @@
     "title": "Jurnal",
     "intro": "Catatan tentang bagaimana pekerjaan dilingkupi, diputuskan, dan dikirim. Metode, bukan pengumuman.",
     "nextEyebrow": "Entri berikutnya",
+    "workInPractice": "Karya di {practice}",
     "emptyTitle": "Belum ada yang diterbitkan di sini.",
     "emptyBody": "Studio menulis ketika ada yang layak dituliskan, dan itu bukan setiap minggu."
   },

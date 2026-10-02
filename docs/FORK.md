@@ -593,6 +593,15 @@ Garis saksi turun, lalu garis ukur memanjang dari tengah dan membawa tanda tiap
 tahun. Primitif ini tanpa JS baru, dan `data-epic="work-measure"`. **Belum
 diverifikasi:** build, e2e, CI, dan mata.
 
+**`/journal/<slug>` — karya praktiknya, dan balok yang mendatar (putaran 3).**
+Di bawah esai kini ada indeks karya praktik entri itu: judul yang menaut ke
+studi kasus, ditambah baris meta yang sama dengan kartunya. Datanya query
+sampul yang sudah ada, kini dikembalikan utuh, sehingga pelat di samping esai
+akhirnya bernama. Desainnya primitif baru `vault/motion/level`, khusus CSS:
+balok kantilever turun satu gutter di ujung bebasnya (`atan2` terhadap
+panjangnya sendiri), lalu naik mendatar saat baris-baris tiba, hanya rotasi.
+`data-epic="entry-work"`. **Belum diverifikasi:** build, e2e, CI, dan mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

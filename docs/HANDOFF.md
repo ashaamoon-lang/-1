@@ -254,10 +254,11 @@ tanpa CI. Setiap tiga putaran diperiksa sekali lewat draft PR permanen dari
 `CI hijau (run …, tally)`, atau `diperbaiki (commit …)`. Kolom commit memuat
 subjek commit sampai checkpoint menggantinya dengan hash.
 
-| N   | rute      | fitur                                          | desain                   | `data-epic`       | commit          | status   |
-| --- | --------- | ---------------------------------------------- | ------------------------ | ----------------- | --------------- | -------- |
-| 1   | `/work`   | bingkai katalog (praktik × tahun)              | `vault/motion/bearing`   | `catalogue-frame` | `4926c63`       | belum CI |
-| 2   | `/studio` | ukuran karya (penugasan, klien, rentang tahun) | `vault/motion/dimension` | `work-measure`    | `feat(round-2)` | belum CI |
+| N   | rute              | fitur                                          | desain                   | `data-epic`       | commit          | status   |
+| --- | ----------------- | ---------------------------------------------- | ------------------------ | ----------------- | --------------- | -------- |
+| 1   | `/work`           | bingkai katalog (praktik × tahun)              | `vault/motion/bearing`   | `catalogue-frame` | `4926c63`       | belum CI |
+| 2   | `/studio`         | ukuran karya (penugasan, klien, rentang tahun) | `vault/motion/dimension` | `work-measure`    | `feat(round-2)` | belum CI |
+| 3   | `/journal/<slug>` | indeks karya praktik di bawah esai             | `vault/motion/level`     | `entry-work`      | `feat(round-3)` | belum CI |
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
