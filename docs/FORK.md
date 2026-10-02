@@ -581,8 +581,8 @@ dibiarkan kosong. Geraknya primitif baru `vault/motion/bearing`: tiang naik
 dan balok membentang, lalu tiap karya mendarat di baloknya, menekan dengan
 `--press-scale` milik §9, dan mengendap tanpa melewati titik diam (§9.3) —
 CSS lewat `useReveal`, `data-epic="catalogue-frame"`, EN dan ID. **Belum
-diverifikasi:** build, e2e, CI, dan mata — lebar tabel di ponsel dan ritme
-geraknya belum pernah dilihat.
+diverifikasi:** mata — lebar tabel di ponsel dan ritme geraknya belum pernah
+dilihat. Build, e2e, dan CI hijau di checkpoint 1 (run 37046629768).
 
 **`/studio` — ukuran karya, dan garis ukur (putaran 2).** Di atas strip "Work
 it produced" kini ada ukuran seluruh karya: penugasan dan klien (ICU EN/ID),
@@ -591,7 +591,7 @@ filter, dipangkas ke `year` dan `client` di fungsi `'use cache'`. Desainnya
 primitif baru `vault/motion/dimension`, garis ukur gambar teknik khusus CSS.
 Garis saksi turun, lalu garis ukur memanjang dari tengah dan membawa tanda tiap
 tahun. Primitif ini tanpa JS baru, dan `data-epic="work-measure"`. **Belum
-diverifikasi:** build, e2e, CI, dan mata.
+diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint 1.
 
 **`/journal/<slug>` — karya praktiknya, dan balok yang mendatar (putaran 3).**
 Di bawah esai kini ada indeks karya praktik entri itu: judul yang menaut ke
@@ -600,7 +600,8 @@ sampul yang sudah ada, kini dikembalikan utuh, sehingga pelat di samping esai
 akhirnya bernama. Desainnya primitif baru `vault/motion/level`, khusus CSS:
 balok kantilever turun satu gutter di ujung bebasnya (`atan2` terhadap
 panjangnya sendiri), lalu naik mendatar saat baris-baris tiba, hanya rotasi.
-`data-epic="entry-work"`. **Belum diverifikasi:** build, e2e, CI, dan mata.
+`data-epic="entry-work"`. **Belum diverifikasi:** mata. Build, e2e, dan CI hijau
+di checkpoint 1.
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
