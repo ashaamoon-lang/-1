@@ -7,6 +7,8 @@ export type CoverSpan = 'full' | 'half' | 'none'
 /**
  * The cover's span, decided once for both sides that need it — the fork.
  *
+ * Provenance: original work for this project. No third-party code copied.
+ *
  * `ProjectHero` lays the cover out by it, and the project page decides by it
  * whether the case study's notes go in the empty column beside a half-width
  * cover or below the hero. Two copies of this rule would be one drift away

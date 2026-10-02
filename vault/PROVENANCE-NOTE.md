@@ -30,18 +30,22 @@ directories the fork itself edited — `blocks/`, `motion/` and
 
 Every source file outside `vault/magic/`, tests and stories excluded:
 
-- **34** carry the header `Provenance: original work for this project.`
+- **37** carry the header `Provenance: original work for this project.`
 - **8** are `primitives/icon/`, whose headers name Phosphor Icons, its MIT
   licence and what was copied.
-- **3** carry no provenance header: `blocks/practice-filter/index.tsx`,
-  `motion/reading-progress/index.tsx` and `blocks/project-hero/cover-span.ts`.
-  Git shows each first committed in this repository — Tahap 13, Tahap 52 and
-  the fork — so they are original work missing a header, not third-party code.
-  Recorded here; the headers are not added by this correction.
 
-One discrepancy, recorded rather than fixed: `primitives/icon/index.tsx` says
-it copied the `d` attribute of **eight** glyphs, while `paths/` holds **seven**
-files and `docs/PROVENANCE.md` says seven.
+Three of the 37 gained their header after this note was corrected:
+`blocks/practice-filter/index.tsx`, `motion/reading-progress/index.tsx` and
+`blocks/project-hero/cover-span.ts`. Git shows each first committed in this
+repository — Tahap 13, Tahap 52 and the fork — so they were original work
+missing a header, not third-party code.
+
+The one discrepancy the check found is fixed the same way.
+`primitives/icon/index.tsx` said it copied the `d` attribute of **eight**
+glyphs; `paths/` holds **seven** files, all added in one commit at Tahap 43
+and all in use, and `docs/PROVENANCE.md` says seven. The header now says
+seven. The eighth, `arrow-up-right`, was fetched for an external-link marker
+and dropped, as the header itself records; git shows it was never committed.
 
 ## On "built on" versus "copied from"
 
