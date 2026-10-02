@@ -10,11 +10,16 @@ import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
-import { featuredProjectsQuery } from '@/lib/integrations/sanity/queries'
+import {
+  featuredProjectsQuery,
+  workIndexQuery,
+} from '@/lib/integrations/sanity/queries'
 import { nameplateStyle } from '@/lib/utils/display-fit'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
+import { WorkMeasure } from '@/vault/blocks/work-measure'
+import { measureWorks } from '@/vault/blocks/work-measure/measure'
 import { DotPattern } from '@/vault/magic/dot-pattern'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
@@ -135,6 +140,28 @@ async function evidence(locale: string) {
   return (projects.data ?? []).slice(0, 3)
 }
 
+/**
+ * The body of work the strip is drawn from — round 2, `work-measure`.
+ *
+ * Three covers say the studio has made things; they do not say how much, for
+ * how many clients, or over how long. This reads the catalogue's own query,
+ * unfiltered, and keeps only the two fields the measure counts, so the cached
+ * result carries numbers rather than covers. Same guards as `evidence()`: no
+ * Sanity, or a failed query, costs the strip its measure and nothing else.
+ */
+async function bodyOfWork(locale: string) {
+  'use cache'
+  if (!isConfigured('sanity')) return []
+
+  const projects = await sanityFetch({
+    query: workIndexQuery,
+    params: { locale, practice: null },
+    perspective: 'published',
+    stega: false,
+  })
+  return (projects.data ?? []).map(({ year, client }) => ({ year, client }))
+}
+
 export default async function StudioPage() {
   /*
    * `workIndex`, not `work`.
@@ -148,11 +175,13 @@ export default async function StudioPage() {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const [t, tPractice, works] = await Promise.all([
+  const [t, tPractice, works, body] = await Promise.all([
     getTranslations('studio'),
     getTranslations('workIndex'),
     evidence(locale),
+    bodyOfWork(locale),
   ])
+  const measure = measureWorks(body)
 
   /*
    * The four steps, as data rather than four copy-pasted blocks.
@@ -419,6 +448,24 @@ export default async function StudioPage() {
             <p data-reveal-item className={cn('caption', s.eyebrow)}>
               {t('evidenceEyebrow')}
             </p>
+            {/*
+              The measure of the whole body of work, above the three drawn
+              from it — round 2. Counted, not written: `workIndex.count` when
+              no work names a client, so the phrase never says "0 clients".
+            */}
+            {measure.engagements > 0 && (
+              <WorkMeasure
+                measure={measure}
+                value={
+                  measure.clients > 0
+                    ? t('measureFacts', {
+                        engagements: measure.engagements,
+                        clients: measure.clients,
+                      })
+                    : tPractice('count', { count: measure.engagements })
+                }
+              />
+            )}
             {/*
               The cards directly, not `ProjectGrid` — and this is a
               measurement, not a preference.

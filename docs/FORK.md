@@ -584,6 +584,15 @@ CSS lewat `useReveal`, `data-epic="catalogue-frame"`, EN dan ID. **Belum
 diverifikasi:** build, e2e, CI, dan mata — lebar tabel di ponsel dan ritme
 geraknya belum pernah dilihat.
 
+**`/studio` — ukuran karya, dan garis ukur (putaran 2).** Di atas strip "Work
+it produced" kini ada ukuran seluruh karya: penugasan dan klien (ICU EN/ID),
+direntangkan antara tahun pertama dan terakhir. Datanya `workIndexQuery` tanpa
+filter, dipangkas ke `year` dan `client` di fungsi `'use cache'`. Desainnya
+primitif baru `vault/motion/dimension`, garis ukur gambar teknik khusus CSS.
+Garis saksi turun, lalu garis ukur memanjang dari tengah dan membawa tanda tiap
+tahun. Primitif ini tanpa JS baru, dan `data-epic="work-measure"`. **Belum
+diverifikasi:** build, e2e, CI, dan mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

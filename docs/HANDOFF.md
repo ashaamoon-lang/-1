@@ -245,6 +245,20 @@ ingatan:
 Nomor-nomor di atas merujuk daftar `rejected` workflow kritik desain. Keluaran
 workflow itu tidak ada di repo — tabel ini adalah catatannya.
 
+### 4.2 Putaran pengembangan
+
+Buku besar siklus "Work that has to hold up" (rencana yang disetujui pemilik
+repo): satu fitur dan satu desain per putaran, dibangun di `claude/load-bearing`
+tanpa CI. Setiap tiga putaran diperiksa sekali lewat draft PR permanen dari
+`claude/load-bearing-ci`, yang tidak untuk di-merge. Status: `belum CI`,
+`CI hijau (run …, tally)`, atau `diperbaiki (commit …)`. Kolom commit memuat
+subjek commit sampai checkpoint menggantinya dengan hash.
+
+| N   | rute      | fitur                                          | desain                   | `data-epic`       | commit          | status   |
+| --- | --------- | ---------------------------------------------- | ------------------------ | ----------------- | --------------- | -------- |
+| 1   | `/work`   | bingkai katalog (praktik × tahun)              | `vault/motion/bearing`   | `catalogue-frame` | `4926c63`       | belum CI |
+| 2   | `/studio` | ukuran karya (penugasan, klien, rentang tahun) | `vault/motion/dimension` | `work-measure`    | `feat(round-2)` | belum CI |
+
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
 | butir                                        | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
