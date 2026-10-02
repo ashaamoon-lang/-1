@@ -1,6 +1,8 @@
 /**
  * PracticeFilter — the work index's category chips.
  *
+ * Provenance: original work for this project. No third-party code copied.
+ *
  * ## Links, and since Tahap 39 they narrow the catalogue rather than leave it
  *
  * Every chip is still an `<a>` to a real URL and the narrowing still happens

@@ -157,7 +157,9 @@ diserahkan ke pemilik repo.
 > `primitives/magnetic`), dan dua salinan MIT (`magic`, `primitives/icon`).
 > Tiga berkas tanpa header provenance dan satu selisih hitungan glyph
 > (header ikon menyebut delapan, berkasnya tujuh) dicatat di sana, tidak
-> disunting.
+> disunting. **Keduanya dibereskan sesudahnya**, di pekerjaan rapi-rapi
+> pertama dari `main` (`claude/tidy-after-fork`): ketiga berkas kini membawa
+> header, dan header ikon menyebut tujuh, sesuai `paths/`.
 
 ---
 

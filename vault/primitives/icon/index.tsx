@@ -11,8 +11,8 @@
  *   (`CLAUDE.md` #18 — never a badge, never an article). The React package
  *   `github.com/phosphor-icons/react` carries the same licence, Copyright
  *   (c) 2020 Phosphor Icons.
- * - **Code copied:** yes, the `d` attribute of eight glyphs. Everything else
- *   in this file is original.
+ * - **Code copied:** yes, the `d` attribute of seven glyphs, one per file in
+ *   `paths/`. Everything else in this file is original.
  *
  * See `docs/PROVENANCE.md` §Phosphor.
  *

@@ -23,6 +23,10 @@ interface ReadingProgressProps {
 /**
  * How far through a long page the reader is — a hairline under the header.
  *
+ * Provenance: original work for this project. No third-party code copied.
+ * Built on GSAP ScrollTrigger (see `docs/PROVENANCE.md` §2 on GSAP licensing)
+ * and CSS `animation-timeline: scroll()`.
+ *
  * ## Two mechanisms, one line, and only ever one of them running
  *
  * The primary is CSS: `animation-timeline: scroll()` drives `scaleX` on the
