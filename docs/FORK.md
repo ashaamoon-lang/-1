@@ -573,6 +573,17 @@ Yang benar adalah mempersenjatai nama itu hanya saat tautan ditekan (seperti
 `released` di kartu), dengan uji navigasi mundur di browser; itu pekerjaan
 tersendiri, bukan tambahan diam-diam di sini.
 
+**`/work` — bingkai katalog, dan gerak tumpuan.** Di bawah grid, katalog
+tanpa filter kini memuat tabel praktik × tahun. Setiap karya duduk di baknya
+(judul + klien, menaut ke proyeknya), dan kepala baris menaut ke halaman
+praktiknya. Datanya `projectCardFields` yang sudah di-fetch; bak tanpa karya
+dibiarkan kosong. Geraknya primitif baru `vault/motion/bearing`: tiang naik
+dan balok membentang, lalu tiap karya mendarat di baloknya, menekan dengan
+`--press-scale` milik §9, dan mengendap tanpa melewati titik diam (§9.3) —
+CSS lewat `useReveal`, `data-epic="catalogue-frame"`, EN dan ID. **Belum
+diverifikasi:** build, e2e, CI, dan mata — lebar tabel di ponsel dan ritme
+geraknya belum pernah dilihat.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

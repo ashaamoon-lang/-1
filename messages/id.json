@@ -55,7 +55,12 @@
     "commissionIntro": "Karya pesanan: penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief.",
     "allWork": "Semua karya",
     "relatedPractice": "Praktik terkait",
-    "aboutPractice": "Tentang {practice}"
+    "aboutPractice": "Tentang {practice}",
+    "frameTitle": "Karya, menurut praktik dan tahun",
+    "frameIntro": "Setiap penugasan di katalog, ditempatkan menurut praktik yang memikulnya dan tahunnya.",
+    "framePractice": "Praktik",
+    "frameUndated": "Tanpa tahun",
+    "frameUnplaced": "Lainnya"
   },
   "language": {
     "label": "Bahasa",

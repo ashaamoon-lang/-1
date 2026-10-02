@@ -55,7 +55,12 @@
     "commissionIntro": "Commissioned work: scoped, paid engagements delivered to a brief.",
     "allWork": "All work",
     "relatedPractice": "Related practice",
-    "aboutPractice": "About {practice}"
+    "aboutPractice": "About {practice}",
+    "frameTitle": "The work, by practice and year",
+    "frameIntro": "Every engagement in the catalogue, placed by the practice that carried it and the year it is dated.",
+    "framePractice": "Practice",
+    "frameUndated": "Undated",
+    "frameUnplaced": "Other"
   },
   "language": {
     "label": "Language",

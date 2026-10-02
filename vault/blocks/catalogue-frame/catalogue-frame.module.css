@@ -1,0 +1,103 @@
+/*
+ * The catalogue's frame. Layout only — every movement belongs to
+ * `vault/motion/bearing`, so nothing here transitions. Every length is a
+ * token, and focus uses the global ring (`global.css`, `*:focus-visible`).
+ */
+
+.frame {
+  display: grid;
+  gap: var(--gap);
+  margin-block-start: var(--section-lead);
+}
+
+.title {
+  margin: 0;
+}
+
+.intro {
+  margin: 0;
+  /* Running prose stays near 65 characters however wide the page gets. */
+  max-width: 46ch;
+  color: var(--text-muted);
+}
+
+/*
+ * The frame can outgrow a phone as years accumulate; it scrolls sideways in
+ * its own box rather than widening the page. Every bay holds links, so the
+ * box is reachable from the keyboard without a tab stop of its own.
+ */
+.bearing {
+  overflow-x: auto;
+}
+
+.table {
+  inline-size: 100%;
+  /* Equal bays: a column's width says nothing about a year's importance. */
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.head,
+.practice,
+.bay {
+  padding: var(--gap);
+  text-align: start;
+}
+
+.head {
+  vertical-align: bottom;
+  color: var(--text-muted);
+  font-weight: inherit;
+}
+
+.practice {
+  vertical-align: bottom;
+  font-weight: inherit;
+}
+
+/* The load rests on its beam: a bay's works sit at its foot. */
+.bay {
+  vertical-align: bottom;
+}
+
+.practiceLink,
+.work {
+  text-decoration: none;
+  color: var(--color-secondary);
+}
+
+/*
+ * INTENT — one state reachable two ways (MOTION-SPEC §9): the pointer's hover
+ * and the keyboard's focus mark a link the same way. An underline rather than
+ * a colour, so the full-ink title stays full ink while it is chosen.
+ */
+@media (--hover) {
+  .practiceLink:hover,
+  .work:hover .name {
+    text-decoration-line: underline;
+  }
+}
+
+.practiceLink:focus-visible,
+.work:focus-visible .name {
+  text-decoration-line: underline;
+}
+
+/* A box, so the bearing transform applies; stacked when a bay holds two. */
+.work {
+  display: block;
+}
+
+.work + .work {
+  margin-block-start: var(--gap);
+}
+
+.name {
+  display: block;
+}
+
+.client {
+  display: block;
+  color: var(--text-muted);
+}
