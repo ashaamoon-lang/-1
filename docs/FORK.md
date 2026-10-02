@@ -710,27 +710,106 @@ Sengaja **tidak** diperbaiki, dengan alasannya:
   (invoker commands), yang belum cukup luas didukung; sampai itu, Escape dan
   MENU tetap menutupnya tanpa skrip.
 
-**Pembuktian merah `phone-menu.e2e.ts`, apa adanya.** Aturan fork: gerbang
-baru dibuktikan merah di build lama, karena perilaku. Untuk gerbang ini aturan
-itu **hanya terpenuhi sebagian**, dan batasnya dikatakan di sini:
+**Pembuktian merah `phone-menu.e2e.ts` — diukur di CI.** Aturan fork: gerbang
+baru dibuktikan merah di build lama, karena perilaku. Sampai PR #19 aturan itu
+hanya terpenuhi sebagian untuk gerbang ini, dan tujuh tesnya tercatat di sini
+sebagai "tidak dibuktikan merah": build dan suite lokal dihentikan atas
+permintaan pemilik repo, karena RAM bebas laptop tinggal ~0,75 GB. PR #19
+membayarnya di GitHub Actions. `.github/workflows/red-proof.yml` membangun app
+di sebuah commit lama, melapiskan spec terkini di atasnya (hanya spec, modul
+yang ia impor, dan config-nya), lalu menjalankannya dengan `--retries=0`.
+`e2e/red-proof/classify.ts` menilai laporannya terhadap prediksi di
+`e2e/red-proof/cases.json`, yang di-commit **sebelum** run pertama (`7f728e1`).
+Merah dihitung hanya bila error **pertamanya** yang diprediksi, dan pesannya
+dibaca tanpa cuplikan kode yang Playwright tempelkan: cuplikan itu bisa memuat
+pesan asersi tetangga. Ini diukur pada run Playwright mini tanpa browser, di
+mana pesan utuh cocok dengan asersi yang salah.
 
-| tes                                                                                                                                       | di build lama (`67af568`, menu dropdown React)                                                                                                      |
-| ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| tanpa skrip, MENU membuka rute                                                                                                            | **merah** — menu tak berbuat apa-apa                                                                                                                |
-| sheet mengisi layar di bawah bar                                                                                                          | **merah** — dropdown berakhir di 216px dari 844px                                                                                                   |
-| Escape menutup, fokus kembali ke MENU                                                                                                     | **merah** — Escape tak menutup (dibuktikan dengan versi uji sebelum langkah Tab-masuk ditambahkan; versi kini tidak dijalankan ulang di build lama) |
-| Tab dari MENU masuk ke menu                                                                                                               | hijau di sana setelah hidrasi; sekali merah saat Enter mendahului hidrasi                                                                           |
-| tautan bernavigasi                                                                                                                        | hijau di sana (langkah Back ditambahkan kemudian, tidak dijalankan di build lama)                                                                   |
-| reduced motion, axe                                                                                                                       | hijau di sana (versi lama uji; kontrol animasi ditambahkan kemudian)                                                                                |
-| Tab melewati tautan terakhir; ⌘K; fokus keluar + pencarian; navigasi klien; halaman di belakang diam; kontrol reduced motion; tes desktop | **tidak dibuktikan merah**                                                                                                                          |
+Tiga kasus: **A** `67af568`, dropdown React sebelum sheet; **B** `ec398eb`,
+sheet popover yang `inert` dan pendengar fokusnya menunggu event `toggle`
+(sebelum PR #18); **C**, head PR sebagai kontrol. Run 37001647550 attempt 1
+menjalankan ketiganya; attempt 2 dan 3 mengulang job B saja.
 
-Tujuh yang terakhir ditulis sesudah review dan diverifikasi hijau di build
-baru, tapi **tidak** dijalankan di build lama: build dan suite lokal
-dihentikan atas permintaan pemilik repo karena RAM bebas laptop tinggal
-~0,75 GB, dan verifikasi penuh pindah ke CI. Tes desktop punya bukti tidak
-langsung: pada versi popover pertama, lima gerbang lain merah persis karena
-cacat yang ia jaga. Sisanya belum punya bukti bahwa mereka bisa merah — itu
-utang, bukan klaim.
+| tes                                            | A `67af568`                                                              | B `ec398eb`                                                                                                                         | C kontrol |
+| ---------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| tanpa skrip, MENU membuka rute                 | **merah**, perilaku — `toBeVisible`: element(s) not found                | hijau                                                                                                                               | hijau     |
+| sheet mengisi layar di bawah bar               | **merah**, perilaku — _the sheet stops short of the screen_              | hijau                                                                                                                               | hijau     |
+| Escape menutup, fokus kembali ke MENU          | **merah**, perilaku — `toBeHidden`: Received: visible                    | hijau                                                                                                                               | hijau     |
+| Tab dari MENU masuk ke menu                    | hijau (diprediksi _either_)                                              | hijau                                                                                                                               | hijau     |
+| Tab melewati tautan terakhir                   | **merah**, perilaku — _content under the open sheet can take focus_      | hijau                                                                                                                               | hijau     |
+| ⌘K membuka palette di atas sheet               | hijau — tak bisa dibuktikan terhadap commit                              | hijau                                                                                                                               | hijau     |
+| fokus keluar + pencarian (satu-task)           | **merah**, instrumen — _MENU did not open the sheet_, lalu _…not inert…_ | **merah**, perilaku — _…not inert the moment it opened_, lalu _focus left the sheet and the sheet stayed open_                      | hijau     |
+| navigasi klien                                 | hijau                                                                    | hijau                                                                                                                               | hijau     |
+| tautan bernavigasi, menu tertutup saat kembali | hijau                                                                    | hijau                                                                                                                               | hijau     |
+| halaman di belakang diam                       | **merah**, perilaku — _the document can still scroll_                    | **tidak deterministik** — merah 3 dari 4 sampel, _the document can still scroll_ (diprediksi hijau; diubah ke _either_ sesudah run) | hijau     |
+| reduced motion                                 | **merah**, instrumen — _no entrance ran without the preference_          | hijau                                                                                                                               | hijau     |
+| axe                                            | hijau                                                                    | hijau                                                                                                                               | hijau     |
+| desktop: satu nav, tanpa salinan tersembunyi   | hijau — tak bisa dibuktikan terhadap commit                              | hijau                                                                                                                               | hijau     |
+
+Kolom B memuat hasil ketiga attempt run 37001647550, yang sama di setiap
+attempt. CI biasa di head yang sama (run 37001647456): `e2e` 580 lulus, 0
+gagal, 0 flaky, 29 dilewati. Tes satu-task, dengan tiga ceknya kini
+`expect.soft`, hijau di sana.
+
+**Utang yang lunas:**
+
+- **Merah karena perilaku di `67af568`:** tanpa skrip, geometri sheet, Escape,
+  Tab melewati tautan terakhir, dan halaman di belakang diam. Masing-masing
+  gagal pada asersi yang menjaga cacatnya, bukan pada locator yang tak
+  mengenali markup lama: locator yang sama menemukan nav lama begitu skrip
+  menampilkannya (navigasi klien dan pulang-balik hijau di sana).
+- **Merah karena instrumen di `67af568`:** reduced motion dan tes satu-task.
+  Merah jenis ini membuktikan tesnya menolak lulus secara buta, bukan bahwa ia
+  menangkap perilakunya. Kontrol reduced motion tidak menemukan entrance untuk
+  dikendalikan, karena dropdown lama memang tak punya; `:popover-open` tidak
+  bisa melihat menu yang bukan popover.
+- **Tes satu-task merah di `ec398eb`, di kedua separuhnya:** yang tertutup
+  sheet tidak `inert`, dan sheet tetap terbuka sesudah fokus pindah keluar. Ini
+  terjadi di ketiga attempt, dengan kedua pesan itu sebagai error pertama dan
+  kedua. Kalimat "diturunkan dari kode, tidak dijalankan" di bawah kini
+  terukur.
+
+**Tidak bisa dibuktikan terhadap commit — dan tidak dipaksakan:**
+
+- **⌘K.** Cacat yang ia jaga, palette terbuka di bawah sheet, butuh sheet di
+  top layer, dan tidak ada commit yang pernah memilikinya tanpa perbaikan: versi
+  popover pertama yang punya cacat itu di-review sebelum di-commit, dan
+  `f9bdb29` membawa popover beserta semua perbaikan review dalam satu commit.
+  Di dropdown lama tesnya lulus karena dua hal, dan keduanya tidak melibatkan
+  menu yang menutup. Palette adalah Base UI Dialog modal, yang memberi
+  `aria-hidden` pada semua elemen di luarnya (`markOthers`), sehingga locator
+  role tidak menemukan nav dan `toBeHidden` lulus. Popup palette juga
+  ber-z-index 101, di atas header yang 20, sehingga hit-test lulus. Di `main`,
+  yang benar-benar menjaga cacat itu adalah hit-test-nya, bukan `toBeHidden`.
+  Rencana awal memprediksinya merah; prediksi itu dikoreksi sebelum run.
+- **Tes desktop.** Salinan tersembunyi setiap tautan hanya ada di versi popover
+  pertama, yang merender nav kedua dan diganti sebelum di-commit. Bukti tidak
+  langsungnya tetap seperti sebelumnya: pada versi itu, lima gerbang lain merah
+  persis karena cacat ini.
+
+Membuat commit rekaan yang memuat cacat itu akan "membuktikan" keduanya, dan
+justru karena itu tidak dilakukan.
+
+**Temuan baru: "halaman di belakang diam" tidak deterministik di `ec398eb`.**
+Empat sampel di commit yang sama, dengan tes yang identik: hijau di run
+36729688290 (suite penuh di CI biasa, percobaan pertama, 2,6 dtk), lalu
+merah di run 37001647550 attempt 1, 2 dan 3 (harness red-proof; 2,4, 2,5 dan
+2,1 dtk), masing-masing dengan _the document can still scroll_ sebagai error
+pertama. Jadi merah 3 dari 4, dan ketiga merah itu datang dari harness yang
+sama, sedangkan satu-satunya hijau dari suite penuh. Aturan CSS penahan
+gulirnya, `html:has(#header-nav:popover-open) { overflow: hidden }`, identik
+dengan `main`; yang berbeda hanya pengkabelan header. Di attempt 1, konteks
+error mencatat tombol menu bernama "Close" — React membaca sheet terbuka —
+sementara `overflowY` root terbaca `visible`. Mekanismenya belum diketahui.
+Tesnya membaca `overflow` satu kali, tepat sesudah sheet terlihat, tanpa
+_poll_. Prediksinya diubah dari hijau menjadi _either_ sesudah run
+37001647550, atas keputusan pemilik repo, dan `cases.json` mencatat
+alasannya. Di kode `main` tes ini hijau: kasus C di run yang sama, dan CI
+biasa run 37001647456.
+
+**Yang tersisa:** Tab dari MENU ke menu tetap _either_ di `67af568`. Merahnya
+(Enter yang mendahului hidrasi, sekali teramati di build lokal) tidak muncul
+di run ini, jadi ia belum terbukti bisa merah karena perilaku.
 
 **Satu dari tujuh itu kemudian merah sendiri — di CI, dalam perjalanan ke
 `main`.** "Fokus keluar + pencarian" flaky di CI PR #16: sekali gagal, lulus
@@ -754,10 +833,12 @@ hampir setiap kali. Kini tesnya membuka sheet dan memindahkan fokus keluar
 **dalam satu task**, lalu membaca dua hal: apakah yang tertutup sudah `inert`,
 dan apakah sheet masih terbuka. Pengkabelan yang menunggu `toggle` tak punya
 celah untuk lolos di situ — merah setiap kali (tidak `inert`, sheet tetap
-terbuka) — dan pengkabelan kini hijau. Kemerahan itu **diturunkan dari kode
-oleh review, tidak dijalankan** di build lama, karena build lokal dihentikan;
-ia ditulis di sini sebagai utang, bukan sebagai bukti. Jalur keyboardnya tetap
-diuji di sampingnya, sebagai jalan yang diambil pembaca.
+terbuka) — dan pengkabelan kini hijau. Kemerahan itu waktu itu **diturunkan
+dari kode oleh review, tidak dijalankan** di build lama, karena build lokal
+dihentikan, dan ditulis di sini sebagai utang. **Utang itu kini terukur:** di
+`ec398eb`, pada ketiga attempt run red-proof 37001647550, tesnya merah persis
+di kedua separuh itu (tabel di atas). Jalur keyboardnya tetap diuji di
+sampingnya, sebagai jalan yang diambil pembaca.
 
 ---
 

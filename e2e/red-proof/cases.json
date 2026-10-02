@@ -150,9 +150,10 @@
           "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
         },
         "mobile › the phone menu › the page behind holds still while the sheet is open": {
-          "expect": "green",
+          "expect": "either",
           "kind": "unchanged",
-          "why": "Green in CI run 36729688290 at this commit; the page is held through :has(), with no script."
+          "first": "the document can still scroll",
+          "why": "Predicted green before the first run, from CI run 36729688290; changed to either after red-proof run 37001647550, by the repo owner's decision. Samples at this commit: green in run 36729688290 (the full suite in ci.yml); red in run 37001647550 attempts 1, 2 and 3 (this harness), each with 'the document can still scroll' first. Three red of four. The scroll hold is CSS, html:has(#header-nav:popover-open) { overflow: hidden }, identical to main's; only the header's wiring differs. The mechanism is not known. The test reads overflow once, right after the sheet shows, and does not poll it."
         },
         "mobile › the phone menu › under reduced motion the words are there at once": {
           "expect": "green",
