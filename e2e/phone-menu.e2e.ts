@@ -317,7 +317,9 @@ test.describe('the phone menu', () => {
      * gap at all for wiring that waits on `toggle`. On that wiring this reads
      * the covered content not inert and the sheet still open — red, every
      * time; on the current wiring, inert and closed. Derived from the code by
-     * review, not run against the old build: local builds are stopped.
+     * review; `e2e/red-proof` (case B) runs this file against that wiring on
+     * CI. The three checks are soft so one run reports both halves — not
+     * inert, and still open — instead of stopping at the first.
      */
     const sameTask = await page.evaluate(() => {
       const menu = document.querySelector<HTMLElement>(
@@ -338,15 +340,19 @@ test.describe('the phone menu', () => {
       return { opened, inert, stillOpen: nav.matches(':popover-open') }
     })
     expect(sameTask, 'the header controls were not found').not.toBeNull()
-    expect(sameTask?.opened, 'MENU did not open the sheet').toBe(true)
-    expect(
-      sameTask?.inert,
-      'what the sheet covers was not inert the moment it opened'
-    ).toBe(true)
-    expect(
-      sameTask?.stillOpen,
-      'focus left the sheet and the sheet stayed open'
-    ).toBe(false)
+    expect.soft(sameTask?.opened, 'MENU did not open the sheet').toBe(true)
+    expect
+      .soft(
+        sameTask?.inert,
+        'what the sheet covers was not inert the moment it opened'
+      )
+      .toBe(true)
+    expect
+      .soft(
+        sameTask?.stillOpen,
+        'focus left the sheet and the sheet stayed open'
+      )
+      .toBe(false)
 
     /*
      * And the same path from the keyboard, as a reader takes it. Shift+Tab
@@ -417,15 +423,25 @@ test.describe('the phone menu', () => {
     await openMenu(page)
 
     const before = await page.evaluate(() => window.scrollY)
-    const overflow = await page.evaluate(
-      () => getComputedStyle(document.documentElement).overflowY
-    )
+    /*
+     * Polled, not read once: Lenis's `autoToggle` gives the root a 1ms
+     * transition on `overflow` (`node_modules/lenis/dist/lenis.css` 22-26),
+     * and a single read can land inside it and see the old `visible`.
+     */
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => getComputedStyle(document.documentElement).overflowY
+          ),
+        { message: 'the document can still scroll' }
+      )
+      .toBe('hidden')
     await page.mouse.move(195, 600)
     await page.mouse.wheel(0, 900)
     await page.waitForTimeout(600)
     const after = await page.evaluate(() => window.scrollY)
 
-    expect(overflow, 'the document can still scroll').toBe('hidden')
     expect(after, `the page moved from ${before} to ${after}`).toBe(before)
   })
 
