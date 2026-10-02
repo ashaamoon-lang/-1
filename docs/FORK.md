@@ -603,6 +603,15 @@ panjangnya sendiri), lalu naik mendatar saat baris-baris tiba, hanya rotasi.
 `data-epic="entry-work"`. **Belum diverifikasi:** mata. Build, e2e, dan CI hijau
 di checkpoint 1.
 
+**`/practice/<v>` — tulisan praktiknya, dan bekisting yang dibongkar (putaran 4).**
+Di bawah karya kini ada entri jurnal yang diarsipkan di praktik itu: tanggal,
+judul yang menaut ke entri, dan ringkasan indeks. Entri di-resolve persis
+seperti `/journal` (`resolveJournalEntries` atas `journalEntriesQuery`), jadi
+keduanya tak bisa berbeda. Desainnya primitif baru `vault/motion/formwork`,
+khusus CSS: tiap baris tiba di dalam cetakan putus-putus, lalu cetakannya
+dibongkar — memudar dan jatuh setengah gutter. Yang tersisa harus berdiri
+sendiri. `data-epic="practice-writing"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

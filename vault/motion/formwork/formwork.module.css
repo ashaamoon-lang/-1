@@ -1,0 +1,53 @@
+/*
+ * Formwork — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token: the form is the palette's `--line`, dashed, its drop
+ * is half the grid's gap, and its beats are the duration bands and the item
+ * stagger. Only the form's `opacity` and `transform` move; the item's own
+ * arrival is the global reveal's.
+ */
+
+.formwork {
+  position: relative;
+}
+
+/* At rest the form has been struck: gone, and fallen half a gutter. */
+.formwork::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: thin dashed var(--line);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(calc(var(--gap) * 0.5));
+}
+
+/* Before the reveal the form stands where the item will be cast. */
+[data-reveal='hidden'] .formwork::after {
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * Struck once the item has arrived and held for a beat, in reading order —
+ * each form a stagger behind its neighbour's.
+ */
+[data-reveal='visible'] .formwork::after {
+  transition:
+    opacity var(--duration) var(--ease-out-expo),
+    transform var(--duration) var(--ease-out-expo);
+  transition-delay: calc(
+    var(--duration-slow) + var(--reveal-index, 0) * var(--stagger-items)
+  );
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the form is never put up.
+ */
+@media (--reduced-motion) {
+  [data-reveal] .formwork::after {
+    opacity: 0;
+    transition: none;
+  }
+}

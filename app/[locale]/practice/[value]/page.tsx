@@ -8,6 +8,7 @@ import { Wrapper } from '@/components/layout/wrapper'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 import { Link } from '@/components/ui/link'
 import { SectionHeader } from '@/components/ui/section-header'
+import { resolveJournalEntries } from '@/lib/content/journal-fallback'
 import {
   PRACTICES,
   type Practice,
@@ -19,12 +20,16 @@ import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
-import { workIndexQuery } from '@/lib/integrations/sanity/queries'
+import {
+  journalEntriesQuery,
+  workIndexQuery,
+} from '@/lib/integrations/sanity/queries'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { CapabilitySet } from '@/vault/blocks/capability-set'
 import { NextPractice } from '@/vault/blocks/next-practice'
 import { PracticeHero } from '@/vault/blocks/practice-hero'
+import { PracticeWriting } from '@/vault/blocks/practice-writing'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
 import { DotPattern } from '@/vault/magic/dot-pattern'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
@@ -120,6 +125,33 @@ async function fetchPractice(locale: string, practice: Practice) {
   return projects.data
 }
 
+/**
+ * The writing filed under this practice — round 4, `practice-writing`.
+ *
+ * The same entries the journal index lists, resolved the same way
+ * (`resolveJournalEntries`): the studio's published entries when there are
+ * any, the scaffolding otherwise, never a mix — so this page and `/journal`
+ * cannot disagree about what has been written. Filtered here rather than in
+ * GROQ, so the query and its generated type stay the index's own.
+ */
+async function fetchWriting(locale: Locale, practice: Practice) {
+  'use cache'
+  const data = isConfigured('sanity')
+    ? (
+        await sanityFetch({
+          query: journalEntriesQuery,
+          params: { locale },
+          perspective: 'published',
+          stega: false,
+        })
+      ).data
+    : null
+
+  return resolveJournalEntries(locale, data)
+    .filter((entry) => entry.practice === practice)
+    .map(({ slug, date, title, summary }) => ({ slug, date, title, summary }))
+}
+
 /** The practice after this one, wrapping at the end so the three form a circuit. */
 function nextPractice(value: Practice): Practice {
   const index = PRACTICES.indexOf(value)
@@ -142,8 +174,9 @@ export default async function PracticePage({ params }: PracticePageProps) {
   const requested = await localeRootParam()
   const locale: Locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const [projects, t, tWork, tNav, tStudio] = await Promise.all([
+  const [projects, writing, t, tWork, tNav, tStudio] = await Promise.all([
     fetchPractice(locale, value),
+    fetchWriting(locale, value),
     getTranslations('practice'),
     // The practice's name and its one-sentence description are already
     // written here, in both languages, and already used as the masthead of
@@ -419,6 +452,21 @@ export default async function PracticePage({ params }: PracticePageProps) {
               </Link>
             </p>
           </Reveal>
+        )}
+
+        {/*
+          What the practice has written down about how it works — round 4.
+          After the work rather than before it, for the reason `/studio`
+          gives its strip: a claim, then the evidence, then the thinking that
+          connects them. Designed absence when nothing is filed here.
+        */}
+        {writing.length > 0 && (
+          <PracticeWriting
+            title={t('writingTitle')}
+            entries={writing}
+            locale={locale}
+            className={s.section}
+          />
         )}
 
         <NextPractice
