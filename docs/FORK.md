@@ -727,29 +727,32 @@ mana pesan utuh cocok dengan asersi yang salah.
 
 Tiga kasus: **A** `67af568`, dropdown React sebelum sheet; **B** `ec398eb`,
 sheet popover yang `inert` dan pendengar fokusnya menunggu event `toggle`
-(sebelum PR #18); **C**, head PR sebagai kontrol. Run 37001647550 attempt 1
-menjalankan ketiganya; attempt 2 dan 3 mengulang job B saja.
+(sebelum PR #18); **C**, head PR sebagai kontrol. Dua run, keduanya dengan
+pembacaan `overflow` sekali yang lama (lihat temuan di bawah). Run
+37001647550: attempt 1 menjalankan ketiga kasus, attempt 2 dan 3 mengulang job
+B. Run 37005977774, dipicu commit dokumen: attempt 1 dan 3 menjalankan ketiga
+kasus, attempt 2 mengulang B dan C.
 
-| tes                                            | A `67af568`                                                              | B `ec398eb`                                                                                                                         | C kontrol |
-| ---------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| tanpa skrip, MENU membuka rute                 | **merah**, perilaku — `toBeVisible`: element(s) not found                | hijau                                                                                                                               | hijau     |
-| sheet mengisi layar di bawah bar               | **merah**, perilaku — _the sheet stops short of the screen_              | hijau                                                                                                                               | hijau     |
-| Escape menutup, fokus kembali ke MENU          | **merah**, perilaku — `toBeHidden`: Received: visible                    | hijau                                                                                                                               | hijau     |
-| Tab dari MENU masuk ke menu                    | hijau (diprediksi _either_)                                              | hijau                                                                                                                               | hijau     |
-| Tab melewati tautan terakhir                   | **merah**, perilaku — _content under the open sheet can take focus_      | hijau                                                                                                                               | hijau     |
-| ⌘K membuka palette di atas sheet               | hijau — tak bisa dibuktikan terhadap commit                              | hijau                                                                                                                               | hijau     |
-| fokus keluar + pencarian (satu-task)           | **merah**, instrumen — _MENU did not open the sheet_, lalu _…not inert…_ | **merah**, perilaku — _…not inert the moment it opened_, lalu _focus left the sheet and the sheet stayed open_                      | hijau     |
-| navigasi klien                                 | hijau                                                                    | hijau                                                                                                                               | hijau     |
-| tautan bernavigasi, menu tertutup saat kembali | hijau                                                                    | hijau                                                                                                                               | hijau     |
-| halaman di belakang diam                       | **merah**, perilaku — _the document can still scroll_                    | **tidak deterministik** — merah 3 dari 4 sampel, _the document can still scroll_ (diprediksi hijau; diubah ke _either_ sesudah run) | hijau     |
-| reduced motion                                 | **merah**, instrumen — _no entrance ran without the preference_          | hijau                                                                                                                               | hijau     |
-| axe                                            | hijau                                                                    | hijau                                                                                                                               | hijau     |
-| desktop: satu nav, tanpa salinan tersembunyi   | hijau — tak bisa dibuktikan terhadap commit                              | hijau                                                                                                                               | hijau     |
+| tes                                            | A `67af568`                                                              | B `ec398eb`                                                                                                                        | C kontrol                                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| tanpa skrip, MENU membuka rute                 | **merah**, perilaku — `toBeVisible`: element(s) not found                | hijau                                                                                                                              | hijau                                                                                   |
+| sheet mengisi layar di bawah bar               | **merah**, perilaku — _the sheet stops short of the screen_              | hijau                                                                                                                              | hijau                                                                                   |
+| Escape menutup, fokus kembali ke MENU          | **merah**, perilaku — `toBeHidden`: Received: visible                    | hijau                                                                                                                              | hijau                                                                                   |
+| Tab dari MENU masuk ke menu                    | hijau (diprediksi _either_)                                              | hijau                                                                                                                              | hijau                                                                                   |
+| Tab melewati tautan terakhir                   | **merah**, perilaku — _content under the open sheet can take focus_      | hijau 6 dari 7; **merah** sekali (37005977774 attempt 1) — _content under the open sheet can take focus_; kini diprediksi _either_ | hijau                                                                                   |
+| ⌘K membuka palette di atas sheet               | hijau — tak bisa dibuktikan terhadap commit                              | hijau                                                                                                                              | hijau                                                                                   |
+| fokus keluar + pencarian (satu-task)           | **merah**, instrumen — _MENU did not open the sheet_, lalu _…not inert…_ | **merah**, perilaku — _…not inert the moment it opened_, lalu _focus left the sheet and the sheet stayed open_                     | hijau                                                                                   |
+| navigasi klien                                 | hijau                                                                    | hijau                                                                                                                              | hijau                                                                                   |
+| tautan bernavigasi, menu tertutup saat kembali | hijau                                                                    | hijau                                                                                                                              | hijau                                                                                   |
+| halaman di belakang diam                       | **merah**, perilaku — _the document can still scroll_                    | **merah** 6 dari 7 — _the document can still scroll_; cacat instrumen (temuan di bawah)                                            | **merah** 2 dari 4 di red-proof, hijau di 5 run suite penuh — cacat instrumen yang sama |
+| reduced motion                                 | **merah**, instrumen — _no entrance ran without the preference_          | hijau                                                                                                                              | hijau                                                                                   |
+| axe                                            | hijau                                                                    | hijau                                                                                                                              | hijau                                                                                   |
+| desktop: satu nav, tanpa salinan tersembunyi   | hijau — tak bisa dibuktikan terhadap commit                              | hijau                                                                                                                              | hijau                                                                                   |
 
-Kolom B memuat hasil ketiga attempt run 37001647550, yang sama di setiap
-attempt. CI biasa di head yang sama (run 37001647456): `e2e` 580 lulus, 0
-gagal, 0 flaky, 29 dilewati. Tes satu-task, dengan tiga ceknya kini
-`expect.soft`, hijau di sana.
+Sel tanpa hitungan sama di setiap attempt kedua run. CI biasa: run
+37001647456 (head `7f728e1`) dan 37005977732 (head `89af2c3`), masing-masing
+`e2e` 580 lulus, 0 gagal, 0 flaky, 29 dilewati. Tes satu-task, dengan tiga
+ceknya kini `expect.soft`, hijau di keduanya.
 
 **Utang yang lunas:**
 
@@ -765,9 +768,9 @@ gagal, 0 flaky, 29 dilewati. Tes satu-task, dengan tiga ceknya kini
   bisa melihat menu yang bukan popover.
 - **Tes satu-task merah di `ec398eb`, di kedua separuhnya:** yang tertutup
   sheet tidak `inert`, dan sheet tetap terbuka sesudah fokus pindah keluar. Ini
-  terjadi di ketiga attempt, dengan kedua pesan itu sebagai error pertama dan
-  kedua. Kalimat "diturunkan dari kode, tidak dijalankan" di bawah kini
-  terukur.
+  terjadi di keenam attempt kedua run, dengan kedua pesan itu sebagai error
+  pertama dan kedua. Kalimat "diturunkan dari kode, tidak dijalankan" di bawah
+  kini terukur.
 
 **Tidak bisa dibuktikan terhadap commit — dan tidak dipaksakan:**
 
@@ -790,26 +793,49 @@ gagal, 0 flaky, 29 dilewati. Tes satu-task, dengan tiga ceknya kini
 Membuat commit rekaan yang memuat cacat itu akan "membuktikan" keduanya, dan
 justru karena itu tidak dilakukan.
 
-**Temuan baru: "halaman di belakang diam" tidak deterministik di `ec398eb`.**
-Empat sampel di commit yang sama, dengan tes yang identik: hijau di run
-36729688290 (suite penuh di CI biasa, percobaan pertama, 2,6 dtk), lalu
-merah di run 37001647550 attempt 1, 2 dan 3 (harness red-proof; 2,4, 2,5 dan
-2,1 dtk), masing-masing dengan _the document can still scroll_ sebagai error
-pertama. Jadi merah 3 dari 4, dan ketiga merah itu datang dari harness yang
-sama, sedangkan satu-satunya hijau dari suite penuh. Aturan CSS penahan
-gulirnya, `html:has(#header-nav:popover-open) { overflow: hidden }`, identik
-dengan `main`; yang berbeda hanya pengkabelan header. Di attempt 1, konteks
-error mencatat tombol menu bernama "Close" — React membaca sheet terbuka —
-sementara `overflowY` root terbaca `visible`. Mekanismenya belum diketahui.
-Tesnya membaca `overflow` satu kali, tepat sesudah sheet terlihat, tanpa
-_poll_. Prediksinya diubah dari hijau menjadi _either_ sesudah run
-37001647550, atas keputusan pemilik repo, dan `cases.json` mencatat
-alasannya. Di kode `main` tes ini hijau: kasus C di run yang sama, dan CI
-biasa run 37001647456.
+**Temuan: kontrol yang memerah karena instrumen, bukan karena halaman
+bergulir.** "Halaman di belakang diam" membaca `overflowY` root **satu
+kali**, tepat sesudah sheet terlihat. Dengan pembacaan itu ia merah di
+`ec398eb` 6 dari 7 sampel (hijau hanya di run 36729688290, suite penuh di CI
+biasa), dan di kode `main` 2 dari 4 sampel red-proof (run 37005977774 attempt
+1 dan 3), sementara di suite penuh ia hijau di kelima run yang dibaca
+(37001647456, 37005977732, 36821922226, 36820339810, 36818584855). Setiap
+merahnya diawali _the document can still scroll_.
+
+Sebabnya bukan pengkabelan header. Lenis berjalan dengan `autoToggle: true`
+(`components/layout/lenis/index.tsx:151`), yang memasang kelas
+`lenis-autoToggle` di `<html>`, dan `lenis.css` yang diimpor app memberi
+kelas itu transisi diskret 1 ms pada `overflow`
+(`node_modules/lenis/dist/lenis.css:22-26`) — dengan transisi itulah Lenis
+mendengar kunci gulir lalu berhenti sendiri, lewat `transitionend`. Pembacaan
+yang jatuh di dalam transisi itu melihat nilai lama, `visible`, padahal
+`html:has(#header-nav:popover-open)` sudah cocok. Ini diukur di halaman
+statis dengan CSS yang sama (Chromium 151, probe lokal yang tidak di-commit):
+dengan transisi itu `overflowY` terbaca `visible` 8 dari 8 kali, dengan dua
+transisi `overflow` sedang berjalan; tanpa transisi itu `hidden` 8 dari 8.
+
+Asersi perilakunya — halaman tidak bergeser sesudah wheel — dievaluasi
+sesudah asersi `overflow`, jadi di setiap sampel merah ia tak pernah dinilai.
+Setiap kali ia dinilai di kode `main`, ia lulus: 7 dari 7. Jadi ini cacat
+instrumen, bukan cacat produk. Commit ini memperbaikinya: `overflow` kini
+di-_poll_ dengan pesan dan harapan yang sama, sebelum wheel, sehingga asersi
+gulir selalu dinilai pada halaman yang sudah terkunci. Prediksinya kembali
+hijau di B dan C atas keputusan pemilik repo; hasil dengan _poll_ diukur oleh
+run red-proof yang dipicu commit ini dan dicatat di PR #19. Commit `89af2c3`
+mencatat temuan ini sebagai khas `ec398eb` dengan mekanisme yang belum
+diketahui; commit ini mengoreksinya.
+
+**Temuan yang lebih kecil, di `ec398eb`:** "Tab melewati tautan terakhir"
+merah 1 dari 7 (run 37005977774 attempt 1, `main` dan `footer` terbaca belum
+`inert`). Ini konsisten dengan pengkabelan lama, yang memasang `inert` hanya
+lewat efek sesudah event `toggle` yang diantrikan — disimpulkan dari kode,
+tidak diukur. Prediksi awalnya hijau, karena pemeriksaan `inert`-nya berjalan
+sesudah sheet ditunggu terlihat; ternyata sesekali ia mendahului efek itu.
+Prediksinya kini _either_.
 
 **Yang tersisa:** Tab dari MENU ke menu tetap _either_ di `67af568`. Merahnya
 (Enter yang mendahului hidrasi, sekali teramati di build lokal) tidak muncul
-di run ini, jadi ia belum terbukti bisa merah karena perilaku.
+di kedua run ini, jadi ia belum terbukti bisa merah karena perilaku.
 
 **Satu dari tujuh itu kemudian merah sendiri — di CI, dalam perjalanan ke
 `main`.** "Fokus keluar + pencarian" flaky di CI PR #16: sekali gagal, lulus
@@ -836,9 +862,9 @@ celah untuk lolos di situ — merah setiap kali (tidak `inert`, sheet tetap
 terbuka) — dan pengkabelan kini hijau. Kemerahan itu waktu itu **diturunkan
 dari kode oleh review, tidak dijalankan** di build lama, karena build lokal
 dihentikan, dan ditulis di sini sebagai utang. **Utang itu kini terukur:** di
-`ec398eb`, pada ketiga attempt run red-proof 37001647550, tesnya merah persis
-di kedua separuh itu (tabel di atas). Jalur keyboardnya tetap diuji di
-sampingnya, sebagai jalan yang diambil pembaca.
+`ec398eb`, pada keenam attempt run red-proof 37001647550 dan 37005977774,
+tesnya merah persis di kedua separuh itu (tabel di atas). Jalur keyboardnya
+tetap diuji di sampingnya, sebagai jalan yang diambil pembaca.
 
 ---
 

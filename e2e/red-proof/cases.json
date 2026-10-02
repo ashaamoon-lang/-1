@@ -75,7 +75,7 @@
           "expect": "red",
           "kind": "behaviour",
           "first": "the document can still scroll",
-          "why": "Nothing holds the page while the old dropdown is open: the root's overflow is not hidden."
+          "why": "Nothing holds the page while the old dropdown is open: the root's overflow never becomes hidden, so the poll on it runs out its 5s and fails with this message. With the earlier one-shot read it was red in every A sample (run 37001647550 attempt 1, run 37005977774 attempts 1 and 3); the poll keeps the same message and the same expected value."
         },
         "mobile › the phone menu › under reduced motion the words are there at once": {
           "expect": "red",
@@ -99,7 +99,7 @@
       "id": "B",
       "ref": "ec398ebbc459dbae5c11eb928e85b575b96295b1",
       "name": "the popover sheet, wired to the toggle event",
-      "about": "main's sheet before PR #18: the focusin listener and inert came from an effect keyed on `open`, which follows the popover's queued toggle event. Between this commit and main only the single-task test's hunk changed in the spec, and CI run 36729688290 ran every other test green at this commit.",
+      "about": "main's sheet before PR #18: the focusin listener and inert came from an effect keyed on `open`, which follows the popover's queued toggle event. CI run 36729688290 ran every test but the single-task one green at this commit, with the spec as it was then; since, PR #18 rewrote the single-task test, and this PR made its three checks soft and polls the scroll-hold read.",
       "tests": {
         "mobile › the phone menu › with scripting off, MENU opens the routes and they lead somewhere": {
           "expect": "green",
@@ -122,9 +122,10 @@
           "why": "Green in CI run 36729688290 at this commit; a popover opens without React, so hydration does not race it."
         },
         "mobile › the phone menu › Tab past the last link never lands focus under the sheet": {
-          "expect": "green",
-          "kind": "unchanged",
-          "why": "Its inert check runs after openMenu has waited for the sheet, by which time the toggle-driven effect has run. Review found it cannot tell the two wirings apart; the single-task test can."
+          "expect": "either",
+          "kind": "behaviour",
+          "first": "content under the open sheet can take focus",
+          "why": "Predicted green before the first run; changed to either after red-proof run 37005977774, by the repo owner's decision. Red in one sample of seven at this commit: run 37005977774 attempt 1, with main and footer read [false, false]. Green in CI run 36729688290, run 37001647550 attempts 1-3 and run 37005977774 attempts 2-3. Consistent with this wiring, where inert is set only by the effect that follows the queued toggle event, so a read right after the sheet shows can come before it. Derived from the code, not measured; the single-task test shows that gap every time."
         },
         "mobile › the phone menu › ⌘K with the menu open puts the palette on top, not under the sheet": {
           "expect": "green",
@@ -150,10 +151,9 @@
           "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
         },
         "mobile › the phone menu › the page behind holds still while the sheet is open": {
-          "expect": "either",
+          "expect": "green",
           "kind": "unchanged",
-          "first": "the document can still scroll",
-          "why": "Predicted green before the first run, from CI run 36729688290; changed to either after red-proof run 37001647550, by the repo owner's decision. Samples at this commit: green in run 36729688290 (the full suite in ci.yml); red in run 37001647550 attempts 1, 2 and 3 (this harness), each with 'the document can still scroll' first. Three red of four. The scroll hold is CSS, html:has(#header-nav:popover-open) { overflow: hidden }, identical to main's; only the header's wiring differs. The mechanism is not known. The test reads overflow once, right after the sheet shows, and does not poll it."
+          "why": "Predicted green before the first run; changed to either after red-proof run 37001647550, and back to green with this commit's fix to the test, both by the repo owner's decision. With the earlier one-shot read it was red in six samples of seven at this commit: green in CI run 36729688290 (the full suite in ci.yml), red in run 37001647550 attempts 1-3 and run 37005977774 attempts 1-3, each with 'the document can still scroll' first. The cause was the instrument, not this wiring: Lenis's autoToggle gives the root a 1ms discrete transition on overflow (node_modules/lenis/dist/lenis.css 22-26), and a read landing inside it sees the old visible. main's code read visible too, in two of four red-proof samples, and a static page with the same CSS read visible 8 of 8 times with the transition and hidden 8 of 8 without. The test now polls overflow, with the same message and expected value, and the scroll assertion decides."
         },
         "mobile › the phone menu › under reduced motion the words are there at once": {
           "expect": "green",
@@ -216,7 +216,8 @@
         },
         "mobile › the phone menu › the page behind holds still while the sheet is open": {
           "expect": "green",
-          "kind": "control"
+          "kind": "control",
+          "why": "With the earlier one-shot read: red in two of four red-proof samples (run 37005977774 attempts 1 and 3; green in run 37001647550 attempt 1 and run 37005977774 attempt 2), green in every full-suite run read (37001647456, 37005977732, 36821922226, 36820339810, 36818584855). The read landed inside Lenis's overflow transition; it is polled now."
         },
         "mobile › the phone menu › under reduced motion the words are there at once": {
           "expect": "green",

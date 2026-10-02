@@ -423,15 +423,25 @@ test.describe('the phone menu', () => {
     await openMenu(page)
 
     const before = await page.evaluate(() => window.scrollY)
-    const overflow = await page.evaluate(
-      () => getComputedStyle(document.documentElement).overflowY
-    )
+    /*
+     * Polled, not read once: Lenis's `autoToggle` gives the root a 1ms
+     * transition on `overflow` (`node_modules/lenis/dist/lenis.css` 22-26),
+     * and a single read can land inside it and see the old `visible`.
+     */
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => getComputedStyle(document.documentElement).overflowY
+          ),
+        { message: 'the document can still scroll' }
+      )
+      .toBe('hidden')
     await page.mouse.move(195, 600)
     await page.mouse.wheel(0, 900)
     await page.waitForTimeout(600)
     const after = await page.evaluate(() => window.scrollY)
 
-    expect(overflow, 'the document can still scroll').toBe('hidden')
     expect(after, `the page moved from ${before} to ${after}`).toBe(before)
   })
 
