@@ -1,0 +1,235 @@
+{
+  "about": [
+    "Predictions for running e2e/phone-menu.e2e.ts against older commits, written and committed before the first run.",
+    "The workflow (.github/workflows/red-proof.yml) checks out each case's ref, lays the files in `overlay` over it from the commit under test, builds, and runs the spec with --retries=0. classify.ts holds the JSON report against these predictions.",
+    "A red prediction names the error it expects first, as a pattern over the message without its code frame, and any later errors it requires (soft assertions). Errors past those are consequences: printed, not judged.",
+    "Tests a project skips (the phone tests on desktop, the desktop test on a phone) are not listed; any test that runs must be."
+  ],
+  "spec": "e2e/phone-menu.e2e.ts",
+  "overlay": [
+    "playwright.config.ts",
+    "e2e/phone-menu.e2e.ts",
+    "e2e/axe-tags.ts"
+  ],
+  "cases": [
+    {
+      "id": "A",
+      "ref": "67af568577c8970b3d57d9ca8d3b7438dad85662",
+      "name": "the React dropdown, before the sheet",
+      "about": "The last commit before the popover sheet (f9bdb29). MENU is a React state toggle; below 800px the nav is display:none until it toggles, then a dropdown under the bar. No popover, no inert, no Escape handler, no scroll hold, no entrance.",
+      "tests": {
+        "mobile › the phone menu › with scripting off, MENU opens the routes and they lead somewhere": {
+          "expect": "red",
+          "kind": "behaviour",
+          "first": "toBeVisible\\(\\) failed[\\s\\S]*getByRole\\('navigation', \\{ name: 'Primary' \\}\\)[\\s\\S]*element\\(s\\) not found",
+          "why": "With scripting off the toggle never runs: the nav stays display:none, and the role locator, which skips hidden elements, finds nothing. That is the defect: no route links in the phone header without a script. The same locator finds this nav once a script shows it (client navigation and navigate-and-back below are predicted green), so 'not found' here is the menu not opening, not a locator blind to the old markup."
+        },
+        "mobile › the phone menu › the sheet fills the screen under the bar, and the bar stays": {
+          "expect": "red",
+          "kind": "behaviour",
+          "first": "the sheet stops short of the screen",
+          "why": "The dropdown starts at the bar and ends where its three links end: 216px of an 844px screen on the local build before the change (docs/FORK.md §3.4)."
+        },
+        "mobile › the phone menu › Escape from inside the sheet closes it and focus comes back to MENU": {
+          "expect": "red",
+          "kind": "behaviour",
+          "first": "toBeHidden\\(\\) failed[\\s\\S]*getByRole\\('navigation', \\{ name: 'Primary' \\}\\)[\\s\\S]*Received: visible",
+          "why": "Tab from MENU enters the dropdown, which follows MENU in the markup; Escape then does nothing, because the old toggle had no key handler."
+        },
+        "mobile › the phone menu › from the keyboard, Tab goes from MENU into the menu, and the stop is visible": {
+          "expect": "either",
+          "kind": "unchanged",
+          "first": "toBeVisible\\(\\) failed[\\s\\S]*getByRole\\('navigation', \\{ name: 'Primary' \\}\\)[\\s\\S]*element\\(s\\) not found",
+          "why": "Green once hydrated: Tab from MENU lands on the dropdown's first link, on screen, with a ring. The test loads with waitUntil 'load', and an Enter that lands before React hydrates does nothing on the old toggle, so the menu never shows; that happened once on the local build. Either result is a measurement of the old menu; neither is the defect this test guards."
+        },
+        "mobile › the phone menu › Tab past the last link never lands focus under the sheet": {
+          "expect": "red",
+          "kind": "behaviour",
+          "first": "content under the open sheet can take focus",
+          "why": "Nothing marks the page under the old dropdown inert: what it covers can still take focus."
+        },
+        "mobile › the phone menu › ⌘K with the menu open puts the palette on top, not under the sheet": {
+          "expect": "green",
+          "kind": "not-provable",
+          "why": "Changed from the plan, which predicted red. The defect this guards, the palette opening under the sheet, needs a sheet in the top layer, and no commit ever had one without the fix: the first popover version that did was reviewed before it was committed, and f9bdb29 carries the popover and every review fix in one commit. On the old dropdown the test passes for two reasons, neither of them the menu closing. The palette is a modal Base UI Dialog (modal defaults to true), whose FloatingFocusManager marks everything outside it aria-hidden through markOthers, so the role locator finds no navigation and toBeHidden holds. And the palette's popup (z-index 101) paints over the header (20), so the hit test holds. On main the guard that matters is the hit test, not toBeHidden. Not provable against a commit."
+        },
+        "mobile › the phone menu › focus going anywhere outside the sheet closes it, and search from the keyboard lands on top": {
+          "expect": "red",
+          "kind": "instrument",
+          "first": "MENU did not open the sheet",
+          "also": ["what the sheet covers was not inert the moment it opened"],
+          "why": ":popover-open cannot see a menu that is not a popover, so the first soft check reads 'not opened' although the click did open the dropdown through React: the instrument, not the behaviour. The covered page is not inert either, which is true of the old menu. 'Still open' reads false for the same reason as the first check, so it passes without measuring anything.",
+          "consequence": "The click opened the dropdown and nothing closed it, so MENU is now named Close (messages/en.json, nav.closeMenu), and the keyboard half's getByRole('button', { name: 'Menu' }).focus() waits out the 30s test timeout. A click before hydration would instead fail later, at toBeHidden after Shift+Tab."
+        },
+        "mobile › the phone menu › after a client navigation, MENU opens this page’s sheet": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Each page's header owns its React state, so MENU on the new page opens the new page's dropdown, with Studio marked current."
+        },
+        "mobile › the phone menu › a link in the menu navigates, and the menu is shut when the reader comes back": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "The old route links closed the dropdown on click (setMenuOpen(false)), so the page Next keeps in its hidden Activity comes back with its menu shut."
+        },
+        "mobile › the phone menu › the page behind holds still while the sheet is open": {
+          "expect": "red",
+          "kind": "behaviour",
+          "first": "the document can still scroll",
+          "why": "Nothing holds the page while the old dropdown is open: the root's overflow is not hidden."
+        },
+        "mobile › the phone menu › under reduced motion the words are there at once": {
+          "expect": "red",
+          "kind": "instrument",
+          "first": "no entrance ran without the preference",
+          "why": "The control: the old dropdown had no entrance at all, so without the preference nothing is running the moment it opens, and the test says it cannot see one. The reduced-motion half is never reached."
+        },
+        "mobile › the phone menu › the open menu passes axe": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "The old dropdown passed this axe check on the local build before the change (docs/FORK.md §3.4)."
+        },
+        "desktop › the same nav on desktop › is the header row: visible, with no hidden copy of any link": {
+          "expect": "green",
+          "kind": "not-provable",
+          "why": "The hidden copy of every link existed only in the first popover version, which rendered a second nav and was replaced before it was committed. The old header row is one nav, all of it visible. Not provable against a commit."
+        }
+      }
+    },
+    {
+      "id": "B",
+      "ref": "ec398ebbc459dbae5c11eb928e85b575b96295b1",
+      "name": "the popover sheet, wired to the toggle event",
+      "about": "main's sheet before PR #18: the focusin listener and inert came from an effect keyed on `open`, which follows the popover's queued toggle event. Between this commit and main only the single-task test's hunk changed in the spec, and CI run 36729688290 ran every other test green at this commit.",
+      "tests": {
+        "mobile › the phone menu › with scripting off, MENU opens the routes and they lead somewhere": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
+        },
+        "mobile › the phone menu › the sheet fills the screen under the bar, and the bar stays": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
+        },
+        "mobile › the phone menu › Escape from inside the sheet closes it and focus comes back to MENU": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
+        },
+        "mobile › the phone menu › from the keyboard, Tab goes from MENU into the menu, and the stop is visible": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; a popover opens without React, so hydration does not race it."
+        },
+        "mobile › the phone menu › Tab past the last link never lands focus under the sheet": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Its inert check runs after openMenu has waited for the sheet, by which time the toggle-driven effect has run. Review found it cannot tell the two wirings apart; the single-task test can."
+        },
+        "mobile › the phone menu › ⌘K with the menu open puts the palette on top, not under the sheet": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Search yields the top layer at this commit already (components/ui/command, yieldTopLayer). Green in CI run 36729688290."
+        },
+        "mobile › the phone menu › focus going anywhere outside the sheet closes it, and search from the keyboard lands on top": {
+          "expect": "red",
+          "kind": "behaviour",
+          "first": "what the sheet covers was not inert the moment it opened",
+          "also": ["focus left the sheet and the sheet stayed open"],
+          "why": "MENU opens the sheet synchronously, so 'opened' holds. inert and the focusin listener come from an effect that runs only after the queued toggle event, after this task: in the same task the covered page is not inert, and focus moved to search finds no listener, so the sheet stays open. The race CI caught as a flake on PR #16.",
+          "consequence": "The toggle event then runs, the button reads Close, and the keyboard half's getByRole('button', { name: 'Menu' }).focus() waits out the 30s test timeout."
+        },
+        "mobile › the phone menu › after a client navigation, MENU opens this page’s sheet": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; MENU targets its own nav by reference there already."
+        },
+        "mobile › the phone menu › a link in the menu navigates, and the menu is shut when the reader comes back": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
+        },
+        "mobile › the phone menu › the page behind holds still while the sheet is open": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; the page is held through :has(), with no script."
+        },
+        "mobile › the phone menu › under reduced motion the words are there at once": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
+        },
+        "mobile › the phone menu › the open menu passes axe": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
+        },
+        "desktop › the same nav on desktop › is the header row: visible, with no hidden copy of any link": {
+          "expect": "green",
+          "kind": "unchanged",
+          "why": "Green in CI run 36729688290 at this commit; the test is unchanged since."
+        }
+      }
+    },
+    {
+      "id": "C",
+      "ref": "HEAD",
+      "name": "the commit under test, as the control",
+      "about": "No overlay: the app is main's. Every test green here shows the harness can report green, so a red in A or B is the app under test, not the workflow.",
+      "tests": {
+        "mobile › the phone menu › with scripting off, MENU opens the routes and they lead somewhere": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › the sheet fills the screen under the bar, and the bar stays": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › Escape from inside the sheet closes it and focus comes back to MENU": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › from the keyboard, Tab goes from MENU into the menu, and the stop is visible": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › Tab past the last link never lands focus under the sheet": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › ⌘K with the menu open puts the palette on top, not under the sheet": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › focus going anywhere outside the sheet closes it, and search from the keyboard lands on top": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › after a client navigation, MENU opens this page’s sheet": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › a link in the menu navigates, and the menu is shut when the reader comes back": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › the page behind holds still while the sheet is open": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › under reduced motion the words are there at once": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "mobile › the phone menu › the open menu passes axe": {
+          "expect": "green",
+          "kind": "control"
+        },
+        "desktop › the same nav on desktop › is the header row: visible, with no hidden copy of any link": {
+          "expect": "green",
+          "kind": "control"
+        }
+      }
+    }
+  ]
+}

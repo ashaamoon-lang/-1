@@ -1,0 +1,152 @@
+name: Red proof
+permissions:
+  contents: read
+
+# Runs `e2e/phone-menu.e2e.ts` against the code it was written to catch, and
+# holds every result against a prediction committed before the run.
+#
+# ## Why this exists
+#
+# A gate only ever seen green has not been shown to see anything. Most of the
+# phone menu's tests were never run against the menu they replaced: builds
+# stopped on the owner's laptop, and the suite moved to CI. `docs/FORK.md`
+# §3.4 carried them as debt. Here a runner pays it: each case builds the app
+# at an older commit, lays the current spec over it, runs it, and
+# `e2e/red-proof/classify.ts` reads the report against
+# `e2e/red-proof/cases.json`. A job is green when every prediction held —
+# reds included — and red when one did not.
+#
+# ## Only when the proof changes
+#
+# Three builds of the site are not something every PR should pay for, so the
+# trigger is the harness and its predictions. `pull_request` path filters are
+# read against the whole PR diff, so each push to a PR that touches them runs
+# it again: a second run is a re-measurement, not a re-use. Nothing waits on
+# this to merge — unlike `e2e` in ci.yml it is not a required check — so a
+# trigger-level filter cannot strand a PR here.
+on:
+  pull_request:
+    paths:
+      - e2e/red-proof/**
+      - .github/workflows/red-proof.yml
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cases:
+    runs-on: ubuntu-latest
+    outputs:
+      cases: ${{ steps.read.outputs.cases }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # One job per case, read from the file the predictions live in, so a
+      # case added there is a case run here.
+      - name: Read the cases
+        id: read
+        run: echo "cases=$(jq -c '[.cases[] | {id, ref, name}]' e2e/red-proof/cases.json)" >> "$GITHUB_OUTPUT"
+
+  prove:
+    needs: cases
+    name: ${{ matrix.case.id }} · ${{ matrix.case.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      # A case that fails says nothing about the others; each runs to its end.
+      fail-fast: false
+      matrix:
+        case: ${{ fromJSON(needs.cases.outputs.cases) }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The cases are older commits.
+          fetch-depth: 0
+
+      # Before the tree changes under it: the harness and the predictions are
+      # the commit under test's, whatever app is built.
+      - name: Keep the harness
+        run: |
+          echo "HARNESS=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/red-proof"
+          cp e2e/red-proof/cases.json e2e/red-proof/classify.ts "$RUNNER_TEMP/red-proof/"
+
+      # The app at the case's commit, with only the gate laid over it: the
+      # files `cases.json` lists as its overlay — the spec, the one module it
+      # imports, and the config that puts it in the mobile project. Nothing
+      # else from the commit under test reaches the build; `git status` prints
+      # the whole of it. `HEAD` is the control: the commit under test as is.
+      - name: Check out the app under test
+        env:
+          REF: ${{ matrix.case.ref }}
+        run: |
+          if [ "$REF" != "HEAD" ]; then
+            mapfile -t overlay < <(jq -r '.overlay[]' "$RUNNER_TEMP/red-proof/cases.json")
+            git checkout --quiet --detach "$REF"
+            git checkout "$HARNESS" -- "${overlay[@]}"
+          fi
+          echo "RED_PROOF_APP=$(git log -1 --format='%h %s')" >> "$GITHUB_ENV"
+          git log -1 --format='app under test: %H %s'
+          echo "laid over it from $HARNESS:"
+          git status --short
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Restore only, under ci.yml's key, so a browser it cached is reused and
+      # nothing here writes a cache back. The Next.js build cache is not
+      # touched at all: its restore key is a prefix every e2e run shares, and
+      # an old commit's build has no business in it.
+      - name: Restore Playwright browsers
+        id: playwright-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: bunx playwright install --with-deps chromium
+
+      # `CI` is set, so playwright.config.ts builds and starts the production
+      # server itself, as in ci.yml (46s to build in run 36821922226, with no
+      # build cache). --retries=0: a retry turns a race into a pass, and a red
+      # is what this measures. The exit code is not the verdict — the next
+      # step is — so a red run does not stop the job here; a build that fails
+      # reaches the next step as a run that did not happen.
+      - name: Run the gate
+        env:
+          NEXT_PUBLIC_SANITY_PROJECT_ID: az53j4l1
+          NEXT_PUBLIC_SANITY_DATASET: production
+          NEXT_PUBLIC_SANITY_API_VERSION: '2025-03-01'
+          PLAYWRIGHT_JSON_OUTPUT_FILE: red-proof-results/report.json
+          PLAYWRIGHT_HTML_OPEN: never
+        run: |
+          set +e
+          bunx playwright test e2e/phone-menu.e2e.ts --retries=0 --reporter=list,json,html
+          echo "playwright exited $?"
+
+      - name: Hold the run against the prediction
+        if: ${{ !cancelled() }}
+        env:
+          CASE_ID: ${{ matrix.case.id }}
+        run: bun "$RUNNER_TEMP/red-proof/classify.ts" "$RUNNER_TEMP/red-proof/cases.json" "$CASE_ID" red-proof-results/report.json
+
+      - name: Upload the report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: red-proof-${{ matrix.case.id }}
+          path: |
+            playwright-report/
+            test-results/
+            red-proof-results/
+          if-no-files-found: warn
+          retention-days: 14
