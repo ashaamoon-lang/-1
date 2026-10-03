@@ -83,7 +83,7 @@ export function PracticeEngagements({
               {row.engagement && (
                 <span className="p-big">{row.engagement}</span>
               )}
-              <span className="caption">
+              <span className={cn('caption', s.work)}>
                 {row.href === null ? (
                   <span>
                     {row.title} · {currentLabel}

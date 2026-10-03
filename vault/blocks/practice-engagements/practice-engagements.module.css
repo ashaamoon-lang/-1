@@ -43,6 +43,21 @@
 }
 
 /*
+ * The work's name and its client and year sit side by side as separate
+ * items, not as one run of text — the fix checkpoint 3 needed in round 8's
+ * schedule, made here too. A link inline in running text is a "link in a text
+ * block" to axe, which cannot tell it from the text by colour over this
+ * site's backgrounds; `route-sweep` does not visit case studies, so the blind
+ * spot would have stayed quiet. As a flex item the name stands on its own.
+ */
+.work {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: calc(var(--gap) * 0.25);
+}
+
+/*
  * Only the client and year are muted: the work's name — linked, or for this
  * engagement unlinked and named as such — keeps the body colour.
  */
