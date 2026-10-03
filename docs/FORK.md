@@ -719,7 +719,7 @@ membuka apa pun bagi pembaca webmail, dan tidak memberi tanda gagal. Kini di baw
 dengan hasilnya di `role="status"`. Tanpa JS atau tanpa clipboard asinkron, tombol tidak
 dirender; alamatnya tetap. Barisnya diposisikan agar alamat yang ditarik `Magnetic` tidak
 menutupnya, dan blok kontak kini memudar di tempat. Diuji di `e2e/address-copy.e2e.ts`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata. Build, e2e, dan CI hijau (run 37113202080).
 
 **`/` — stempel saat alamat tersalin (sekali jalan).** Setiap salinan yang berhasil kini
 distempel: primitif baru `vault/motion/stamp`, khusus CSS, diputar sekali saat dipasang.
@@ -727,7 +727,7 @@ Bingkai bergaris turun setengah gutter ke kertas dengan `--ease-in-quart` dan be
 tanpa pantulan; katanya baru muncul saat bingkai menyentuh, jadi teks tidak pernah bergerak.
 Total 350 ms. Salinan kedua menstempel lagi (`key` baru), dan stempel ada di `role="status"`
 sehingga dibacakan. Reduced motion: stempel langsung ada. `data-epic="address-copy"`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata. Build, e2e, dan CI hijau (run 37113202080).
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
