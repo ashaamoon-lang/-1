@@ -753,6 +753,14 @@ atas bingkai. Pendengarnya didelegasikan pada tabel yang tetap dirender server
 (`reader.tsx`); petunjuk tombol terhubung lewat `aria-describedby`.
 **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/work` — garis bidik (Orientasi, tahap 2).** Grid gambar dibaca dari tepinya: sebuah titik
+adalah "baris C, kolom 4" karena ada garis dari tiap sumbu ke sana. Primitif baru
+`vault/motion/crosshair` melakukan itu untuk karya yang di-hover atau difokus: satu garis rambut
+menyusuri baris praktiknya dari tepi kiri bingkai, satu menuruni kolom tahunnya dari tepi atas,
+dan keduanya meluncur ke karya berikutnya alih-alih melompat. Hanya `transform` dan
+`opacity`, `--duration-fast`. Reduced motion: garis langsung di tempat.
+`data-epic="frame-crosshair"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

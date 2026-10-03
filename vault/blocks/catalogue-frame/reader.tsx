@@ -20,10 +20,17 @@
  * The table is server-rendered and stays the table: this only listens on it.
  * Listeners are attached to the wrapper rather than written as JSX handlers,
  * because they are delegated — one set for every work in the frame.
+ *
+ * The moment, `frame-crosshair`, is `Crosshair`'s: two hairlines run in from
+ * the frame's left and top edges to the centre of the work in hand, and glide
+ * to the next one as the reader moves. The point is measured once per hover
+ * or focus, relative to this wrapper, which shares the table's edges.
  */
 
 import cn from 'clsx'
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
+
+import { Crosshair } from '@/vault/motion/crosshair'
 
 import { type Place, type Step, step } from './navigate'
 
@@ -79,6 +86,32 @@ function yearOf(table: HTMLTableElement, place: Place): Element | null {
   return table.tHead?.rows[0]?.cells[place.column + 1] ?? null
 }
 
+/** Where the crosshair points, in the wrapper's own pixels and fractions. */
+interface Aim {
+  on: boolean
+  x: number
+  y: number
+  reachX: number
+  reachY: number
+}
+
+const NOWHERE: Aim = { on: false, x: 0, y: 0, reachX: 0, reachY: 0 }
+
+/** The centre of a work, measured from the wrapper's left and top edges. */
+function aimAt(root: Element, work: Element): Aim {
+  const box = root.getBoundingClientRect()
+  const at = work.getBoundingClientRect()
+  const x = at.left + at.width / 2 - box.left
+  const y = at.top + at.height / 2 - box.top
+  return {
+    on: true,
+    x,
+    y,
+    reachX: box.width > 0 ? x / box.width : 0,
+    reachY: box.height > 0 ? y / box.height : 0,
+  }
+}
+
 interface FrameReaderProps {
   children: ReactNode
   className?: string | undefined
@@ -86,6 +119,7 @@ interface FrameReaderProps {
 
 export function FrameReader({ children, className }: FrameReaderProps) {
   const rootRef = useRef<HTMLDivElement>(null)
+  const [aim, setAim] = useState<Aim>(NOWHERE)
 
   useEffect(() => {
     const root = rootRef.current
@@ -97,9 +131,14 @@ export function FrameReader({ children, className }: FrameReaderProps) {
       for (const marked of table.querySelectorAll('[data-cross]')) {
         marked.removeAttribute('data-cross')
       }
-      if (!(work instanceof HTMLElement)) return
+      if (!(work instanceof HTMLElement)) {
+        // Fade where it stands, rather than sweep back to the corner.
+        setAim((last) => ({ ...last, on: false }))
+        return
+      }
       const place = locate(table, work)
       if (place) yearOf(table, place)?.setAttribute('data-cross', '')
+      setAim(aimAt(root, work))
     }
 
     const workFrom = (target: EventTarget | null) =>
@@ -148,8 +187,13 @@ export function FrameReader({ children, className }: FrameReaderProps) {
   }, [])
 
   return (
-    <div ref={rootRef} className={cn(s.reader, className)}>
+    <div
+      ref={rootRef}
+      className={cn(s.reader, className)}
+      data-epic="frame-crosshair"
+    >
       {children}
+      <Crosshair {...aim} />
     </div>
   )
 }
