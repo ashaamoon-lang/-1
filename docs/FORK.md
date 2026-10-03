@@ -669,6 +669,15 @@ perlu diputuskan, tenggat. Alamatnya di-resolve seperti blok kontak beranda
 sendiri di luar blok teks dan tidak bergerak. **Belum diverifikasi:** build, e2e,
 CI, mata.
 
+**`/work/<slug>` — sampul proyek berikutnya ikut pindah.** Menekan NextProject kini
+memorf sampulnya menjadi hero proyek berikutnya, lewat kelas `morph` yang sama
+dengan kartu → hero. Namanya dipasang saat ditekan, bukan saat render
+(`vault/blocks/next-project/link.tsx`), dan dilepas saat blur atau saat pointer
+batal atau keluar. Klik bermodifier tidak memasangnya. Karena itu proyek → katalog
+tetap hanya membawa hero halaman ini, cacat yang dulu menahannya di _Ditunda_.
+Diuji dua arah di `e2e/next-project-morph.e2e.ts`. **Belum diverifikasi:** build,
+e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
