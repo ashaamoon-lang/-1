@@ -77,6 +77,10 @@
     "index": "Indeks"
   },
   "project": {
+    "enquiryLabel": "Bahas penugasan serupa",
+    "enquirySubject": "Pertanyaan: penugasan seperti {title}",
+    "enquiryBody": "Halo,\n\nKami membaca studi kasus {title} dan ingin membicarakan hal serupa.\n\nOrganisasi:\nYang perlu diputuskan:\nTenggat:\n",
+    "enquiryBodyShape": "Halo,\n\nKami membaca studi kasus {title} ({engagement}) dan ingin membicarakan hal serupa.\n\nOrganisasi:\nYang perlu diputuskan:\nTenggat:\n",
     "engagementsTitle": "Penugasan di {practice}",
     "engagementsCurrent": "penugasan ini",
     "writingTitle": "Tulisan tentang {practice}",
