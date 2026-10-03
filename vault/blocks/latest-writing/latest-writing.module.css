@@ -3,7 +3,19 @@
  * `vault/motion/fixings`'s; everything arrives through the global reveal.
  */
 
+/*
+ * Arrives in place: the reveal fades this block and does not lift it.
+ *
+ * Its links are small press targets, and a lift that starts after a pointer
+ * has arrived carries the link out from under the press. Checkpoint 2 caught
+ * exactly that: `e2e/interaction-grammar.e2e.ts` hovers each pressable on
+ * `/en`, which scrolls this block into view and starts its reveal, and the
+ * press then landed a gutter below the link. The work cards survive the same
+ * lift only because they are large enough to stay under the pointer.
+ */
 .stack {
+  --reveal-transform: none;
+
   display: grid;
   gap: var(--gap);
 }
