@@ -204,6 +204,10 @@
     "closingAction": "Lihat karyanya"
   },
   "journal": {
+    "replyLabel": "Balasan",
+    "replyAction": "Bicarakan ini dengan studio",
+    "replySubject": "Re: {title}",
+    "replyBody": "Halo,\n\nKami membaca \"{title}\" dan ingin membicarakannya dalam konteks kami.\n\nOrganisasi:\nYang sedang kami putuskan:\nTenggat:\n",
     "tallyTitle": "Jurnal, menurut praktik",
     "tallyWriting": "Tulisan",
     "tallyPractice": "Praktik",

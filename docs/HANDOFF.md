@@ -280,9 +280,10 @@ diperiksa sekali lewat draft PR permanen dari `claude/value-2-ci` (base
 `claude/case-continuity`), yang tidak untuk di-merge. Status dan kolom commit
 mengikuti §4.2.
 
-| N   | rute            | fitur                        | desain                     | `data-epic`        | commit             | status   |
-| --- | --------------- | ---------------------------- | -------------------------- | ------------------ | ------------------ | -------- |
-| 1   | `/practice/<v>` | ajakan penugasan per praktik | `vault/blocks/title-block` | `practice-enquiry` | `feat(v2-round-1)` | belum CI |
+| N   | rute              | fitur                                 | desain                     | `data-epic`        | commit             | status   |
+| --- | ----------------- | ------------------------------------- | -------------------------- | ------------------ | ------------------ | -------- |
+| 1   | `/practice/<v>`   | ajakan penugasan per praktik          | `vault/blocks/title-block` | `practice-enquiry` | `feat(v2-round-1)` | belum CI |
+| 2   | `/journal/<slug>` | balasan untuk esai (surel berkonteks) | `vault/blocks/reply-slip`  | `entry-reply`      | `feat(v2-round-2)` | belum CI |
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 

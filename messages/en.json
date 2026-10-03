@@ -204,6 +204,10 @@
     "closingAction": "See the work"
   },
   "journal": {
+    "replyLabel": "Reply",
+    "replyAction": "Talk to the studio about this",
+    "replySubject": "Re: {title}",
+    "replyBody": "Hello,\n\nWe read \"{title}\" and would like to talk about it in our own context.\n\nOrganisation:\nWhat we are deciding:\nTimeline:\n",
     "tallyTitle": "The journal, by practice",
     "tallyWriting": "Writing",
     "tallyPractice": "Practice",

@@ -68,6 +68,16 @@
   }
 }
 
+/*
+ * The reply slip sits under the essay's own column rather than across the
+ * whole grid — cycle 2, round 2. After `.page > *` so it wins the tie.
+ */
+@media (--desktop) {
+  .reply {
+    grid-column: 1 / 7;
+  }
+}
+
 /* On a phone the two stack, in source order, at the page's own rhythm. */
 @media (--mobile) {
   .reading {

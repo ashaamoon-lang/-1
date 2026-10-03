@@ -687,6 +687,14 @@ studio, dan alamatnya dalam sel bergaris, lalu tautan "Discuss an engagement in
 gerak, sehingga tautannya tidak pernah bergeser. `data-epic="practice-enquiry"`.
 **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/journal/<slug>` — balasan untuk esai (siklus 2, putaran 2).** Tepat di bawah esai,
+sebelum karya praktiknya, kini ada slip balasan: tepi berperforasi, label "Reply",
+subjek surel yang akan terkirim ("Re: {judul}"), lalu tautan "Talk to the studio about
+this" yang membuka surel berisi judul entri. Alamatnya dari `studio-contact`. Primitif
+baru `vault/blocks/reply-slip`, konvensi slip balasan majalah: diam, tidak bergerak,
+sejajar kolom esai di desktop. `data-epic="entry-reply"`. **Belum diverifikasi:**
+build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
