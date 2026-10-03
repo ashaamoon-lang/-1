@@ -15,6 +15,7 @@ import { CommandTrigger } from '@/components/ui/command'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { getLinkIntent, Link } from '@/components/ui/link'
 import { usePathname } from '@/lib/i18n/navigation'
+import { RouteMarker } from '@/vault/motion/route-marker'
 
 import s from './header.module.css'
 
@@ -447,6 +448,13 @@ export function Header() {
             </li>
           )}
         </ul>
+
+        {/*
+          The rule under the current route, slid to the one pressed before
+          the page turns — Tata & Gerak, stage 2. Desktop only: on a phone
+          the sheet's current word carries an underline of its own.
+        */}
+        <RouteMarker className={s.marker} />
       </nav>
 
       {/*

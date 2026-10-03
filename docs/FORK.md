@@ -817,6 +817,15 @@ tiap kali paragraf melewati garis baca lewat `IntersectionObserver`, dan hilang 
 esai terlihat. Posisinya hasil cek ponsel: di pojok bawah ia menutupi baris berikutnya.
 Diuji di `e2e/reading-time.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
 
+**Header — penanda rute meluncur (Tata & Gerak, tahap 2).** Rute yang sedang dibuka dulu
+dibedakan oleh tinta saja, dan tinta itu terukur ±1,8:1 terhadap kata lain. Kini satu garis
+rambut bertinta sama berdiri di bawahnya (`vault/motion/route-marker`). Tekan rute lain, dan
+garis meluncur ke kata itu serta mengambil lebarnya sebelum halaman berganti. Ia hanya
+meluncur saat ditekan: tiap halaman merender header-nya sendiri, dan luncuran saat tiba akan
+terjadi di bawah panel transisi. Hanya `transform`; reduced motion: langsung di tempat; tanpa
+JS tak ada garis, tinta tetap. Desktop saja, karena kata aktif di ponsel sudah bergaris bawah.
+Diuji di `e2e/route-marker.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
