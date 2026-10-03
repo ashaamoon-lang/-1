@@ -610,7 +610,8 @@ seperti `/journal` (`resolveJournalEntries` atas `journalEntriesQuery`), jadi
 keduanya tak bisa berbeda. Desainnya primitif baru `vault/motion/formwork`,
 khusus CSS: tiap baris tiba di dalam cetakan putus-putus, lalu cetakannya
 dibongkar — memudar dan jatuh setengah gutter. Yang tersisa harus berdiri
-sendiri. `data-epic="practice-writing"`. **Belum diverifikasi:** build, e2e, CI, mata.
+sendiri. `data-epic="practice-writing"`. **Belum diverifikasi:** mata.
+Build, e2e, dan CI hijau di checkpoint 2.
 
 **`/work/<slug>` — tulisan praktiknya, terhadap tahun penugasan (putaran 5).** Di
 `#onward`, sebelum proyek berikutnya, kini ada entri jurnal praktik karya itu,
@@ -619,7 +620,8 @@ yang setahun atau sebelumnya di bawah. Pembacaan datanya kini dipakai bersama
 halaman praktik (`lib/content/practice-writing`, dipindah dari putaran 4 tanpa
 mengubah perilaku). Desainnya primitif baru `vault/motion/datum`, khusus CSS: garis
 level diam, dan baris menjauhinya saat tiba. Tanpa `data-region`, jadi spine tetap.
-`data-epic="engagement-writing"`. **Belum diverifikasi:** build, e2e, CI, mata.
+`data-epic="engagement-writing"`. **Belum diverifikasi:** mata.
+Build, e2e, dan CI hijau di checkpoint 2.
 
 **`/` — tulisan terbaru di beranda, dan pelat yang dipaku (putaran 6).** Beranda
 kini menampilkan entri jurnal terbaru di antara "How we work" dan kontak: tanggal,
@@ -628,7 +630,8 @@ praktik, judul yang menaut ke entri, ringkasan, dan tautan ke semua tulisan. Ent
 kini memakai satu pembaca untuk putaran 4–6. Desainnya primitif baru
 `vault/motion/fixings`, khusus CSS: entri tiba sebagai pelat, lalu dipaku di keempat
 sudutnya searah jarum jam. Tanpa JS klien baru; `data-epic="latest-writing"`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata. Checkpoint 2 menangkap lift reveal-nya yang
+membawa tautan keluar dari bawah pointer; kini memudar di tempat (`72c0646`), lalu hijau.
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
