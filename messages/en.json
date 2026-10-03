@@ -112,7 +112,8 @@
     "title": "Page not found",
     "work": "Work",
     "studio": "Studio",
-    "journal": "Journal"
+    "journal": "Journal",
+    "suggestTitle": "Perhaps you were looking for"
   },
   "error": {
     "title": "Something went wrong",

@@ -29,6 +29,12 @@ interface NotFoundViewProps {
   homeLink?: ReactNode
   /** Router-aware links when available; raw anchors keep the root variant safe. */
   recoveryLinks?: ReactNode
+  /**
+   * Best guesses at where the reader meant to go, between what went wrong and
+   * the way home. Absent unless a page passes them — the localized 404 passes
+   * `vault/blocks/wayfinder`, which renders nothing when it has no guess.
+   */
+  suggestions?: ReactNode
 }
 
 const DEFAULT_HOME_LINK = (
@@ -83,6 +89,7 @@ const DEFAULT_RECOVERY_LINKS = (
 export function NotFoundView({
   homeLink = DEFAULT_HOME_LINK,
   recoveryLinks = DEFAULT_RECOVERY_LINKS,
+  suggestions,
   label = 'Error',
   message = 'Page not found',
   description = "The page you're looking for doesn't exist or has been moved.",
@@ -99,6 +106,7 @@ export function NotFoundView({
           <br />
           {tryPrefix} {recoveryLinks}.
         </p>
+        {suggestions}
         {homeLink}
       </div>
     </section>

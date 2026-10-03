@@ -729,6 +729,14 @@ Total 350 ms. Salinan kedua menstempel lagi (`key` baru), dan stempel ada di `ro
 sehingga dibacakan. Reduced motion: stempel langsung ada. `data-epic="address-copy"`.
 **Belum diverifikasi:** mata. Build, e2e, dan CI hijau (run 37113202080).
 
+**404 — mungkin yang Anda cari (Orientasi, tahap 1).** Alamat mati jarang acak: slug
+yang diketik dari ingatan, tautan di dek lama. Kini 404 mencocokkan alamat itu dengan
+indeks pencarian yang sudah dipakai ⌘K (`/{locale}/search.json`) dan menawarkan sampai
+tiga tujuan yang mirip ejaan slugnya atau sama kata judulnya (`suggest.ts`, satu tes).
+Halaman umum tidak ditawarkan; tawaran Work/Studio/Journal sudah ada. Tanpa JS, tanpa
+kecocokan, atau fetch gagal: tidak ada yang dirender. Diuji di `e2e/wayfinding.e2e.ts`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

@@ -305,6 +305,17 @@ Satu fitur dan satu animasi di beranda, dibangun di `claude/address-copy` (dari
 
 Draft PR #25 pada `f313790`, run 37113202080: job `ci` dan `e2e` hijau, 0 flaky. `e2e/address-copy.e2e.ts` lulus 2/2, dan `interaction-grammar` mencatat `address-copy` di `/en`.
 
+### 4.5 Orientasi — empat tahap, satu CI
+
+Objektif: pembaca tidak pernah kehilangan tempatnya. Empat fitur dan empat
+animasi, dibangun bertahap di `claude/orientation` (dari `claude/address-copy`,
+`959a52d`) tanpa CI per tahap; diperiksa sekali lewat draft PR setelah tahap 4,
+yang tidak untuk di-merge.
+
+| N   | rute | fitur                                             | animasi                                    | `data-epic`  | commit             | status   |
+| --- | ---- | ------------------------------------------------- | ------------------------------------------ | ------------ | ------------------ | -------- |
+| 1   | 404  | mungkin yang Anda cari (`vault/blocks/wayfinder`) | penunjuk arah (`vault/motion/north-arrow`) | `wayfinding` | `feat(wayfinding)` | belum CI |
+
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
 | butir                                        | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |

@@ -112,7 +112,8 @@
     "title": "Halaman tidak ditemukan",
     "work": "Karya",
     "studio": "Studio",
-    "journal": "Jurnal"
+    "journal": "Jurnal",
+    "suggestTitle": "Mungkin yang Anda cari"
   },
   "error": {
     "title": "Ada yang tidak beres",
