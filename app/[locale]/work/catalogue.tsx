@@ -390,6 +390,7 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
                   practiceLabel={t('framePractice')}
                   undatedLabel={t('frameUndated')}
                   unplacedLabel={t('frameUnplaced')}
+                  keysHint={t('frameKeys')}
                   practiceLink={(value) => ({
                     label: t(value),
                     href: practiceTemplate(value),

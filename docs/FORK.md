@@ -745,6 +745,14 @@ berputar ke saran yang dihover atau difokus. Satu sudut dihitung per hover/fokus
 `--ease-out-expo` tanpa overshoot; hanya `transform`. Reduced motion: langsung menunjuk.
 `data-epic="wayfinding"`. **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/work` — bingkai yang bisa dijelajah (Orientasi, tahap 2).** Bingkai praktik × tahun
+kini dibaca seperti grid gambar. Tombol panah berpindah antarkarya: kiri-kanan menyusuri
+baris praktik, atas-bawah menuruni tahun, bay kosong dilewati (`navigate.ts`, satu tes);
+Tab tetap mengunjungi semuanya. Karya yang di-hover atau difokus menandai tahunnya di tepi
+atas bingkai. Pendengarnya didelegasikan pada tabel yang tetap dirender server
+(`reader.tsx`); petunjuk tombol terhubung lewat `aria-describedby`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

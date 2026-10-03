@@ -30,6 +30,33 @@
   overflow-x: auto;
 }
 
+/*
+ * How to read the frame from the keyboard. Said where a keyboard is likely;
+ * on a touch screen it stays in the accessibility tree through
+ * `aria-describedby`, which reads hidden text as well.
+ */
+.keys {
+  margin: 0;
+  color: var(--text-muted);
+
+  @media not (--hover) {
+    display: none;
+  }
+}
+
+/* The table's own box, so whatever is drawn over it shares its edges. */
+.reader {
+  position: relative;
+}
+
+/*
+ * The year of the work in hand, marked on the frame's top edge
+ * (`reader.tsx`): the heading leaves the muted tone for the page's own.
+ */
+.head[data-cross] {
+  color: inherit;
+}
+
 .table {
   inline-size: 100%;
   /* Equal bays: a column's width says nothing about a year's importance. */
