@@ -704,6 +704,15 @@ ujungnya masing-masing, bertemu di sambungan, lalu pelat dipasang. Istilah dan
 artinya tidak bergerak; baris memudar di tempat. `data-epic="catalogue-key"`.
 **Belum diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint 1 siklus 2.
 
+**`/studio` — klaim praktik dengan karya buktinya (siklus 2, putaran 4).** Di pita
+kapabilitas kepala halaman, di bawah apa yang dicakup tiap praktik, kini ada "Seen
+in"/"Terlihat dalam": setiap karya terdaftar praktik itu, urut katalog, menaut ke studi
+kasusnya beserta tahunnya. Datanya kueri katalog yang sudah dibaca halaman ini
+(`casesByPractice`, satu tes); praktik tanpa karya tidak diberi baris. Primitif baru
+`vault/motion/leader`, khusus CSS: garis turun dari catatan, berbelok ke karya pertama,
+lalu titiknya mendarat. Pita kini memudar di tempat. `data-epic="capability-evidence"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

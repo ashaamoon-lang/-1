@@ -1,0 +1,65 @@
+/*
+ * CapabilityEvidence — layout only. The leader, and its motion, are
+ * `vault/motion/leader`'s; the band it sits in arrives through the global
+ * reveal, in place.
+ */
+
+/* The note across the top; the leader and the works beneath it. */
+.evidence {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: calc(var(--gap) * 0.5);
+  margin: 0;
+}
+
+.label {
+  grid-column: 1 / -1;
+  color: var(--text-muted);
+}
+
+.list {
+  display: grid;
+  /*
+   * Three quarters of a gutter between works, not half. Each name is a target
+   * shorter than 24px, and axe's `target-size` (WCAG 2.2, `e2e/axe-tags.ts`)
+   * passes an undersized target only when the 24px circles centred on it and
+   * on its neighbour do not meet. One caption line and this gap clear that.
+   */
+  gap: calc(var(--gap) * 0.75);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * The work's name and its year sit side by side as separate items, not as one
+ * run of text. A link inline in running text is a "link in a text block" to
+ * axe, which over this page's grain and wash it cannot decide — checkpoint 3,
+ * on this same route (`e2e/route-sweep.e2e.ts`). As a flex item the name
+ * stands on its own.
+ */
+.case {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: calc(var(--gap) * 0.5);
+}
+
+.year {
+  color: var(--text-muted);
+}
+
+/*
+ * INTENT — the underline, on hover and on keyboard focus alike, so a cursor
+ * and a keyboard are told the same thing. The focus ring is the global one.
+ */
+@media (--hover) {
+  .name:hover {
+    text-decoration-line: underline;
+  }
+}
+
+.name:focus-visible {
+  text-decoration-line: underline;
+}
