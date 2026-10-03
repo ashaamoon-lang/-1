@@ -640,7 +640,7 @@ sudah ada di halaman, entri dan karya untuk sampul, tanpa fetch baru (`tally.ts`
 tes). Desainnya primitif baru `vault/motion/tally`, khusus CSS: tiap hitungan berupa
 coretan turus berkelompok lima, dihitung keluar dari praktik dalam satu ketukan
 lambat. Hanya `opacity` yang berubah; baris memudar di tempat (pelajaran checkpoint
-2). `data-epic="practice-tally"`. **Belum diverifikasi:** build, e2e, CI, mata.
+2). `data-epic="practice-tally"`. **Belum diverifikasi:** mata.
 
 **`/studio` — bentuk penugasan, dan unting-unting (putaran 8).** Sesudah empat langkah
 proses kini ada jadwal bentuk penugasan: tiap karya dengan nama penugasannya ditulis
@@ -649,7 +649,7 @@ klien dan tahun. Datanya query yang sudah dibaca putaran 2, kini menyimpan juga 
 slug, dan penugasan. Desainnya primitif baru `vault/motion/plumb`, satu-satunya yang
 digerakkan scroll: CSS view timeline tanpa JS, dengan `@supports` sebagai pengaman.
 Garis unting-unting turun di samping jadwal seiring jadwal naik ke layar.
-`data-epic="engagement-shapes"`. **Belum diverifikasi:** build, e2e, CI, mata.
+`data-epic="engagement-shapes"`. **Belum diverifikasi:** mata (fix axe: `70f0d8f`).
 
 **`/work/<slug>` — penugasan sepraktik, dan rangka yang diperkaku (putaran 9).** Di
 `#onward`, sebelum tulisan, kini ada semua penugasan praktik karya itu, termasuk yang
@@ -658,7 +658,7 @@ pembaca membandingkan bentuknya dengan yang lain. Datanya katalog yang sudah dim
 proyek berikutnya, tanpa query baru. Desainnya primitif baru `vault/motion/brace`: satu
 petak per penugasan, tiba miring (`skewX`), lalu diperkaku diagonal hingga siku. Sudut
 dan panjangnya dihitung dengan `atan2` dan `hypot`. Tanpa `data-region`.
-`data-epic="practice-engagements"`. **Belum diverifikasi:** build, e2e, CI, mata.
+`data-epic="practice-engagements"`. **Belum diverifikasi:** mata (fix axe: `1012b58`).
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 

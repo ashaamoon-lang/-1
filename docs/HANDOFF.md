@@ -254,21 +254,23 @@ tanpa CI. Setiap tiga putaran diperiksa sekali lewat draft PR permanen dari
 `CI hijau (run …, tally)`, atau `diperbaiki (commit …)`. Kolom commit memuat
 subjek commit sampai checkpoint menggantinya dengan hash.
 
-| N   | rute              | fitur                                               | desain                   | `data-epic`            | commit          | status                                                        |
-| --- | ----------------- | --------------------------------------------------- | ------------------------ | ---------------------- | --------------- | ------------------------------------------------------------- |
-| 1   | `/work`           | bingkai katalog (praktik × tahun)                   | `vault/motion/bearing`   | `catalogue-frame`      | `4926c63`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
-| 2   | `/studio`         | ukuran karya (penugasan, klien, rentang tahun)      | `vault/motion/dimension` | `work-measure`         | `4c0067d`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
-| 3   | `/journal/<slug>` | indeks karya praktik di bawah esai                  | `vault/motion/level`     | `entry-work`           | `0d65770`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
-| 4   | `/practice/<v>`   | tulisan dari praktik ini (entri jurnal per praktik) | `vault/motion/formwork`  | `practice-writing`     | `2540c58`       | CI hijau (run 37087828073, 586 lulus · 29 dilewati · 0 gagal) |
-| 5   | `/work/<slug>`    | tulisan praktik terhadap tahun penugasan            | `vault/motion/datum`     | `engagement-writing`   | `dee912f`       | CI hijau (run 37087828073, 586 lulus · 29 dilewati · 0 gagal) |
-| 6   | `/`               | tulisan terbaru dari jurnal di beranda              | `vault/motion/fixings`   | `latest-writing`       | `7fdd0f3`       | diperbaiki (commit 72c0646)                                   |
-| 7   | `/journal`        | jurnal menurut praktik (tulisan dan karya)          | `vault/motion/tally`     | `practice-tally`       | `feat(round-7)` | belum CI                                                      |
-| 8   | `/studio`         | bentuk penugasan (jadwal per karya)                 | `vault/motion/plumb`     | `engagement-shapes`    | `feat(round-8)` | belum CI                                                      |
-| 9   | `/work/<slug>`    | penugasan sepraktik, yang ini ditandai              | `vault/motion/brace`     | `practice-engagements` | `feat(round-9)` | belum CI                                                      |
+| N   | rute              | fitur                                               | desain                   | `data-epic`            | commit    | status                                                        |
+| --- | ----------------- | --------------------------------------------------- | ------------------------ | ---------------------- | --------- | ------------------------------------------------------------- |
+| 1   | `/work`           | bingkai katalog (praktik × tahun)                   | `vault/motion/bearing`   | `catalogue-frame`      | `4926c63` | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
+| 2   | `/studio`         | ukuran karya (penugasan, klien, rentang tahun)      | `vault/motion/dimension` | `work-measure`         | `4c0067d` | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
+| 3   | `/journal/<slug>` | indeks karya praktik di bawah esai                  | `vault/motion/level`     | `entry-work`           | `0d65770` | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
+| 4   | `/practice/<v>`   | tulisan dari praktik ini (entri jurnal per praktik) | `vault/motion/formwork`  | `practice-writing`     | `2540c58` | CI hijau (run 37087828073, 586 lulus · 29 dilewati · 0 gagal) |
+| 5   | `/work/<slug>`    | tulisan praktik terhadap tahun penugasan            | `vault/motion/datum`     | `engagement-writing`   | `dee912f` | CI hijau (run 37087828073, 586 lulus · 29 dilewati · 0 gagal) |
+| 6   | `/`               | tulisan terbaru dari jurnal di beranda              | `vault/motion/fixings`   | `latest-writing`       | `7fdd0f3` | diperbaiki (commit 72c0646)                                   |
+| 7   | `/journal`        | jurnal menurut praktik (tulisan dan karya)          | `vault/motion/tally`     | `practice-tally`       | `1905fac` | CI hijau (run 37099276094, 589 lulus · 29 dilewati · 0 gagal) |
+| 8   | `/studio`         | bentuk penugasan (jadwal per karya)                 | `vault/motion/plumb`     | `engagement-shapes`    | `b9834eb` | diperbaiki (commit 70f0d8f)                                   |
+| 9   | `/work/<slug>`    | penugasan sepraktik, yang ini ditandai              | `vault/motion/brace`     | `practice-engagements` | `cea5476` | CI hijau (run 37099276094, 589 lulus · 29 dilewati · 0 gagal) |
 
 Checkpoint 1 (putaran 1–3): draft PR #22 dari `claude/load-bearing-ci` pada `0d65770`, run 37046629768. Job `ci` dan `e2e` hijau, 0 flaky. `interaction-grammar` mencatat ketiga momen baru di rutenya.
 
 Checkpoint 2 (putaran 4–6): pada `7fdd0f3` merah di run 37086293717. Satu tes gagal dua kali, `e2e/interaction-grammar.e2e.ts:120` ("nav: the press did not reach the control"): lift reveal putaran 6 di beranda membawa tautan kecilnya keluar dari bawah pointer. Diperbaiki di `72c0646` (`--reveal-transform: none`, harapan tes tidak diubah), lalu hijau di run 37087828073: `ci` dan `e2e`, 586 lulus, 29 dilewati, 0 gagal, 0 flaky.
+
+Checkpoint 3 (putaran 7–9): pada `cea5476` merah di run 37097776306. `e2e/route-sweep.e2e.ts:176` gagal di `/en/studio` dan `/id/studio` (desktop dan mobile): axe tidak bisa memutuskan `link-in-text-block`, karena tautan karya di jadwal putaran 8 sebaris dengan meta-nya di atas latar grain. `material-shape` dilaporkan flaky oleh CI, di luar batch, dan tidak diperbaiki. Diperbaiki di `70f0d8f` (nama dan meta menjadi item flex); pola yang sama di putaran 9 ikut dirapikan di `1012b58`, karena rute itu tidak disapu `route-sweep`. Harapan tes tidak diubah. Hijau di run 37099276094: `ci` dan `e2e`, 589 lulus, 29 dilewati, 0 gagal, 0 flaky; ketiga momen baru tercatat.
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
