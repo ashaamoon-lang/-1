@@ -11,6 +11,7 @@ import {
   type Locale,
   routing,
 } from '@/lib/i18n/routing'
+import { announceNavigation } from '@/lib/motion/navigation-signal'
 
 import { sectionInView } from './section'
 
@@ -53,6 +54,11 @@ const SECTIONS = 'main [data-region][id], main section[id]'
  * is unchanged, so without script, in a new tab, or at the top of a page, the
  * switch is the plain link it always was.
  *
+ * The moment, `locale-sheet`: the swap is covered by a panel that crosses
+ * sideways, as the next sheet of a drawing set slides over the last
+ * (`vault/motion/page-transition`, the `sheet` intent) — the same page, the
+ * other sheet. It was the one navigation on the site with no transition at all.
+ *
  * ## Accessibility
  *
  * - `aria-current="true"` marks the active language, so it is announced
@@ -85,6 +91,9 @@ export function LanguageSwitcher({
     if (locale === active || event.defaultPrevented) return
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
+    // The same page in the other language: the next sheet of the set.
+    announceNavigation('sheet')
+
     const id =
       window.scrollY > 0
         ? sectionInView(
@@ -104,7 +113,11 @@ export function LanguageSwitcher({
   }
 
   return (
-    <nav aria-label={t('label')} className={cn(s.switcher, className)}>
+    <nav
+      aria-label={t('label')}
+      className={cn(s.switcher, className)}
+      data-epic="locale-sheet"
+    >
       <ul className={s.list}>
         {routing.locales.map((locale) => (
           <li key={locale}>

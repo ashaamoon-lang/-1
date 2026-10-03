@@ -785,6 +785,14 @@ di bahasa lain pada id yang sama. `href` yang dirender tidak berubah, jadi tanpa
 baru, atau di puncak halaman, ia tetap tautan biasa. Diuji di `e2e/locale-place.e2e.ts`.
 **Belum diverifikasi:** build, e2e, CI, mata.
 
+**Header — geser lembar (Orientasi, tahap 4).** Ganti bahasa dulu satu-satunya navigasi tanpa
+transisi sama sekali. Kini ia diumumkan sebagai intent `'sheet'` (`lib/motion/navigation-signal`),
+dan panel `vault/motion/page-transition` menyeberang ke samping: masuk dari kanan, keluar ke
+kiri, seperti lembar berikutnya dari satu set gambar. Halamannya sama, lembarnya lain. Pakai
+keyframe, bukan transisi, karena panel parkir di bawah layar. Ketukannya sama dengan cover,
+hanya `transform`; reduced motion: overlay tidak dirender. `data-epic="locale-sheet"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

@@ -77,3 +77,43 @@
 .overlay[data-source='history'][data-state='revealing'] {
   transition: transform var(--duration-fast) var(--ease-out-expo);
 }
+
+/*
+ * The sheet — the same page in the other language (Orientasi, stage 4). The
+ * panel crosses from the right and leaves to the left, the next sheet of one
+ * set sliding over the last, where a cover rises from below.
+ *
+ * Keyframes, not transitions, and that is the point of them: the panel parks
+ * below the screen between navigations, and a transition would start the
+ * sideways crossing from there — rising and turning at once. A keyframe names
+ * where the crossing starts. The beats are the cover's own: `--duration-fast`
+ * in, `--duration` out. Under reduced motion the overlay is not rendered at
+ * all (above).
+ */
+.overlay[data-kind='sheet'][data-state='covering'] {
+  animation: sheet-in var(--duration-fast) var(--ease-out-quart) both;
+}
+
+.overlay[data-kind='sheet'][data-state='revealing'] {
+  animation: sheet-out var(--duration) var(--ease-out-expo) both;
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sheet-out {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}

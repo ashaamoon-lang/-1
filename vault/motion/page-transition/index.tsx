@@ -100,7 +100,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
 import { subscribeNavigation } from '@/lib/motion/navigation-signal'
-import type { NavigationSource } from '@/lib/motion/navigation-signal'
+import type {
+  NavigationIntent,
+  NavigationSource,
+} from '@/lib/motion/navigation-signal'
 import { useHistoryNavigation } from '@/lib/motion/use-history-navigation'
 
 import s from './page-transition.module.css'
@@ -152,6 +155,12 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
    * it has nothing at all on whether a back navigation should move.
    */
   const [source, setSource] = useState<NavigationSource>('link')
+  /*
+   * Which panel it is. A `sheet` — the same page in the other language —
+   * crosses sideways instead of rising (Orientasi, stage 4); `morph` never
+   * reaches here, because a morph is never covered.
+   */
+  const [kind, setKind] = useState<Exclude<NavigationIntent, 'morph'>>('cover')
   const pathname = usePathname()
   const prefersReducedMotion = usePreferredReducedMotion()
 
@@ -254,6 +263,7 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
 
       covering.current = true
       coveredAt.current = performance.now()
+      setKind(intent)
       setSource(from)
       setState('covering')
       if (safety.current) clearTimeout(safety.current)
@@ -294,6 +304,7 @@ export function PageTransition({ maxWait = 2000 }: PageTransitionProps) {
       data-page-transition=""
       data-state={state}
       data-source={source}
+      data-kind={kind}
       aria-hidden="true"
       // Park it again once it has left the top of the screen. Off-screen at
       // both ends, so the reset is never visible.

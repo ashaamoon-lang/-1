@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { useState } from 'react'
 
+import { announceNavigation } from '@/lib/motion/navigation-signal'
+
 import { PageTransition } from './index'
 
 /**
@@ -77,4 +79,37 @@ export const Fast: Story = {
 export const ReducedMotion: Story = {
   render: () => <Replayer />,
   parameters: { chromatic: { prefersReducedMotion: 'reduce' } },
+}
+
+/**
+ * The sheet — a change of language (Orientasi, stage 4). The panel crosses
+ * sideways, the next sheet of one set sliding over the last. Storybook has no
+ * route to change, so the panel leaves on its safety timeout rather than on a
+ * new pathname.
+ */
+function SheetReplayer() {
+  return (
+    <div
+      style={{
+        position: 'relative',
+        minHeight: '60vh',
+        display: 'grid',
+        placeItems: 'center',
+        gap: 'var(--gap)',
+      }}
+    >
+      <PageTransition maxWait={600} />
+      <button
+        type="button"
+        className="cta"
+        onClick={() => announceNavigation('sheet')}
+      >
+        Turn the sheet
+      </button>
+    </div>
+  )
+}
+
+export const Sheet: Story = {
+  render: () => <SheetReplayer />,
 }
