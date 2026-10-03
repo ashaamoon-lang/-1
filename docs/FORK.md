@@ -793,6 +793,14 @@ keyframe, bukan transisi, karena panel parkir di bawah layar. Ketukannya sama de
 hanya `transform`; reduced motion: overlay tidak dirender. `data-epic="locale-sheet"`.
 **Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
+**`/journal/<slug>` — esai yang rapi di kertas (Tata & Gerak, tahap 1).** Esai satu-satunya
+halaman yang mungkin dicetak atau disimpan sebagai PDF untuk dibawa rapat. Lembar `print`
+kini menyisakan esai saja: meta, judul, ringkasan, lalu teks satu kolom urut baca di lebar
+kertas berapa pun. Header, footer, panel transisi, tirai, bilah baca, grain, dan kursor
+disembunyikan; butir yang belum ter-reveal dicetak terlihat, karena printer tidak menggulir.
+Diuji di `e2e/print-essay.e2e.ts` dan dilihat di tangkapan layar 390/1440.
+**Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

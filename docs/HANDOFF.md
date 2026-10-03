@@ -321,6 +321,18 @@ yang tidak untuk di-merge.
 
 Draft PR #26 pada `4a2751f`, run 37125290502: job `ci` dan `e2e` hijau, 0 flaky. Ketiga e2e baru (`wayfinding`, `section-link`, `locale-place`) lulus 6/6. `interaction-grammar` mencatat `frame-crosshair` di `/en/work`, `section-link` dan `section-entry` di halaman kasus, serta `locale-sheet` di setiap rute. `wayfinding` tidak tercatat karena 404 tidak disampel.
 
+### 4.6 Tata & Gerak — lima tahap, satu CI
+
+Lima desain dan lima fitur untuk UI/UX, terutama animasi dan tata letak,
+dibangun bertahap di `claude/layout-motion` (dari `claude/orientation`,
+`f9f3c9c`) tanpa CI per tahap; diperiksa sekali lewat draft PR setelah tahap 5,
+yang tidak untuk di-merge. Tiap tahap dicek juga lewat tangkapan layar
+pratinjau lokal.
+
+| N   | rute                     | fitur                            | desain                           | `data-epic` | commit        | status   |
+| --- | ------------------------ | -------------------------------- | -------------------------------- | ----------- | ------------- | -------- |
+| 1   | `/journal/<slug>`, semua | cetak esai rapi (`@media print`) | tipografi seimbang (`text-wrap`) | —           | `feat(print)` | belum CI |
+
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
 | butir                                        | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |

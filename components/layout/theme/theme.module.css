@@ -131,3 +131,10 @@
     opacity: 0.7;
   }
 }
+
+/* On paper the grain would print as noise over every sheet (Tata & Gerak). */
+@media print {
+  .grain {
+    display: none;
+  }
+}
