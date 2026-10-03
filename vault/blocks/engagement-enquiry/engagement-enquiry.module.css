@@ -1,0 +1,22 @@
+/*
+ * EngagementEnquiry — layout only. No motion: the link is where the reader
+ * acts, so it stays exactly where it was found.
+ */
+
+.enquiry {
+  margin: 0;
+}
+
+/*
+ * INTENT — the underline, on hover and on keyboard focus alike, so a cursor
+ * and a keyboard are told the same thing. The focus ring is the global one.
+ */
+@media (--hover) {
+  .link:hover {
+    text-decoration-line: underline;
+  }
+}
+
+.link:focus-visible {
+  text-decoration-line: underline;
+}

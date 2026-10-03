@@ -10,6 +10,7 @@ import { Link } from '@/components/ui/link'
 import { nextProject } from '@/lib/content/next-project'
 import { writingForPractice } from '@/lib/content/practice-writing'
 import { PRACTICE_SEGMENT, isPractice } from '@/lib/content/practices'
+import { studioContact } from '@/lib/content/studio-contact'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -23,6 +24,8 @@ import {
 import { transitionName } from '@/lib/motion/transition-name'
 import { SITE } from '@/lib/seo/site'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
+import { EngagementEnquiry } from '@/vault/blocks/engagement-enquiry'
+import { enquiryHref } from '@/vault/blocks/engagement-enquiry/enquiry'
 import { EngagementWriting } from '@/vault/blocks/engagement-writing'
 import { NextProject } from '@/vault/blocks/next-project'
 import { PracticeEngagements } from '@/vault/blocks/practice-engagements'
@@ -299,7 +302,27 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     project.practice !== null && isPractice(project.practice)
       ? project.practice
       : null
-  const writing = practice ? await writingForPractice(locale, practice) : []
+  const [writing, contact] = await Promise.all([
+    practice ? writingForPractice(locale, practice) : [],
+    studioContact(locale),
+  ])
+
+  /*
+   * The enquiry this case opens — a letter to the studio with the case
+   * already named in it. Built from strings, never from reader input; the
+   * address is the one the home page's contact block resolves.
+   */
+  const caseTitle = project.title ?? slug
+  const enquiry = enquiryHref(
+    contact.email,
+    t('enquirySubject', { title: caseTitle }),
+    project.engagement
+      ? t('enquiryBodyShape', {
+          title: caseTitle,
+          engagement: project.engagement,
+        })
+      : t('enquiryBody', { title: caseTitle })
+  )
 
   /*
    * The practice's engagements, this one among them — round 9. Read from the
@@ -628,6 +651,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 </Link>
               </nav>
             )}
+
+            {/*
+              A way onward that is a conversation rather than another page —
+              the head of `#onward`, so a reader the case has convinced meets
+              it before the lists. No `data-region`, for the reason the
+              writing below gives.
+            */}
+            <EngagementEnquiry href={enquiry} label={t('enquiryLabel')} />
 
             {/*
               The practice's engagements, this one marked among them — round

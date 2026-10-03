@@ -660,6 +660,15 @@ petak per penugasan, tiba miring (`skewX`), lalu diperkaku diagonal hingga siku.
 dan panjangnya dihitung dengan `atan2` dan `hypot`. Tanpa `data-region`.
 `data-epic="practice-engagements"`. **Belum diverifikasi:** mata (fix axe: `1012b58`).
 
+**`/work/<slug>` — "Bahas penugasan serupa".** Kepala `#onward` studi kasus kini
+memuat satu tautan `mailto:` ke studio. Subjeknya menyebut kasusnya; isinya
+menyebut kasus dan bentuk penugasannya, lalu tiga baris kosong: organisasi, yang
+perlu diputuskan, tenggat. Alamatnya di-resolve seperti blok kontak beranda
+(`lib/content/studio-contact.ts` → `resolveHomeContent`). Href dibangun di
+`enquiry.ts` (satu tes). Tanpa form, JS, layanan, atau secret. Tautannya berdiri
+sendiri di luar blok teks dan tidak bergerak. **Belum diverifikasi:** build, e2e,
+CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

@@ -77,6 +77,10 @@
     "index": "Index"
   },
   "project": {
+    "enquiryLabel": "Discuss a similar engagement",
+    "enquirySubject": "Enquiry: an engagement like {title}",
+    "enquiryBody": "Hello,\n\nWe read the {title} case study and would like to talk about something similar.\n\nOrganisation:\nWhat needs deciding:\nTimeline:\n",
+    "enquiryBodyShape": "Hello,\n\nWe read the {title} case study ({engagement}) and would like to talk about something similar.\n\nOrganisation:\nWhat needs deciding:\nTimeline:\n",
     "engagementsTitle": "Engagements in {practice}",
     "engagementsCurrent": "this engagement",
     "writingTitle": "Writing on {practice}",
