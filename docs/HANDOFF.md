@@ -261,6 +261,7 @@ subjek commit sampai checkpoint menggantinya dengan hash.
 | 3   | `/journal/<slug>` | indeks karya praktik di bawah esai                  | `vault/motion/level`     | `entry-work`         | `0d65770`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
 | 4   | `/practice/<v>`   | tulisan dari praktik ini (entri jurnal per praktik) | `vault/motion/formwork`  | `practice-writing`   | `feat(round-4)` | belum CI                                                      |
 | 5   | `/work/<slug>`    | tulisan praktik terhadap tahun penugasan            | `vault/motion/datum`     | `engagement-writing` | `feat(round-5)` | belum CI                                                      |
+| 6   | `/`               | tulisan terbaru dari jurnal di beranda              | `vault/motion/fixings`   | `latest-writing`     | `feat(round-6)` | belum CI                                                      |
 
 Checkpoint 1 (putaran 1–3): draft PR #22 dari `claude/load-bearing-ci` pada `0d65770`, run 37046629768. Job `ci` dan `e2e` hijau, 0 flaky. `interaction-grammar` mencatat ketiga momen baru di rutenya.
 

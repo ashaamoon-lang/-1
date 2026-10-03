@@ -15,6 +15,8 @@
     "relatedPractice": "Related practice"
   },
   "home": {
+    "journalEyebrow": "From the journal",
+    "journalAll": "All writing",
     "workTitle": "Recent engagements",
     "workCount": "{count, plural, one {# engagement} other {# engagements}}",
     "studioTitle": "How we work",

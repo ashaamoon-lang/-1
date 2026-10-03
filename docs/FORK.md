@@ -621,6 +621,15 @@ mengubah perilaku). Desainnya primitif baru `vault/motion/datum`, khusus CSS: ga
 level diam, dan baris menjauhinya saat tiba. Tanpa `data-region`, jadi spine tetap.
 `data-epic="engagement-writing"`. **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/` — tulisan terbaru di beranda, dan pelat yang dipaku (putaran 6).** Beranda
+kini menampilkan entri jurnal terbaru di antara "How we work" dan kontak: tanggal,
+praktik, judul yang menaut ke entri, ringkasan, dan tautan ke semua tulisan. Entri
+"terbaru" di-resolve sama seperti di `/journal`. Modul `lib/content/practice-writing`
+kini memakai satu pembaca untuk putaran 4–6. Desainnya primitif baru
+`vault/motion/fixings`, khusus CSS: entri tiba sebagai pelat, lalu dipaku di keempat
+sudutnya searah jarum jam. Tanpa JS klien baru; `data-epic="latest-writing"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
