@@ -214,6 +214,8 @@
     "closingAction": "Lihat karyanya"
   },
   "journal": {
+    "readingTime": "{minutes} menit baca",
+    "readingLeft": "{minutes} menit lagi",
     "replyLabel": "Balasan",
     "replyAction": "Bicarakan ini dengan studio",
     "replySubject": "Re: {title}",

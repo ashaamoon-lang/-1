@@ -15,6 +15,7 @@ import {
   resolveJournalEntries,
 } from '@/lib/content/journal-fallback'
 import { practiceTemplate } from '@/lib/content/practices'
+import { countWords, minutesFor } from '@/lib/content/reading-time'
 import { studioContact } from '@/lib/content/studio-contact'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
@@ -30,6 +31,7 @@ import { EngagementEnquiry } from '@/vault/blocks/engagement-enquiry'
 import { enquiryHref } from '@/vault/blocks/engagement-enquiry/enquiry'
 import { NextPractice } from '@/vault/blocks/next-practice'
 import { PracticeWork } from '@/vault/blocks/practice-work'
+import { ReadingLeft } from '@/vault/blocks/reading-left'
 import { ReplySlip } from '@/vault/blocks/reply-slip'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
 import { Reveal } from '@/vault/motion/reveal'
@@ -156,6 +158,10 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
   ])
   const work = works[0] ?? null
 
+  // Words in each paragraph, and the minutes they take — Tata & Gerak.
+  const words = entry.body.map(countWords)
+  const minutes = minutesFor(words.reduce((sum, count) => sum + count, 0))
+
   const formatter = new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'long',
@@ -276,6 +282,12 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
                 {tWork(entry.practice)}
               </Link>
             ) : null}
+            {/*
+              How long it takes — Tata & Gerak, stage 2. Counted from the
+              essay itself (`lib/content/reading-time`), so it cannot
+              disagree with what the reader is about to read.
+            */}
+            <span className={s.minutes}>{t('readingTime', { minutes })}</span>
           </p>
 
           {/*
@@ -364,6 +376,7 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
             {entry.body.map((paragraph) => (
               <p
                 data-reveal-item
+                data-paragraph=""
                 className={cn('p', s.paragraph)}
                 key={paragraph}
               >
@@ -371,6 +384,11 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
               </p>
             ))}
           </Reveal>
+          {/*
+            How much is left, kept in the corner once the header has gone —
+            Tata & Gerak, stage 2.
+          */}
+          <ReadingLeft words={words} paragraphs="[data-paragraph]" />
         </div>
 
         {/*

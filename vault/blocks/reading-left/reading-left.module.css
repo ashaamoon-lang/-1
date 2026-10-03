@@ -1,0 +1,47 @@
+/*
+ * ReadingLeft — a small tag just under the header, at the right, on the
+ * page's own paper so the text behind it never shows through.
+ *
+ * Up there, and not in a lower corner where tags usually sit: the lower edge
+ * of the screen is the text the reader is about to read, and the first
+ * version, measured on a phone, covered the next line of the essay. Under the
+ * header it can only cover what has already been read. It drops a half gutter
+ * into place as it appears and lifts back as it goes; only its `transform`
+ * and `opacity` change.
+ */
+.left {
+  position: fixed;
+  inset-block-start: calc(var(--header-height) + var(--gap) * 0.5);
+  inset-inline-end: var(--safe);
+  margin: 0;
+  padding-block: calc(var(--gap) * 0.25);
+  padding-inline: calc(var(--gap) * 0.5);
+  border: thin solid var(--line);
+  background-color: var(--color-primary);
+  color: var(--text-muted);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(calc(var(--gap) * -0.5));
+  transition:
+    opacity var(--duration) var(--ease-out-expo),
+    transform var(--duration) var(--ease-out-expo);
+}
+
+.left[data-shown] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Reduced motion: it is there or it is not, at once. */
+@media (--reduced-motion) {
+  .left {
+    transition: none;
+  }
+}
+
+/* A printed essay has no reader's place to keep. */
+@media print {
+  .left {
+    display: none;
+  }
+}

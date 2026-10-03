@@ -142,6 +142,13 @@
  * convention — `vault/blocks/project-card` already joins engagement, client
  * and year with it, so this is reusing a decision rather than making one.
  */
+/* The reading time, set off from what precedes it like the practice is. */
+.minutes::before {
+  content: '·';
+  margin-inline-end: calc(var(--gap) * 0.5);
+  color: var(--text-muted);
+}
+
 .practice::before {
   content: '·';
   margin-inline-end: desktop-vw(8px);

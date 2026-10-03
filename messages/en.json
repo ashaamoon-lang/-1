@@ -214,6 +214,8 @@
     "closingAction": "See the work"
   },
   "journal": {
+    "readingTime": "{minutes} min read",
+    "readingLeft": "{minutes} min left",
     "replyLabel": "Reply",
     "replyAction": "Talk to the studio about this",
     "replySubject": "Re: {title}",

@@ -809,6 +809,14 @@ Jumlah baris tidak berubah, jadi tak ada yang bergeser. Paragraf dan ringkasan e
 lama membungkus seperti biasa. Dilihat di tangkapan layar sebelum/sesudah 390 px.
 **Belum diverifikasi:** e2e, CI, mata.
 
+**`/journal/<slug>` — waktu baca dan sisanya (Tata & Gerak, tahap 2).** Meta esai kini
+menyebut lamanya ("1 min read"/"1 menit baca"), dihitung dari isinya (`lib/content/reading-time`,
+230 kata/menit, satu tes). Begitu esai dimulai dan header sudah lewat, label kecil di bawah
+header kanan (`vault/blocks/reading-left`) menyebut sisanya ("4 min left"), dihitung ulang
+tiap kali paragraf melewati garis baca lewat `IntersectionObserver`, dan hilang saat akhir
+esai terlihat. Posisinya hasil cek ponsel: di pojok bawah ia menutupi baris berikutnya.
+Diuji di `e2e/reading-time.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
