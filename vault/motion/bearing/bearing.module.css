@@ -1,0 +1,133 @@
+/*
+ * Bearing — structure first, then the load it carries. `index.tsx` carries
+ * the argument; this is the mechanism.
+ *
+ * Every value is a token. The lift is half the grid's gap, the compression is
+ * the press grammar's `--press-scale`, the beats are the duration bands and
+ * the curves are the house out-easings. Only `transform` and `opacity` move.
+ */
+
+.bearing {
+  /* The load falls onto its beam from above — half a gutter. */
+  --bearing-lift: translateY(calc(var(--gap) * -0.5));
+  /* The global reveal contract hides items at this offset until they arrive. */
+  --reveal-transform: var(--bearing-lift);
+}
+
+/* --- The frame ---------------------------------------------------------- */
+
+.bearing [data-bearing~='span'],
+.bearing [data-bearing~='post'] {
+  position: relative;
+}
+
+.bearing [data-bearing~='span']::after,
+.bearing [data-bearing~='post']::before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  transition: transform var(--duration) var(--ease-out-expo);
+}
+
+/* A beam: along the block-end edge, spanned from the inline start. */
+.bearing [data-bearing~='span']::after {
+  inset-inline: 0;
+  inset-block-end: 0;
+  border-block-end: thin solid var(--line-strong);
+  transform-origin: left center;
+}
+
+/* A post: along the inline-start edge, raised from the ground. */
+.bearing [data-bearing~='post']::before {
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-inline-start: thin solid var(--line);
+  transform-origin: center bottom;
+}
+
+.bearing[data-reveal='hidden'] [data-bearing~='span']::after {
+  transform: scaleX(0);
+}
+
+.bearing[data-reveal='hidden'] [data-bearing~='post']::before {
+  transform: scaleY(0);
+}
+
+/* --- The load ----------------------------------------------------------- */
+
+/*
+ * One beat instead of the global reveal's fade: the transition is switched
+ * off so the keyframes below are the only thing moving the item, and the
+ * compression happens at its base, where the beam is.
+ */
+.bearing [data-reveal-item][data-bearing~='load'] {
+  transition: none;
+  transform-origin: center bottom;
+}
+
+/*
+ * Lands, takes the weight, settles — after the frame has begun to stand, and
+ * in reading order. `backwards` and not `both`: once settled, the item is
+ * back on its own styles, so the press grammar's `:active` compression still
+ * reaches it. Fully opaque well inside the reveal's stagger, so nothing
+ * waits invisible while the beat finishes.
+ */
+.bearing[data-reveal='visible'] [data-reveal-item][data-bearing~='load'] {
+  animation: bearing-load var(--duration-slow) var(--ease-out-expo) backwards;
+  animation-delay: calc(
+    var(--duration-fast) + var(--reveal-index, 0) * var(--stagger-items)
+  );
+}
+
+@keyframes bearing-load {
+  from {
+    opacity: 0;
+    transform: var(--bearing-lift);
+    animation-timing-function: var(--ease-out-quart);
+  }
+
+  /* On the beam. */
+  45% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: var(--ease-out-quart);
+  }
+
+  /*
+   * Taking the weight — the press grammar's compression. `--press-scale` is
+   * declared on `[data-press]` (global.css), so a load that is a pressable
+   * noun compresses exactly as a press does; one that is not falls back to
+   * the identity and lands without the beat rather than with a broken one.
+   */
+  60% {
+    opacity: 1;
+    transform: scaleY(var(--press-scale, 1));
+    animation-timing-function: var(--ease-out-expo);
+  }
+
+  /* Settled, never past rest. */
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the frame is drawn and the load is in place at once.
+ */
+@media (--reduced-motion) {
+  .bearing [data-bearing~='span']::after,
+  .bearing [data-bearing~='post']::before {
+    transition: none;
+  }
+
+  .bearing[data-reveal] [data-bearing~='span']::after,
+  .bearing[data-reveal] [data-bearing~='post']::before {
+    transform: none;
+  }
+
+  .bearing[data-reveal='visible'] [data-reveal-item][data-bearing~='load'] {
+    animation: none;
+  }
+}

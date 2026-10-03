@@ -1,0 +1,58 @@
+/*
+ * LatestWriting — layout only. The plate's fixings, and their motion, are
+ * `vault/motion/fixings`'s; everything arrives through the global reveal.
+ */
+
+/*
+ * Arrives in place: the reveal fades this block and does not lift it.
+ *
+ * Its links are small press targets, and a lift that starts after a pointer
+ * has arrived carries the link out from under the press. Checkpoint 2 caught
+ * exactly that: `e2e/interaction-grammar.e2e.ts` hovers each pressable on
+ * `/en`, which scrolls this block into view and starts its reveal, and the
+ * press then landed a gutter below the link. The work cards survive the same
+ * lift only because they are large enough to stay under the pointer.
+ */
+.stack {
+  --reveal-transform: none;
+
+  display: grid;
+  gap: var(--gap);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* The entry, at a reading measure rather than the full grid. */
+.plate {
+  display: grid;
+  justify-items: start;
+  gap: calc(var(--gap) * 0.5);
+  max-inline-size: 65ch;
+}
+
+.meta,
+.summary {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.all {
+  margin: 0;
+}
+
+/*
+ * INTENT — the underline, on hover and on keyboard focus alike, so a cursor
+ * and a keyboard are told the same thing. The focus ring is the global one.
+ */
+@media (--hover) {
+  .name:hover {
+    text-decoration-line: underline;
+  }
+}
+
+.name:focus-visible {
+  text-decoration-line: underline;
+}

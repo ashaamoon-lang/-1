@@ -1,0 +1,14 @@
+/*
+ * WorkMeasure — layout only. The drawing, and its motion, are
+ * `vault/motion/dimension`'s.
+ */
+
+/* A `<p>` when there is no span to draw; the section's gap spaces it. */
+.measure {
+  margin: 0;
+}
+
+/* A single year beside the phrase, in the ends' colour. */
+.year {
+  color: var(--text-muted);
+}

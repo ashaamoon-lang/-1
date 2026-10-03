@@ -1,0 +1,53 @@
+/*
+ * EngagementWriting — layout only. The datum, and the direction the rows
+ * arrive from, are `vault/motion/datum`'s; the rows arrive through the global
+ * reveal.
+ */
+
+.title {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.datum {
+  margin-block-start: var(--gap);
+}
+
+.list {
+  display: grid;
+  gap: var(--gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One entry per row: date, title, summary, each on its own line. */
+.row {
+  display: grid;
+  justify-items: start;
+  gap: calc(var(--gap) * 0.25);
+}
+
+.date,
+.summary {
+  color: var(--text-muted);
+}
+
+.summary {
+  margin: 0;
+  max-width: 65ch;
+}
+
+/*
+ * INTENT — the underline, on hover and on keyboard focus alike, so a cursor
+ * and a keyboard are told the same thing. The focus ring is the global one.
+ */
+@media (--hover) {
+  .name:hover {
+    text-decoration-line: underline;
+  }
+}
+
+.name:focus-visible {
+  text-decoration-line: underline;
+}

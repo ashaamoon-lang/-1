@@ -15,6 +15,8 @@
     "relatedPractice": "Related practice"
   },
   "home": {
+    "journalEyebrow": "From the journal",
+    "journalAll": "All writing",
     "workTitle": "Recent engagements",
     "workCount": "{count, plural, one {# engagement} other {# engagements}}",
     "studioTitle": "How we work",
@@ -55,7 +57,12 @@
     "commissionIntro": "Commissioned work: scoped, paid engagements delivered to a brief.",
     "allWork": "All work",
     "relatedPractice": "Related practice",
-    "aboutPractice": "About {practice}"
+    "aboutPractice": "About {practice}",
+    "frameTitle": "The work, by practice and year",
+    "frameIntro": "Every engagement in the catalogue, placed by the practice that carried it and the year it is dated.",
+    "framePractice": "Practice",
+    "frameUndated": "Undated",
+    "frameUnplaced": "Other"
   },
   "language": {
     "label": "Language",
@@ -70,6 +77,10 @@
     "index": "Index"
   },
   "project": {
+    "engagementsTitle": "Engagements in {practice}",
+    "engagementsCurrent": "this engagement",
+    "writingTitle": "Writing on {practice}",
+    "writingDatum": "This engagement, {year}",
     "client": "Client",
     "year": "Year",
     "nextProject": "Next project",
@@ -121,6 +132,7 @@
     "statementEyebrow": "How we work in it",
     "nextEyebrow": "Next practice",
     "workTitle": "Engagements in this practice",
+    "writingTitle": "Writing from this practice",
     "empty": "Nothing published under this practice yet.",
     "placeholderNote": "Placeholder text. The studio has not written this statement yet.",
     "consultingStatement": "A consulting engagement starts before anything is built. We read the system that exists, name the decisions that are actually open, and write down the trade-offs each one carries, so the choice that gets made is the one the team can defend six months later.",
@@ -146,6 +158,8 @@
     "statementEyebrow": "How we think about it",
     "statement": "Most work fails before anyone writes code. It fails in the week where the brief is still soft, where nobody has said out loud which decisions are actually open and which are already made, and where the cost of being wrong has not been written down. So that is where we start. We read the system that exists, we name the trade-offs, and we put a number on the thing everyone is guessing at. What gets built after that is smaller than what was asked for, and it survives longer.",
     "evidenceEyebrow": "Work it produced",
+    "measureFacts": "{engagements, plural, one {# engagement} other {# engagements}} for {clients, plural, one {# client} other {# clients}}",
+    "shapesTitle": "Shapes an engagement has taken",
     "processEyebrow": "How we work",
     "process": {
       "scopeTitle": "Scope",
@@ -179,10 +193,17 @@
     "closingAction": "See the work"
   },
   "journal": {
+    "tallyTitle": "The journal, by practice",
+    "tallyWriting": "Writing",
+    "tallyPractice": "Practice",
+    "tallyWork": "Work",
+    "tallyEntries": "{count, plural, =0 {none yet} one {# entry} other {# entries}}",
+    "tallyWorks": "{count, plural, =0 {none yet} one {# engagement} other {# engagements}}",
     "eyebrow": "Journal",
     "title": "Journal",
     "intro": "Notes on how the work gets scoped, decided and delivered. Method rather than announcements.",
     "nextEyebrow": "Next entry",
+    "workInPractice": "Work in {practice}",
     "emptyTitle": "Nothing published here yet.",
     "emptyBody": "The studio writes when there is something worth writing down, which is not every week."
   },

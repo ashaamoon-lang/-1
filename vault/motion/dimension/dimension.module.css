@@ -1,0 +1,112 @@
+/*
+ * Dimension — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token: the line work is the palette's `--line-strong` and
+ * `--line`, the witness height is the grid's gap, the beats are the duration
+ * bands and the curve is the house out-easing. Only `transform` moves here;
+ * the text arrives through the global reveal.
+ */
+
+.dimension {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: calc(var(--gap) * 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The value, written above the line and centred on the whole measure. */
+.value {
+  grid-column: 1 / -1;
+  justify-self: center;
+  text-align: center;
+}
+
+.end {
+  color: var(--text-muted);
+}
+
+/* --- The drawing ---------------------------------------------------------- */
+
+.line {
+  position: relative;
+  block-size: var(--gap);
+}
+
+/* A witness line at each end, dropped to the line once the reveal begins. */
+.line::before,
+.line::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  border-inline-start: thin solid var(--line-strong);
+  transform-origin: center top;
+  transition: transform var(--duration-fast) var(--ease-out-expo)
+    var(--duration-fast);
+}
+
+.line::before {
+  inset-inline-start: 0;
+}
+
+.line::after {
+  inset-inline-end: 0;
+}
+
+/*
+ * The dimension line, at mid-height — run out from its centre once both
+ * witnesses stand, which is why its delay is theirs plus their beat.
+ */
+.rule {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+  transition: transform var(--duration) var(--ease-out-expo)
+    calc(var(--duration-fast) * 2);
+}
+
+.rule::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  border-block-start: thin solid var(--line-strong);
+}
+
+/*
+ * A place between the ends: half a witness, in the lighter line, and a child
+ * of the rule so the line carries it out to where it belongs.
+ */
+.mark {
+  position: absolute;
+  inset-block: 25%;
+  inset-inline-start: calc(var(--dimension-at) * 100%);
+  border-inline-start: thin solid var(--line);
+}
+
+[data-reveal='hidden'] .line::before,
+[data-reveal='hidden'] .line::after {
+  transform: scaleY(0);
+}
+
+[data-reveal='hidden'] .rule {
+  transform: scaleX(0);
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the measure is drawn at once.
+ */
+@media (--reduced-motion) {
+  .line::before,
+  .line::after,
+  .rule {
+    transition: none;
+  }
+
+  [data-reveal] .line::before,
+  [data-reveal] .line::after,
+  [data-reveal] .rule {
+    transform: none;
+  }
+}

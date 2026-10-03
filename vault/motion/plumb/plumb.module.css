@@ -1,0 +1,97 @@
+/*
+ * Plumb — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token or a geometric fraction of one: the line is the
+ * palette's `--line-strong`, the content sits one gutter in, the bob is half a
+ * gutter. There is no duration — the timeline is the block's own passage up
+ * the screen — and the curve is `linear`, because a line that tracks a scroll
+ * must not ease ahead of it. Only `transform` moves.
+ */
+
+.plumb {
+  position: relative;
+  padding-inline-start: var(--gap);
+  view-timeline: --plumb block;
+}
+
+/* The line, let down from the top of the block. */
+.line {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-inline-start: thin solid var(--line-strong);
+  transform-origin: center top;
+  pointer-events: none;
+}
+
+/*
+ * The bob's carriage: the block's full height, so translating it by its own
+ * height carries the bob exactly the length of the line.
+ */
+.carriage {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  pointer-events: none;
+}
+
+/* The bob — a triangle, point down, hung on the line's end. */
+.bob {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: calc(var(--gap) * -0.25);
+  inline-size: 0;
+  block-size: 0;
+  border-inline: calc(var(--gap) * 0.25) solid transparent;
+  border-block-start: calc(var(--gap) * 0.5) solid var(--line-strong);
+}
+
+/*
+ * Paid out as the block enters: none of the line when its top reaches the
+ * foot of the screen, all of it when its foot does. Declared only where
+ * scroll-driven animation exists; everywhere else the line simply hangs.
+ */
+@supports (animation-timeline: view()) {
+  .line {
+    animation: plumb-line linear both;
+    animation-timeline: --plumb;
+    animation-range: entry 0% entry 100%;
+  }
+
+  .carriage {
+    animation: plumb-bob linear both;
+    animation-timeline: --plumb;
+    animation-range: entry 0% entry 100%;
+  }
+}
+
+@keyframes plumb-line {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@keyframes plumb-bob {
+  from {
+    transform: translateY(-100%);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the motion (MOTION-SPEC §9.4
+ * rule 3): the line hangs its full length from the start.
+ */
+@media (--reduced-motion) {
+  .line,
+  .carriage {
+    animation: none;
+  }
+}

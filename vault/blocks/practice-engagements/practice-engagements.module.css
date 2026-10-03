@@ -1,0 +1,80 @@
+/*
+ * PracticeEngagements — layout only. The bays, and their bracing, are
+ * `vault/motion/brace`'s; the rows arrive through the global reveal.
+ */
+
+/*
+ * Arrives in place: the reveal fades this block and does not lift it, so the
+ * links are never carried out from under a pointer — the lesson of
+ * checkpoint 2.
+ */
+.stack {
+  --reveal-transform: none;
+
+  display: grid;
+  gap: var(--gap);
+}
+
+.title {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* One bay per engagement, side by side, wrapping if the practice is large. */
+.frame {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--gap) * 0.5);
+}
+
+.list {
+  display: grid;
+  gap: var(--gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The engagement on its own line, the work it shaped beneath it. */
+.row {
+  display: grid;
+  justify-items: start;
+  gap: calc(var(--gap) * 0.25);
+}
+
+/*
+ * The work's name and its client and year sit side by side as separate
+ * items, not as one run of text — the fix checkpoint 3 needed in round 8's
+ * schedule, made here too. A link inline in running text is a "link in a text
+ * block" to axe, which cannot tell it from the text by colour over this
+ * site's backgrounds; `route-sweep` does not visit case studies, so the blind
+ * spot would have stayed quiet. As a flex item the name stands on its own.
+ */
+.work {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: calc(var(--gap) * 0.25);
+}
+
+/*
+ * Only the client and year are muted: the work's name — linked, or for this
+ * engagement unlinked and named as such — keeps the body colour.
+ */
+.meta {
+  color: var(--text-muted);
+}
+
+/*
+ * INTENT — the underline, on hover and on keyboard focus alike, so a cursor
+ * and a keyboard are told the same thing. The focus ring is the global one.
+ */
+@media (--hover) {
+  .name:hover {
+    text-decoration-line: underline;
+  }
+}
+
+.name:focus-visible {
+  text-decoration-line: underline;
+}

@@ -26,6 +26,7 @@ import { articleSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { NextPractice } from '@/vault/blocks/next-practice'
+import { PracticeWork } from '@/vault/blocks/practice-work'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
 import { Reveal } from '@/vault/motion/reveal'
 
@@ -101,12 +102,15 @@ export async function generateMetadata({ params }: EntryPageProps) {
  * above. Work from that practice beside an essay about it is a relationship
  * the data asserts rather than one invented to fill a hole.
  *
- * Returns `null` for an entry with no practice, or a practice with no listed
- * work. That is designed absence — see the render site.
+ * Returns the practice's listed work — the first row is the cover, and since
+ * round 3 of the load-bearing cycle the whole list is the index under the
+ * essay (`vault/blocks/practice-work`), one query for both. Empty for an entry
+ * with no practice, or a practice with no listed work: designed absence — see
+ * the render sites.
  */
-async function coverForPractice(locale: string, practice: string | null) {
+async function workForPractice(locale: string, practice: string | null) {
   'use cache'
-  if (!practice) return null
+  if (!practice) return []
 
   const projects = await sanityFetch({
     query: workIndexQuery,
@@ -125,10 +129,10 @@ async function coverForPractice(locale: string, practice: string | null) {
   // `workIndexQuery` is ordered `order asc, publishedAt desc`, so the same
   // entry gets the same cover on every render rather than one that moves
   // between builds.
-  // `?? []` before the index: `data` is null when Sanity is unconfigured or
-  // the query failed, and indexing null throws during prerender. The same
-  // defect the first CI run found on `/en/studio` — Tahap 53.
-  return (projects.data ?? [])[0] ?? null
+  // `?? []`: `data` is null when Sanity is unconfigured or the query failed,
+  // and indexing null throws during prerender. The same defect the first CI
+  // run found on `/en/studio` — Tahap 53.
+  return projects.data ?? []
 }
 
 export default async function JournalEntryPage({ params }: EntryPageProps) {
@@ -139,12 +143,13 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
   const entry = entryFor(locale, slug)
   if (!entry) notFound()
 
-  const [t, tWork, tNav, work] = await Promise.all([
+  const [t, tWork, tNav, works] = await Promise.all([
     getTranslations('journal'),
     getTranslations('workIndex'),
     getTranslations('nav'),
-    coverForPractice(locale, entry.practice),
+    workForPractice(locale, entry.practice),
   ])
+  const work = works[0] ?? null
 
   const formatter = new Intl.DateTimeFormat(locale, {
     year: 'numeric',
@@ -362,6 +367,19 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
             ))}
           </Reveal>
         </div>
+
+        {/*
+          The work this entry's practice carried — round 3. The essay argues;
+          this is where the practice was put under load. The same rows as the
+          cover beside the essay, so the plate is finally named, and the
+          `entry-work` moment is the beam above them coming to level.
+        */}
+        {entry.practice && works.length > 0 && (
+          <PracticeWork
+            title={t('workInPractice', { practice: tWork(entry.practice) })}
+            works={works}
+          />
+        )}
 
         {/*
           The same onward link the practice pages end on — the fork. It was

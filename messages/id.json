@@ -15,6 +15,8 @@
     "relatedPractice": "Praktik terkait"
   },
   "home": {
+    "journalEyebrow": "Dari jurnal",
+    "journalAll": "Semua tulisan",
     "workTitle": "Penugasan terakhir",
     "workCount": "{count, plural, other {# penugasan}}",
     "studioTitle": "Bagaimana kami bekerja",
@@ -55,7 +57,12 @@
     "commissionIntro": "Karya pesanan: penugasan berbayar dengan lingkup jelas, dikerjakan sesuai brief.",
     "allWork": "Semua karya",
     "relatedPractice": "Praktik terkait",
-    "aboutPractice": "Tentang {practice}"
+    "aboutPractice": "Tentang {practice}",
+    "frameTitle": "Karya, menurut praktik dan tahun",
+    "frameIntro": "Setiap penugasan di katalog, ditempatkan menurut praktik yang memikulnya dan tahunnya.",
+    "framePractice": "Praktik",
+    "frameUndated": "Tanpa tahun",
+    "frameUnplaced": "Lainnya"
   },
   "language": {
     "label": "Bahasa",
@@ -70,6 +77,10 @@
     "index": "Indeks"
   },
   "project": {
+    "engagementsTitle": "Penugasan di {practice}",
+    "engagementsCurrent": "penugasan ini",
+    "writingTitle": "Tulisan tentang {practice}",
+    "writingDatum": "Penugasan ini, {year}",
     "client": "Klien",
     "year": "Tahun",
     "nextProject": "Karya berikutnya",
@@ -121,6 +132,7 @@
     "statementEyebrow": "Cara kami mengerjakannya",
     "nextEyebrow": "Praktik berikutnya",
     "workTitle": "Penugasan di praktik ini",
+    "writingTitle": "Tulisan dari praktik ini",
     "empty": "Belum ada karya terbit di praktik ini.",
     "placeholderNote": "Teks penampung. Studio belum menulis pernyataan ini.",
     "consultingStatement": "Penugasan konsultasi dimulai sebelum ada yang dibangun. Kami membaca sistem yang sudah ada, menyebut keputusan mana yang sebenarnya masih terbuka, dan menuliskan konsekuensi yang dibawa masing-masing, supaya pilihan yang diambil adalah pilihan yang masih bisa dipertahankan tim enam bulan kemudian.",
@@ -146,6 +158,8 @@
     "statementEyebrow": "Cara kami memikirkannya",
     "statement": "Sebagian besar pekerjaan gagal sebelum ada yang menulis kode. Ia gagal di minggu ketika brief-nya masih lunak, ketika belum ada yang menyebut lantang keputusan mana yang benar-benar terbuka dan mana yang sudah ditutup, dan ketika ongkos salah belum pernah dituliskan. Jadi di situlah kami mulai. Kami membaca sistem yang sudah ada, menamai tukar-tambahnya, dan menaruh angka pada hal yang selama ini ditebak semua orang. Yang dibangun sesudah itu lebih kecil daripada yang diminta, dan ia bertahan lebih lama.",
     "evidenceEyebrow": "Karya yang dihasilkannya",
+    "measureFacts": "{engagements, plural, other {# penugasan}} untuk {clients, plural, other {# klien}}",
+    "shapesTitle": "Bentuk yang pernah diambil sebuah penugasan",
     "processEyebrow": "Cara kami bekerja",
     "process": {
       "scopeTitle": "Lingkup",
@@ -179,10 +193,17 @@
     "closingAction": "Lihat karyanya"
   },
   "journal": {
+    "tallyTitle": "Jurnal, menurut praktik",
+    "tallyWriting": "Tulisan",
+    "tallyPractice": "Praktik",
+    "tallyWork": "Karya",
+    "tallyEntries": "{count, plural, =0 {belum ada} other {# tulisan}}",
+    "tallyWorks": "{count, plural, =0 {belum ada} other {# penugasan}}",
     "eyebrow": "Jurnal",
     "title": "Jurnal",
     "intro": "Catatan tentang bagaimana pekerjaan dilingkupi, diputuskan, dan dikirim. Metode, bukan pengumuman.",
     "nextEyebrow": "Entri berikutnya",
+    "workInPractice": "Karya di {practice}",
     "emptyTitle": "Belum ada yang diterbitkan di sini.",
     "emptyBody": "Studio menulis ketika ada yang layak dituliskan, dan itu bukan setiap minggu."
   },

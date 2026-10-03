@@ -9,6 +9,7 @@ import {
   type JournalEntry,
   resolveJournalEntries,
 } from '@/lib/content/journal-fallback'
+import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -23,6 +24,8 @@ import { collectionPageSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { nameplateStyle } from '@/lib/utils/display-fit'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { PracticeTally } from '@/vault/blocks/practice-tally'
+import { countByPractice } from '@/vault/blocks/practice-tally/tally'
 import { Reveal } from '@/vault/motion/reveal'
 import { TextReveal } from '@/vault/motion/text-reveal'
 
@@ -339,6 +342,32 @@ export default async function JournalPage() {
           <Reveal as="section" data-epic="journal-index" perItem>
             <JournalIndexRows rows={rows} />
           </Reveal>
+        )}
+
+        {/*
+          The journal read against the work — round 7. After the entries, so
+          the index ends with a way onward: each practice, linked, with its
+          writing counted out beside its work. Counted from what this page
+          already holds — `entries`, and the works it reads covers from.
+        */}
+        {entries.length > 0 && (
+          <PracticeTally
+            title={t('tallyTitle')}
+            headings={{
+              writing: t('tallyWriting'),
+              practice: t('tallyPractice'),
+              work: t('tallyWork'),
+            }}
+            rows={countByPractice(PRACTICES, entries, covers).map((row) => ({
+              practice: row.practice,
+              label: tWork(row.practice),
+              href: practiceTemplate(row.practice),
+              entries: row.entries,
+              works: row.works,
+              entriesLabel: t('tallyEntries', { count: row.entries }),
+              worksLabel: t('tallyWorks', { count: row.works }),
+            }))}
+          />
         )}
       </div>
     </Wrapper>

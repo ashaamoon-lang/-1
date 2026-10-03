@@ -1,0 +1,86 @@
+/*
+ * Fixings — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token: the plate's edge is the palette's `--line` and its
+ * fixings `--line-strong`, their size and inset are fractions of the grid's
+ * gap, and their beats are the duration bands and the item stagger. Only the
+ * fixings' `transform` moves; the plate's arrival is the global reveal's.
+ */
+
+.plate {
+  position: relative;
+  padding: var(--gap);
+  border: thin solid var(--line);
+}
+
+/* A cross, in the plate's own padding at a corner. */
+.fixing {
+  position: absolute;
+  inline-size: calc(var(--gap) * 0.75);
+  block-size: calc(var(--gap) * 0.75);
+  pointer-events: none;
+  transition: transform var(--duration-fast) var(--ease-out-expo)
+    calc(var(--duration) + var(--fixing-order) * var(--stagger-items));
+}
+
+.fixing::before,
+.fixing::after {
+  content: '';
+  position: absolute;
+}
+
+.fixing::before {
+  inset-inline: 0;
+  inset-block-start: 50%;
+  border-block-start: thin solid var(--line-strong);
+}
+
+.fixing::after {
+  inset-block: 0;
+  inset-inline-start: 50%;
+  border-inline-start: thin solid var(--line-strong);
+}
+
+/* Set clockwise from the first corner, after the plate has arrived. */
+.fixing[data-corner='start-start'] {
+  --fixing-order: 0;
+  inset-block-start: calc(var(--gap) * 0.125);
+  inset-inline-start: calc(var(--gap) * 0.125);
+}
+
+.fixing[data-corner='start-end'] {
+  --fixing-order: 1;
+  inset-block-start: calc(var(--gap) * 0.125);
+  inset-inline-end: calc(var(--gap) * 0.125);
+}
+
+.fixing[data-corner='end-end'] {
+  --fixing-order: 2;
+  inset-block-end: calc(var(--gap) * 0.125);
+  inset-inline-end: calc(var(--gap) * 0.125);
+}
+
+.fixing[data-corner='end-start'] {
+  --fixing-order: 3;
+  inset-block-end: calc(var(--gap) * 0.125);
+  inset-inline-start: calc(var(--gap) * 0.125);
+}
+
+/* Before the reveal the plate is only placed, not fixed. */
+[data-reveal='hidden'] .fixing {
+  transform: scale(0);
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the plate is fixed at once.
+ */
+@media (--reduced-motion) {
+  .fixing {
+    transition: none;
+  }
+
+  [data-reveal] .fixing {
+    transform: none;
+  }
+}

@@ -573,6 +573,93 @@ Yang benar adalah mempersenjatai nama itu hanya saat tautan ditekan (seperti
 `released` di kartu), dengan uji navigasi mundur di browser; itu pekerjaan
 tersendiri, bukan tambahan diam-diam di sini.
 
+**`/work` — bingkai katalog, dan gerak tumpuan.** Di bawah grid, katalog
+tanpa filter kini memuat tabel praktik × tahun. Setiap karya duduk di baknya
+(judul + klien, menaut ke proyeknya), dan kepala baris menaut ke halaman
+praktiknya. Datanya `projectCardFields` yang sudah di-fetch; bak tanpa karya
+dibiarkan kosong. Geraknya primitif baru `vault/motion/bearing`: tiang naik
+dan balok membentang, lalu tiap karya mendarat di baloknya, menekan dengan
+`--press-scale` milik §9, dan mengendap tanpa melewati titik diam (§9.3) —
+CSS lewat `useReveal`, `data-epic="catalogue-frame"`, EN dan ID. **Belum
+diverifikasi:** mata — lebar tabel di ponsel dan ritme geraknya belum pernah
+dilihat. Build, e2e, dan CI hijau di checkpoint 1 (run 37046629768).
+
+**`/studio` — ukuran karya, dan garis ukur (putaran 2).** Di atas strip "Work
+it produced" kini ada ukuran seluruh karya: penugasan dan klien (ICU EN/ID),
+direntangkan antara tahun pertama dan terakhir. Datanya `workIndexQuery` tanpa
+filter, dipangkas ke `year` dan `client` di fungsi `'use cache'`. Desainnya
+primitif baru `vault/motion/dimension`, garis ukur gambar teknik khusus CSS.
+Garis saksi turun, lalu garis ukur memanjang dari tengah dan membawa tanda tiap
+tahun. Primitif ini tanpa JS baru, dan `data-epic="work-measure"`. **Belum
+diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint 1.
+
+**`/journal/<slug>` — karya praktiknya, dan balok yang mendatar (putaran 3).**
+Di bawah esai kini ada indeks karya praktik entri itu: judul yang menaut ke
+studi kasus, ditambah baris meta yang sama dengan kartunya. Datanya query
+sampul yang sudah ada, kini dikembalikan utuh, sehingga pelat di samping esai
+akhirnya bernama. Desainnya primitif baru `vault/motion/level`, khusus CSS:
+balok kantilever turun satu gutter di ujung bebasnya (`atan2` terhadap
+panjangnya sendiri), lalu naik mendatar saat baris-baris tiba, hanya rotasi.
+`data-epic="entry-work"`. **Belum diverifikasi:** mata. Build, e2e, dan CI hijau
+di checkpoint 1.
+
+**`/practice/<v>` — tulisan praktiknya, dan bekisting yang dibongkar (putaran 4).**
+Di bawah karya kini ada entri jurnal yang diarsipkan di praktik itu: tanggal,
+judul yang menaut ke entri, dan ringkasan indeks. Entri di-resolve persis
+seperti `/journal` (`resolveJournalEntries` atas `journalEntriesQuery`), jadi
+keduanya tak bisa berbeda. Desainnya primitif baru `vault/motion/formwork`,
+khusus CSS: tiap baris tiba di dalam cetakan putus-putus, lalu cetakannya
+dibongkar — memudar dan jatuh setengah gutter. Yang tersisa harus berdiri
+sendiri. `data-epic="practice-writing"`. **Belum diverifikasi:** mata.
+Build, e2e, dan CI hijau di checkpoint 2.
+
+**`/work/<slug>` — tulisan praktiknya, terhadap tahun penugasan (putaran 5).** Di
+`#onward`, sebelum proyek berikutnya, kini ada entri jurnal praktik karya itu,
+disusun terhadap datum tahun penugasannya: yang ditulis sesudahnya di atas garis,
+yang setahun atau sebelumnya di bawah. Pembacaan datanya kini dipakai bersama
+halaman praktik (`lib/content/practice-writing`, dipindah dari putaran 4 tanpa
+mengubah perilaku). Desainnya primitif baru `vault/motion/datum`, khusus CSS: garis
+level diam, dan baris menjauhinya saat tiba. Tanpa `data-region`, jadi spine tetap.
+`data-epic="engagement-writing"`. **Belum diverifikasi:** mata.
+Build, e2e, dan CI hijau di checkpoint 2.
+
+**`/` — tulisan terbaru di beranda, dan pelat yang dipaku (putaran 6).** Beranda
+kini menampilkan entri jurnal terbaru di antara "How we work" dan kontak: tanggal,
+praktik, judul yang menaut ke entri, ringkasan, dan tautan ke semua tulisan. Entri
+"terbaru" di-resolve sama seperti di `/journal`. Modul `lib/content/practice-writing`
+kini memakai satu pembaca untuk putaran 4–6. Desainnya primitif baru
+`vault/motion/fixings`, khusus CSS: entri tiba sebagai pelat, lalu dipaku di keempat
+sudutnya searah jarum jam. Tanpa JS klien baru; `data-epic="latest-writing"`.
+**Belum diverifikasi:** mata. Checkpoint 2 menangkap lift reveal-nya yang
+membawa tautan keluar dari bawah pointer; kini memudar di tempat (`72c0646`), lalu hijau.
+
+**`/journal` — jurnal menurut praktik, dan turus yang dihitung (putaran 7).** Indeks
+jurnal kini ditutup dengan tabel Tulisan | Praktik | Karya. Tiap praktik menaut ke
+halamannya, sehingga indeks punya jalan lanjut. Hitungannya diambil dari data yang
+sudah ada di halaman, entri dan karya untuk sampul, tanpa fetch baru (`tally.ts`, satu
+tes). Desainnya primitif baru `vault/motion/tally`, khusus CSS: tiap hitungan berupa
+coretan turus berkelompok lima, dihitung keluar dari praktik dalam satu ketukan
+lambat. Hanya `opacity` yang berubah; baris memudar di tempat (pelajaran checkpoint
+2). `data-epic="practice-tally"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
+**`/studio` — bentuk penugasan, dan unting-unting (putaran 8).** Sesudah empat langkah
+proses kini ada jadwal bentuk penugasan: tiap karya dengan nama penugasannya ditulis
+apa adanya, misalnya "Retainer, six months". Karyanya menaut ke studi kasus, disertai
+klien dan tahun. Datanya query yang sudah dibaca putaran 2, kini menyimpan juga judul,
+slug, dan penugasan. Desainnya primitif baru `vault/motion/plumb`, satu-satunya yang
+digerakkan scroll: CSS view timeline tanpa JS, dengan `@supports` sebagai pengaman.
+Garis unting-unting turun di samping jadwal seiring jadwal naik ke layar.
+`data-epic="engagement-shapes"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
+**`/work/<slug>` — penugasan sepraktik, dan rangka yang diperkaku (putaran 9).** Di
+`#onward`, sebelum tulisan, kini ada semua penugasan praktik karya itu, termasuk yang
+ini. Penugasan ini tidak menaut, ditandai "this engagement" dan `aria-current`, sehingga
+pembaca membandingkan bentuknya dengan yang lain. Datanya katalog yang sudah dimuat untuk
+proyek berikutnya, tanpa query baru. Desainnya primitif baru `vault/motion/brace`: satu
+petak per penugasan, tiba miring (`skewX`), lalu diperkaku diagonal hingga siku. Sudut
+dan panjangnya dihitung dengan `atan2` dan `hypot`. Tanpa `data-region`.
+`data-epic="practice-engagements"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

@@ -1,0 +1,70 @@
+/*
+ * EngagementShapes — layout only. The plumb line, and its motion, are
+ * `vault/motion/plumb`'s; the rows arrive through the global reveal.
+ */
+
+/*
+ * Arrives in place: the reveal fades this block and does not lift it, so the
+ * links are never carried out from under a pointer — the lesson of
+ * checkpoint 2.
+ */
+.stack {
+  --reveal-transform: none;
+
+  display: grid;
+  gap: var(--gap);
+}
+
+.title {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.list {
+  display: grid;
+  gap: var(--gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The engagement on its own line, the work it shaped beneath it. */
+.row {
+  display: grid;
+  justify-items: start;
+  gap: calc(var(--gap) * 0.25);
+}
+
+/*
+ * The work's name and its client and year sit side by side as separate
+ * items, not as one run of text. A link inline in running text is a "link in
+ * a text block" to axe, which must then tell link from text by colour — and
+ * over this site's grain and wash it cannot. Checkpoint 3 caught that on
+ * /studio (`e2e/route-sweep.e2e.ts`, `link-in-text-block` undecided). As a
+ * flex item the name stands on its own, and nothing is left undecided.
+ */
+.work {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: calc(var(--gap) * 0.25);
+}
+
+.work,
+.meta {
+  color: var(--text-muted);
+}
+
+/*
+ * INTENT — the underline, on hover and on keyboard focus alike, so a cursor
+ * and a keyboard are told the same thing. The focus ring is the global one.
+ */
+@media (--hover) {
+  .name:hover {
+    text-decoration-line: underline;
+  }
+}
+
+.name:focus-visible {
+  text-decoration-line: underline;
+}

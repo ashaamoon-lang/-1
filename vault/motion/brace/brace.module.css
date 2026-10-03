@@ -1,0 +1,79 @@
+/*
+ * Brace — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token or computed from one: the bay is a gutter and a half
+ * square, its lean is a quarter gutter over that height, the brace's length
+ * and angle come from `hypot` and `atan2` of the bay's own sides, the lines
+ * are the palette's `--line` and `--line-strong`, and the beats are the
+ * duration bands and the item stagger. Only `transform` and `opacity` move.
+ */
+
+.brace {
+  --brace-size: calc(var(--gap) * 1.5);
+
+  display: inline-block;
+  vertical-align: middle;
+  inline-size: var(--brace-size);
+  block-size: var(--brace-size);
+}
+
+/* The bay: posts, beam and base. It racks about its base, as a frame does. */
+.bay {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border: thin solid var(--line);
+  transform-origin: center bottom;
+  transition: transform var(--duration-slow) var(--ease-out-expo)
+    calc(
+      var(--duration-fast) * 2 + var(--brace-index, 0) * var(--stagger-items)
+    );
+}
+
+/* The brace: from the foot of one post to the head of the other. */
+.diagonal {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  inline-size: hypot(var(--brace-size), var(--brace-size));
+  border-block-start: thin solid var(--line);
+  transform-origin: left center;
+  transform: rotate(calc(atan2(var(--brace-size), var(--brace-size)) * -1));
+  transition: opacity var(--duration-fast) var(--ease-out-expo)
+    calc(var(--duration-fast) + var(--brace-index, 0) * var(--stagger-items));
+}
+
+/* The bay the page is about, in the stronger line. */
+.brace[data-current] .bay,
+.brace[data-current] .diagonal {
+  border-color: var(--line-strong);
+}
+
+/* Before the reveal: racked a quarter of its height, and not yet braced. */
+[data-reveal='hidden'] .bay {
+  transform: skewX(atan2(calc(var(--brace-size) * 0.25), var(--brace-size)));
+}
+
+[data-reveal='hidden'] .diagonal {
+  opacity: 0;
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): every bay braced and square at once.
+ */
+@media (--reduced-motion) {
+  .bay,
+  .diagonal {
+    transition: none;
+  }
+
+  [data-reveal] .bay {
+    transform: none;
+  }
+
+  [data-reveal] .diagonal {
+    opacity: 1;
+  }
+}

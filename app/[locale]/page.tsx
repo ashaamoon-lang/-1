@@ -6,6 +6,7 @@ import { Wrapper } from '@/components/layout/wrapper'
 import { SanityImage } from '@/components/ui/sanity-image'
 import { SectionHeader } from '@/components/ui/section-header'
 import { resolveHomeContent } from '@/lib/content/home-fallback'
+import { latestWriting } from '@/lib/content/practice-writing'
 import { PRACTICES } from '@/lib/content/practices'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -18,6 +19,7 @@ import {
 import { toImageSource } from '@/lib/integrations/sanity/utils/image'
 import { ContactBlock } from '@/vault/blocks/contact-block'
 import { Hero } from '@/vault/blocks/hero'
+import { LatestWriting } from '@/vault/blocks/latest-writing'
 import { Passage } from '@/vault/blocks/passage'
 import { PracticeList } from '@/vault/blocks/practice-list'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
@@ -119,13 +121,14 @@ export default async function Home() {
   const requested = await localeRootParam()
   const locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const [{ settings, projects }, t, tWork] = await Promise.all([
+  const [{ settings, projects }, t, tWork, latest] = await Promise.all([
     fetchHomeForRequest(locale),
     getTranslations('home'),
     // The practice labels are already localized for the catalogue's filter
     // chips. Reading them from there rather than adding a second set keeps
     // the hero and `/work/practice/<value>` naming the same three things.
     getTranslations('workIndex'),
+    latestWriting(locale),
   ])
 
   const content = resolveHomeContent(locale, settings)
@@ -373,6 +376,23 @@ export default async function Home() {
             </p>
           )}
         </StudioNote>
+
+        {/*
+          What the studio thinks, on the page a client reaches first — round
+          6. The newest journal entry, resolved as `/journal` resolves it, so
+          the two agree on what came last; after how the studio works and
+          before the way to commission it.
+        */}
+        {latest && (
+          <LatestWriting
+            className={s.section}
+            eyebrow={t('journalEyebrow')}
+            entry={latest}
+            practice={latest.practice ? tWork(latest.practice) : undefined}
+            allLabel={t('journalAll')}
+            locale={locale}
+          />
+        )}
 
         <ContactBlock
           id="contact"
