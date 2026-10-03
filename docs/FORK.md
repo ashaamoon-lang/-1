@@ -612,6 +612,15 @@ khusus CSS: tiap baris tiba di dalam cetakan putus-putus, lalu cetakannya
 dibongkar — memudar dan jatuh setengah gutter. Yang tersisa harus berdiri
 sendiri. `data-epic="practice-writing"`. **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/work/<slug>` — tulisan praktiknya, terhadap tahun penugasan (putaran 5).** Di
+`#onward`, sebelum proyek berikutnya, kini ada entri jurnal praktik karya itu,
+disusun terhadap datum tahun penugasannya: yang ditulis sesudahnya di atas garis,
+yang setahun atau sebelumnya di bawah. Pembacaan datanya kini dipakai bersama
+halaman praktik (`lib/content/practice-writing`, dipindah dari putaran 4 tanpa
+mengubah perilaku). Desainnya primitif baru `vault/motion/datum`, khusus CSS: garis
+level diam, dan baris menjauhinya saat tiba. Tanpa `data-region`, jadi spine tetap.
+`data-epic="engagement-writing"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

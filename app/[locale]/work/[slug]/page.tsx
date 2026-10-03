@@ -8,7 +8,8 @@ import { Wrapper } from '@/components/layout/wrapper'
 import { Breadcrumbs } from '@/components/ui/breadcrumbs'
 import { Link } from '@/components/ui/link'
 import { nextProject } from '@/lib/content/next-project'
-import { PRACTICE_SEGMENT } from '@/lib/content/practices'
+import { writingForPractice } from '@/lib/content/practice-writing'
+import { PRACTICE_SEGMENT, isPractice } from '@/lib/content/practices'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -22,6 +23,7 @@ import {
 import { transitionName } from '@/lib/motion/transition-name'
 import { SITE } from '@/lib/seo/site'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
+import { EngagementWriting } from '@/vault/blocks/engagement-writing'
 import { NextProject } from '@/vault/blocks/next-project'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
 import { ProjectHero } from '@/vault/blocks/project-hero'
@@ -286,6 +288,17 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   if (!project) notFound()
 
   const next = nextProject(siblings, slug)
+
+  /*
+   * The writing filed under this work's practice — round 5. The same cached
+   * read the practice page makes (`lib/content/practice-writing`), so the two
+   * cannot list different entries.
+   */
+  const practice =
+    project.practice !== null && isPractice(project.practice)
+      ? project.practice
+      : null
+  const writing = practice ? await writingForPractice(locale, practice) : []
 
   // SAFETY: the query projects the localized `body` as Portable Text.
   // TypeGen derives its own structurally identical block/span/markDefs type,
@@ -587,6 +600,27 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   {tWork('allWork')}
                 </Link>
               </nav>
+            )}
+
+            {/*
+              What the practice has written, set out from this engagement's
+              year — round 5. Inside `#onward` and with no `data-region` of
+              its own: the spine lists exactly the page's regions
+              (`e2e/project-detail.e2e.ts`), and this is a way onward from the
+              work, not a region of it.
+            */}
+            {practice && writing.length > 0 && (
+              <EngagementWriting
+                title={t('writingTitle', { practice: tWork(practice) })}
+                entries={writing}
+                year={project.year}
+                datumLabel={
+                  project.year === null
+                    ? ''
+                    : t('writingDatum', { year: String(project.year) })
+                }
+                locale={locale}
+              />
             )}
 
             {next?.slug?.current && (

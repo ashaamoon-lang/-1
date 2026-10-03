@@ -75,6 +75,8 @@
     "index": "Indeks"
   },
   "project": {
+    "writingTitle": "Tulisan tentang {practice}",
+    "writingDatum": "Penugasan ini, {year}",
     "client": "Klien",
     "year": "Tahun",
     "nextProject": "Karya berikutnya",

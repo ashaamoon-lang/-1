@@ -1,0 +1,56 @@
+/*
+ * Datum — the mechanism. `index.tsx` carries the argument.
+ *
+ * The level is drawn and never moves. What moves is set out from it: the
+ * global reveal's offset is pointed away from the datum on each side, by one
+ * gutter — the reveal's own default distance. Every value is a token.
+ */
+
+.datum {
+  display: grid;
+  gap: var(--gap);
+}
+
+/* Above the level: arrives rising, away from it. */
+.above {
+  --reveal-transform: translateY(var(--gap));
+}
+
+/* Below it: arrives sinking, away from it. */
+.below {
+  --reveal-transform: translateY(calc(var(--gap) * -1));
+}
+
+/* The level line, its mark standing on it, and its name beside the mark. */
+.level {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--gap) * 0.5);
+  margin: 0;
+  border-block-end: thin solid var(--line-strong);
+  color: var(--text-muted);
+}
+
+/* A triangle, point down, its point on the line. */
+.mark {
+  flex: none;
+  inline-size: 0;
+  block-size: 0;
+  border-inline: calc(var(--gap) * 0.375) solid transparent;
+  border-block-start: calc(var(--gap) * 0.5) solid var(--line-strong);
+}
+
+.label {
+  padding-block-end: calc(var(--gap) * 0.25);
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): nothing is offset, so nothing is set out — it is simply there.
+ */
+@media (--reduced-motion) {
+  .above,
+  .below {
+    --reveal-transform: none;
+  }
+}
