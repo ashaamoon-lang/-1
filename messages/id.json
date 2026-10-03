@@ -190,6 +190,12 @@
     "closingAction": "Lihat karyanya"
   },
   "journal": {
+    "tallyTitle": "Jurnal, menurut praktik",
+    "tallyWriting": "Tulisan",
+    "tallyPractice": "Praktik",
+    "tallyWork": "Karya",
+    "tallyEntries": "{count, plural, =0 {belum ada} other {# tulisan}}",
+    "tallyWorks": "{count, plural, =0 {belum ada} other {# penugasan}}",
     "eyebrow": "Jurnal",
     "title": "Jurnal",
     "intro": "Catatan tentang bagaimana pekerjaan dilingkupi, diputuskan, dan dikirim. Metode, bukan pengumuman.",

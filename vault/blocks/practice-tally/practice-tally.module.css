@@ -1,0 +1,70 @@
+/*
+ * PracticeTally — layout only. The strokes, and their counting, are
+ * `vault/motion/tally`'s; the rows arrive through the global reveal.
+ */
+
+/*
+ * Arrives in place: the reveal fades this block and does not lift it, so the
+ * practice links are never carried out from under a pointer — the lesson of
+ * checkpoint 2, where a lift on `/en` did exactly that.
+ */
+.stack {
+  --reveal-transform: none;
+
+  display: grid;
+  gap: var(--gap);
+}
+
+.title {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.table th,
+.table td {
+  padding-block: calc(var(--gap) * 0.75);
+  border-block-end: thin solid var(--line);
+  vertical-align: middle;
+}
+
+.table thead th {
+  font-weight: inherit;
+  color: var(--text-muted);
+}
+
+/* Writing is counted toward the practice from one side, work from the other. */
+.writing {
+  text-align: end;
+}
+
+.practice {
+  text-align: center;
+}
+
+.work {
+  text-align: start;
+}
+
+.count {
+  color: var(--text-muted);
+}
+
+/*
+ * INTENT — the underline, on hover and on keyboard focus alike, so a cursor
+ * and a keyboard are told the same thing. The focus ring is the global one.
+ */
+@media (--hover) {
+  .name:hover {
+    text-decoration-line: underline;
+  }
+}
+
+.name:focus-visible {
+  text-decoration-line: underline;
+}

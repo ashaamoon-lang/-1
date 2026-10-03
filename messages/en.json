@@ -190,6 +190,12 @@
     "closingAction": "See the work"
   },
   "journal": {
+    "tallyTitle": "The journal, by practice",
+    "tallyWriting": "Writing",
+    "tallyPractice": "Practice",
+    "tallyWork": "Work",
+    "tallyEntries": "{count, plural, =0 {none yet} one {# entry} other {# entries}}",
+    "tallyWorks": "{count, plural, =0 {none yet} one {# engagement} other {# engagements}}",
     "eyebrow": "Journal",
     "title": "Journal",
     "intro": "Notes on how the work gets scoped, decided and delivered. Method rather than announcements.",

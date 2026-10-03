@@ -1,0 +1,63 @@
+/*
+ * Tally — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token: the strokes are the palette's `--line-strong`, their
+ * height is the grid's gap, the spacing is a fraction of it, and the count is
+ * spread over the slow duration band after the fast one. Only `opacity`
+ * changes.
+ */
+
+.tally {
+  display: inline-flex;
+  flex-wrap: wrap;
+  vertical-align: middle;
+  gap: calc(var(--gap) * 0.25);
+}
+
+/* Counting toward the inline start: the first stroke sits at the end. */
+.tally[data-from='end'] {
+  flex-direction: row-reverse;
+}
+
+/*
+ * One stroke. Each is counted at its share of one slow beat, so the whole
+ * count lands together whatever its size.
+ */
+.mark {
+  inline-size: 0;
+  block-size: var(--gap);
+  border-inline-start: thin solid var(--line-strong);
+  transition: opacity var(--duration-fast) var(--ease-out-expo)
+    calc(
+      var(--duration-fast) + var(--duration-slow) * var(--tally-index) /
+        var(--tally-count)
+    );
+}
+
+/* Gathered in fives, the way a count is kept by hand. */
+.tally[data-from='start'] .mark:nth-child(5n) {
+  margin-inline-end: calc(var(--gap) * 0.25);
+}
+
+.tally[data-from='end'] .mark:nth-child(5n) {
+  margin-inline-start: calc(var(--gap) * 0.25);
+}
+
+/* Before the reveal nothing has been counted. */
+[data-reveal='hidden'] .mark {
+  opacity: 0;
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the count is all there at once.
+ */
+@media (--reduced-motion) {
+  .mark {
+    transition: none;
+  }
+
+  [data-reveal] .mark {
+    opacity: 1;
+  }
+}

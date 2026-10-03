@@ -633,6 +633,16 @@ sudutnya searah jarum jam. Tanpa JS klien baru; `data-epic="latest-writing"`.
 **Belum diverifikasi:** mata. Checkpoint 2 menangkap lift reveal-nya yang
 membawa tautan keluar dari bawah pointer; kini memudar di tempat (`72c0646`), lalu hijau.
 
+**`/journal` — jurnal menurut praktik, dan turus yang dihitung (putaran 7).** Indeks
+jurnal kini ditutup dengan tabel Tulisan | Praktik | Karya. Tiap praktik menaut ke
+halamannya, sehingga indeks punya jalan lanjut. Hitungannya diambil dari data yang
+sudah ada di halaman, entri dan karya untuk sampul, tanpa fetch baru (`tally.ts`, satu
+tes). Desainnya primitif baru `vault/motion/tally`, khusus CSS: tiap hitungan berupa
+coretan turus berkelompok lima, dihitung keluar dari praktik dalam satu ketukan
+lambat. Hanya `opacity` yang berubah, dan baris memudar di tempat tanpa terangkat
+(pelajaran checkpoint 2). `data-epic="practice-tally"`. **Belum diverifikasi:** build,
+e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
