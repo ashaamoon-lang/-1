@@ -1,0 +1,57 @@
+/*
+ * Stamp — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token or a fraction of one: the frame is the palette's
+ * `--line-strong` around `--text-muted` ink, it comes down half a gutter onto a
+ * sheet seen from four gutters away, and the beats are the fast and micro
+ * duration bands. Only the frame's `transform` and `opacity` and the ink's
+ * `opacity` change.
+ */
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  padding-block: calc(var(--gap) * 0.125);
+  padding-inline: calc(var(--gap) * 0.375);
+  border: thin solid var(--line-strong);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  animation: stamp-down var(--duration-fast) var(--ease-in-quart) both;
+}
+
+/* The ink: there once the frame meets the sheet, and only then. */
+.ink {
+  animation: stamp-ink var(--duration-micro) var(--ease-out-quart)
+    var(--duration-fast) both;
+}
+
+/* Half a gutter above the sheet, seen from four gutters away, down onto it. */
+@keyframes stamp-down {
+  from {
+    opacity: 0;
+    transform: perspective(calc(var(--gap) * 4))
+      translateZ(calc(var(--gap) * 0.5));
+  }
+
+  to {
+    opacity: 1;
+    transform: perspective(calc(var(--gap) * 4)) translateZ(0);
+  }
+}
+
+@keyframes stamp-ink {
+  from {
+    opacity: 0;
+  }
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the stamp is simply there.
+ */
+@media (--reduced-motion) {
+  .stamp,
+  .ink {
+    animation: none;
+  }
+}

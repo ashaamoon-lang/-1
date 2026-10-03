@@ -293,6 +293,16 @@ Checkpoint penutup (putaran 4): draft PR #24 pada `5dc141b`, run 37110536566. Jo
 
 Siklus 2 ditutup pada 4 putaran atas keputusan pemilik; putaran 5–6 tidak dibangun.
 
+### 4.4 Salin alamat dan stempel — sekali jalan
+
+Satu fitur dan satu animasi di beranda, dibangun di `claude/address-copy` (dari
+`claude/value-2`, `3d29a1f`) dan diperiksa sekali lewat draft PR dengan base
+`claude/value-2`, yang tidak untuk di-merge.
+
+| rute | fitur                                             | animasi                        | `data-epic`    | commit                          | status   |
+| ---- | ------------------------------------------------- | ------------------------------ | -------------- | ------------------------------- | -------- |
+| `/`  | salin alamat studio (`vault/blocks/copy-address`) | stempel (`vault/motion/stamp`) | `address-copy` | `feat(contact)`, `feat(motion)` | belum CI |
+
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
 | butir                                        | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |

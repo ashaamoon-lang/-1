@@ -32,10 +32,16 @@
  * The button is a `chip` in the interaction grammar (`MOTION-SPEC.md` §9):
  * INTENT firms its border and underlines it, COMMIT is the shared `:active`
  * compression in `global.css`.
+ *
+ * The moment, `address-copy`, is `Stamp`'s: each copy that lands is stamped —
+ * the frame comes down onto the sheet and the word appears on contact — and a
+ * second copy stamps again. It spends nothing at load; it moves when pressed.
  */
 
 import cn from 'clsx'
 import { useState, useSyncExternalStore } from 'react'
+
+import { Stamp } from '@/vault/motion/stamp'
 
 import s from './copy-address.module.css'
 
@@ -82,6 +88,8 @@ export function CopyAddress({
     cannotWriteOnServer
   )
   const [state, setState] = useState<CopyState>('rest')
+  /** How many copies have landed — a new `key`, so each one is stamped. */
+  const [landed, setLanded] = useState(0)
 
   if (!writable) return null
 
@@ -89,13 +97,14 @@ export function CopyAddress({
     try {
       await navigator.clipboard.writeText(address)
       setState('copied')
+      setLanded((count) => count + 1)
     } catch {
       setState('failed')
     }
   }
 
   return (
-    <div className={cn(s.copy, className)}>
+    <div data-epic="address-copy" className={cn(s.copy, className)}>
       <button
         type="button"
         className={cn('caption', s.button)}
@@ -107,7 +116,7 @@ export function CopyAddress({
         {label}
       </button>
       <span role="status" className={cn('caption', s.status)}>
-        {state === 'copied' && copied}
+        {state === 'copied' && <Stamp key={landed}>{copied}</Stamp>}
         {state === 'failed' && failed}
       </span>
     </div>

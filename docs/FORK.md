@@ -721,6 +721,14 @@ dirender; alamatnya tetap. Barisnya diposisikan agar alamat yang ditarik `Magnet
 menutupnya, dan blok kontak kini memudar di tempat. Diuji di `e2e/address-copy.e2e.ts`.
 **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/` — stempel saat alamat tersalin (sekali jalan).** Setiap salinan yang berhasil kini
+distempel: primitif baru `vault/motion/stamp`, khusus CSS, diputar sekali saat dipasang.
+Bingkai bergaris turun setengah gutter ke kertas dengan `--ease-in-quart` dan berhenti mati
+tanpa pantulan; katanya baru muncul saat bingkai menyentuh, jadi teks tidak pernah bergerak.
+Total 350 ms. Salinan kedua menstempel lagi (`key` baru), dan stempel ada di `role="status"`
+sehingga dibacakan. Reduced motion: stempel langsung ada. `data-epic="address-copy"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
