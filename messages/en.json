@@ -77,6 +77,8 @@
     "index": "Index"
   },
   "project": {
+    "engagementsTitle": "Engagements in {practice}",
+    "engagementsCurrent": "this engagement",
     "writingTitle": "Writing on {practice}",
     "writingDatum": "This engagement, {year}",
     "client": "Client",

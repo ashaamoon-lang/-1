@@ -77,6 +77,8 @@
     "index": "Indeks"
   },
   "project": {
+    "engagementsTitle": "Penugasan di {practice}",
+    "engagementsCurrent": "penugasan ini",
     "writingTitle": "Tulisan tentang {practice}",
     "writingDatum": "Penugasan ini, {year}",
     "client": "Klien",

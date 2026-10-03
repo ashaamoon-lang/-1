@@ -651,6 +651,15 @@ digerakkan scroll: CSS view timeline tanpa JS, dengan `@supports` sebagai pengam
 Garis unting-unting turun di samping jadwal seiring jadwal naik ke layar.
 `data-epic="engagement-shapes"`. **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/work/<slug>` — penugasan sepraktik, dan rangka yang diperkaku (putaran 9).** Di
+`#onward`, sebelum tulisan, kini ada semua penugasan praktik karya itu, termasuk yang
+ini. Penugasan ini tidak menaut, ditandai "this engagement" dan `aria-current`, sehingga
+pembaca membandingkan bentuknya dengan yang lain. Datanya katalog yang sudah dimuat untuk
+proyek berikutnya, tanpa query baru. Desainnya primitif baru `vault/motion/brace`: satu
+petak per penugasan, tiba miring (`skewX`), lalu diperkaku diagonal hingga siku. Sudut
+dan panjangnya dihitung dengan `atan2` dan `hypot`. Tanpa `data-region`.
+`data-epic="practice-engagements"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

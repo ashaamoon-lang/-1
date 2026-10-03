@@ -25,6 +25,7 @@ import { SITE } from '@/lib/seo/site'
 import { generateSanityMetadata } from '@/lib/utils/metadata'
 import { EngagementWriting } from '@/vault/blocks/engagement-writing'
 import { NextProject } from '@/vault/blocks/next-project'
+import { PracticeEngagements } from '@/vault/blocks/practice-engagements'
 import { ProjectGallery } from '@/vault/blocks/project-gallery'
 import { ProjectHero } from '@/vault/blocks/project-hero'
 import { coverSpanOf } from '@/vault/blocks/project-hero/cover-span'
@@ -299,6 +300,32 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       ? project.practice
       : null
   const writing = practice ? await writingForPractice(locale, practice) : []
+
+  /*
+   * The practice's engagements, this one among them — round 9. Read from the
+   * catalogue `fetchProject` already loads for the next project, so it costs
+   * no query of its own.
+   */
+  const engagements = practice
+    ? (siblings ?? [])
+        .filter((work) => work.practice === practice)
+        .flatMap((work) => {
+          const workSlug = work.slug?.current
+          if (!workSlug || !work.title) return []
+
+          return [
+            {
+              id: work._id,
+              engagement: work.engagement,
+              title: work.title,
+              href: workSlug === slug ? null : `/work/${workSlug}`,
+              meta: [work.client, work.year]
+                .filter((part) => part !== null && part !== '')
+                .join(' · '),
+            },
+          ]
+        })
+    : []
 
   // SAFETY: the query projects the localized `body` as Portable Text.
   // TypeGen derives its own structurally identical block/span/markDefs type,
@@ -600,6 +627,20 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   {tWork('allWork')}
                 </Link>
               </nav>
+            )}
+
+            {/*
+              The practice's engagements, this one marked among them — round
+              9. Before the writing: the work it sits in first, then what the
+              practice has written. Inside `#onward` with no `data-region`,
+              for the reason the writing below gives.
+            */}
+            {practice && engagements.length > 1 && (
+              <PracticeEngagements
+                title={t('engagementsTitle', { practice: tWork(practice) })}
+                currentLabel={t('engagementsCurrent')}
+                rows={engagements}
+              />
             )}
 
             {/*

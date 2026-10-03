@@ -254,16 +254,17 @@ tanpa CI. Setiap tiga putaran diperiksa sekali lewat draft PR permanen dari
 `CI hijau (run …, tally)`, atau `diperbaiki (commit …)`. Kolom commit memuat
 subjek commit sampai checkpoint menggantinya dengan hash.
 
-| N   | rute              | fitur                                               | desain                   | `data-epic`          | commit          | status                                                        |
-| --- | ----------------- | --------------------------------------------------- | ------------------------ | -------------------- | --------------- | ------------------------------------------------------------- |
-| 1   | `/work`           | bingkai katalog (praktik × tahun)                   | `vault/motion/bearing`   | `catalogue-frame`    | `4926c63`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
-| 2   | `/studio`         | ukuran karya (penugasan, klien, rentang tahun)      | `vault/motion/dimension` | `work-measure`       | `4c0067d`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
-| 3   | `/journal/<slug>` | indeks karya praktik di bawah esai                  | `vault/motion/level`     | `entry-work`         | `0d65770`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
-| 4   | `/practice/<v>`   | tulisan dari praktik ini (entri jurnal per praktik) | `vault/motion/formwork`  | `practice-writing`   | `2540c58`       | CI hijau (run 37087828073, 586 lulus · 29 dilewati · 0 gagal) |
-| 5   | `/work/<slug>`    | tulisan praktik terhadap tahun penugasan            | `vault/motion/datum`     | `engagement-writing` | `dee912f`       | CI hijau (run 37087828073, 586 lulus · 29 dilewati · 0 gagal) |
-| 6   | `/`               | tulisan terbaru dari jurnal di beranda              | `vault/motion/fixings`   | `latest-writing`     | `7fdd0f3`       | diperbaiki (commit 72c0646)                                   |
-| 7   | `/journal`        | jurnal menurut praktik (tulisan dan karya)          | `vault/motion/tally`     | `practice-tally`     | `feat(round-7)` | belum CI                                                      |
-| 8   | `/studio`         | bentuk penugasan (jadwal per karya)                 | `vault/motion/plumb`     | `engagement-shapes`  | `feat(round-8)` | belum CI                                                      |
+| N   | rute              | fitur                                               | desain                   | `data-epic`            | commit          | status                                                        |
+| --- | ----------------- | --------------------------------------------------- | ------------------------ | ---------------------- | --------------- | ------------------------------------------------------------- |
+| 1   | `/work`           | bingkai katalog (praktik × tahun)                   | `vault/motion/bearing`   | `catalogue-frame`      | `4926c63`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
+| 2   | `/studio`         | ukuran karya (penugasan, klien, rentang tahun)      | `vault/motion/dimension` | `work-measure`         | `4c0067d`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
+| 3   | `/journal/<slug>` | indeks karya praktik di bawah esai                  | `vault/motion/level`     | `entry-work`           | `0d65770`       | CI hijau (run 37046629768, 583 lulus · 29 dilewati · 0 gagal) |
+| 4   | `/practice/<v>`   | tulisan dari praktik ini (entri jurnal per praktik) | `vault/motion/formwork`  | `practice-writing`     | `2540c58`       | CI hijau (run 37087828073, 586 lulus · 29 dilewati · 0 gagal) |
+| 5   | `/work/<slug>`    | tulisan praktik terhadap tahun penugasan            | `vault/motion/datum`     | `engagement-writing`   | `dee912f`       | CI hijau (run 37087828073, 586 lulus · 29 dilewati · 0 gagal) |
+| 6   | `/`               | tulisan terbaru dari jurnal di beranda              | `vault/motion/fixings`   | `latest-writing`       | `7fdd0f3`       | diperbaiki (commit 72c0646)                                   |
+| 7   | `/journal`        | jurnal menurut praktik (tulisan dan karya)          | `vault/motion/tally`     | `practice-tally`       | `feat(round-7)` | belum CI                                                      |
+| 8   | `/studio`         | bentuk penugasan (jadwal per karya)                 | `vault/motion/plumb`     | `engagement-shapes`    | `feat(round-8)` | belum CI                                                      |
+| 9   | `/work/<slug>`    | penugasan sepraktik, yang ini ditandai              | `vault/motion/brace`     | `practice-engagements` | `feat(round-9)` | belum CI                                                      |
 
 Checkpoint 1 (putaran 1–3): draft PR #22 dari `claude/load-bearing-ci` pada `0d65770`, run 37046629768. Job `ci` dan `e2e` hijau, 0 flaky. `interaction-grammar` mencatat ketiga momen baru di rutenya.
 
