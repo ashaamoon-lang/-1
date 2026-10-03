@@ -16,6 +16,7 @@ import {
 } from '@/lib/integrations/sanity/queries'
 import { nameplateStyle } from '@/lib/utils/display-fit'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { EngagementShapes } from '@/vault/blocks/engagement-shapes'
 import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
 import { WorkMeasure } from '@/vault/blocks/work-measure'
@@ -145,8 +146,9 @@ async function evidence(locale: string) {
  *
  * Three covers say the studio has made things; they do not say how much, for
  * how many clients, or over how long. This reads the catalogue's own query,
- * unfiltered, and keeps only the two fields the measure counts, so the cached
- * result carries numbers rather than covers. Same guards as `evidence()`: no
+ * unfiltered, and keeps the fields the measure counts and the fields round 8's
+ * schedule of engagement shapes names — never covers, so the cached result
+ * stays text. Same guards as `evidence()`: no
  * Sanity, or a failed query, costs the strip its measure and nothing else.
  */
 async function bodyOfWork(locale: string) {
@@ -159,7 +161,16 @@ async function bodyOfWork(locale: string) {
     perspective: 'published',
     stega: false,
   })
-  return (projects.data ?? []).map(({ year, client }) => ({ year, client }))
+  return (projects.data ?? []).map(
+    ({ _id, slug, title, engagement, year, client }) => ({
+      _id,
+      slug,
+      title,
+      engagement,
+      year,
+      client,
+    })
+  )
 }
 
 export default async function StudioPage() {
@@ -182,6 +193,22 @@ export default async function StudioPage() {
     bodyOfWork(locale),
   ])
   const measure = measureWorks(body)
+  const shapes = body.flatMap((work) => {
+    const slug = work.slug?.current
+    if (!work.engagement || !slug || !work.title) return []
+
+    return [
+      {
+        id: work._id,
+        engagement: work.engagement,
+        title: work.title,
+        href: `/work/${slug}`,
+        meta: [work.client, work.year]
+          .filter((part) => part !== null && part !== '')
+          .join(' · '),
+      },
+    ]
+  })
 
   /*
    * The four steps, as data rather than four copy-pasted blocks.
@@ -520,6 +547,15 @@ export default async function StudioPage() {
             body: t(`process.${step}Body`),
           }))}
         />
+
+        {/*
+          The shapes the work has taken — round 8. Directly after the four
+          steps: the process says how the studio works, this says what form
+          that has taken with each client, in the studio's own words for it.
+        */}
+        {shapes.length > 0 && (
+          <EngagementShapes title={t('shapesTitle')} rows={shapes} />
+        )}
 
         {/*
           The receipt. Unlike everything above it, this is not scaffolding —

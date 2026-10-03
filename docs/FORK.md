@@ -639,9 +639,17 @@ halamannya, sehingga indeks punya jalan lanjut. Hitungannya diambil dari data ya
 sudah ada di halaman, entri dan karya untuk sampul, tanpa fetch baru (`tally.ts`, satu
 tes). Desainnya primitif baru `vault/motion/tally`, khusus CSS: tiap hitungan berupa
 coretan turus berkelompok lima, dihitung keluar dari praktik dalam satu ketukan
-lambat. Hanya `opacity` yang berubah, dan baris memudar di tempat tanpa terangkat
-(pelajaran checkpoint 2). `data-epic="practice-tally"`. **Belum diverifikasi:** build,
-e2e, CI, mata.
+lambat. Hanya `opacity` yang berubah; baris memudar di tempat (pelajaran checkpoint
+2). `data-epic="practice-tally"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
+**`/studio` — bentuk penugasan, dan unting-unting (putaran 8).** Sesudah empat langkah
+proses kini ada jadwal bentuk penugasan: tiap karya dengan nama penugasannya ditulis
+apa adanya, misalnya "Retainer, six months". Karyanya menaut ke studi kasus, disertai
+klien dan tahun. Datanya query yang sudah dibaca putaran 2, kini menyimpan juga judul,
+slug, dan penugasan. Desainnya primitif baru `vault/motion/plumb`, satu-satunya yang
+digerakkan scroll: CSS view timeline tanpa JS, dengan `@supports` sebagai pengaman.
+Garis unting-unting turun di samping jadwal seiring jadwal naik ke layar.
+`data-epic="engagement-shapes"`. **Belum diverifikasi:** build, e2e, CI, mata.
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
