@@ -406,6 +406,11 @@ export default async function Home() {
             note: t('contactPlaceholderNote'),
           })}
           socialsHeading={t('socialsHeading')}
+          copy={{
+            label: t('copyAddress'),
+            copied: t('addressCopied'),
+            failed: t('copyFailed'),
+          }}
         />
       </div>
     </Wrapper>
