@@ -1,0 +1,31 @@
+/*
+ * ReplySlip — a perforated edge and a few lines, layout only. Nothing here
+ * moves.
+ *
+ * Every value is a token or a fraction of one: the perforation is the
+ * palette's `--line-strong`, dashed; the label and subject are its
+ * `--text-muted`; the spacing is fractions of the grid's gap.
+ */
+
+.slip {
+  display: grid;
+  justify-items: start;
+  gap: calc(var(--gap) * 0.5);
+  padding-block-start: var(--gap);
+  border-block-start: thin dashed var(--line-strong);
+}
+
+.label,
+.subject {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* A long title breaks rather than pushing the slip sideways. */
+.subject {
+  overflow-wrap: anywhere;
+}
+
+.action {
+  margin-block-start: calc(var(--gap) * 0.25);
+}

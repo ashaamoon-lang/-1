@@ -1,0 +1,88 @@
+/*
+ * Leader — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token or a fraction of one: the line and the dot are the
+ * palette's `--line-strong`, the leader is a gutter wide and one line of its
+ * own text high, the drop reaches half a gutter above it to meet the note, the
+ * dot is a quarter gutter, and the beats are the fast duration band. Only the
+ * segments' `transform` and the dot's `opacity` change.
+ */
+
+.leader {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  inline-size: var(--gap);
+  /* One line box of the text beside it, so the dot lands on its first line. */
+  block-size: 1.25em;
+}
+
+/* The drop: down from the note to the turn. */
+.drop {
+  position: absolute;
+  inset-block: calc(var(--gap) * -0.5) 50%;
+  inset-inline-start: 0;
+  border-inline-start: thin solid var(--line-strong);
+  transform-origin: center top;
+  transition: transform var(--duration-fast) var(--ease-out-quart)
+    var(--duration-fast);
+}
+
+/* The run: from the turn toward what the note is about. */
+.run {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline: 0 calc(var(--gap) * 0.25);
+  border-block-start: thin solid var(--line-strong);
+  transform-origin: left center;
+  transition: transform var(--duration-fast) var(--ease-out-quart)
+    calc(var(--duration-fast) * 2);
+}
+
+/* The dot, on the part — once the line has arrived. */
+.dot {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 0;
+  inline-size: calc(var(--gap) * 0.25);
+  block-size: calc(var(--gap) * 0.25);
+  border-radius: 50%;
+  background: var(--line-strong);
+  transform: translateY(-50%);
+  transition: opacity var(--duration-fast) var(--ease-out-quart)
+    calc(var(--duration-fast) * 3);
+}
+
+/* Before the reveal: no line, no dot. */
+[data-reveal='hidden'] .drop {
+  transform: scaleY(0);
+}
+
+[data-reveal='hidden'] .run {
+  transform: scaleX(0);
+}
+
+[data-reveal='hidden'] .dot {
+  opacity: 0;
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the leader is drawn at once.
+ */
+@media (--reduced-motion) {
+  .drop,
+  .run,
+  .dot {
+    transition: none;
+  }
+
+  [data-reveal] .drop,
+  [data-reveal] .run {
+    transform: none;
+  }
+
+  [data-reveal] .dot {
+    opacity: 1;
+  }
+}

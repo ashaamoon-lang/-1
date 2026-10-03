@@ -37,6 +37,7 @@
     "viewProject": "Lihat"
   },
   "workIndex": {
+    "keyTitle": "Keterangan",
     "title": "Karya",
     "eyebrow": "Katalog",
     "intro": "Penugasan yang sudah selesai. Saring per praktik, atau lihat semuanya.",
@@ -132,6 +133,13 @@
     "forAgents": "Untuk agen"
   },
   "practice": {
+    "titleLabel": "Mulai penugasan",
+    "titlePractice": "Praktik",
+    "titleStudio": "Studio",
+    "titleEmail": "Surel",
+    "enquiryLabel": "Bahas penugasan di {practice}",
+    "enquirySubject": "Pertanyaan: penugasan di {practice}",
+    "enquiryBody": "Halo,\n\nKami melihat praktik {practice} dan ingin membicarakan sebuah penugasan.\n\nOrganisasi:\nYang perlu diputuskan:\nTenggat:\n",
     "eyebrow": "Praktik",
     "statementEyebrow": "Cara kami mengerjakannya",
     "nextEyebrow": "Praktik berikutnya",
@@ -181,6 +189,7 @@
       "ai-data": "Rangka evaluasi · Pipeline retrieval · Pemodelan data · Pengaman produksi",
       "commission": "Sistem desain · Pengerjaan antarmuka · Gerak dan interaksi · Dokumentasi serah terima"
     },
+    "capabilitiesSeenIn": "Terlihat dalam",
     "colophonEyebrow": "Kolofon",
     "colophonNote": "Halaman ini satu-satunya bagian situs yang menjelaskan dirinya sendiri. Semua di bawah ini akurat.",
     "colophon": {
@@ -197,6 +206,10 @@
     "closingAction": "Lihat karyanya"
   },
   "journal": {
+    "replyLabel": "Balasan",
+    "replyAction": "Bicarakan ini dengan studio",
+    "replySubject": "Re: {title}",
+    "replyBody": "Halo,\n\nKami membaca \"{title}\" dan ingin membicarakannya dalam konteks kami.\n\nOrganisasi:\nYang sedang kami putuskan:\nTenggat:\n",
     "tallyTitle": "Jurnal, menurut praktik",
     "tallyWriting": "Tulisan",
     "tallyPractice": "Praktik",

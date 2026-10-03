@@ -1,0 +1,40 @@
+/*
+ * PracticeKey — layout only. The joints, and their motion, are
+ * `vault/motion/splice`'s; the rows arrive through the global reveal.
+ */
+
+/* Arrives in place: the reveal fades this block and lifts nothing. */
+.stack {
+  --reveal-transform: none;
+
+  display: grid;
+  gap: var(--gap);
+}
+
+.title {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.list {
+  display: grid;
+  gap: calc(var(--gap) * 0.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * The practice, the joint, the meaning — aligned on the first line, so a
+ * meaning that wraps keeps its joint level with its practice.
+ */
+.row {
+  display: grid;
+  grid-template-columns: max-content auto minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: calc(var(--gap) * 0.5);
+}
+
+.meaning {
+  color: var(--text-muted);
+}

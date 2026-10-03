@@ -16,6 +16,8 @@ import {
 } from '@/lib/integrations/sanity/queries'
 import { nameplateStyle } from '@/lib/utils/display-fit'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { CapabilityEvidence } from '@/vault/blocks/capability-evidence'
+import { casesByPractice } from '@/vault/blocks/capability-evidence/cases'
 import { EngagementShapes } from '@/vault/blocks/engagement-shapes'
 import { ProjectCard } from '@/vault/blocks/project-card'
 import { StepSequence } from '@/vault/blocks/step-sequence'
@@ -146,9 +148,9 @@ async function evidence(locale: string) {
  *
  * Three covers say the studio has made things; they do not say how much, for
  * how many clients, or over how long. This reads the catalogue's own query,
- * unfiltered, and keeps the fields the measure counts and the fields round 8's
- * schedule of engagement shapes names — never covers, so the cached result
- * stays text. Same guards as `evidence()`: no
+ * unfiltered, and keeps the fields the measure counts, the fields round 8's
+ * schedule of engagement shapes names, and the practice cycle 2's round 4 sets
+ * each work under — never covers, so the cached result stays text. Same guards as `evidence()`: no
  * Sanity, or a failed query, costs the strip its measure and nothing else.
  */
 async function bodyOfWork(locale: string) {
@@ -162,13 +164,14 @@ async function bodyOfWork(locale: string) {
     stega: false,
   })
   return (projects.data ?? []).map(
-    ({ _id, slug, title, engagement, year, client }) => ({
+    ({ _id, slug, title, engagement, year, client, practice }) => ({
       _id,
       slug,
       title,
       engagement,
       year,
       client,
+      practice,
     })
   )
 }
@@ -193,6 +196,11 @@ export default async function StudioPage() {
     bodyOfWork(locale),
   ])
   const measure = measureWorks(body)
+  /*
+   * The work under each practice's claim — cycle 2, round 4. From the same
+   * body of work, so the band and the schedule below cannot disagree.
+   */
+  const cases = casesByPractice(body)
   const shapes = body.flatMap((work) => {
     const slug = work.slug?.current
     if (!work.engagement || !slug || !work.title) return []
@@ -396,6 +404,15 @@ export default async function StudioPage() {
                   <dd className={cn('caption', s.capabilityItems)}>
                     {t(`capabilities.${practice}`)}
                   </dd>
+                  {/*
+                    Where the claim above is seen — cycle 2, round 4. Every
+                    listed work of the practice, linked, under what it covers;
+                    nothing when the practice has none to show.
+                  */}
+                  <CapabilityEvidence
+                    label={t('capabilitiesSeenIn')}
+                    cases={cases.get(practice)}
+                  />
                 </div>
               ))}
             </dl>

@@ -37,6 +37,7 @@
     "viewProject": "View"
   },
   "workIndex": {
+    "keyTitle": "Key",
     "title": "Work",
     "eyebrow": "Catalogue",
     "intro": "Engagements completed to date. Filter by practice, or see everything.",
@@ -132,6 +133,13 @@
     "forAgents": "For agents"
   },
   "practice": {
+    "titleLabel": "Start an engagement",
+    "titlePractice": "Practice",
+    "titleStudio": "Studio",
+    "titleEmail": "Email",
+    "enquiryLabel": "Discuss an engagement in {practice}",
+    "enquirySubject": "Enquiry: an engagement in {practice}",
+    "enquiryBody": "Hello,\n\nWe are looking at the {practice} practice and would like to discuss an engagement.\n\nOrganisation:\nWhat needs deciding:\nTimeline:\n",
     "eyebrow": "Practice",
     "statementEyebrow": "How we work in it",
     "nextEyebrow": "Next practice",
@@ -181,6 +189,7 @@
       "ai-data": "Evaluation harnesses · Retrieval pipelines · Data modelling · Production guardrails",
       "commission": "Design systems · Interface build · Motion and interaction · Handover documentation"
     },
+    "capabilitiesSeenIn": "Seen in",
     "colophonEyebrow": "Colophon",
     "colophonNote": "This page is the only part of the site that describes itself. Everything below is accurate.",
     "colophon": {
@@ -197,6 +206,10 @@
     "closingAction": "See the work"
   },
   "journal": {
+    "replyLabel": "Reply",
+    "replyAction": "Talk to the studio about this",
+    "replySubject": "Re: {title}",
+    "replyBody": "Hello,\n\nWe read \"{title}\" and would like to talk about it in our own context.\n\nOrganisation:\nWhat we are deciding:\nTimeline:\n",
     "tallyTitle": "The journal, by practice",
     "tallyWriting": "Writing",
     "tallyPractice": "Practice",

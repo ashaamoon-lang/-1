@@ -15,6 +15,7 @@ import {
   resolveJournalEntries,
 } from '@/lib/content/journal-fallback'
 import { practiceTemplate } from '@/lib/content/practices'
+import { studioContact } from '@/lib/content/studio-contact'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 import { sanityFetch } from '@/lib/integrations/sanity/live'
@@ -25,8 +26,11 @@ import { JsonLd } from '@/lib/seo/json-ld'
 import { articleSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
+import { EngagementEnquiry } from '@/vault/blocks/engagement-enquiry'
+import { enquiryHref } from '@/vault/blocks/engagement-enquiry/enquiry'
 import { NextPractice } from '@/vault/blocks/next-practice'
 import { PracticeWork } from '@/vault/blocks/practice-work'
+import { ReplySlip } from '@/vault/blocks/reply-slip'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
 import { Reveal } from '@/vault/motion/reveal'
 
@@ -143,11 +147,12 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
   const entry = entryFor(locale, slug)
   if (!entry) notFound()
 
-  const [t, tWork, tNav, works] = await Promise.all([
+  const [t, tWork, tNav, works, contact] = await Promise.all([
     getTranslations('journal'),
     getTranslations('workIndex'),
     getTranslations('nav'),
     workForPractice(locale, entry.practice),
+    studioContact(locale),
   ])
   const work = works[0] ?? null
 
@@ -367,6 +372,31 @@ export default async function JournalEntryPage({ params }: EntryPageProps) {
             ))}
           </Reveal>
         </div>
+
+        {/*
+          The reader's turn — cycle 2, round 2. Directly below the essay and
+          before the work its practice carried: the argument has just been
+          made, and this is where a reader it convinced can answer it. A reply
+          slip, as a periodical would print one. The letter it opens names the
+          entry, and the address resolves as the home page's contact block
+          does (`lib/content/studio-contact`).
+        */}
+        <ReplySlip
+          data-epic="entry-reply"
+          className={s.reply}
+          label={t('replyLabel')}
+          subject={t('replySubject', { title: entry.title })}
+          action={
+            <EngagementEnquiry
+              href={enquiryHref(
+                contact.email,
+                t('replySubject', { title: entry.title }),
+                t('replyBody', { title: entry.title })
+              )}
+              label={t('replyAction')}
+            />
+          }
+        />
 
         {/*
           The work this entry's practice carried — round 3. The essay argues;

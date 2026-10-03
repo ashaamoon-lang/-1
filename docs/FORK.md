@@ -678,6 +678,41 @@ tetap hanya membawa hero halaman ini, cacat yang dulu menahannya di _Ditunda_.
 Diuji dua arah di `e2e/next-project-morph.e2e.ts`. **Belum diverifikasi:** mata (CI
 hijau, run 37101359980).
 
+**`/practice/<v>` — mulai penugasan, dalam kop gambar (siklus 2, putaran 1).** Halaman
+praktik kini ditutup, sebelum praktik berikutnya, dengan kop gambar: praktik,
+studio, dan alamatnya dalam sel bergaris, lalu tautan "Discuss an engagement in
+{practice}" yang membuka surel berisi subjek dan brief praktik itu. Alamatnya dari
+`lib/content/studio-contact` dan href-nya dari `enquiryHref`, keduanya dari
+`claude/case-continuity`. Primitif barunya `vault/blocks/title-block`: diam, tanpa
+gerak, sehingga tautannya tidak pernah bergeser. `data-epic="practice-enquiry"`.
+**Belum diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint 1 siklus 2.
+
+**`/journal/<slug>` — balasan untuk esai (siklus 2, putaran 2).** Tepat di bawah esai,
+sebelum karya praktiknya, kini ada slip balasan: tepi berperforasi, label "Reply",
+subjek surel yang akan terkirim ("Re: {judul}"), lalu tautan "Talk to the studio about
+this" yang membuka surel berisi judul entri. Alamatnya dari `studio-contact`. Primitif
+baru `vault/blocks/reply-slip`, konvensi slip balasan majalah: diam, tidak bergerak,
+sejajar kolom esai di desktop. `data-epic="entry-reply"`. **Belum diverifikasi:**
+mata. Build, e2e, dan CI hijau di checkpoint 1 siklus 2.
+
+**`/work` — kunci bingkai katalog, dan sambungan (siklus 2, putaran 3).** Di bawah
+bingkai praktik × tahun kini ada kuncinya: tiap praktik yang tampil di bingkai
+beserta kalimat yang sudah dipakai situs untuk menjelaskannya
+(`workIndex.<praktik>Intro`). Tidak ada teks baru selain judul "Key"/"Keterangan".
+Primitif baru `vault/motion/splice`, khusus CSS: dua paruh batang dipasang dari
+ujungnya masing-masing, bertemu di sambungan, lalu pelat dipasang. Istilah dan
+artinya tidak bergerak; baris memudar di tempat. `data-epic="catalogue-key"`.
+**Belum diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint 1 siklus 2.
+
+**`/studio` — klaim praktik dengan karya buktinya (siklus 2, putaran 4).** Di pita
+kapabilitas kepala halaman, di bawah apa yang dicakup tiap praktik, kini ada "Seen
+in"/"Terlihat dalam": setiap karya terdaftar praktik itu, urut katalog, menaut ke studi
+kasusnya beserta tahunnya. Datanya kueri katalog yang sudah dibaca halaman ini
+(`casesByPractice`, satu tes); praktik tanpa karya tidak diberi baris. Primitif baru
+`vault/motion/leader`, khusus CSS: garis turun dari catatan, berbelok ke karya pertama,
+lalu titiknya mendarat. Pita kini memudar di tempat. `data-epic="capability-evidence"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

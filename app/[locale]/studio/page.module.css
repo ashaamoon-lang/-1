@@ -129,6 +129,14 @@
  * bottom of whatever height is left.
  */
 .heroCapabilities {
+  /*
+   * Arrives in place — cycle 2, round 4. The band now carries the work under
+   * each claim as links, and a lift on arrival carries a link out from under
+   * a pointer (checkpoint 2, `docs/HANDOFF.md` §4.2). It fades; nothing
+   * rises.
+   */
+  --reveal-transform: none;
+
   display: flex;
   flex-direction: column;
   gap: mobile-vw(16px);
