@@ -685,7 +685,7 @@ studio, dan alamatnya dalam sel bergaris, lalu tautan "Discuss an engagement in
 `lib/content/studio-contact` dan href-nya dari `enquiryHref`, keduanya dari
 `claude/case-continuity`. Primitif barunya `vault/blocks/title-block`: diam, tanpa
 gerak, sehingga tautannya tidak pernah bergeser. `data-epic="practice-enquiry"`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint 1 siklus 2.
 
 **`/journal/<slug>` — balasan untuk esai (siklus 2, putaran 2).** Tepat di bawah esai,
 sebelum karya praktiknya, kini ada slip balasan: tepi berperforasi, label "Reply",
@@ -693,7 +693,7 @@ subjek surel yang akan terkirim ("Re: {judul}"), lalu tautan "Talk to the studio
 this" yang membuka surel berisi judul entri. Alamatnya dari `studio-contact`. Primitif
 baru `vault/blocks/reply-slip`, konvensi slip balasan majalah: diam, tidak bergerak,
 sejajar kolom esai di desktop. `data-epic="entry-reply"`. **Belum diverifikasi:**
-build, e2e, CI, mata.
+mata. Build, e2e, dan CI hijau di checkpoint 1 siklus 2.
 
 **`/work` — kunci bingkai katalog, dan sambungan (siklus 2, putaran 3).** Di bawah
 bingkai praktik × tahun kini ada kuncinya: tiap praktik yang tampil di bingkai
@@ -702,7 +702,7 @@ beserta kalimat yang sudah dipakai situs untuk menjelaskannya
 Primitif baru `vault/motion/splice`, khusus CSS: dua paruh batang dipasang dari
 ujungnya masing-masing, bertemu di sambungan, lalu pelat dipasang. Istilah dan
 artinya tidak bergerak; baris memudar di tempat. `data-epic="catalogue-key"`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint 1 siklus 2.
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
