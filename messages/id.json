@@ -37,6 +37,7 @@
     "viewProject": "Lihat"
   },
   "workIndex": {
+    "keyTitle": "Keterangan",
     "title": "Karya",
     "eyebrow": "Katalog",
     "intro": "Penugasan yang sudah selesai. Saring per praktik, atau lihat semuanya.",

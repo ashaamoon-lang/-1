@@ -695,6 +695,15 @@ baru `vault/blocks/reply-slip`, konvensi slip balasan majalah: diam, tidak berge
 sejajar kolom esai di desktop. `data-epic="entry-reply"`. **Belum diverifikasi:**
 build, e2e, CI, mata.
 
+**`/work` — kunci bingkai katalog, dan sambungan (siklus 2, putaran 3).** Di bawah
+bingkai praktik × tahun kini ada kuncinya: tiap praktik yang tampil di bingkai
+beserta kalimat yang sudah dipakai situs untuk menjelaskannya
+(`workIndex.<praktik>Intro`). Tidak ada teks baru selain judul "Key"/"Keterangan".
+Primitif baru `vault/motion/splice`, khusus CSS: dua paruh batang dipasang dari
+ujungnya masing-masing, bertemu di sambungan, lalu pelat dipasang. Istilah dan
+artinya tidak bergerak; baris memudar di tempat. `data-epic="catalogue-key"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

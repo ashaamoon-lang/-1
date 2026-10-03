@@ -22,6 +22,7 @@ import { nameplateStyle } from '@/lib/utils/display-fit'
 import { CatalogueFrame } from '@/vault/blocks/catalogue-frame'
 import { buildFrame } from '@/vault/blocks/catalogue-frame/frame'
 import { PracticeFilter } from '@/vault/blocks/practice-filter'
+import { PracticeKey } from '@/vault/blocks/practice-key'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
 import { GridPattern } from '@/vault/magic/grid-pattern'
 import { Counter } from '@/vault/motion/counter'
@@ -381,18 +382,39 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
               material
             />
             {frame && frame.rows.length > 0 && (
-              <CatalogueFrame
-                frame={frame}
-                title={t('frameTitle')}
-                intro={t('frameIntro')}
-                practiceLabel={t('framePractice')}
-                undatedLabel={t('frameUndated')}
-                unplacedLabel={t('frameUnplaced')}
-                practiceLink={(value) => ({
-                  label: t(value),
-                  href: practiceTemplate(value),
-                })}
-              />
+              <>
+                <CatalogueFrame
+                  frame={frame}
+                  title={t('frameTitle')}
+                  intro={t('frameIntro')}
+                  practiceLabel={t('framePractice')}
+                  undatedLabel={t('frameUndated')}
+                  unplacedLabel={t('frameUnplaced')}
+                  practiceLink={(value) => ({
+                    label: t(value),
+                    href: practiceTemplate(value),
+                  })}
+                />
+                {/*
+                  The frame's key — cycle 2, round 3. What each of its rows
+                  means, in the sentence the site already uses for each
+                  practice; the row for unnamed work has no meaning to give.
+                */}
+                <PracticeKey
+                  title={t('keyTitle')}
+                  rows={frame.rows.flatMap((row) =>
+                    row.practice === null
+                      ? []
+                      : [
+                          {
+                            practice: row.practice,
+                            label: t(row.practice),
+                            meaning: t(`${row.practice}Intro`),
+                          },
+                        ]
+                  )}
+                />
+              </>
             )}
           </>
         ) : (

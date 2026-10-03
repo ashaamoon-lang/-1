@@ -37,6 +37,7 @@
     "viewProject": "View"
   },
   "workIndex": {
+    "keyTitle": "Key",
     "title": "Work",
     "eyebrow": "Catalogue",
     "intro": "Engagements completed to date. Filter by practice, or see everything.",
