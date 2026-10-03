@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react'
 
 import { Link } from '@/components/ui/link'
 import { SectionHeader } from '@/components/ui/section-header'
+import { CopyAddress } from '@/vault/blocks/copy-address'
 import { Reveal } from '@/vault/motion/reveal'
 import { Magnetic } from '@/vault/primitives/magnetic'
 
@@ -19,6 +20,14 @@ import s from './contact-block.module.css'
  * in, a server route to maintain, a spam surface, and a message the sender
  * has no copy of — in exchange for nothing the reader wanted. The address is
  * the action, rendered large enough to be the action.
+ *
+ * ## And a copy of it
+ *
+ * A `mailto:` link does nothing for a reader whose mail lives in a browser
+ * tab, and says nothing about having done nothing. Given `copy`, the block
+ * sets `vault/blocks/copy-address` under the address: the same action, copied,
+ * so it holds for that reader too. It is the one client island here, and it
+ * renders nothing where it could not work.
  *
  * ## Server Component
  *
@@ -45,7 +54,22 @@ interface ContactBlockProps {
    * defect rather than a rough edge.
    */
   note?: ReactNode | undefined
+  /**
+   * The words for copying the address as well as opening it. A page that
+   * passes none gets the address alone, as before.
+   */
+  copy?: CopyLabels | undefined
   className?: string | undefined
+}
+
+/** Already localized — what the copy control and its status say. */
+export interface CopyLabels {
+  /** "Copy address". */
+  label: string
+  /** What the status says once the address is copied. */
+  copied: string
+  /** What the status says when the browser refuses. */
+  failed: string
 }
 
 export function ContactBlock({
@@ -57,6 +81,7 @@ export function ContactBlock({
   socials,
   socialsHeading,
   note,
+  copy,
   className,
 }: ContactBlockProps) {
   /*
@@ -111,6 +136,7 @@ export function ContactBlock({
               {email}
             </Link>
           </Magnetic>
+          {copy && <CopyAddress address={email} {...copy} />}
 
           {note && (
             <p data-placeholder-note className={cn('caption', s.note)}>

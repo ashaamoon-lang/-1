@@ -1,0 +1,68 @@
+/*
+ * CopyAddress — layout and the chip's own states. COMMIT, the `:active`
+ * compression, is the grammar's and lives once in `global.css`.
+ */
+
+/*
+ * The button and what it reports, side by side.
+ *
+ * Positioned on purpose. `Magnetic` (`vault/primitives/magnetic`) pulls the
+ * address above toward any pointer within its radius — a pointer resting on
+ * this button included — and a transformed element paints above static content
+ * that follows it in the page. Positioned, this row paints after the address in
+ * tree order and keeps the pointer that is over it: otherwise a press could land
+ * on the address that had just leaned into its place, the trap checkpoint 2
+ * caught (`docs/HANDOFF.md` §4.2).
+ */
+.copy {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--gap) * 0.75);
+}
+
+/*
+ * A chip identified by its text, like the filter chips, so its border is not
+ * the only thing that says it is a control (`contrast.test.ts`). At least 24px
+ * high for axe's `target-size` (WCAG 2.2, `e2e/axe-tags.ts`), and on one line
+ * (`e2e/controls.e2e.ts`).
+ */
+.button {
+  min-block-size: calc(var(--gap) * 1.5);
+  padding-inline: calc(var(--gap) * 0.75);
+  border: thin solid var(--line);
+  background: none;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform var(--duration-micro) var(--ease-out-quart);
+}
+
+/*
+ * INTENT — the border firms and the label underlines, on hover and on keyboard
+ * focus alike, so a cursor and a keyboard are told the same thing. The focus
+ * ring is the global one.
+ */
+@media (--hover) {
+  .button:hover {
+    border-color: var(--line-strong);
+    text-decoration-line: underline;
+  }
+}
+
+.button:focus-visible {
+  border-color: var(--line-strong);
+  text-decoration-line: underline;
+}
+
+.status {
+  color: var(--text-muted);
+}
+
+/* Reduced motion: the press still compresses, at once (§9.4 rule 3). */
+@media (--reduced-motion) {
+  .button {
+    transition: none;
+  }
+}

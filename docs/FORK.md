@@ -713,6 +713,14 @@ kasusnya beserta tahunnya. Datanya kueri katalog yang sudah dibaca halaman ini
 lalu titiknya mendarat. Pita kini memudar di tempat. `data-epic="capability-evidence"`.
 **Belum diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint penutup siklus 2.
 
+**`/` — alamat studio bisa disalin (sekali jalan).** Tautan `mailto:` di blok kontak tidak
+membuka apa pun bagi pembaca webmail, dan tidak memberi tanda gagal. Kini di bawahnya ada
+"Copy address"/"Salin alamat" (`vault/blocks/copy-address`): alamat yang sama, disalin,
+dengan hasilnya di `role="status"`. Tanpa JS atau tanpa clipboard asinkron, tombol tidak
+dirender; alamatnya tetap. Barisnya diposisikan agar alamat yang ditarik `Magnetic` tidak
+menutupnya, dan blok kontak kini memudar di tempat. Diuji di `e2e/address-copy.e2e.ts`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

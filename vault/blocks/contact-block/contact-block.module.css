@@ -18,6 +18,13 @@
  * (`100cqi`) rather than the viewport, which also counts the page gutters.
  */
 .actions {
+  /*
+   * Arrives in place. This block carries the address and the control that
+   * copies it, and a lift on arrival carries a control out from under a
+   * pointer (checkpoint 2, `docs/HANDOFF.md` §4.2). It fades; nothing rises.
+   */
+  --reveal-transform: none;
+
   container-type: inline-size;
   display: flex;
   flex-direction: column;
