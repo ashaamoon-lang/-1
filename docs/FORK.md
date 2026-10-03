@@ -777,6 +777,14 @@ membaca terus. Bagian dibaca dari alamat saat hidrasi dan `hashchange`. Hanya `t
 `opacity`; reduced motion: langsung ada. `data-epic="section-entry"`.
 **Belum diverifikasi:** build, e2e, CI, mata.
 
+**Header — ganti bahasa tanpa kehilangan tempat (Orientasi, tahap 4).** Pembaca di tengah
+studi kasus yang beralih ke Bahasa Indonesia, sering untuk diteruskan ke rekan, dulu
+mendarat kembali di atas. Kini pengalih bahasa membawa bagian yang sedang dibaca: bagian
+terakhir yang atasnya sudah melewati garis baca 35% layar (`section.ts`, satu tes), dibuka
+di bahasa lain pada id yang sama. `href` yang dirender tidak berubah, jadi tanpa JS, tab
+baru, atau di puncak halaman, ia tetap tautan biasa. Diuji di `e2e/locale-place.e2e.ts`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

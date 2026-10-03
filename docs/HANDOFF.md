@@ -312,11 +312,12 @@ animasi, dibangun bertahap di `claude/orientation` (dari `claude/address-copy`,
 `959a52d`) tanpa CI per tahap; diperiksa sekali lewat draft PR setelah tahap 4,
 yang tidak untuk di-merge.
 
-| N   | rute           | fitur                                                        | animasi                                    | `data-epic`                     | commit                               | status   |
-| --- | -------------- | ------------------------------------------------------------ | ------------------------------------------ | ------------------------------- | ------------------------------------ | -------- |
-| 1   | 404            | mungkin yang Anda cari (`vault/blocks/wayfinder`)            | penunjuk arah (`vault/motion/north-arrow`) | `wayfinding`                    | `feat(wayfinding)`, `feat(motion)`   | belum CI |
-| 2   | `/work`        | bingkai yang bisa dijelajah (`vault/blocks/catalogue-frame`) | garis bidik (`vault/motion/crosshair`)     | `frame-crosshair`               | `feat(frame)`, `feat(motion)`        | belum CI |
-| 3   | `/work/<slug>` | tautan ke bagian (`vault/blocks/copy-address/copy-link.tsx`) | tanda masuk (`vault/motion/entry-arrow`)   | `section-link`, `section-entry` | `feat(section-link)`, `feat(motion)` | belum CI |
+| N   | rute           | fitur                                                                    | animasi                                       | `data-epic`                     | commit                               | status   |
+| --- | -------------- | ------------------------------------------------------------------------ | --------------------------------------------- | ------------------------------- | ------------------------------------ | -------- |
+| 1   | 404            | mungkin yang Anda cari (`vault/blocks/wayfinder`)                        | penunjuk arah (`vault/motion/north-arrow`)    | `wayfinding`                    | `feat(wayfinding)`, `feat(motion)`   | belum CI |
+| 2   | `/work`        | bingkai yang bisa dijelajah (`vault/blocks/catalogue-frame`)             | garis bidik (`vault/motion/crosshair`)        | `frame-crosshair`               | `feat(frame)`, `feat(motion)`        | belum CI |
+| 3   | `/work/<slug>` | tautan ke bagian (`vault/blocks/copy-address/copy-link.tsx`)             | tanda masuk (`vault/motion/entry-arrow`)      | `section-link`, `section-entry` | `feat(section-link)`, `feat(motion)` | belum CI |
+| 4   | header         | ganti bahasa tanpa kehilangan tempat (`components/ui/language-switcher`) | geser lembar (`vault/motion/page-transition`) | `locale-sheet`                  | `feat(locale)`                       | belum CI |
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
