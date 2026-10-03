@@ -11,6 +11,16 @@ import { FEATURED_WORK } from './fixtures'
  * address on the clipboard must be this page, ending in a section's id.
  */
 test.describe('a section of a case can be pointed at', () => {
+  test('arriving by a section link marks that section in the spine', async ({
+    page,
+  }) => {
+    await page.goto(`/en/work/${FEATURED_WORK}#onward`)
+
+    const arrived = page.locator('[data-project-spine] li[data-arrived]')
+    await expect(arrived).toHaveCount(1)
+    await expect(arrived.locator('a')).toHaveAttribute('href', '#onward')
+  })
+
   test('copying puts this page and the section being read on the clipboard', async ({
     context,
     page,

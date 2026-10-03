@@ -769,6 +769,14 @@ stempel. `useClipboard` diekstrak dari `CopyAddress` dan dipakai keduanya. Di lu
 spine, jadi baris tetap sama dengan region; hanya desktop. `data-epic="section-link"`.
 **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/work/<slug>` — tanda masuk (Orientasi, tahap 3).** Denah menandai pintu masuk dengan panah.
+Pembaca yang tiba lewat tautan berbagian, yang disalin dan dikirim rekannya, kini mendapati
+baris bagian itu di spine diberi panah masuk (`vault/motion/entry-arrow`, khusus CSS): meluncur
+dari luar baris ke tepinya lalu tinggal, jadi "Anda masuk di sini" tetap terlihat saat ia
+membaca terus. Bagian dibaca dari alamat saat hidrasi dan `hashchange`. Hanya `transform` dan
+`opacity`; reduced motion: langsung ada. `data-epic="section-entry"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

@@ -1,9 +1,15 @@
 'use client'
 
 import cn from 'clsx'
-import { type CSSProperties, type ReactNode, useRef } from 'react'
+import {
+  type CSSProperties,
+  type ReactNode,
+  useRef,
+  useSyncExternalStore,
+} from 'react'
 
 import { CopyLink } from '@/vault/blocks/copy-address/copy-link'
+import { EntryArrow } from '@/vault/motion/entry-arrow'
 import { useActiveInSequence } from '@/vault/motion/use-active-in-sequence'
 
 import s from './project-spine.module.css'
@@ -60,6 +66,14 @@ import s from './project-spine.module.css'
  * with the section the reader is in — Orientasi, stage 3 — so a reader can send
  * a colleague the outcome rather than the whole case. It sits after the list,
  * never in a row, so the rows still match the regions one for one.
+ *
+ * ## Where the reader came in
+ *
+ * A link with a section in it — the one a colleague copied — brings the reader
+ * straight to that section, and the spine marks its row with an entrance
+ * arrow (`vault/motion/entry-arrow`, the `section-entry` moment) that stays as
+ * they read on. The section is read from the address on hydration and on
+ * `hashchange`; the server, which never sees a fragment, marks nothing.
  */
 
 export interface SpineRegion {
@@ -92,6 +106,25 @@ export interface SectionCopyLabels {
   failed: string
 }
 
+function subscribeToHash(onChange: () => void) {
+  window.addEventListener('hashchange', onChange)
+  return () => window.removeEventListener('hashchange', onChange)
+}
+
+/** The section the address points at, decoded; '' when it points at none. */
+function readHash(): string {
+  const fragment = window.location.hash.slice(1)
+  try {
+    return decodeURIComponent(fragment)
+  } catch {
+    return fragment
+  }
+}
+
+function noHashOnServer(): string {
+  return ''
+}
+
 export function ProjectSpine({
   label,
   regions,
@@ -101,6 +134,11 @@ export function ProjectSpine({
 }: ProjectSpineProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const active = useActiveInSequence(rootRef, '[data-region]', regions.length)
+  const arrived = useSyncExternalStore(
+    subscribeToHash,
+    readHash,
+    noHashOnServer
+  )
 
   return (
     <div ref={rootRef} className={cn(s.layout, className)}>
@@ -113,7 +151,7 @@ export function ProjectSpine({
       {regions.length > 1 && (
         <nav aria-label={label} className={s.spine} data-project-spine="">
           <p className={cn('caption', s.spineLabel)}>{label}</p>
-          <ol className={s.list}>
+          <ol className={s.list} data-epic="section-entry">
             {regions.map((region, index) => (
               <li
                 key={region.id}
@@ -121,7 +159,9 @@ export function ProjectSpine({
                 // The state the CSS styles from, so what is announced and
                 // what is drawn cannot drift apart.
                 {...(index === active && { 'data-active': '' })}
+                {...(region.id === arrived && { 'data-arrived': '' })}
               >
+                <EntryArrow />
                 {/* oxlint-disable-next-line react/forbid-elements -- deliberate
                     native anchor, the same reasoning the header's section nav
                     carries: a same-page hash must use the browser's own
