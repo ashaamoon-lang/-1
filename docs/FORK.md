@@ -737,6 +737,14 @@ Halaman umum tidak ditawarkan; tawaran Work/Studio/Journal sudah ada. Tanpa JS, 
 kecocokan, atau fetch gagal: tidak ada yang dirender. Diuji di `e2e/wayfinding.e2e.ts`.
 **Belum diverifikasi:** build, e2e, CI, mata.
 
+**404 — penunjuk arah (Orientasi, tahap 1).** Setiap set gambar membawa penunjuk utara,
+agar pembaca yang tersesat di lembar bisa mengorientasikan diri. Di 404 jarumnya melakukan
+itu secara harfiah (`vault/motion/north-arrow`): diam menunjuk tebakan terbaik, lalu
+berputar ke saran yang dihover atau difokus. Satu sudut dihitung per hover/fokus
+(`bearing.ts`, `atan2`, satu tes), jarum berputar lewat jalan terpendek, berhenti dengan
+`--ease-out-expo` tanpa overshoot; hanya `transform`. Reduced motion: langsung menunjuk.
+`data-epic="wayfinding"`. **Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

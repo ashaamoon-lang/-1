@@ -312,9 +312,9 @@ animasi, dibangun bertahap di `claude/orientation` (dari `claude/address-copy`,
 `959a52d`) tanpa CI per tahap; diperiksa sekali lewat draft PR setelah tahap 4,
 yang tidak untuk di-merge.
 
-| N   | rute | fitur                                             | animasi                                    | `data-epic`  | commit             | status   |
-| --- | ---- | ------------------------------------------------- | ------------------------------------------ | ------------ | ------------------ | -------- |
-| 1   | 404  | mungkin yang Anda cari (`vault/blocks/wayfinder`) | penunjuk arah (`vault/motion/north-arrow`) | `wayfinding` | `feat(wayfinding)` | belum CI |
+| N   | rute | fitur                                             | animasi                                    | `data-epic`  | commit                             | status   |
+| --- | ---- | ------------------------------------------------- | ------------------------------------------ | ------------ | ---------------------------------- | -------- |
+| 1   | 404  | mungkin yang Anda cari (`vault/blocks/wayfinder`) | penunjuk arah (`vault/motion/north-arrow`) | `wayfinding` | `feat(wayfinding)`, `feat(motion)` | belum CI |
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 

@@ -1,0 +1,38 @@
+/*
+ * NorthArrow — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token or a fraction of one: the ring is the palette's
+ * `--line` and two and a half gutters across, the needle is `--text-muted`,
+ * and the turn is the standard duration band. Only the needle's `transform`
+ * changes.
+ */
+
+.arrow {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: calc(var(--gap) * 2.5);
+  block-size: calc(var(--gap) * 2.5);
+  border: thin solid var(--line);
+  border-radius: 50%;
+}
+
+/* The needle: an arrowhead with a notched tail, pointing up at a bearing of 0. */
+.needle {
+  inline-size: calc(var(--gap) * 0.625);
+  block-size: calc(var(--gap) * 1.75);
+  background: var(--text-muted);
+  clip-path: polygon(50% 0%, 100% 100%, 50% 75%, 0% 100%);
+  transform: rotate(var(--bearing, 0rad));
+  transition: transform var(--duration) var(--ease-out-expo);
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the needle bears on the same place, at once.
+ */
+@media (--reduced-motion) {
+  .needle {
+    transition: none;
+  }
+}
