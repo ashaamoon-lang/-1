@@ -272,6 +272,18 @@ Checkpoint 2 (putaran 4–6): pada `7fdd0f3` merah di run 37086293717. Satu tes 
 
 Checkpoint 3 (putaran 7–9): pada `cea5476` merah di run 37097776306. `e2e/route-sweep.e2e.ts:176` gagal di `/en/studio` dan `/id/studio` (desktop dan mobile): axe tidak bisa memutuskan `link-in-text-block`, karena tautan karya di jadwal putaran 8 sebaris dengan meta-nya di atas latar grain. `material-shape` dilaporkan flaky oleh CI, di luar batch, dan tidak diperbaiki. Diperbaiki di `70f0d8f` (nama dan meta menjadi item flex); pola yang sama di putaran 9 ikut dirapikan di `1012b58`, karena rute itu tidak disapu `route-sweep`. Harapan tes tidak diubah. Hijau di run 37099276094: `ci` dan `e2e`, 589 lulus, 29 dilewati, 0 gagal, 0 flaky; ketiga momen baru tercatat.
 
+### 4.3 Putaran pengembangan — siklus 2
+
+Siklus kedua dengan arah yang sama, dibangun di `claude/value-2` (dari
+`claude/case-continuity`, `d27ef1c`) tanpa CI per putaran. Setiap tiga putaran
+diperiksa sekali lewat draft PR permanen dari `claude/value-2-ci` (base
+`claude/case-continuity`), yang tidak untuk di-merge. Status dan kolom commit
+mengikuti §4.2.
+
+| N   | rute            | fitur                        | desain                     | `data-epic`        | commit             | status   |
+| --- | --------------- | ---------------------------- | -------------------------- | ------------------ | ------------------ | -------- |
+| 1   | `/practice/<v>` | ajakan penugasan per praktik | `vault/blocks/title-block` | `practice-enquiry` | `feat(v2-round-1)` | belum CI |
+
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
 | butir                                        | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |

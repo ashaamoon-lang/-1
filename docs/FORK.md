@@ -678,6 +678,15 @@ tetap hanya membawa hero halaman ini, cacat yang dulu menahannya di _Ditunda_.
 Diuji dua arah di `e2e/next-project-morph.e2e.ts`. **Belum diverifikasi:** mata (CI
 hijau, run 37101359980).
 
+**`/practice/<v>` — mulai penugasan, dalam kop gambar (siklus 2, putaran 1).** Halaman
+praktik kini ditutup, sebelum praktik berikutnya, dengan kop gambar: praktik,
+studio, dan alamatnya dalam sel bergaris, lalu tautan "Discuss an engagement in
+{practice}" yang membuka surel berisi subjek dan brief praktik itu. Alamatnya dari
+`lib/content/studio-contact` dan href-nya dari `enquiryHref`, keduanya dari
+`claude/case-continuity`. Primitif barunya `vault/blocks/title-block`: diam, tanpa
+gerak, sehingga tautannya tidak pernah bergeser. `data-epic="practice-enquiry"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

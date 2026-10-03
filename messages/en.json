@@ -132,6 +132,13 @@
     "forAgents": "For agents"
   },
   "practice": {
+    "titleLabel": "Start an engagement",
+    "titlePractice": "Practice",
+    "titleStudio": "Studio",
+    "titleEmail": "Email",
+    "enquiryLabel": "Discuss an engagement in {practice}",
+    "enquirySubject": "Enquiry: an engagement in {practice}",
+    "enquiryBody": "Hello,\n\nWe are looking at the {practice} practice and would like to discuss an engagement.\n\nOrganisation:\nWhat needs deciding:\nTimeline:\n",
     "eyebrow": "Practice",
     "statementEyebrow": "How we work in it",
     "nextEyebrow": "Next practice",

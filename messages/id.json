@@ -132,6 +132,13 @@
     "forAgents": "Untuk agen"
   },
   "practice": {
+    "titleLabel": "Mulai penugasan",
+    "titlePractice": "Praktik",
+    "titleStudio": "Studio",
+    "titleEmail": "Surel",
+    "enquiryLabel": "Bahas penugasan di {practice}",
+    "enquirySubject": "Pertanyaan: penugasan di {practice}",
+    "enquiryBody": "Halo,\n\nKami melihat praktik {practice} dan ingin membicarakan sebuah penugasan.\n\nOrganisasi:\nYang perlu diputuskan:\nTenggat:\n",
     "eyebrow": "Praktik",
     "statementEyebrow": "Cara kami mengerjakannya",
     "nextEyebrow": "Praktik berikutnya",

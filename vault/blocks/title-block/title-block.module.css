@@ -1,0 +1,49 @@
+/*
+ * TitleBlock — ruled cells, layout only. Nothing here moves.
+ *
+ * Every value is a token or a fraction of one: the rules are the palette's
+ * `--line`, the labels its `--text-muted`, the cell padding fractions of the
+ * grid's gap.
+ */
+
+/*
+ * The full width of whatever column it is placed in, not a reading measure:
+ * its action is a single-line label (`e2e/controls.e2e.ts` fails any that
+ * wraps at 1440px), and a narrow box would fold it.
+ */
+.block {
+  display: grid;
+  border: thin solid var(--line);
+}
+
+.rows {
+  display: grid;
+  margin: 0;
+}
+
+/* One term and its value per row, the term in a narrower ruled column. */
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  border-block-end: thin solid var(--line);
+}
+
+.label,
+.value {
+  margin: 0;
+  padding: calc(var(--gap) * 0.5) calc(var(--gap) * 0.75);
+}
+
+.label {
+  color: var(--text-muted);
+  border-inline-end: thin solid var(--line);
+}
+
+/* An address or a long name breaks rather than pushing the block sideways. */
+.value {
+  overflow-wrap: anywhere;
+}
+
+.action {
+  padding: calc(var(--gap) * 0.75);
+}

@@ -16,6 +16,7 @@ import {
   isPractice,
   practiceTemplate,
 } from '@/lib/content/practices'
+import { studioContact } from '@/lib/content/studio-contact'
 import { localizedPath } from '@/lib/i18n/paths'
 import { isLocale, type Locale, routing } from '@/lib/i18n/routing'
 import { isConfigured } from '@/lib/integrations/registry'
@@ -24,10 +25,13 @@ import { workIndexQuery } from '@/lib/integrations/sanity/queries'
 import { SITE } from '@/lib/seo/site'
 import { generatePageMetadata } from '@/lib/utils/metadata'
 import { CapabilitySet } from '@/vault/blocks/capability-set'
+import { EngagementEnquiry } from '@/vault/blocks/engagement-enquiry'
+import { enquiryHref } from '@/vault/blocks/engagement-enquiry/enquiry'
 import { NextPractice } from '@/vault/blocks/next-practice'
 import { PracticeHero } from '@/vault/blocks/practice-hero'
 import { PracticeWriting } from '@/vault/blocks/practice-writing'
 import { ProjectGrid } from '@/vault/blocks/project-grid'
+import { TitleBlock } from '@/vault/blocks/title-block'
 import { DotPattern } from '@/vault/magic/dot-pattern'
 import { ReadingProgress } from '@/vault/motion/reading-progress'
 import { Reveal } from '@/vault/motion/reveal'
@@ -144,25 +148,27 @@ export default async function PracticePage({ params }: PracticePageProps) {
   const requested = await localeRootParam()
   const locale: Locale = isLocale(requested) ? requested : routing.defaultLocale
 
-  const [projects, writing, t, tWork, tNav, tStudio] = await Promise.all([
-    fetchPractice(locale, value),
-    writingForPractice(locale, value),
-    getTranslations('practice'),
-    // The practice's name and its one-sentence description are already
-    // written here, in both languages, and already used as the masthead of
-    // each filtered catalogue. Reading them rather than adding a second set
-    // keeps this page saying what the rest of the site says.
-    getTranslations('workIndex'),
-    getTranslations('nav'),
-    /*
-     * The capability lines live under `studio` because `/studio` was the
-     * first page to publish them (Tahap 24) — not because they describe the
-     * studio page. Reaching across the namespace is the smaller wrong than
-     * copying twelve translated strings into a second key, which would make
-     * "what this practice covers" a thing the dictionary answers twice.
-     */
-    getTranslations('studio'),
-  ])
+  const [projects, writing, t, tWork, tNav, tStudio, contact] =
+    await Promise.all([
+      fetchPractice(locale, value),
+      writingForPractice(locale, value),
+      getTranslations('practice'),
+      // The practice's name and its one-sentence description are already
+      // written here, in both languages, and already used as the masthead of
+      // each filtered catalogue. Reading them rather than adding a second set
+      // keeps this page saying what the rest of the site says.
+      getTranslations('workIndex'),
+      getTranslations('nav'),
+      /*
+       * The capability lines live under `studio` because `/studio` was the
+       * first page to publish them (Tahap 24) — not because they describe the
+       * studio page. Reaching across the namespace is the smaller wrong than
+       * copying twelve translated strings into a second key, which would make
+       * "what this practice covers" a thing the dictionary answers twice.
+       */
+      getTranslations('studio'),
+      studioContact(locale),
+    ])
 
   const next = nextPractice(value)
 
@@ -438,6 +444,36 @@ export default async function PracticePage({ params }: PracticePageProps) {
             className={s.section}
           />
         )}
+
+        {/*
+          The way to start an engagement in this practice — cycle 2, round 1.
+          After the work and the writing, before the next practice: the page
+          has made its case, and this is the one thing it asks. A title block
+          rather than a banner — the practice, the studio and its address
+          ruled into cells, the letter beneath — and still, so the link stays
+          where the reader finds it. The address resolves as the home page's
+          contact block does (`lib/content/studio-contact`).
+        */}
+        <TitleBlock
+          data-epic="practice-enquiry"
+          className={s.section}
+          label={t('titleLabel')}
+          rows={[
+            { label: t('titlePractice'), value: tWork(value) },
+            { label: t('titleStudio'), value: contact.name },
+            { label: t('titleEmail'), value: contact.email },
+          ]}
+          action={
+            <EngagementEnquiry
+              href={enquiryHref(
+                contact.email,
+                t('enquirySubject', { practice: tWork(value) }),
+                t('enquiryBody', { practice: tWork(value) })
+              )}
+              label={t('enquiryLabel', { practice: tWork(value) })}
+            />
+          }
+        />
 
         <NextPractice
           href={localizedPath(locale, practiceTemplate(next))}
