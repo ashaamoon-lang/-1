@@ -801,6 +801,14 @@ disembunyikan; butir yang belum ter-reveal dicetak terlihat, karena printer tida
 Diuji di `e2e/print-essay.e2e.ts` dan dilihat di tangkapan layar 390/1440.
 **Belum diverifikasi:** e2e, CI, mata.
 
+**Semua rute — tipografi seimbang (Tata & Gerak, tahap 1).** Judul yang terbungkus kini
+seimbang (`text-wrap: balance` pada h1–h4, kecuali nameplate yang memang diukur memenuhi
+barisnya): "Evaluation before / pipeline" di ponsel menjadi "Evaluation / before pipeline".
+Jumlah baris tidak berubah, jadi tak ada yang bergeser. Paragraf dan ringkasan esai memakai
+`pretty`, sehingga tidak berakhir dengan satu kata. Keduanya di dalam `@supports`; peramban
+lama membungkus seperti biasa. Dilihat di tangkapan layar sebelum/sesudah 390 px.
+**Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

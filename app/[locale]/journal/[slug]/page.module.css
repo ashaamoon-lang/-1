@@ -307,3 +307,17 @@
     padding-block-start: 0;
   }
 }
+
+/*
+ * An essay that does not end a paragraph on one word — Tata & Gerak, stage 1.
+ * `pretty` lets the browser rebreak a paragraph's last lines rather than leave
+ * a word alone on the final one; a browser that does not know it wraps as it
+ * always did. Only the essay and its summary: this is the page read line by
+ * line, and the one where a stranded word is noticed.
+ */
+@supports (text-wrap: pretty) {
+  .paragraph,
+  .summary {
+    text-wrap: pretty;
+  }
+}

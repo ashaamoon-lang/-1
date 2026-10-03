@@ -329,9 +329,9 @@ dibangun bertahap di `claude/layout-motion` (dari `claude/orientation`,
 yang tidak untuk di-merge. Tiap tahap dicek juga lewat tangkapan layar
 pratinjau lokal.
 
-| N   | rute                     | fitur                            | desain                           | `data-epic` | commit        | status   |
-| --- | ------------------------ | -------------------------------- | -------------------------------- | ----------- | ------------- | -------- |
-| 1   | `/journal/<slug>`, semua | cetak esai rapi (`@media print`) | tipografi seimbang (`text-wrap`) | —           | `feat(print)` | belum CI |
+| N   | rute                     | fitur                            | desain                           | `data-epic` | commit                        | status   |
+| --- | ------------------------ | -------------------------------- | -------------------------------- | ----------- | ----------------------------- | -------- |
+| 1   | `/journal/<slug>`, semua | cetak esai rapi (`@media print`) | tipografi seimbang (`text-wrap`) | —           | `feat(print)`, `feat(layout)` | belum CI |
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 

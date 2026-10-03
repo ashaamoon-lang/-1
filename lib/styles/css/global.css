@@ -668,3 +668,22 @@ html.screenshot {
     transform: none !important;
   }
 }
+
+/*
+ * Balanced headings — Tata & Gerak, stage 1.
+ *
+ * A heading that wraps reads as one thought when its lines are close in
+ * length, and as a heading with a leftover when its last line holds a single
+ * word — "Evaluation before / pipeline" on a phone. `balance` evens the lines
+ * without changing how many there are, so nothing above or below a heading
+ * moves, and a browser that does not know it wraps as it always did.
+ *
+ * Nameplates are left out: they are sized to fill their line
+ * (`lib/utils/display-fit`), and balancing would only open gaps in a line
+ * built to be full.
+ */
+@supports (text-wrap: balance) {
+  :is(h1, h2, h3, h4):not(.nameplate-title) {
+    text-wrap: balance;
+  }
+}
