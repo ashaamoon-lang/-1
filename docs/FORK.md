@@ -735,7 +735,7 @@ indeks pencarian yang sudah dipakai ⌘K (`/{locale}/search.json`) dan menawarka
 tiga tujuan yang mirip ejaan slugnya atau sama kata judulnya (`suggest.ts`, satu tes).
 Halaman umum tidak ditawarkan; tawaran Work/Studio/Journal sudah ada. Tanpa JS, tanpa
 kecocokan, atau fetch gagal: tidak ada yang dirender. Diuji di `e2e/wayfinding.e2e.ts`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
 **404 — penunjuk arah (Orientasi, tahap 1).** Setiap set gambar membawa penunjuk utara,
 agar pembaca yang tersesat di lembar bisa mengorientasikan diri. Di 404 jarumnya melakukan
@@ -743,7 +743,7 @@ itu secara harfiah (`vault/motion/north-arrow`): diam menunjuk tebakan terbaik, 
 berputar ke saran yang dihover atau difokus. Satu sudut dihitung per hover/fokus
 (`bearing.ts`, `atan2`, satu tes), jarum berputar lewat jalan terpendek, berhenti dengan
 `--ease-out-expo` tanpa overshoot; hanya `transform`. Reduced motion: langsung menunjuk.
-`data-epic="wayfinding"`. **Belum diverifikasi:** build, e2e, CI, mata.
+`data-epic="wayfinding"`. **Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
 **`/work` — bingkai yang bisa dijelajah (Orientasi, tahap 2).** Bingkai praktik × tahun
 kini dibaca seperti grid gambar. Tombol panah berpindah antarkarya: kiri-kanan menyusuri
@@ -751,7 +751,7 @@ baris praktik, atas-bawah menuruni tahun, bay kosong dilewati (`navigate.ts`, sa
 Tab tetap mengunjungi semuanya. Karya yang di-hover atau difokus menandai tahunnya di tepi
 atas bingkai. Pendengarnya didelegasikan pada tabel yang tetap dirender server
 (`reader.tsx`); petunjuk tombol terhubung lewat `aria-describedby`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
 **`/work` — garis bidik (Orientasi, tahap 2).** Grid gambar dibaca dari tepinya: sebuah titik
 adalah "baris C, kolom 4" karena ada garis dari tiap sumbu ke sana. Primitif baru
@@ -759,7 +759,7 @@ adalah "baris C, kolom 4" karena ada garis dari tiap sumbu ke sana. Primitif bar
 menyusuri baris praktiknya dari tepi kiri bingkai, satu menuruni kolom tahunnya dari tepi atas,
 dan keduanya meluncur ke karya berikutnya alih-alih melompat. Hanya `transform` dan
 `opacity`, `--duration-fast`. Reduced motion: garis langsung di tempat.
-`data-epic="frame-crosshair"`. **Belum diverifikasi:** build, e2e, CI, mata.
+`data-epic="frame-crosshair"`. **Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
 **`/work/<slug>` — tautan ke bagian (Orientasi, tahap 3).** Studi kasus dibaca lebih dari satu
 orang sebelum ada yang memesan, dan yang ingin ditunjukkan ke rekan biasanya satu bagian.
@@ -767,7 +767,7 @@ Spine kini diakhiri "Copy section link"/"Salin tautan bagian" (`copy-link.tsx`):
 halaman ini plus bagian yang sedang dibaca (`#outcome`), dihitung saat ditekan, dikonfirmasi
 stempel. `useClipboard` diekstrak dari `CopyAddress` dan dipakai keduanya. Di luar baris
 spine, jadi baris tetap sama dengan region; hanya desktop. `data-epic="section-link"`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
 **`/work/<slug>` — tanda masuk (Orientasi, tahap 3).** Denah menandai pintu masuk dengan panah.
 Pembaca yang tiba lewat tautan berbagian, yang disalin dan dikirim rekannya, kini mendapati
@@ -775,7 +775,7 @@ baris bagian itu di spine diberi panah masuk (`vault/motion/entry-arrow`, khusus
 dari luar baris ke tepinya lalu tinggal, jadi "Anda masuk di sini" tetap terlihat saat ia
 membaca terus. Bagian dibaca dari alamat saat hidrasi dan `hashchange`. Hanya `transform` dan
 `opacity`; reduced motion: langsung ada. `data-epic="section-entry"`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
 **Header — ganti bahasa tanpa kehilangan tempat (Orientasi, tahap 4).** Pembaca di tengah
 studi kasus yang beralih ke Bahasa Indonesia, sering untuk diteruskan ke rekan, dulu
@@ -783,7 +783,7 @@ mendarat kembali di atas. Kini pengalih bahasa membawa bagian yang sedang dibaca
 terakhir yang atasnya sudah melewati garis baca 35% layar (`section.ts`, satu tes), dibuka
 di bahasa lain pada id yang sama. `href` yang dirender tidak berubah, jadi tanpa JS, tab
 baru, atau di puncak halaman, ia tetap tautan biasa. Diuji di `e2e/locale-place.e2e.ts`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
 **Header — geser lembar (Orientasi, tahap 4).** Ganti bahasa dulu satu-satunya navigasi tanpa
 transisi sama sekali. Kini ia diumumkan sebagai intent `'sheet'` (`lib/motion/navigation-signal`),
@@ -791,7 +791,7 @@ dan panel `vault/motion/page-transition` menyeberang ke samping: masuk dari kana
 kiri, seperti lembar berikutnya dari satu set gambar. Halamannya sama, lembarnya lain. Pakai
 keyframe, bukan transisi, karena panel parkir di bawah layar. Ketukannya sama dengan cover,
 hanya `transform`; reduced motion: overlay tidak dirender. `data-epic="locale-sheet"`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata (CI hijau, run 37125290502).
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 

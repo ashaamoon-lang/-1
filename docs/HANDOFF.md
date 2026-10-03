@@ -312,12 +312,14 @@ animasi, dibangun bertahap di `claude/orientation` (dari `claude/address-copy`,
 `959a52d`) tanpa CI per tahap; diperiksa sekali lewat draft PR setelah tahap 4,
 yang tidak untuk di-merge.
 
-| N   | rute           | fitur                                                                    | animasi                                       | `data-epic`                     | commit                               | status   |
-| --- | -------------- | ------------------------------------------------------------------------ | --------------------------------------------- | ------------------------------- | ------------------------------------ | -------- |
-| 1   | 404            | mungkin yang Anda cari (`vault/blocks/wayfinder`)                        | penunjuk arah (`vault/motion/north-arrow`)    | `wayfinding`                    | `feat(wayfinding)`, `feat(motion)`   | belum CI |
-| 2   | `/work`        | bingkai yang bisa dijelajah (`vault/blocks/catalogue-frame`)             | garis bidik (`vault/motion/crosshair`)        | `frame-crosshair`               | `feat(frame)`, `feat(motion)`        | belum CI |
-| 3   | `/work/<slug>` | tautan ke bagian (`vault/blocks/copy-address/copy-link.tsx`)             | tanda masuk (`vault/motion/entry-arrow`)      | `section-link`, `section-entry` | `feat(section-link)`, `feat(motion)` | belum CI |
-| 4   | header         | ganti bahasa tanpa kehilangan tempat (`components/ui/language-switcher`) | geser lembar (`vault/motion/page-transition`) | `locale-sheet`                  | `feat(locale)`, `feat(motion)`       | belum CI |
+| N   | rute           | fitur                                                                    | animasi                                       | `data-epic`                     | commit               | status                                                        |
+| --- | -------------- | ------------------------------------------------------------------------ | --------------------------------------------- | ------------------------------- | -------------------- | ------------------------------------------------------------- |
+| 1   | 404            | mungkin yang Anda cari (`vault/blocks/wayfinder`)                        | penunjuk arah (`vault/motion/north-arrow`)    | `wayfinding`                    | `046373c`, `290647e` | CI hijau (run 37125290502, 608 lulus · 29 dilewati · 0 gagal) |
+| 2   | `/work`        | bingkai yang bisa dijelajah (`vault/blocks/catalogue-frame`)             | garis bidik (`vault/motion/crosshair`)        | `frame-crosshair`               | `4e012dd`, `32ee89c` | CI hijau (run 37125290502, 608 lulus · 29 dilewati · 0 gagal) |
+| 3   | `/work/<slug>` | tautan ke bagian (`vault/blocks/copy-address/copy-link.tsx`)             | tanda masuk (`vault/motion/entry-arrow`)      | `section-link`, `section-entry` | `226469c`, `24fe1f6` | CI hijau (run 37125290502, 608 lulus · 29 dilewati · 0 gagal) |
+| 4   | header         | ganti bahasa tanpa kehilangan tempat (`components/ui/language-switcher`) | geser lembar (`vault/motion/page-transition`) | `locale-sheet`                  | `56bbc53`, `4a2751f` | CI hijau (run 37125290502, 608 lulus · 29 dilewati · 0 gagal) |
+
+Draft PR #26 pada `4a2751f`, run 37125290502: job `ci` dan `e2e` hijau, 0 flaky. Ketiga e2e baru (`wayfinding`, `section-link`, `locale-place`) lulus 6/6. `interaction-grammar` mencatat `frame-crosshair` di `/en/work`, `section-link` dan `section-entry` di halaman kasus, serta `locale-sheet` di setiap rute. `wayfinding` tidak tercatat karena 404 tidak disampel.
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
