@@ -35,6 +35,21 @@
   gap: calc(var(--gap) * 0.25);
 }
 
+/*
+ * The work's name and its client and year sit side by side as separate
+ * items, not as one run of text. A link inline in running text is a "link in
+ * a text block" to axe, which must then tell link from text by colour — and
+ * over this site's grain and wash it cannot. Checkpoint 3 caught that on
+ * /studio (`e2e/route-sweep.e2e.ts`, `link-in-text-block` undecided). As a
+ * flex item the name stands on its own, and nothing is left undecided.
+ */
+.work {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: calc(var(--gap) * 0.25);
+}
+
 .work,
 .meta {
   color: var(--text-muted);
