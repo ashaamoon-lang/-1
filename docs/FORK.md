@@ -666,8 +666,8 @@ menyebut kasus dan bentuk penugasannya, lalu tiga baris kosong: organisasi, yang
 perlu diputuskan, tenggat. Alamatnya di-resolve seperti blok kontak beranda
 (`lib/content/studio-contact.ts` → `resolveHomeContent`). Href dibangun di
 `enquiry.ts` (satu tes). Tanpa form, JS, layanan, atau secret. Tautannya berdiri
-sendiri di luar blok teks dan tidak bergerak. **Belum diverifikasi:** build, e2e,
-CI, mata.
+sendiri di luar blok teks dan tidak bergerak. **Belum diverifikasi:** mata (CI
+hijau, run 37101359980).
 
 **`/work/<slug>` — sampul proyek berikutnya ikut pindah.** Menekan NextProject kini
 memorf sampulnya menjadi hero proyek berikutnya, lewat kelas `morph` yang sama
@@ -675,8 +675,8 @@ dengan kartu → hero. Namanya dipasang saat ditekan, bukan saat render
 (`vault/blocks/next-project/link.tsx`), dan dilepas saat blur atau saat pointer
 batal atau keluar. Klik bermodifier tidak memasangnya. Karena itu proyek → katalog
 tetap hanya membawa hero halaman ini, cacat yang dulu menahannya di _Ditunda_.
-Diuji dua arah di `e2e/next-project-morph.e2e.ts`. **Belum diverifikasi:** build,
-e2e, CI, mata.
+Diuji dua arah di `e2e/next-project-morph.e2e.ts`. **Belum diverifikasi:** mata (CI
+hijau, run 37101359980).
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
