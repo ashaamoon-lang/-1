@@ -282,3 +282,15 @@
     transition: none;
   }
 }
+
+/*
+ * The section-link control (Orientasi, stage 3). A desktop affordance: on a
+ * phone the spine is a strip held over the reading, and every line it gains
+ * is a line of the case it hides — the browser's own share sheet sends the
+ * page from there.
+ */
+.copyLink {
+  @media not (--desktop) {
+    display: none;
+  }
+}

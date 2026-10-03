@@ -761,6 +761,14 @@ dan keduanya meluncur ke karya berikutnya alih-alih melompat. Hanya `transform` 
 `opacity`, `--duration-fast`. Reduced motion: garis langsung di tempat.
 `data-epic="frame-crosshair"`. **Belum diverifikasi:** build, e2e, CI, mata.
 
+**`/work/<slug>` — tautan ke bagian (Orientasi, tahap 3).** Studi kasus dibaca lebih dari satu
+orang sebelum ada yang memesan, dan yang ingin ditunjukkan ke rekan biasanya satu bagian.
+Spine kini diakhiri "Copy section link"/"Salin tautan bagian" (`copy-link.tsx`): alamat
+halaman ini plus bagian yang sedang dibaca (`#outcome`), dihitung saat ditekan, dikonfirmasi
+stempel. `useClipboard` diekstrak dari `CopyAddress` dan dipakai keduanya. Di luar baris
+spine, jadi baris tetap sama dengan region; hanya desktop. `data-epic="section-link"`.
+**Belum diverifikasi:** build, e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

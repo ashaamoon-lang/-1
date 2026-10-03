@@ -3,6 +3,7 @@
 import cn from 'clsx'
 import { type CSSProperties, type ReactNode, useRef } from 'react'
 
+import { CopyLink } from '@/vault/blocks/copy-address/copy-link'
 import { useActiveInSequence } from '@/vault/motion/use-active-in-sequence'
 
 import s from './project-spine.module.css'
@@ -52,6 +53,13 @@ import s from './project-spine.module.css'
  * and the page that renders them is a server component. Wrapping is what lets
  * one client component own both the ref and the two-column layout while the
  * regions themselves stay server-rendered and pass through as `children`.
+ *
+ * ## A link to the section being read
+ *
+ * Given `copy`, the spine ends with a control that copies this page's address
+ * with the section the reader is in — Orientasi, stage 3 — so a reader can send
+ * a colleague the outcome rather than the whole case. It sits after the list,
+ * never in a row, so the rows still match the regions one for one.
  */
 
 export interface SpineRegion {
@@ -69,13 +77,26 @@ interface ProjectSpineProps {
    */
   regions: readonly SpineRegion[]
   children: ReactNode
+  /** The words for copying a link to the section being read. */
+  copy?: SectionCopyLabels | undefined
   className?: string | undefined
+}
+
+/** Already localized — what the section-link control and its status say. */
+export interface SectionCopyLabels {
+  /** "Copy section link". */
+  label: string
+  /** What the status says once the link is copied. */
+  copied: string
+  /** What the status says when the browser refuses. */
+  failed: string
 }
 
 export function ProjectSpine({
   label,
   regions,
   children,
+  copy,
   className,
 }: ProjectSpineProps) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -148,6 +169,13 @@ export function ProjectSpine({
               }
             />
           </div>
+          {copy && (
+            <CopyLink
+              hash={(regions[Math.max(active, 0)] ?? regions[0])?.id ?? ''}
+              className={s.copyLink}
+              {...copy}
+            />
+          )}
         </nav>
       )}
 

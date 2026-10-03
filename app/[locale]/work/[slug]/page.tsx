@@ -486,7 +486,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           ]}
         />
 
-        <ProjectSpine label={t('spineLabel')} regions={regions}>
+        <ProjectSpine
+          label={t('spineLabel')}
+          regions={regions}
+          copy={{
+            label: t('sectionCopy'),
+            copied: t('sectionCopied'),
+            failed: t('sectionCopyFailed'),
+          }}
+        >
           <ProjectHero
             id="overview"
             data-region=""

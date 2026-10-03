@@ -16,8 +16,9 @@
  *
  * Copying needs script and the asynchronous clipboard. Without either there is
  * no button at all: REST is the address, readable and selectable, which is what
- * `MOTION-SPEC.md` §9.4 rule 4 asks a page without script to be. The capability
- * is read the way `lib/hooks/use-sync-external.ts` reads a fine pointer —
+ * `MOTION-SPEC.md` §9.4 rule 4 asks a page without script to be. `useClipboard`
+ * reads the capability the way `lib/hooks/use-sync-external.ts` reads a fine
+ * pointer —
  * `false` on the server, promoted on hydration — so the server and the first
  * client render agree, and the button arrives in a block far below the fold,
  * where its arrival moves nothing a reader is looking at.
@@ -39,13 +40,12 @@
  */
 
 import cn from 'clsx'
-import { useState, useSyncExternalStore } from 'react'
 
 import { Stamp } from '@/vault/motion/stamp'
 
-import s from './copy-address.module.css'
+import { useClipboard } from './use-clipboard'
 
-type CopyState = 'rest' | 'copied' | 'failed'
+import s from './copy-address.module.css'
 
 interface CopyAddressProps {
   address: string
@@ -58,23 +58,6 @@ interface CopyAddressProps {
   className?: string | undefined
 }
 
-/**
- * Whether the clipboard can be written never changes under a page, so there is
- * nothing to subscribe to and nothing to tear down.
- */
-function subscribe() {
-  return () => undefined
-}
-
-/** The asynchronous clipboard exists only in a secure context. */
-function canWrite(): boolean {
-  return 'clipboard' in navigator
-}
-
-function cannotWriteOnServer(): boolean {
-  return false
-}
-
 export function CopyAddress({
   address,
   label,
@@ -82,33 +65,16 @@ export function CopyAddress({
   failed,
   className,
 }: CopyAddressProps) {
-  const writable = useSyncExternalStore(
-    subscribe,
-    canWrite,
-    cannotWriteOnServer
-  )
-  const [state, setState] = useState<CopyState>('rest')
-  /** How many copies have landed — a new `key`, so each one is stamped. */
-  const [landed, setLanded] = useState(0)
+  const { writable, state, landed, copy } = useClipboard()
 
   if (!writable) return null
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(address)
-      setState('copied')
-      setLanded((count) => count + 1)
-    } catch {
-      setState('failed')
-    }
-  }
 
   return (
     <div data-epic="address-copy" className={cn(s.copy, className)}>
       <button
         type="button"
         className={cn('caption', s.button)}
-        onClick={() => void copy()}
+        onClick={() => void copy(address)}
         // `MOTION-SPEC.md` §9 — a chip: INTENT and COMMIT, like the filters.
         data-press="chip"
         data-intent=""
