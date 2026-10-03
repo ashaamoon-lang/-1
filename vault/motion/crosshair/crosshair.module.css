@@ -1,0 +1,58 @@
+/*
+ * Crosshair — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token or comes from the point it is given: the lines are
+ * the palette's `--line-strong`, and they move in the fast duration band. Each
+ * line is the container's full length, scaled down to reach only the point,
+ * so moving it is a `transform` and nothing else.
+ */
+
+.crosshair {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Along the row: from the left edge, at the point's height, to the point. */
+.row {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  border-block-start: thin solid var(--line-strong);
+  transform-origin: left center;
+  transform: translateY(var(--cross-y, 0)) scaleX(var(--cross-reach-x, 0));
+  opacity: 0;
+  transition:
+    transform var(--duration-fast) var(--ease-out-quart),
+    opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+/* Down the column: from the top edge, at the point's offset, to the point. */
+.column {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-inline-start: thin solid var(--line-strong);
+  transform-origin: center top;
+  transform: translateX(var(--cross-x, 0)) scaleY(var(--cross-reach-y, 0));
+  opacity: 0;
+  transition:
+    transform var(--duration-fast) var(--ease-out-quart),
+    opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+.crosshair[data-on] .row,
+.crosshair[data-on] .column {
+  opacity: 1;
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the lines reach the same point, at once.
+ */
+@media (--reduced-motion) {
+  .row,
+  .column {
+    transition: none;
+  }
+}

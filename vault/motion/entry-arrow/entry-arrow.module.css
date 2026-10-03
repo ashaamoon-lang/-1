@@ -1,0 +1,45 @@
+/*
+ * EntryArrow — the mechanism. `index.tsx` carries the argument.
+ *
+ * Every value is a token or a fraction of one: the arrow is half a gutter of
+ * `--text-muted`, it stands a quarter gutter outside its parent's start edge
+ * and slides in from half a gutter further out, and the beat is the standard
+ * duration band. Only `transform` and `opacity` change.
+ */
+
+.arrow {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: calc(100% + var(--gap) * 0.25);
+  inline-size: calc(var(--gap) * 0.5);
+  block-size: calc(var(--gap) * 0.5);
+  background: var(--text-muted);
+  clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(calc(var(--gap) * -0.5), -50%);
+}
+
+/* Where the reader came in: it slides to the edge it points across, and stays. */
+[data-arrived] > .arrow {
+  animation: entry var(--duration) var(--ease-out-expo) both;
+}
+
+@keyframes entry {
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the arrow is simply there.
+ */
+@media (--reduced-motion) {
+  [data-arrived] > .arrow {
+    animation: none;
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}

@@ -39,6 +39,7 @@ import { Link } from '@/components/ui/link'
 import { Bearing } from '@/vault/motion/bearing'
 
 import type { Frame } from './frame'
+import { FrameReader } from './reader'
 
 import s from './catalogue-frame.module.css'
 
@@ -54,6 +55,8 @@ interface CatalogueFrameProps<P extends string> {
   undatedLabel: string
   /** Name of the row for works with no practice the site names. */
   unplacedLabel: string
+  /** Already localized — "Arrow keys move between works." */
+  keysHint: string
   /**
    * A practice's label, and the locale-free route to the page about it.
    *
@@ -74,12 +77,14 @@ export function CatalogueFrame<P extends string>({
   practiceLabel,
   undatedLabel,
   unplacedLabel,
+  keysHint,
   practiceLink,
   id = 'catalogue-frame',
   className,
 }: CatalogueFrameProps<P>) {
   const headingId = `${id}-title`
   const introId = `${id}-intro`
+  const keysId = `${id}-keys`
 
   return (
     <section
@@ -93,85 +98,94 @@ export function CatalogueFrame<P extends string>({
       <p id={introId} className={s.intro}>
         {intro}
       </p>
+      {/*
+        How to read it from the keyboard — stage 2 of Orientasi. Said once,
+        and tied to the table so a screen reader hears it with the frame.
+      */}
+      <p id={keysId} className={cn('caption', s.keys)}>
+        {keysHint}
+      </p>
 
       <Bearing className={s.bearing}>
-        <table
-          className={s.table}
-          aria-labelledby={headingId}
-          aria-describedby={introId}
-        >
-          <thead>
-            <tr>
-              <th
-                scope="col"
-                data-bearing="span"
-                className={cn('caption', s.head)}
-              >
-                {practiceLabel}
-              </th>
-              {frame.years.map((year) => (
+        <FrameReader>
+          <table
+            className={s.table}
+            aria-labelledby={headingId}
+            aria-describedby={`${introId} ${keysId}`}
+          >
+            <thead>
+              <tr>
                 <th
-                  key={year ?? 'undated'}
                   scope="col"
-                  data-bearing="span post"
+                  data-bearing="span"
                   className={cn('caption', s.head)}
                 >
-                  {year ?? undatedLabel}
+                  {practiceLabel}
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {frame.rows.map((row) => {
-              const link =
-                row.practice === null ? null : practiceLink(row.practice)
-              return (
-                <tr key={row.practice ?? 'unplaced'}>
-                  <th scope="row" data-bearing="span" className={s.practice}>
-                    {link === null ? (
-                      <span className="caption">{unplacedLabel}</span>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        className={cn('caption', s.practiceLink)}
-                        data-press="nav"
-                        data-intent=""
-                      >
-                        {link.label}
-                      </Link>
-                    )}
+                {frame.years.map((year) => (
+                  <th
+                    key={year ?? 'undated'}
+                    scope="col"
+                    data-bearing="span post"
+                    className={cn('caption', s.head)}
+                  >
+                    {year ?? undatedLabel}
                   </th>
-                  {row.bays.map((bay, column) => (
-                    <td
-                      key={frame.years[column] ?? 'undated'}
-                      data-bearing="span post"
-                      className={s.bay}
-                    >
-                      {bay.map((work) => (
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {frame.rows.map((row) => {
+                const link =
+                  row.practice === null ? null : practiceLink(row.practice)
+                return (
+                  <tr key={row.practice ?? 'unplaced'}>
+                    <th scope="row" data-bearing="span" className={s.practice}>
+                      {link === null ? (
+                        <span className="caption">{unplacedLabel}</span>
+                      ) : (
                         <Link
-                          key={work.id}
-                          href={work.href}
-                          className={s.work}
-                          data-reveal-item=""
-                          data-bearing="load"
+                          href={link.href}
+                          className={cn('caption', s.practiceLink)}
                           data-press="nav"
                           data-intent=""
                         >
-                          <span className={s.name}>{work.title}</span>
-                          {work.client && (
-                            <span className={cn('caption', s.client)}>
-                              {work.client}
-                            </span>
-                          )}
+                          {link.label}
                         </Link>
-                      ))}
-                    </td>
-                  ))}
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                      )}
+                    </th>
+                    {row.bays.map((bay, column) => (
+                      <td
+                        key={frame.years[column] ?? 'undated'}
+                        data-bearing="span post"
+                        className={s.bay}
+                      >
+                        {bay.map((work) => (
+                          <Link
+                            key={work.id}
+                            href={work.href}
+                            className={s.work}
+                            data-reveal-item=""
+                            data-bearing="load"
+                            data-press="nav"
+                            data-intent=""
+                          >
+                            <span className={s.name}>{work.title}</span>
+                            {work.client && (
+                              <span className={cn('caption', s.client)}>
+                                {work.client}
+                              </span>
+                            )}
+                          </Link>
+                        ))}
+                      </td>
+                    ))}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </FrameReader>
       </Bearing>
     </section>
   )

@@ -305,6 +305,22 @@ Satu fitur dan satu animasi di beranda, dibangun di `claude/address-copy` (dari
 
 Draft PR #25 pada `f313790`, run 37113202080: job `ci` dan `e2e` hijau, 0 flaky. `e2e/address-copy.e2e.ts` lulus 2/2, dan `interaction-grammar` mencatat `address-copy` di `/en`.
 
+### 4.5 Orientasi — empat tahap, satu CI
+
+Objektif: pembaca tidak pernah kehilangan tempatnya. Empat fitur dan empat
+animasi, dibangun bertahap di `claude/orientation` (dari `claude/address-copy`,
+`959a52d`) tanpa CI per tahap; diperiksa sekali lewat draft PR setelah tahap 4,
+yang tidak untuk di-merge.
+
+| N   | rute           | fitur                                                                    | animasi                                       | `data-epic`                     | commit               | status                                                        |
+| --- | -------------- | ------------------------------------------------------------------------ | --------------------------------------------- | ------------------------------- | -------------------- | ------------------------------------------------------------- |
+| 1   | 404            | mungkin yang Anda cari (`vault/blocks/wayfinder`)                        | penunjuk arah (`vault/motion/north-arrow`)    | `wayfinding`                    | `046373c`, `290647e` | CI hijau (run 37125290502, 608 lulus · 29 dilewati · 0 gagal) |
+| 2   | `/work`        | bingkai yang bisa dijelajah (`vault/blocks/catalogue-frame`)             | garis bidik (`vault/motion/crosshair`)        | `frame-crosshair`               | `4e012dd`, `32ee89c` | CI hijau (run 37125290502, 608 lulus · 29 dilewati · 0 gagal) |
+| 3   | `/work/<slug>` | tautan ke bagian (`vault/blocks/copy-address/copy-link.tsx`)             | tanda masuk (`vault/motion/entry-arrow`)      | `section-link`, `section-entry` | `226469c`, `24fe1f6` | CI hijau (run 37125290502, 608 lulus · 29 dilewati · 0 gagal) |
+| 4   | header         | ganti bahasa tanpa kehilangan tempat (`components/ui/language-switcher`) | geser lembar (`vault/motion/page-transition`) | `locale-sheet`                  | `56bbc53`, `4a2751f` | CI hijau (run 37125290502, 608 lulus · 29 dilewati · 0 gagal) |
+
+Draft PR #26 pada `4a2751f`, run 37125290502: job `ci` dan `e2e` hijau, 0 flaky. Ketiga e2e baru (`wayfinding`, `section-link`, `locale-place`) lulus 6/6. `interaction-grammar` mencatat `frame-crosshair` di `/en/work`, `section-link` dan `section-entry` di halaman kasus, serta `locale-sheet` di setiap rute. `wayfinding` tidak tercatat karena 404 tidak disampel.
+
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
 | butir                                        | status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |

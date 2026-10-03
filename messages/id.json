@@ -66,7 +66,8 @@
     "frameIntro": "Setiap penugasan di katalog, ditempatkan menurut praktik yang memikulnya dan tahunnya.",
     "framePractice": "Praktik",
     "frameUndated": "Tanpa tahun",
-    "frameUnplaced": "Lainnya"
+    "frameUnplaced": "Lainnya",
+    "frameKeys": "Tombol panah berpindah antarkarya."
   },
   "language": {
     "label": "Bahasa",
@@ -95,6 +96,9 @@
     "engagement": "Keterlibatan",
     "scope": "Lingkup",
     "spineLabel": "Di halaman ini",
+    "sectionCopy": "Salin tautan bagian",
+    "sectionCopied": "Disalin",
+    "sectionCopyFailed": "Tidak bisa menyalin — pakai bilah alamat",
     "overview": "Ringkasan",
     "notes": "Catatan",
     "images": "Gambar",
@@ -112,7 +116,8 @@
     "title": "Halaman tidak ditemukan",
     "work": "Karya",
     "studio": "Studio",
-    "journal": "Jurnal"
+    "journal": "Jurnal",
+    "suggestTitle": "Mungkin yang Anda cari"
   },
   "error": {
     "title": "Ada yang tidak beres",

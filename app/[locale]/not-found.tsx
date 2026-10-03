@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { Wrapper } from '@/components/layout/wrapper'
 import { Link } from '@/components/ui/link'
 import { NotFoundView } from '@/components/ui/not-found-view'
+import { Wayfinder } from '@/vault/blocks/wayfinder'
 
 import s from '@/components/ui/not-found-view/not-found-view.module.css'
 
@@ -55,6 +56,12 @@ export default async function NotFound() {
             <Link href="/journal">{t('journal')}</Link>
           </>
         }
+        /*
+          Where the reader most likely meant to go, when the address says
+          enough to tell. It renders nothing without script or without a
+          close match, so the offer above stands on its own either way.
+        */
+        suggestions={<Wayfinder title={t('suggestTitle')} />}
       />
     </Wrapper>
   )
