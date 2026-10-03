@@ -711,7 +711,7 @@ kasusnya beserta tahunnya. Datanya kueri katalog yang sudah dibaca halaman ini
 (`casesByPractice`, satu tes); praktik tanpa karya tidak diberi baris. Primitif baru
 `vault/motion/leader`, khusus CSS: garis turun dari catatan, berbelok ke karya pertama,
 lalu titiknya mendarat. Pita kini memudar di tempat. `data-epic="capability-evidence"`.
-**Belum diverifikasi:** build, e2e, CI, mata.
+**Belum diverifikasi:** mata. Build, e2e, dan CI hijau di checkpoint penutup siklus 2.
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 

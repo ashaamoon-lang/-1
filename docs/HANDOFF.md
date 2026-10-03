@@ -280,14 +280,18 @@ diperiksa sekali lewat draft PR permanen dari `claude/value-2-ci` (base
 `claude/case-continuity`), yang tidak untuk di-merge. Status dan kolom commit
 mengikuti §4.2.
 
-| N   | rute              | fitur                                     | desain                     | `data-epic`           | commit             | status                                                        |
-| --- | ----------------- | ----------------------------------------- | -------------------------- | --------------------- | ------------------ | ------------------------------------------------------------- |
-| 1   | `/practice/<v>`   | ajakan penugasan per praktik              | `vault/blocks/title-block` | `practice-enquiry`    | `8f7df92`          | CI hijau (run 37106818554, 594 lulus · 29 dilewati · 0 gagal) |
-| 2   | `/journal/<slug>` | balasan untuk esai (surel berkonteks)     | `vault/blocks/reply-slip`  | `entry-reply`         | `c053fb6`          | CI hijau (run 37106818554, 594 lulus · 29 dilewati · 0 gagal) |
-| 3   | `/work`           | kunci bingkai katalog (arti tiap praktik) | `vault/motion/splice`      | `catalogue-key`       | `3b19c90`          | CI hijau (run 37106818554, 594 lulus · 29 dilewati · 0 gagal) |
-| 4   | `/studio`         | klaim praktik dengan karya buktinya       | `vault/motion/leader`      | `capability-evidence` | `feat(v2-round-4)` | belum CI                                                      |
+| N   | rute              | fitur                                     | desain                     | `data-epic`           | commit    | status                                                        |
+| --- | ----------------- | ----------------------------------------- | -------------------------- | --------------------- | --------- | ------------------------------------------------------------- |
+| 1   | `/practice/<v>`   | ajakan penugasan per praktik              | `vault/blocks/title-block` | `practice-enquiry`    | `8f7df92` | CI hijau (run 37106818554, 594 lulus · 29 dilewati · 0 gagal) |
+| 2   | `/journal/<slug>` | balasan untuk esai (surel berkonteks)     | `vault/blocks/reply-slip`  | `entry-reply`         | `c053fb6` | CI hijau (run 37106818554, 594 lulus · 29 dilewati · 0 gagal) |
+| 3   | `/work`           | kunci bingkai katalog (arti tiap praktik) | `vault/motion/splice`      | `catalogue-key`       | `3b19c90` | CI hijau (run 37106818554, 594 lulus · 29 dilewati · 0 gagal) |
+| 4   | `/studio`         | klaim praktik dengan karya buktinya       | `vault/motion/leader`      | `capability-evidence` | `5dc141b` | CI hijau (run 37110536566, 595 lulus · 29 dilewati · 0 gagal) |
 
 Checkpoint 1 (putaran 1–3): draft PR #24 dari `claude/value-2-ci` pada `3b19c90`, run 37106818554. Job `ci` dan `e2e` hijau, 0 flaky. `interaction-grammar` mencatat ketiga momen baru di rutenya.
+
+Checkpoint penutup (putaran 4): draft PR #24 pada `5dc141b`, run 37110536566. Job `ci` dan `e2e` hijau, 0 flaky. `interaction-grammar` mencatat `capability-evidence` di `/en/studio`.
+
+Siklus 2 ditutup pada 4 putaran atas keputusan pemilik; putaran 5–6 tidak dibangun.
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 
