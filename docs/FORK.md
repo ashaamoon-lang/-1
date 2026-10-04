@@ -826,6 +826,14 @@ terjadi di bawah panel transisi. Hanya `transform`; reduced motion: langsung di 
 JS tak ada garis, tinta tetap. Desktop saja, karena kata aktif di ponsel sudah bergaris bawah.
 Diuji di `e2e/route-marker.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
 
+**`/work` — sampul di bingkai (Tata & Gerak, tahap 3).** Bingkai katalog membaca karya sebagai
+tabel nama, sedangkan sampulnya satu layar di atas. Kini karya yang dihover atau difokus
+menampilkan sampulnya di pelat 4:5 (`vault/motion/cover-preview`) di ujung kosong bay-nya.
+Pelat meluncur bersama garis bidik dan gambarnya berganti silang. Ia ditambatkan ke karya,
+bukan ke pointer, supaya keyboard dan pointer sama. Tak muncul kalau bay terlalu sempit,
+dan tak pernah keluar dari bingkai. Sampul baru dimuat saat karya pertama kali disentuh.
+Diuji di `e2e/cover-preview.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

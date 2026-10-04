@@ -14,6 +14,8 @@
  * empty: the frame shows where the load is, and where it is not.
  */
 
+import type { ImageSource } from '@/lib/integrations/sanity/utils/image'
+
 export interface FrameWork {
   id: string
   title: string
@@ -22,6 +24,11 @@ export interface FrameWork {
   client: string | null
   practice: string | null
   year: number | null
+  /**
+   * The cover the catalogue grid already shows, for the plate that follows
+   * the work in hand. Carried through placement untouched.
+   */
+  cover?: ImageSource | null
 }
 
 export interface FrameRow<P extends string> {

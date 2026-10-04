@@ -24,6 +24,9 @@
  * bay and settles under its own weight. The table is complete in the server
  * HTML, so with no script — or reduced motion — the frame is simply there.
  *
+ * `FrameReader` aims a crosshair at the work in hand and, for a work with a
+ * `cover`, carries the cover beside it (`vault/motion/cover-preview`).
+ *
  * ## Why a table
  *
  * Because it is one: two axes and a value at each crossing. Headers carry
@@ -36,12 +39,20 @@
 import cn from 'clsx'
 
 import { Link } from '@/components/ui/link'
+import { SanityImage } from '@/components/ui/sanity-image'
 import { Bearing } from '@/vault/motion/bearing'
+import { PreviewCover } from '@/vault/motion/cover-preview'
 
 import type { Frame } from './frame'
 import { FrameReader } from './reader'
 
 import s from './catalogue-frame.module.css'
+
+/*
+ * The widest the cover plate is laid out: two fifths of a bay at the widest
+ * desktop (`reader.tsx`, `PLATE_SHARE`), rounded up.
+ */
+const PREVIEW_WIDTH = 240
 
 interface CatalogueFrameProps<P extends string> {
   frame: Frame<P>
@@ -86,6 +97,22 @@ export function CatalogueFrame<P extends string>({
   const introId = `${id}-intro`
   const keysId = `${id}-keys`
 
+  /*
+   * The covers for the plate beside the work in hand — Tata & Gerak, stage 3.
+   * `alt=""`: the plate is decoration, and the link already names the work.
+   */
+  const covers = frame.rows
+    .flatMap((row) => row.bays.flat())
+    .flatMap((work) =>
+      work.cover
+        ? [
+            <PreviewCover key={work.id} id={work.id}>
+              <SanityImage image={work.cover} alt="" maxWidth={PREVIEW_WIDTH} />
+            </PreviewCover>,
+          ]
+        : []
+    )
+
   return (
     <section
       className={cn(s.frame, className)}
@@ -107,7 +134,7 @@ export function CatalogueFrame<P extends string>({
       </p>
 
       <Bearing className={s.bearing}>
-        <FrameReader>
+        <FrameReader covers={covers}>
           <table
             className={s.table}
             aria-labelledby={headingId}
@@ -165,6 +192,7 @@ export function CatalogueFrame<P extends string>({
                             key={work.id}
                             href={work.href}
                             className={s.work}
+                            data-work-id={work.id}
                             data-reveal-item=""
                             data-bearing="load"
                             data-press="nav"

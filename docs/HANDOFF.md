@@ -329,10 +329,11 @@ dibangun bertahap di `claude/layout-motion` (dari `claude/orientation`,
 yang tidak untuk di-merge. Tiap tahap dicek juga lewat tangkapan layar
 pratinjau lokal.
 
-| N   | rute                      | fitur                                                 | desain                                              | `data-epic`    | commit                               | status   |
-| --- | ------------------------- | ----------------------------------------------------- | --------------------------------------------------- | -------------- | ------------------------------------ | -------- |
-| 1   | `/journal/<slug>`, semua  | cetak esai rapi (`@media print`)                      | tipografi seimbang (`text-wrap`)                    | —              | `feat(print)`, `feat(layout)`        | belum CI |
-| 2   | `/journal/<slug>`, header | waktu baca + sisa waktu (`vault/blocks/reading-left`) | penanda rute meluncur (`vault/motion/route-marker`) | `route-marker` | `feat(reading-time)`, `feat(motion)` | belum CI |
+| N   | rute                      | fitur                                                      | desain                                              | `data-epic`                  | commit                               | status   |
+| --- | ------------------------- | ---------------------------------------------------------- | --------------------------------------------------- | ---------------------------- | ------------------------------------ | -------- |
+| 1   | `/journal/<slug>`, semua  | cetak esai rapi (`@media print`)                           | tipografi seimbang (`text-wrap`)                    | —                            | `feat(print)`, `feat(layout)`        | belum CI |
+| 2   | `/journal/<slug>`, header | waktu baca + sisa waktu (`vault/blocks/reading-left`)      | penanda rute meluncur (`vault/motion/route-marker`) | `route-marker`               | `feat(reading-time)`, `feat(motion)` | belum CI |
+| 3   | `/work`, kartu            | pratinjau sampul di bingkai (`vault/motion/cover-preview`) | tanda potong kartu (`vault/motion/crop-marks`)      | `cover-preview`, `card-crop` | `feat(frame)`                        | belum CI |
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 

@@ -15,6 +15,7 @@ import {
   practicesQuery,
   workIndexQuery,
 } from '@/lib/integrations/sanity/queries'
+import { toImageSource } from '@/lib/integrations/sanity/utils/image'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { collectionPageSchema } from '@/lib/seo/schemas'
 import { SITE } from '@/lib/seo/site'
@@ -195,6 +196,8 @@ export async function Catalogue({ locale, practice }: CatalogueProps) {
               client: project.client ?? null,
               practice: project.practice ?? null,
               year: project.year ?? null,
+              // For the plate beside the work in hand — Tata & Gerak, stage 3.
+              cover: project.cover ? toImageSource(project.cover) : null,
             },
           ]
         }),

@@ -1,0 +1,62 @@
+/*
+ * CoverPreview — the mechanism. `index.tsx` carries the argument.
+ *
+ * A plate in the catalogue's own 4:5, on the surface the grid's covers wait
+ * on (`--surface-2`). It is placed by `transform` alone, so a move from one
+ * bay to the next is a glide, and its covers are stacked in it and cross-fade
+ * — both in the fast band, the crosshair's, so the two arrive together.
+ */
+
+.preview {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: var(--preview-width, 0);
+  aspect-ratio: 4 / 5;
+  overflow: clip;
+  background-color: var(--surface-2);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(var(--preview-x, 0), var(--preview-y, 0));
+  transition:
+    transform var(--duration-fast) var(--ease-out-quart),
+    opacity var(--duration-fast) var(--ease-out-quart);
+
+  /* Nothing hovers here, and a tap opens the work. */
+  @media not (--hover) {
+    display: none;
+  }
+}
+
+.preview[data-on] {
+  opacity: 1;
+}
+
+.cover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out-quart);
+}
+
+.cover[data-shown] {
+  opacity: 1;
+}
+
+/* Whatever image the caller hands in fills the plate, cropped like a card. */
+.cover > * {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the plate is at the work, with its cover, at once.
+ */
+@media (--reduced-motion) {
+  .preview,
+  .cover {
+    transition: none;
+  }
+}

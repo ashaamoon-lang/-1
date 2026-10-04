@@ -25,11 +25,18 @@
  * the frame's left and top edges to the centre of the work in hand, and glide
  * to the next one as the reader moves. The point is measured once per hover
  * or focus, relative to this wrapper, which shares the table's edges.
+ *
+ * The work in hand also shows its cover — Tata & Gerak, stage 3
+ * (`vault/motion/cover-preview`). A plate takes the far end of the work's
+ * bay, where the words never reach, and glides with the crosshair. Where the
+ * bay is too narrow to hold it clear of the words, there is no plate. The
+ * covers are mounted the first time a work is reached for, not before.
  */
 
 import cn from 'clsx'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 
+import { CoverPreview } from '@/vault/motion/cover-preview'
 import { Crosshair } from '@/vault/motion/crosshair'
 
 import { type Place, type Step, step } from './navigate'
@@ -112,14 +119,77 @@ function aimAt(root: Element, work: Element): Aim {
   }
 }
 
+/** Where the cover plate stands, in the wrapper's own pixels. */
+interface Plate {
+  on: boolean
+  x: number
+  y: number
+  width: number
+  current: string | null
+}
+
+const NO_PLATE: Plate = { on: false, x: 0, y: 0, width: 0, current: null }
+
+/** The share of a work's bay the plate takes, from its far end. */
+const PLATE_SHARE = 0.4
+/** The covers' height over their width — the catalogue grid's 4:5. */
+const PLATE_RATIO = 5 / 4
+/** How much of the bay must stay clear between the words and the plate. */
+const PLATE_CLEARANCE = 0.05
+
+/**
+ * Where a work's words end. Its link spans the whole bay, so the link's box
+ * says nothing about the words; their text does.
+ */
+function wordsEnd(work: Element): number {
+  const range = document.createRange()
+  const walker = document.createTreeWalker(work, NodeFilter.SHOW_TEXT)
+  let end = Number.NEGATIVE_INFINITY
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    range.selectNodeContents(node)
+    end = Math.max(end, range.getBoundingClientRect().right)
+  }
+  return end
+}
+
+/**
+ * The plate for a work: at the far end of its bay, level with it, kept inside
+ * the wrapper — whose frame clips and would otherwise scroll — and only where
+ * the bay holds it clear of the words.
+ */
+function plateFor(root: Element, work: HTMLElement): Plate {
+  const box = root.getBoundingClientRect()
+  const at = work.getBoundingClientRect()
+  const width = at.width * PLATE_SHARE
+  const height = width * PLATE_RATIO
+  const left = at.right - width
+  const middle = at.top + at.height / 2 - box.top
+  const lowest = Math.max(box.height - height, 0)
+  return {
+    on: left - wordsEnd(work) >= at.width * PLATE_CLEARANCE,
+    x: left - box.left,
+    y: Math.min(Math.max(middle - height / 2, 0), lowest),
+    width,
+    current: work.dataset.workId ?? null,
+  }
+}
+
 interface FrameReaderProps {
   children: ReactNode
+  /**
+   * The covers the plate can show — `PreviewCover`s named by the works'
+   * `data-work-id`. Mounted once a work is first reached for.
+   */
+  covers: ReactNode
   className?: string | undefined
 }
 
-export function FrameReader({ children, className }: FrameReaderProps) {
+export function FrameReader({ children, covers, className }: FrameReaderProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [aim, setAim] = useState<Aim>(NOWHERE)
+  const [plate, setPlate] = useState<Plate>(NO_PLATE)
+  // Whether a work has been reached for yet — until then no cover is loaded.
+  const [reached, setReached] = useState(false)
 
   useEffect(() => {
     const root = rootRef.current
@@ -134,11 +204,14 @@ export function FrameReader({ children, className }: FrameReaderProps) {
       if (!(work instanceof HTMLElement)) {
         // Fade where it stands, rather than sweep back to the corner.
         setAim((last) => ({ ...last, on: false }))
+        setPlate((last) => ({ ...last, on: false }))
         return
       }
       const place = locate(table, work)
       if (place) yearOf(table, place)?.setAttribute('data-cross', '')
       setAim(aimAt(root, work))
+      setPlate(plateFor(root, work))
+      setReached(true)
     }
 
     const workFrom = (target: EventTarget | null) =>
@@ -194,6 +267,7 @@ export function FrameReader({ children, className }: FrameReaderProps) {
     >
       {children}
       <Crosshair {...aim} />
+      <CoverPreview {...plate}>{reached && covers}</CoverPreview>
     </div>
   )
 }
