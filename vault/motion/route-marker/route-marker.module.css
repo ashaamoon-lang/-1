@@ -11,7 +11,8 @@
 
 .marker {
   position: absolute;
-  bottom: calc(var(--gap) * -0.5);
+  /* Half a gutter under the words, unless the index sets its own drop. */
+  bottom: var(--route-marker-drop, calc(var(--gap) * -0.5));
   left: 0;
   inline-size: 1px;
   border-block-end: thin solid var(--color-secondary);
@@ -32,14 +33,14 @@
   opacity: 1;
 }
 
-/* Only a press slides it; `index.tsx` has why nothing else does. */
+/* Only what `follows` names slides it; `index.tsx` has why nothing else does. */
 .marker[data-moves] {
   transition: transform var(--duration) var(--ease-out-expo);
 }
 
 /*
  * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
- * 3): the rule is under the pressed route at once.
+ * 3): the rule is under the new item at once.
  */
 @media (--reduced-motion) {
   .marker[data-moves] {

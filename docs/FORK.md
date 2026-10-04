@@ -850,6 +850,15 @@ tak bergeser. Dideteksi `IntersectionObserver` pada `h1`, jadi benar juga saat t
 halaman. `aria-hidden` karena mengulang `h1`; tanpa JS label tetap. `data-epic="following-facts"`.
 Diuji di `e2e/following-facts.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
 
+**`/work/<slug>` — spine satu baris di ponsel (Tata & Gerak, tahap 4).** Strip spine di ponsel
+menempel di atas bacaan, jadi tiap baris tambahan menutupi satu baris kasus. Kini barisnya tak
+pernah membungkus. Bila tak muat (kasus dengan bab dan hasil punya enam baris), strip bergeser
+ke samping dan baris aktif dibawa ke tengah; yang bergulir hanya strip, bukan halaman. Baris aktif
+ditandai garis header (`vault/motion/route-marker`, kini bisa mengikuti item aktif) yang meluncur
+di tepi bawah strip; dorongan 4 px di ponsel dilepas karena membuat jarak antarkata timpang. Kini
+keenam kasus muat satu baris bahkan di 320 px; geser dicek dengan strip dipersempit.
+Diuji di `e2e/spine-strip.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

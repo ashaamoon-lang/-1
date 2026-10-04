@@ -83,9 +83,8 @@
    *
    * `e2e/contrast-situ.e2e.ts` holds it. `docs/stages/TAHAP-72.md`.
    */
+  /* The strip carries the padding on a phone (`.strip`). */
   @media not (--desktop) {
-    padding-block: mobile-vw(8px);
-
     &::before {
       content: '';
       position: absolute;
@@ -168,18 +167,52 @@
   transform: none;
 }
 
+/*
+ * The rows' track. A block on a desktop; on a phone the one line that scrolls
+ * sideways (`index.tsx`, "One line on a phone") — bled to the page's edges so
+ * rows pass under them rather than stopping short, and holding the strip's
+ * padding itself, so a focused row's ring is not clipped by the scroll.
+ * Positioned, because the current row's rule is placed in it.
+ */
+.strip {
+  position: relative;
+
+  @media not (--desktop) {
+    /* The rule runs along the strip's lower edge, over its hairline. */
+    --route-marker-drop: 0;
+
+    margin-inline: calc(var(--safe) * -1);
+    padding: mobile-vw(8px) var(--safe);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: var(--safe);
+    scrollbar-width: none;
+  }
+}
+
 .list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
   gap: mobile-vw(16px);
+
+  /* As wide as its rows, which never wrap: the strip scrolls instead. */
+  @media not (--desktop) {
+    inline-size: max-content;
+  }
 
   @media (--desktop) {
     flex-direction: column;
     gap: desktop-vw(8px);
+  }
+}
+
+/* The phone's current-row rule; the desktop has its rail. */
+.marker {
+  @media (--desktop) {
+    display: none;
   }
 }
 
@@ -232,6 +265,12 @@
     transition:
       opacity var(--duration) var(--ease-out-quart),
       transform var(--duration) var(--ease-out-quart);
+
+    /* In a row of words the nudge only made the gaps uneven; the rule under
+       the row says it there (`.marker`). */
+    @media not (--desktop) {
+      transform: none;
+    }
   }
 }
 

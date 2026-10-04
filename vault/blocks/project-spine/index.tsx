@@ -10,8 +10,10 @@ import {
   useSyncExternalStore,
 } from 'react'
 
+import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
 import { CopyLink } from '@/vault/blocks/copy-address/copy-link'
 import { EntryArrow } from '@/vault/motion/entry-arrow'
+import { RouteMarker } from '@/vault/motion/route-marker'
 import { useActiveInSequence } from '@/vault/motion/use-active-in-sequence'
 
 import s from './project-spine.module.css'
@@ -87,6 +89,18 @@ import s from './project-spine.module.css'
  * only, where the label is shown; `aria-hidden`, because it repeats the
  * page's `h1`; and with no script there is no handover, and the label
  * stays.
+ *
+ * ## One line on a phone
+ *
+ * Below the breakpoint the spine is a strip held over the reading, and every
+ * line it gains is a line of the case it hides — so its rows never wrap.
+ * More than fit scroll sideways, and the current row is brought to the
+ * strip's middle as the page moves on: the strip scrolls, never the page.
+ * The current row is marked by the header's own rule
+ * (`vault/motion/route-marker`, following the current item) sliding under
+ * it along the strip's edge, which also replaces the desktop's sideways
+ * nudge — in a row of words that nudge only made the gaps uneven. Tata &
+ * Gerak, stage 4.
  */
 
 export interface SpineRegion {
@@ -184,6 +198,23 @@ export function ProjectSpine({
     return () => observer.disconnect()
   }, [following])
 
+  /*
+   * The current row, brought to the middle of a strip that scrolls. Only the
+   * strip moves; on a desktop, where the rows are a column, there is nothing
+   * to scroll and this does nothing.
+   */
+  const stripRef = useRef<HTMLDivElement>(null)
+  const reduced = usePreferredReducedMotion()
+  useEffect(() => {
+    const strip = stripRef.current
+    const row = strip?.querySelectorAll('li')[active]
+    if (!strip || !row || strip.scrollWidth <= strip.clientWidth) return
+    strip.scrollTo({
+      left: row.offsetLeft + row.offsetWidth / 2 - strip.clientWidth / 2,
+      behavior: reduced ? 'instant' : 'smooth',
+    })
+  }, [active, reduced])
+
   return (
     <div ref={rootRef} className={cn(s.layout, className)}>
       {/*
@@ -212,35 +243,39 @@ export function ProjectSpine({
               </p>
             )}
           </div>
-          <ol className={s.list} data-epic="section-entry">
-            {regions.map((region, index) => (
-              <li
-                key={region.id}
-                className={cn('caption', s.row)}
-                // The state the CSS styles from, so what is announced and
-                // what is drawn cannot drift apart.
-                {...(index === active && { 'data-active': '' })}
-                {...(region.id === arrived && { 'data-arrived': '' })}
-              >
-                <EntryArrow />
-                {/* oxlint-disable-next-line react/forbid-elements -- deliberate
+          <div ref={stripRef} className={s.strip}>
+            <ol className={s.list} data-epic="section-entry">
+              {regions.map((region, index) => (
+                <li
+                  key={region.id}
+                  className={cn('caption', s.row)}
+                  // The state the CSS styles from, so what is announced and
+                  // what is drawn cannot drift apart.
+                  {...(index === active && { 'data-active': '' })}
+                  {...(region.id === arrived && { 'data-arrived': '' })}
+                >
+                  <EntryArrow />
+                  {/* oxlint-disable-next-line react/forbid-elements -- deliberate
                     native anchor, the same reasoning the header's section nav
                     carries: a same-page hash must use the browser's own
                     handling so it still works with JavaScript disabled, which
                     is a stated Tahap 3 exit criterion. Lenis picks it up on
                     this route because `<Wrapper lenis={{ anchors: true }}>`. */}
-                <a
-                  href={`#${region.id}`}
-                  className={s.link}
-                  data-press="spine"
-                  data-intent=""
-                  {...(index === active && { 'aria-current': 'true' })}
-                >
-                  {region.label}
-                </a>
-              </li>
-            ))}
-          </ol>
+                  <a
+                    href={`#${region.id}`}
+                    className={s.link}
+                    data-press="spine"
+                    data-intent=""
+                    {...(index === active && { 'aria-current': 'true' })}
+                  >
+                    {region.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+            {/* The phone's current-row rule; the desktop has its rail. */}
+            <RouteMarker follows="current" className={s.marker} />
+          </div>
           {/*
             The rail. `aria-hidden` because it repeats what the list already
             says: a progress bar beside an index that marks its own current
