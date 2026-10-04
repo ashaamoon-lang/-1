@@ -1,0 +1,66 @@
+/*
+ * BackToTop — a chip in the lower right, on the page's own paper so the work
+ * scrolling under it never shows through. The footer keeps that corner clear
+ * on a phone (`components/layout/footer`), so at the end of a page it sits on
+ * nothing. Under the header in the stack and over the page.
+ *
+ * It rises half a gutter into place and fades in from `@starting-style`; a
+ * press compresses it like every chip (`MOTION-SPEC.md` §9).
+ */
+
+.button {
+  position: fixed;
+  inset-block-end: var(--safe);
+  inset-inline-end: var(--safe);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--gap) * 0.5);
+  min-block-size: calc(var(--gap) * 1.5);
+  padding-inline: calc(var(--gap) * 0.75);
+  border: thin solid var(--line);
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform var(--duration-micro) var(--ease-out-quart),
+    opacity var(--duration-fast) var(--ease-out-expo);
+}
+
+@starting-style {
+  .button {
+    opacity: 0;
+    transform: translateY(calc(var(--gap) * 0.5));
+  }
+}
+
+@media (--hover) {
+  .button:hover {
+    border-color: var(--line-strong);
+    text-decoration-line: underline;
+  }
+}
+
+.button:focus-visible {
+  border-color: var(--line-strong);
+  text-decoration-line: underline;
+}
+
+.arrow {
+  display: inline-block;
+}
+
+/* Reduced motion: it is there, or it is not, at once. */
+@media (--reduced-motion) {
+  .button {
+    transition: none;
+  }
+}
+
+/* Paper has no top to go back to. */
+@media print {
+  .button {
+    display: none;
+  }
+}

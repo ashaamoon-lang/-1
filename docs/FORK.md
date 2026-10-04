@@ -859,6 +859,14 @@ di tepi bawah strip; dorongan 4 px di ponsel dilepas karena membuat jarak antark
 keenam kasus muat satu baris bahkan di 320 px; geser dicek dengan strip dipersempit.
 Diuji di `e2e/spine-strip.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
 
+**Halaman panjang — kembali ke atas (Tata & Gerak, tahap 5).** Beranda 13 layar dan kasus
+hampir 5, tapi jalan pulang ke atas hanya roda gulir atau wordmark, yang meninggalkan halaman.
+Kini chip kecil di pojok kanan bawah (`vault/blocks/back-to-top`) muncul setelah dua layar,
+menggulir ke atas lewat Lenis (lompat di reduced motion), lalu memindah fokus ke awal `main`.
+Ia tak dirender sebelum dua layar, jadi bukan perhentian ekstra bagi keyboard; letaknya setelah
+footer, jadi urutan kontrol lain tak bergeser. Di ujung halaman tak menutupi teks (EN/ID, 390/1440).
+Diuji di `e2e/back-to-top.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
