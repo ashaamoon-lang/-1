@@ -50,6 +50,7 @@ import {
   toImageSource,
 } from '@/lib/integrations/sanity/utils/image'
 import { transitionName } from '@/lib/motion/transition-name'
+import { CropMarks } from '@/vault/motion/crop-marks'
 import { PARALLAX_PLANES, useParallax } from '@/vault/motion/parallax'
 import { MaterialImage } from '@/vault/webgl/material-image'
 
@@ -315,13 +316,20 @@ export function ProjectCard({
             : undefined
         }
       >
-        <ViewTransition
-          name={transitionName(slug)}
-          share="morph"
-          default="none"
-        >
-          <div className={s.media} data-plate-frame="">
-            {/*
+        {/*
+          The plate and its crop marks share one positioned box — Tata &
+          Gerak, stage 3 (`vault/motion/crop-marks`). The marks are beside
+          `.media`, not in it: `.media` clips, and it is what the morph
+          photographs, which must not carry the marks to the next page.
+        */}
+        <div className={s.trim}>
+          <ViewTransition
+            name={transitionName(slug)}
+            share="morph"
+            default="none"
+          >
+            <div className={s.media} data-plate-frame="">
+              {/*
               The parallax lives on an inner wrapper, not on `.media`.
               `.media` is the element `<ViewTransition>` photographs for the
               card-to-project morph, and a transform on a morphing element is
@@ -329,43 +337,45 @@ export function ProjectCard({
               to capture: the browser measures one box and animates another.
               An inner box moves freely inside a frame that holds still.
             */}
-            <div
-              ref={parallaxRef}
-              className={s.parallax}
-              // SAFETY: a CSS custom property is not in React's CSSProperties
-              // map, so the object is widened rather than the value coerced.
-              // The value is a number this component received and passes
-              // straight through; nothing is parsed or trusted.
-              style={parallaxStyle}
-            >
-              {project.cover &&
-                (material ? (
-                  <MaterialImage
-                    image={toImageSource(project.cover)}
-                    alt={project.coverAlt ?? ''}
-                    maxWidth={maxWidth}
-                    sizes={sizes}
-                    className={s.image}
-                    data-intent=""
-                    preload={preload}
-                    released={released}
-                    travel={(drift ?? PARALLAX_PLANES.mid) / 100}
-                    intent={intent}
-                  />
-                ) : (
-                  <SanityImage
-                    image={toImageSource(project.cover)}
-                    alt={project.coverAlt ?? ''}
-                    maxWidth={maxWidth}
-                    sizes={sizes}
-                    className={s.image}
-                    data-intent=""
-                    preload={preload}
-                  />
-                ))}
+              <div
+                ref={parallaxRef}
+                className={s.parallax}
+                // SAFETY: a CSS custom property is not in React's CSSProperties
+                // map, so the object is widened rather than the value coerced.
+                // The value is a number this component received and passes
+                // straight through; nothing is parsed or trusted.
+                style={parallaxStyle}
+              >
+                {project.cover &&
+                  (material ? (
+                    <MaterialImage
+                      image={toImageSource(project.cover)}
+                      alt={project.coverAlt ?? ''}
+                      maxWidth={maxWidth}
+                      sizes={sizes}
+                      className={s.image}
+                      data-intent=""
+                      preload={preload}
+                      released={released}
+                      travel={(drift ?? PARALLAX_PLANES.mid) / 100}
+                      intent={intent}
+                    />
+                  ) : (
+                    <SanityImage
+                      image={toImageSource(project.cover)}
+                      alt={project.coverAlt ?? ''}
+                      maxWidth={maxWidth}
+                      sizes={sizes}
+                      className={s.image}
+                      data-intent=""
+                      preload={preload}
+                    />
+                  ))}
+              </div>
             </div>
-          </div>
-        </ViewTransition>
+          </ViewTransition>
+          <CropMarks />
+        </div>
         <div className={s.caption}>
           <h3 className={cn('p-big', s.title)}>{project.title}</h3>
           {meta && <p className={cn('caption', s.meta)}>{meta}</p>}

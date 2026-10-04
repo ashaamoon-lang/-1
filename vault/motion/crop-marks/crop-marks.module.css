@@ -1,0 +1,133 @@
+/*
+ * CropMarks — the mechanism. `index.tsx` carries the argument.
+ *
+ * Each corner is a point on the plate's edge with two lines drawn from it —
+ * one along the row, one down the column — that start a fifth of a gutter
+ * out and reach three eighths of one further: 9.2px in all, under the
+ * narrowest space a card leaves between its plate and its caption (10.24px,
+ * at 800). At rest the corner stands back from the plate by that fifth and
+ * is clear; in hand it closes in and shows, the corners one
+ * `--stagger-items` apart, round the sheet. Hairlines in the palette's
+ * `--line-strong`, the frame's own line.
+ */
+
+.marks {
+  --crop-offset: calc(var(--gap) / 5);
+  --crop-reach: calc(var(--gap) * 0.375);
+
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.corner {
+  position: absolute;
+  inline-size: 0;
+  block-size: 0;
+  opacity: 0;
+  transform: translate(var(--away-x), var(--away-y));
+  /* Leaving is immediate and together; arriving is staggered, below. */
+  transition:
+    transform var(--duration-micro) var(--ease-out-quart),
+    opacity var(--duration-micro) var(--ease-out-quart);
+}
+
+.corner::before,
+.corner::after {
+  content: '';
+  position: absolute;
+}
+
+/* Along the row. */
+.corner::before {
+  inline-size: var(--crop-reach);
+  border-block-start: thin solid var(--line-strong);
+}
+
+/* Down the column. */
+.corner::after {
+  block-size: var(--crop-reach);
+  border-inline-start: thin solid var(--line-strong);
+}
+
+.corner[data-corner='top-left'] {
+  --away-x: calc(var(--crop-offset) * -1);
+  --away-y: calc(var(--crop-offset) * -1);
+
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
+
+.corner[data-corner='top-right'] {
+  --away-x: var(--crop-offset);
+  --away-y: calc(var(--crop-offset) * -1);
+
+  inset-block-start: 0;
+  inset-inline-end: 0;
+}
+
+.corner[data-corner='bottom-right'] {
+  --away-x: var(--crop-offset);
+  --away-y: var(--crop-offset);
+
+  inset-block-end: 0;
+  inset-inline-end: 0;
+}
+
+.corner[data-corner='bottom-left'] {
+  --away-x: calc(var(--crop-offset) * -1);
+  --away-y: var(--crop-offset);
+
+  inset-block-end: 0;
+  inset-inline-start: 0;
+}
+
+/* The row's line runs outward from the corner, past the plate's side. */
+.corner:is([data-corner='top-left'], [data-corner='bottom-left'])::before {
+  inset-inline-end: var(--crop-offset);
+}
+
+.corner:is([data-corner='top-right'], [data-corner='bottom-right'])::before {
+  inset-inline-start: var(--crop-offset);
+}
+
+/* The column's line runs outward too, past the plate's top or bottom. */
+.corner:is([data-corner='top-left'], [data-corner='top-right'])::after {
+  inset-block-end: var(--crop-offset);
+}
+
+.corner:is([data-corner='bottom-left'], [data-corner='bottom-right'])::after {
+  inset-block-start: var(--crop-offset);
+}
+
+/*
+ * In hand: the control the marks sit in is under the pointer, or holds the
+ * keyboard focus — the same state, reached two ways (MOTION-SPEC §9).
+ */
+@media (--hover) {
+  :where(a, button):hover .corner {
+    opacity: 1;
+    transform: none;
+    transition-duration: var(--duration-fast);
+    transition-delay: calc(var(--corner, 0) * var(--stagger-items));
+  }
+}
+
+:where(a, button):focus-visible .corner {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--duration-fast);
+  transition-delay: calc(var(--corner, 0) * var(--stagger-items));
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the marks are at the corners, or not, at once.
+ */
+@media (--reduced-motion) {
+  .corner,
+  :where(a, button):hover .corner,
+  :where(a, button):focus-visible .corner {
+    transition: none;
+  }
+}

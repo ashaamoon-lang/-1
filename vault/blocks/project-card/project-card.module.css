@@ -25,6 +25,11 @@
   }
 }
 
+/* The plate's edges, shared with its crop marks (`index.tsx`). */
+.trim {
+  position: relative;
+}
+
 .media {
   position: relative;
   overflow: clip;

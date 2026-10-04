@@ -834,6 +834,14 @@ bukan ke pointer, supaya keyboard dan pointer sama. Tak muncul kalau bay terlalu
 dan tak pernah keluar dari bingkai. Sampul baru dimuat saat karya pertama kali disentuh.
 Diuji di `e2e/cover-preview.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
 
+**Kartu karya — tanda potong (Tata & Gerak, tahap 3).** Saat kartu dihover atau difokus,
+tanda potong lembar cetak (`vault/motion/crop-marks`) merapat ke keempat sudut pelatnya,
+bergiliran searah jarum jam. Karya itu terbaca sebagai yang sedang dipotong dari lembar.
+Tanda berada di luar pelat dan di luar elemen yang dipotret morph, jadi tidak ikut ke halaman
+kasus. Panjangnya 9,2 px, di bawah celah tersempit antara pelat dan judul (10,24 px, di 800).
+CSS saja, jadi berlaku tanpa JS; hanya `transform`/`opacity`; reduced motion: langsung tampil.
+Diuji di `e2e/card-crop.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
