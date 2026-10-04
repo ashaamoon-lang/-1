@@ -78,6 +78,15 @@ function useGrid() {
   return useSyncExternalStore(subscribe, isDrawn, notOnServer)
 }
 
+/** A store that never changes, for "is a script running here at all". */
+function subscribeNever() {
+  return () => undefined
+}
+
+function scripted() {
+  return true
+}
+
 /** Whether a key pressed here is someone typing. */
 function isTyping(target: EventTarget | null) {
   return (
@@ -136,9 +145,15 @@ interface GridToggleProps {
   className?: string | undefined
 }
 
-/** The button that draws the grid or takes it away. */
+/**
+ * The button that draws the grid or takes it away — rendered only where a
+ * script runs, because without one it would be a button that does nothing.
+ */
 export function GridToggle({ label, className }: GridToggleProps) {
   const shown = useGrid()
+  const ready = useSyncExternalStore(subscribeNever, scripted, notOnServer)
+
+  if (!ready) return null
 
   return (
     <button

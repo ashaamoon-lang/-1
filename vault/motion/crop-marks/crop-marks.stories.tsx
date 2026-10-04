@@ -23,6 +23,8 @@ const meta = {
   render: (args) => (
     <button
       type="button"
+      // The plate has no words of its own; the button still needs a name.
+      aria-label="A plate in hand"
       style={{
         padding: 'calc(var(--gap) * 2)',
         border: 'none',
