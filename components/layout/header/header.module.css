@@ -179,11 +179,14 @@
   color: inherit;
   overflow: visible;
 
-  /* The middle track — the header's centre. Tahap 87. */
+  /*
+   * The middle track — the header's centre. Tahap 87. Positioned, as the
+   * route marker's containing block (`vault/motion/route-marker`).
+   */
   @media (--desktop) {
     grid-column: 2;
     display: block;
-    position: static;
+    position: relative;
   }
 
   /*
@@ -331,6 +334,13 @@
       text-decoration-thickness: 0.06em;
       text-underline-offset: 0.12em;
     }
+  }
+}
+
+/* On the phone's sheet the current word is underlined instead. */
+.marker {
+  @media (--mobile) {
+    display: none;
   }
 }
 

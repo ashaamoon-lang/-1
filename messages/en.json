@@ -79,7 +79,9 @@
     "colophon": "Colophon",
     "rights": "All work © {year} Arth. Reproduction by arrangement only.",
     "builtOn": "Built on Satūs by darkroom.engineering, MIT licensed. Type is Syne and Geist Mono.",
-    "index": "Index"
+    "index": "Index",
+    "backToTop": "Back to top",
+    "showGrid": "Show the grid"
   },
   "project": {
     "enquiryLabel": "Discuss a similar engagement",
@@ -214,6 +216,8 @@
     "closingAction": "See the work"
   },
   "journal": {
+    "readingTime": "{minutes} min read",
+    "readingLeft": "{minutes} min left",
     "replyLabel": "Reply",
     "replyAction": "Talk to the studio about this",
     "replySubject": "Re: {title}",

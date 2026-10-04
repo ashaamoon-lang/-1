@@ -1,0 +1,59 @@
+/*
+ * RouteMarker — the mechanism. `index.tsx` carries the argument.
+ *
+ * One hairline a pixel wide, scaled to the current word's width and moved to
+ * its start, so a slide to another route is a `transform` and nothing else. A
+ * border rather than a fill, so forced colours keep it; in the current word's
+ * own ink, so "you are here" is said by more than a step of ink — which, on
+ * its own, measured about 1.8:1 against the other words
+ * (`components/layout/header`).
+ *
+ * The ink is `currentColor`, because the rule is the word's underline, carried
+ * — text, not ground. It matters where the rule sits on sticky chrome that
+ * the page scrolls under: `e2e/contrast-situ.e2e.ts` hides every glyph to
+ * photograph what lies behind the text, and a rule drawn in a colour of its
+ * own stayed in that photograph. On the phone's case strip it lay across a
+ * caption half under the strip's edge and measured 1:1 there (CI, Tata &
+ * Gerak). Drawn in the text's own colour it is hidden with the text, as an
+ * underline is.
+ */
+
+.marker {
+  position: absolute;
+  /* Half a gutter under the words, unless the index sets its own drop. */
+  bottom: var(--route-marker-drop, calc(var(--gap) * -0.5));
+  left: 0;
+  inline-size: 1px;
+  color: var(--color-secondary);
+  border-block-end: thin solid currentColor;
+  transform-origin: left center;
+  transform: translateX(var(--marker-x, 0)) scaleX(var(--marker-width, 0));
+  opacity: 0;
+  pointer-events: none;
+  /*
+   * Said, not left to the default: under reduced motion `global.css` gives
+   * every element a 0.01ms transition, and on a page that has just arrived
+   * the first placement then waited for the next frame — measured, up to
+   * 260ms with no rule under the current route.
+   */
+  transition: none;
+}
+
+.marker[data-on] {
+  opacity: 1;
+}
+
+/* Only what `follows` names slides it; `index.tsx` has why nothing else does. */
+.marker[data-moves] {
+  transition: transform var(--duration) var(--ease-out-expo);
+}
+
+/*
+ * Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4 rule
+ * 3): the rule is under the new item at once.
+ */
+@media (--reduced-motion) {
+  .marker[data-moves] {
+    transition: none;
+  }
+}

@@ -1,0 +1,97 @@
+/*
+ * GridUnderlay — the mechanism. `index.tsx` carries the argument.
+ *
+ * The drawing is fixed over the page, under the header, and lets every
+ * pointer through. Its columns are the page grid's own — `--columns` wide,
+ * `--gap` apart, `--safe` in from each edge — each one a pair of hairlines in
+ * the frame's `--line-strong`. They let down from the top, `--stagger-items`
+ * apart, in the standard band; reduced motion draws them at once.
+ */
+
+.underlay {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  column-gap: var(--gap);
+  inline-size: calc(100% - 2 * var(--safe));
+  block-size: 100%;
+  margin-inline: auto;
+}
+
+.column {
+  border-inline: thin solid var(--line-strong);
+  transform-origin: top;
+  transition: transform var(--duration) var(--ease-out-expo);
+  transition-delay: calc(var(--column, 0) * var(--stagger-items));
+
+  /* A phone's grid has four columns; the other eight have no place in it. */
+  &:nth-child(n + 5) {
+    @media not (--desktop) {
+      display: none;
+    }
+  }
+}
+
+@starting-style {
+  .column {
+    transform: scaleY(0);
+  }
+}
+
+/* The toggle: a chip, like the section link's (`copy-address`). */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--gap) * 0.5);
+  min-block-size: calc(var(--gap) * 1.5);
+  padding-inline: calc(var(--gap) * 0.75);
+  border: thin solid var(--line);
+  background: none;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform var(--duration-micro) var(--ease-out-quart);
+}
+
+@media (--hover) {
+  .toggle:hover {
+    border-color: var(--line-strong);
+    text-decoration-line: underline;
+  }
+}
+
+.toggle:focus-visible {
+  border-color: var(--line-strong);
+  text-decoration-line: underline;
+}
+
+/* Pressed: the grid is drawn, and the chip is ruled in full ink. */
+.toggle[aria-pressed='true'] {
+  border-color: var(--color-secondary);
+}
+
+.key {
+  font: inherit;
+  color: var(--text-muted);
+}
+
+/* Reduced motion keeps the outcome and drops the beat (MOTION-SPEC §9.4). */
+@media (--reduced-motion) {
+  .column,
+  .toggle {
+    transition: none;
+  }
+}
+
+/* A printed page is not set on a screen's grid. */
+@media print {
+  .underlay {
+    display: none;
+  }
+}

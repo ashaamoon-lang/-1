@@ -10,6 +10,7 @@
 
 import cn from 'clsx'
 import type { LenisOptions } from 'lenis'
+import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 
 import { Footer } from '@/components/layout/footer'
@@ -17,6 +18,8 @@ import { Header } from '@/components/layout/header'
 import { Lenis } from '@/components/layout/lenis'
 import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
+import { BackToTop } from '@/vault/blocks/back-to-top'
+import { GridUnderlay } from '@/vault/motion/grid-underlay'
 import { Canvas } from '@/webgl/components/canvas'
 
 /**
@@ -158,6 +161,8 @@ export function Wrapper({
   gsap = false,
   ...props
 }: WrapperProps) {
+  const t = useTranslations('footer')
+
   return (
     <Theme theme={theme} global>
       {/* Header is rendered here - do NOT add another in layout.tsx */}
@@ -196,6 +201,17 @@ export function Wrapper({
       </Canvas>
       {/* Footer is rendered here - do NOT add another in layout.tsx */}
       <Footer />
+      {/*
+        The way back up a long page — Tata & Gerak, stage 5. After the footer
+        so it is the page's last stop, and absent until two screens down, so
+        the controls before it keep their place in the order.
+      */}
+      <BackToTop label={t('backToTop')} />
+      {/*
+        The page grid, drawn over the page when the footer's toggle or the
+        `g` key asks — Tata & Gerak, stage 5. Nothing is rendered until then.
+      */}
+      <GridUnderlay />
       {gsap && <GSAPRuntime />}
       {lenis && (
         <Lenis

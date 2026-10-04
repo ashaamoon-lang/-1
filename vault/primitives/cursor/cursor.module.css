@@ -144,3 +144,10 @@
     animation: none;
   }
 }
+
+/* A cursor has nothing to point at on paper (Tata & Gerak). */
+@media print {
+  .cursor {
+    display: none;
+  }
+}

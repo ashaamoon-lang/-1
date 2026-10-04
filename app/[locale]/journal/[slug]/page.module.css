@@ -142,6 +142,13 @@
  * convention — `vault/blocks/project-card` already joins engagement, client
  * and year with it, so this is reusing a decision rather than making one.
  */
+/* The reading time, set off from what precedes it like the practice is. */
+.minutes::before {
+  content: '·';
+  margin-inline-end: calc(var(--gap) * 0.5);
+  color: var(--text-muted);
+}
+
 .practice::before {
   content: '·';
   margin-inline-end: desktop-vw(8px);
@@ -266,4 +273,58 @@
   object-fit: cover;
   inline-size: 100%;
   block-size: auto;
+}
+
+/*
+ * On paper — Tata & Gerak, stage 1. The essay, and only the essay: its title,
+ * date and summary, then the text in one column the width of the sheet. The
+ * crumbs, the plate beside it, the reply slip, the practice's work and the
+ * way to the next entry are all things to press, and paper cannot be pressed.
+ * The chrome around every page is left off in `global.css`.
+ */
+@media print {
+  /*
+   * One column in reading order, whatever the sheet's width. A page printed
+   * wide enough to match `--desktop` would otherwise keep the screen's grid,
+   * which seats the header in row 2 and puts the essay above its own title.
+   */
+  .page {
+    display: flex;
+    flex-direction: column;
+    padding-block: 0;
+  }
+
+  .reading {
+    display: block;
+  }
+
+  .page > :not(.header, .reading),
+  .opening {
+    display: none;
+  }
+
+  .title {
+    max-width: none;
+    break-after: avoid;
+  }
+
+  /* The rule and its lead separate the essay from the plate on screen. */
+  .body {
+    border-top: none;
+    padding-block-start: 0;
+  }
+}
+
+/*
+ * An essay that does not end a paragraph on one word — Tata & Gerak, stage 1.
+ * `pretty` lets the browser rebreak a paragraph's last lines rather than leave
+ * a word alone on the final one; a browser that does not know it wraps as it
+ * always did. Only the essay and its summary: this is the page read line by
+ * line, and the one where a stranded word is noticed.
+ */
+@supports (text-wrap: pretty) {
+  .paragraph,
+  .summary {
+    text-wrap: pretty;
+  }
 }

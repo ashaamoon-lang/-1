@@ -4,12 +4,16 @@ import cn from 'clsx'
 import {
   type CSSProperties,
   type ReactNode,
+  useEffect,
   useRef,
+  useState,
   useSyncExternalStore,
 } from 'react'
 
+import { usePreferredReducedMotion } from '@/lib/hooks/use-sync-external'
 import { CopyLink } from '@/vault/blocks/copy-address/copy-link'
 import { EntryArrow } from '@/vault/motion/entry-arrow'
+import { RouteMarker } from '@/vault/motion/route-marker'
 import { useActiveInSequence } from '@/vault/motion/use-active-in-sequence'
 
 import s from './project-spine.module.css'
@@ -74,6 +78,29 @@ import s from './project-spine.module.css'
  * arrow (`vault/motion/entry-arrow`, the `section-entry` moment) that stays as
  * they read on. The section is read from the address on hydration and on
  * `hashchange`; the server, which never sees a fragment, marks nothing.
+ *
+ * ## The facts that follow
+ *
+ * Given `facts`, the spine keeps the case's name and year once the hero's
+ * title has left the screen — Tata & Gerak, stage 4, `following-facts`.
+ * Halfway down a 4.7-screen page nothing on screen says which work it is.
+ * The name takes the place of the index's own label: the label lifts away
+ * as the name rises in, in the same cell, so nothing below moves. Desktop
+ * only, where the label is shown; `aria-hidden`, because it repeats the
+ * page's `h1`; and with no script there is no handover, and the label
+ * stays.
+ *
+ * ## One line on a phone
+ *
+ * Below the breakpoint the spine is a strip held over the reading, and every
+ * line it gains is a line of the case it hides — so its rows never wrap.
+ * More than fit scroll sideways, and the current row is brought to the
+ * strip's middle as the page moves on: the strip scrolls, never the page.
+ * The current row is marked by the header's own rule
+ * (`vault/motion/route-marker`, following the current item) sliding under
+ * it along the strip's edge, which also replaces the desktop's sideways
+ * nudge — in a row of words that nudge only made the gaps uneven. Tata &
+ * Gerak, stage 4.
  */
 
 export interface SpineRegion {
@@ -93,7 +120,16 @@ interface ProjectSpineProps {
   children: ReactNode
   /** The words for copying a link to the section being read. */
   copy?: SectionCopyLabels | undefined
+  /** What the case is, kept in the spine once the page's `h1` has gone. */
+  facts?: SpineFacts | undefined
   className?: string | undefined
+}
+
+/** The case's name and date, as its hero gives them. */
+export interface SpineFacts {
+  title: string
+  /** The year the case is dated, if it is. */
+  year: number | null
 }
 
 /** Already localized — what the section-link control and its status say. */
@@ -130,6 +166,7 @@ export function ProjectSpine({
   regions,
   children,
   copy,
+  facts,
   className,
 }: ProjectSpineProps) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -140,6 +177,44 @@ export function ProjectSpine({
     noHashOnServer
   )
 
+  /*
+   * Whether the page's title has gone off the top of the screen. Told by an
+   * observer on the `h1`, so it is a state change and not a frame loop, and
+   * it is right on arrival mid-page — a copied section link — as well.
+   */
+  const [past, setPast] = useState(false)
+  const following = facts !== undefined
+  useEffect(() => {
+    const title = rootRef.current?.querySelector('h1')
+    if (!following || !title) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry) return
+      setPast(
+        !entry.isIntersecting &&
+          entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0)
+      )
+    })
+    observer.observe(title)
+    return () => observer.disconnect()
+  }, [following])
+
+  /*
+   * The current row, brought to the middle of a strip that scrolls. Only the
+   * strip moves; on a desktop, where the rows are a column, there is nothing
+   * to scroll and this does nothing.
+   */
+  const stripRef = useRef<HTMLDivElement>(null)
+  const reduced = usePreferredReducedMotion()
+  useEffect(() => {
+    const strip = stripRef.current
+    const row = strip?.querySelectorAll('li')[active]
+    if (!strip || !row || strip.scrollWidth <= strip.clientWidth) return
+    strip.scrollTo({
+      left: row.offsetLeft + row.offsetWidth / 2 - strip.clientWidth / 2,
+      behavior: reduced ? 'instant' : 'smooth',
+    })
+  }, [active, reduced])
+
   return (
     <div ref={rootRef} className={cn(s.layout, className)}>
       {/*
@@ -149,37 +224,58 @@ export function ProjectSpine({
         a single chip.
       */}
       {regions.length > 1 && (
-        <nav aria-label={label} className={s.spine} data-project-spine="">
-          <p className={cn('caption', s.spineLabel)}>{label}</p>
-          <ol className={s.list} data-epic="section-entry">
-            {regions.map((region, index) => (
-              <li
-                key={region.id}
-                className={cn('caption', s.row)}
-                // The state the CSS styles from, so what is announced and
-                // what is drawn cannot drift apart.
-                {...(index === active && { 'data-active': '' })}
-                {...(region.id === arrived && { 'data-arrived': '' })}
+        <nav
+          aria-label={label}
+          className={s.spine}
+          data-project-spine=""
+          {...(past && { 'data-past': '' })}
+        >
+          <div className={s.head}>
+            <p className={cn('caption', s.spineLabel)}>{label}</p>
+            {facts && (
+              <p
+                aria-hidden="true"
+                className={cn('caption', s.facts)}
+                data-epic="following-facts"
               >
-                <EntryArrow />
-                {/* oxlint-disable-next-line react/forbid-elements -- deliberate
+                <span className={s.factsTitle}>{facts.title}</span>
+                {facts.year !== null && <span>{facts.year}</span>}
+              </p>
+            )}
+          </div>
+          <div ref={stripRef} className={s.strip}>
+            <ol className={s.list} data-epic="section-entry">
+              {regions.map((region, index) => (
+                <li
+                  key={region.id}
+                  className={cn('caption', s.row)}
+                  // The state the CSS styles from, so what is announced and
+                  // what is drawn cannot drift apart.
+                  {...(index === active && { 'data-active': '' })}
+                  {...(region.id === arrived && { 'data-arrived': '' })}
+                >
+                  <EntryArrow />
+                  {/* oxlint-disable-next-line react/forbid-elements -- deliberate
                     native anchor, the same reasoning the header's section nav
                     carries: a same-page hash must use the browser's own
                     handling so it still works with JavaScript disabled, which
                     is a stated Tahap 3 exit criterion. Lenis picks it up on
                     this route because `<Wrapper lenis={{ anchors: true }}>`. */}
-                <a
-                  href={`#${region.id}`}
-                  className={s.link}
-                  data-press="spine"
-                  data-intent=""
-                  {...(index === active && { 'aria-current': 'true' })}
-                >
-                  {region.label}
-                </a>
-              </li>
-            ))}
-          </ol>
+                  <a
+                    href={`#${region.id}`}
+                    className={s.link}
+                    data-press="spine"
+                    data-intent=""
+                    {...(index === active && { 'aria-current': 'true' })}
+                  >
+                    {region.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+            {/* The phone's current-row rule; the desktop has its rail. */}
+            <RouteMarker follows="current" className={s.marker} />
+          </div>
           {/*
             The rail. `aria-hidden` because it repeats what the list already
             says: a progress bar beside an index that marks its own current

@@ -638,3 +638,52 @@ html.screenshot {
     min(calc(100cqi / (var(--fit-chars, 12) * 0.72)), var(--fit-cap, 34svh))
   );
 }
+
+/*
+ * On paper — Tata & Gerak, stage 1.
+ *
+ * An essay is the one page here a reader may print, or save as a PDF, to take
+ * into a meeting; so on paper a page is its content. The site's chrome and the
+ * layers fixed over every screen — header, footer, the transition panel, the
+ * entrance curtain, the reading bar — are left off, and anything still waiting
+ * for a reveal is printed as it would read once revealed: a printer does not
+ * scroll, so a paragraph never reached on screen would otherwise print blank.
+ *
+ * `!important` only here, and only for print: each of these is styled by its
+ * own module at a higher specificity than a rule about paper should need to
+ * match, and a print sheet is the one place that has to win outright.
+ * Per-page rules (which parts of an essay to keep) live with the page —
+ * `app/[locale]/journal/[slug]/page.module.css`.
+ */
+@media print {
+  :is(header, footer):not(main *),
+  [data-page-transition],
+  [data-curtain],
+  [data-reading-progress] {
+    display: none !important;
+  }
+
+  [data-reveal] [data-reveal-item] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/*
+ * Balanced headings — Tata & Gerak, stage 1.
+ *
+ * A heading that wraps reads as one thought when its lines are close in
+ * length, and as a heading with a leftover when its last line holds a single
+ * word — "Evaluation before / pipeline" on a phone. `balance` evens the lines
+ * without changing how many there are, so nothing above or below a heading
+ * moves, and a browser that does not know it wraps as it always did.
+ *
+ * Nameplates are left out: they are sized to fill their line
+ * (`lib/utils/display-fit`), and balancing would only open gaps in a line
+ * built to be full.
+ */
+@supports (text-wrap: balance) {
+  :is(h1, h2, h3, h4):not(.nameplate-title) {
+    text-wrap: balance;
+  }
+}

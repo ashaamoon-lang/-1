@@ -65,3 +65,22 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {}
+
+/**
+ * With `facts`: scroll the page's title away and the spine keeps the case's
+ * name and year in its label's place. The name here is a placeholder, not a
+ * work the studio made.
+ */
+export const Following: Story = {
+  args: {
+    facts: { title: 'A case', year: 2025 },
+    children: [
+      <h1 key="title" className="h1">
+        A case
+      </h1>,
+      ...REGIONS.map((region) => (
+        <Region key={region.id} id={region.id} title={region.label} />
+      )),
+    ],
+  },
+}
