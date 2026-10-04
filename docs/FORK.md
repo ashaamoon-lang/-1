@@ -799,7 +799,7 @@ kini menyisakan esai saja: meta, judul, ringkasan, lalu teks satu kolom urut bac
 kertas berapa pun. Header, footer, panel transisi, tirai, bilah baca, grain, dan kursor
 disembunyikan; butir yang belum ter-reveal dicetak terlihat, karena printer tidak menggulir.
 Diuji di `e2e/print-essay.e2e.ts` dan dilihat di tangkapan layar 390/1440.
-**Belum diverifikasi:** e2e, CI, mata.
+**Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **Semua rute — tipografi seimbang (Tata & Gerak, tahap 1).** Judul yang terbungkus kini
 seimbang (`text-wrap: balance` pada h1–h4, kecuali nameplate yang memang diukur memenuhi
@@ -807,7 +807,7 @@ barisnya): "Evaluation before / pipeline" di ponsel menjadi "Evaluation / before
 Jumlah baris tidak berubah, jadi tak ada yang bergeser. Paragraf dan ringkasan esai memakai
 `pretty`, sehingga tidak berakhir dengan satu kata. Keduanya di dalam `@supports`; peramban
 lama membungkus seperti biasa. Dilihat di tangkapan layar sebelum/sesudah 390 px.
-**Belum diverifikasi:** e2e, CI, mata.
+**Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **`/journal/<slug>` — waktu baca dan sisanya (Tata & Gerak, tahap 2).** Meta esai kini
 menyebut lamanya ("1 min read"/"1 menit baca"), dihitung dari isinya (`lib/content/reading-time`,
@@ -815,7 +815,7 @@ menyebut lamanya ("1 min read"/"1 menit baca"), dihitung dari isinya (`lib/conte
 header kanan (`vault/blocks/reading-left`) menyebut sisanya ("4 min left"), dihitung ulang
 tiap kali paragraf melewati garis baca lewat `IntersectionObserver`, dan hilang saat akhir
 esai terlihat. Posisinya hasil cek ponsel: di pojok bawah ia menutupi baris berikutnya.
-Diuji di `e2e/reading-time.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+Diuji di `e2e/reading-time.e2e.ts`. **Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **Header — penanda rute meluncur (Tata & Gerak, tahap 2).** Rute yang sedang dibuka dulu
 dibedakan oleh tinta saja, dan tinta itu terukur ±1,8:1 terhadap kata lain. Kini satu garis
@@ -824,7 +824,7 @@ garis meluncur ke kata itu serta mengambil lebarnya sebelum halaman berganti. Ia
 meluncur saat ditekan: tiap halaman merender header-nya sendiri, dan luncuran saat tiba akan
 terjadi di bawah panel transisi. Hanya `transform`; reduced motion: langsung di tempat; tanpa
 JS tak ada garis, tinta tetap. Desktop saja, karena kata aktif di ponsel sudah bergaris bawah.
-Diuji di `e2e/route-marker.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+Diuji di `e2e/route-marker.e2e.ts`. **Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **`/work` — sampul di bingkai (Tata & Gerak, tahap 3).** Bingkai katalog membaca karya sebagai
 tabel nama, sedangkan sampulnya satu layar di atas. Kini karya yang dihover atau difokus
@@ -832,7 +832,7 @@ menampilkan sampulnya di pelat 4:5 (`vault/motion/cover-preview`) di ujung koson
 Pelat meluncur bersama garis bidik dan gambarnya berganti silang. Ia ditambatkan ke karya,
 bukan ke pointer, supaya keyboard dan pointer sama. Tak muncul kalau bay terlalu sempit,
 dan tak pernah keluar dari bingkai. Sampul baru dimuat saat karya pertama kali disentuh.
-Diuji di `e2e/cover-preview.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+Diuji di `e2e/cover-preview.e2e.ts`. **Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **Kartu karya — tanda potong (Tata & Gerak, tahap 3).** Saat kartu dihover atau difokus,
 tanda potong lembar cetak (`vault/motion/crop-marks`) merapat ke keempat sudut pelatnya,
@@ -840,7 +840,7 @@ bergiliran searah jarum jam. Karya itu terbaca sebagai yang sedang dipotong dari
 Tanda berada di luar pelat dan di luar elemen yang dipotret morph, jadi tidak ikut ke halaman
 kasus. Panjangnya 9,2 px, di bawah celah tersempit antara pelat dan judul (10,24 px, di 800).
 CSS saja, jadi berlaku tanpa JS; hanya `transform`/`opacity`; reduced motion: langsung tampil.
-Diuji di `e2e/card-crop.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+Diuji di `e2e/card-crop.e2e.ts`. **Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **`/work/<slug>` — fakta yang ikut (Tata & Gerak, tahap 4).** Di tengah halaman kasus
 sepanjang 4,7 layar, tak ada yang menyebut karya mana yang sedang dibaca. Kini, begitu `h1`
@@ -848,7 +848,7 @@ hero keluar layar, spine desktop menyebut nama dan tahun kasus ("Arus Balik 2025
 labelnya. Label terangkat pergi saat nama naik masuk, di sel yang sama, jadi baris di bawahnya
 tak bergeser. Dideteksi `IntersectionObserver` pada `h1`, jadi benar juga saat tiba di tengah
 halaman. `aria-hidden` karena mengulang `h1`; tanpa JS label tetap. `data-epic="following-facts"`.
-Diuji di `e2e/following-facts.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+Diuji di `e2e/following-facts.e2e.ts`. **Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **`/work/<slug>` — spine satu baris di ponsel (Tata & Gerak, tahap 4).** Strip spine di ponsel
 menempel di atas bacaan, jadi tiap baris tambahan menutupi satu baris kasus. Kini barisnya tak
@@ -857,7 +857,7 @@ ke samping dan baris aktif dibawa ke tengah; yang bergulir hanya strip, bukan ha
 ditandai garis header (`vault/motion/route-marker`, kini bisa mengikuti item aktif) yang meluncur
 di tepi bawah strip; dorongan 4 px di ponsel dilepas karena membuat jarak antarkata timpang. Kini
 keenam kasus muat satu baris bahkan di 320 px; geser dicek dengan strip dipersempit.
-Diuji di `e2e/spine-strip.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+Diuji di `e2e/spine-strip.e2e.ts`. **Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **Halaman panjang — kembali ke atas (Tata & Gerak, tahap 5).** Beranda 13 layar dan kasus
 hampir 5, tapi jalan pulang ke atas hanya roda gulir atau wordmark, yang meninggalkan halaman.
@@ -865,7 +865,7 @@ Kini chip kecil di pojok kanan bawah (`vault/blocks/back-to-top`) muncul setelah
 menggulir ke atas lewat Lenis (lompat di reduced motion), lalu memindah fokus ke awal `main`.
 Ia tak dirender sebelum dua layar, jadi bukan perhentian ekstra bagi keyboard; letaknya setelah
 footer, jadi urutan kontrol lain tak bergeser. Di ujung halaman tak menutupi teks (EN/ID, 390/1440).
-Diuji di `e2e/back-to-top.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+Diuji di `e2e/back-to-top.e2e.ts`. **Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 **Semua rute — kisi bawah (Tata & Gerak, tahap 5).** Situs ini berargumen bahwa struktur di
 balik karya ikut dibeli klien, tapi kisi 12 kolom halamannya sendiri tak pernah terlihat. Kini
@@ -873,7 +873,7 @@ tombol "Show the grid"/"Tampilkan kisi" di kolofon footer (`aria-pressed`), atau
 luar kolom isian, menggambar kisi itu di atas halaman (`vault/motion/grid-underlay`): kolom
 turun dari atas bergiliran `--stagger-items`. Geometrinya kisi halaman sendiri (`--columns`,
 `--gap`, `--safe`; 4 kolom di ponsel). Status hanya untuk kunjungan, tanpa penyimpanan.
-Diuji di `e2e/grid-underlay.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+Diuji di `e2e/grid-underlay.e2e.ts`. **Belum diverifikasi:** mata (CI hijau, run 37177613961).
 
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
