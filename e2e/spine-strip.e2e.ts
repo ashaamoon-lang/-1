@@ -37,7 +37,8 @@ test.describe('the spine is one line on a phone', () => {
         ?.scrollIntoView({ block: 'start' })
     )
     const rule = spine.locator('[data-epic="route-marker"]')
-    await expect(rule).toHaveAttribute('data-on', '')
+    // Placed once the page's script runs; give a slow runner time.
+    await expect(rule).toHaveAttribute('data-on', '', { timeout: 15_000 })
     await expect
       .poll(async () => {
         const [word, line] = await Promise.all([

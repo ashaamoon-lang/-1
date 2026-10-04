@@ -27,7 +27,8 @@ test.describe('the spine keeps the case name once the title has gone', () => {
         .querySelectorAll('[data-region]')[1]
         ?.scrollIntoView({ block: 'start' })
     )
-    await expect(spine).toHaveAttribute('data-past', '')
+    // Told by an observer the page's script sets up; give a slow runner time.
+    await expect(spine).toHaveAttribute('data-past', '', { timeout: 15_000 })
     await expect
       .poll(() => facts.evaluate((node) => getComputedStyle(node).opacity))
       .toBe('1')

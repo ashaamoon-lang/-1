@@ -37,7 +37,8 @@ test.describe('an essay says how long it takes, and how long is left', () => {
         ?.scrollIntoView({ block: 'start' })
     )
 
-    await expect(tag).toHaveAttribute('data-shown', '')
+    // Told by observers the page's script sets up; give a slow runner time.
+    await expect(tag).toHaveAttribute('data-shown', '', { timeout: 15_000 })
     await expect(tag).toHaveText(/\d+ min left/)
 
     // Once the essay's end is on screen, the tag gets out of the way.

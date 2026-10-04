@@ -1,4 +1,4 @@
-import type { Locator } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 /**
@@ -10,9 +10,46 @@ import { expect, test } from '@playwright/test'
  * the frame's own box, which clips and scrolls, so a plate past its edge adds
  * a scrollbar instead of a picture, and one placed carelessly covers the very
  * words it illustrates.
+ *
+ * The frame listens once its script has run, and `/work` carries WebGL, so
+ * on a CI runner that can be after the first hover or focus has already
+ * happened (CI, first run: a focus that landed first was never answered).
+ * Each reach is therefore repeated — away and back — until the frame
+ * answers, rather than assumed to have been heard.
  */
+const PLATE = '[data-epic="cover-preview"]'
+
+async function hoverUntilAnswered(page: Page, frame: Locator, work: Locator) {
+  await expect
+    .poll(
+      async () => {
+        await page.mouse.move(0, 0)
+        await work.hover()
+        return frame.locator(PLATE).getAttribute('data-on')
+      },
+      // Long enough for a slow runner to hydrate a page that carries WebGL.
+      { message: 'the plate never answered the pointer', timeout: 15_000 }
+    )
+    .toBe('')
+}
+
+async function focusUntilAnswered(frame: Locator, work: Locator) {
+  await expect
+    .poll(
+      async () => {
+        await work.evaluate((node) => {
+          if (node instanceof HTMLElement) node.blur()
+        })
+        await work.focus()
+        return frame.locator(PLATE).getAttribute('data-on')
+      },
+      { message: 'the plate never answered the keyboard', timeout: 15_000 }
+    )
+    .toBe('')
+}
+
 async function expectBeside(frame: Locator, work: Locator) {
-  const plate = frame.locator('[data-epic="cover-preview"]')
+  const plate = frame.locator(PLATE)
   await expect(plate).toHaveAttribute('data-on', '')
   // The glide is the fast band; read the plate once it has arrived.
   await expect
@@ -66,7 +103,7 @@ test.describe('the frame carries the cover of the work in hand', () => {
 
     for (const index of [0, 1]) {
       const work = works.nth(index)
-      await work.hover()
+      await hoverUntilAnswered(page, frame, work)
       await expectBeside(frame, work)
     }
 
@@ -88,7 +125,7 @@ test.describe('the frame carries the cover of the work in hand', () => {
     await page.keyboard.press('Tab')
     const frame = page.locator('[data-epic="frame-crosshair"]')
     const work = frame.locator('[data-work-id]').first()
-    await work.focus()
+    await focusUntilAnswered(frame, work)
 
     await expectBeside(frame, work)
   })

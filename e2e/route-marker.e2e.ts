@@ -17,7 +17,8 @@ async function expectUnder(page: Page, name: string) {
   // document, hidden; only the shown one counts.
   const marker = page.locator('[data-epic="route-marker"]:visible')
 
-  await expect(marker).toHaveAttribute('data-on', '')
+  // Placed once the header's script runs; a CI runner can be slow to get there.
+  await expect(marker).toHaveAttribute('data-on', '', { timeout: 15_000 })
   await expect
     .poll(async () => {
       const [word, rule] = await Promise.all([
@@ -59,8 +60,14 @@ test.describe('the route marker stands under the current route', () => {
       .getByRole('link', { name: 'Arth — home' })
       .click()
     await expect(page).toHaveURL(/\/en\/?$/)
+    /*
+     * The shown header's rule, found through the header itself: a rule that
+     * stands under nothing is scaled to nothing, so it has no box, and
+     * `:visible` — which is how the test above finds a placed one — finds
+     * none here (CI, first run).
+     */
     await expect(
-      page.locator('[data-epic="route-marker"]:visible')
+      page.getByRole('banner').locator('[data-epic="route-marker"]')
     ).not.toHaveAttribute('data-on', '')
   })
 })

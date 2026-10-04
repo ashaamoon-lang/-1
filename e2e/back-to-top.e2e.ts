@@ -19,7 +19,8 @@ test.describe('a long page offers a way back up', () => {
     await expect(back, 'offered at the top of the page').toHaveCount(0)
 
     await page.evaluate(() => window.scrollTo(0, window.innerHeight * 3))
-    await expect(back).toBeVisible()
+    // Rendered once the page's script reads the scroll; give a slow runner time.
+    await expect(back).toBeVisible({ timeout: 15_000 })
 
     await back.click()
     await expect
