@@ -19,6 +19,7 @@ import { Lenis } from '@/components/layout/lenis'
 import { Theme } from '@/components/layout/theme'
 import type { ThemeName } from '@/styles/config'
 import { BackToTop } from '@/vault/blocks/back-to-top'
+import { GridUnderlay } from '@/vault/motion/grid-underlay'
 import { Canvas } from '@/webgl/components/canvas'
 
 /**
@@ -206,6 +207,11 @@ export function Wrapper({
         the controls before it keep their place in the order.
       */}
       <BackToTop label={t('backToTop')} />
+      {/*
+        The page grid, drawn over the page when the footer's toggle or the
+        `g` key asks — Tata & Gerak, stage 5. Nothing is rendered until then.
+      */}
+      <GridUnderlay />
       {gsap && <GSAPRuntime />}
       {lenis && (
         <Lenis

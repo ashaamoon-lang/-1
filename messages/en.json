@@ -80,7 +80,8 @@
     "rights": "All work © {year} Arth. Reproduction by arrangement only.",
     "builtOn": "Built on Satūs by darkroom.engineering, MIT licensed. Type is Syne and Geist Mono.",
     "index": "Index",
-    "backToTop": "Back to top"
+    "backToTop": "Back to top",
+    "showGrid": "Show the grid"
   },
   "project": {
     "enquiryLabel": "Discuss a similar engagement",

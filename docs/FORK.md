@@ -867,6 +867,14 @@ Ia tak dirender sebelum dua layar, jadi bukan perhentian ekstra bagi keyboard; l
 footer, jadi urutan kontrol lain tak bergeser. Di ujung halaman tak menutupi teks (EN/ID, 390/1440).
 Diuji di `e2e/back-to-top.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
 
+**Semua rute — kisi bawah (Tata & Gerak, tahap 5).** Situs ini berargumen bahwa struktur di
+balik karya ikut dibeli klien, tapi kisi 12 kolom halamannya sendiri tak pernah terlihat. Kini
+tombol "Show the grid"/"Tampilkan kisi" di kolofon footer (`aria-pressed`), atau tombol `g` di
+luar kolom isian, menggambar kisi itu di atas halaman (`vault/motion/grid-underlay`): kolom
+turun dari atas bergiliran `--stagger-items`. Geometrinya kisi halaman sendiri (`--columns`,
+`--gap`, `--safe`; 4 kolom di ponsel). Status hanya untuk kunjungan, tanpa penyimpanan.
+Diuji di `e2e/grid-underlay.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)

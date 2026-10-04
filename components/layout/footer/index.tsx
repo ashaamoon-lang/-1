@@ -6,6 +6,7 @@ import { Link } from '@/components/ui/link'
 import { Marquee } from '@/components/ui/marquee'
 import { FALLBACK_CONTACT } from '@/lib/content/home-fallback'
 import { PRACTICES, practiceTemplate } from '@/lib/content/practices'
+import { GridToggle } from '@/vault/motion/grid-underlay'
 
 import s from './footer.module.css'
 
@@ -225,6 +226,13 @@ export function Footer() {
         <section className={s.column}>
           <h2 className={cn('caption', s.heading)}>{t('colophon')}</h2>
           <p className={cn('caption', s.note)}>{t('builtOn')}</p>
+          {/*
+            The grid these pages are set on, drawn over the page on request —
+            Tata & Gerak, stage 5 (`vault/motion/grid-underlay`). In the
+            colophon, beside how the site is built, because it is part of
+            that answer.
+          */}
+          <GridToggle label={t('showGrid')} className={s.gridToggle} />
         </section>
       </div>
 

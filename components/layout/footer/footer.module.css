@@ -191,6 +191,11 @@
   max-width: 46ch;
 }
 
+/* A chip, as wide as its words, not the column. */
+.gridToggle {
+  align-self: flex-start;
+}
+
 .rights {
   border-top: 1px solid var(--line);
   padding-top: mobile-vw(20px);
