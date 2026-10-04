@@ -334,6 +334,7 @@ pratinjau lokal.
 | 1   | `/journal/<slug>`, semua  | cetak esai rapi (`@media print`)                           | tipografi seimbang (`text-wrap`)                    | —                            | `feat(print)`, `feat(layout)`        | belum CI |
 | 2   | `/journal/<slug>`, header | waktu baca + sisa waktu (`vault/blocks/reading-left`)      | penanda rute meluncur (`vault/motion/route-marker`) | `route-marker`               | `feat(reading-time)`, `feat(motion)` | belum CI |
 | 3   | `/work`, kartu            | pratinjau sampul di bingkai (`vault/motion/cover-preview`) | tanda potong kartu (`vault/motion/crop-marks`)      | `cover-preview`, `card-crop` | `feat(frame)`, `feat(motion)`        | belum CI |
+| 4   | `/work/<slug>`            | fakta yang ikut di spine (`vault/blocks/project-spine`)    | spine satu baris di ponsel                          | `following-facts`            | `feat(spine)`                        | belum CI |
 
 ## 5. Utang yang dibawa — keputusan pemilik repo
 

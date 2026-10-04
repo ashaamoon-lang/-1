@@ -494,6 +494,12 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             copied: t('sectionCopied'),
             failed: t('sectionCopyFailed'),
           }}
+          // The case's name and year, kept once the hero has gone — Tata &
+          // Gerak, stage 4. The same two facts the hero shows.
+          facts={{
+            title: project.title || humanizeSlug(slug),
+            year: project.year ?? null,
+          }}
         >
           <ProjectHero
             id="overview"

@@ -842,6 +842,14 @@ kasus. Panjangnya 9,2 px, di bawah celah tersempit antara pelat dan judul (10,24
 CSS saja, jadi berlaku tanpa JS; hanya `transform`/`opacity`; reduced motion: langsung tampil.
 Diuji di `e2e/card-crop.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
 
+**`/work/<slug>` — fakta yang ikut (Tata & Gerak, tahap 4).** Di tengah halaman kasus
+sepanjang 4,7 layar, tak ada yang menyebut karya mana yang sedang dibaca. Kini, begitu `h1`
+hero keluar layar, spine desktop menyebut nama dan tahun kasus ("Arus Balik 2025") di tempat
+labelnya. Label terangkat pergi saat nama naik masuk, di sel yang sama, jadi baris di bawahnya
+tak bergeser. Dideteksi `IntersectionObserver` pada `h1`, jadi benar juga saat tiba di tengah
+halaman. `aria-hidden` karena mengulang `h1`; tanpa JS label tetap. `data-epic="following-facts"`.
+Diuji di `e2e/following-facts.e2e.ts`. **Belum diverifikasi:** e2e, CI, mata.
+
 ### 3.3 Gerbang kontras melihat lebih banyak — ditemukan dengan melihat
 
 Chip "All" di `/work` tampil tanpa angka: angka hitungannya (`aria-hidden`)
